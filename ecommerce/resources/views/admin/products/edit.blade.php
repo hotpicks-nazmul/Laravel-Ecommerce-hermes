@@ -36,7 +36,7 @@
                     
                     <div class="mb-3">
                         <label for="description" class="form-label">Description *</label>
-                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="5" required>{{ old('description', $product->description) }}</textarea>
+                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="5" required>{{ old('description', $product->long_description) }}</textarea>
                         @error('description')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -76,7 +76,7 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="stock" class="form-label">Stock Quantity *</label>
-                                <input type="number" min="0" class="form-control @error('stock') is-invalid @enderror" id="stock" name="stock" value="{{ old('stock', $product->stock) }}" required>
+                                <input type="number" min="0" class="form-control @error('stock') is-invalid @enderror" id="stock" name="stock" value="{{ old('stock', $product->quantity) }}" required>
                                 @error('stock')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -103,9 +103,16 @@
                     
                     <div class="mb-3">
                         <label for="image" class="form-label">Featured Image</label>
-                        @if($product->image)
+                        @if($product->featured_image)
+                            @php
+                                $imageUrl = $product->featured_image;
+                                // Handle different image path formats
+                                if (!str_starts_with($imageUrl, 'http') && !str_starts_with($imageUrl, '/storage/')) {
+                                    $imageUrl = '/storage/' . $imageUrl;
+                                }
+                            @endphp
                             <div class="mb-2">
-                                <img src="{{ asset('storage/' . $product->image) }}" class="img-thumbnail" style="max-width: 150px;">
+                                <img src="{{ $imageUrl }}" class="img-thumbnail" style="max-width: 150px;">
                             </div>
                         @endif
                         <input type="file" class="form-control @error('image') is-invalid @enderror" id="image" name="image" accept="image/*">
@@ -117,11 +124,17 @@
                     
                     <div class="mb-3">
                         <label for="images" class="form-label">Gallery Images</label>
-                        @if($product->images && json_decode($product->images))
+                        @if($product->images && is_array(json_decode($product->images)))
                             <div class="mb-2 d-flex flex-wrap gap-2">
                                 @foreach(json_decode($product->images) as $index => $img)
+                                    @php
+                                        $galleryUrl = $img;
+                                        if (!str_starts_with($galleryUrl, 'http') && !str_starts_with($galleryUrl, '/storage/')) {
+                                            $galleryUrl = '/storage/' . $galleryUrl;
+                                        }
+                                    @endphp
                                     <div class="position-relative">
-                                        <img src="{{ asset('storage/' . $img) }}" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
+                                        <img src="{{ $galleryUrl }}" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
                                         <form action="{{ route('admin.products.images.delete', [$product->id, $index]) }}" method="POST" class="d-inline position-absolute top-0 start-100 translate-middle">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="badge bg-danger rounded-circle border-0" 

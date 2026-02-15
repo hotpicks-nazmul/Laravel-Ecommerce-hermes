@@ -29,8 +29,15 @@
                     @forelse($products ?? [] as $product)
                     <tr>
                         <td>
-                            @if($product->featured_image)
-                            <img src="{{ asset('storage/' . $product->featured_image) }}" alt="{{ $product->name }}" width="50" height="50" class="rounded">
+                            @php
+                                $imageUrl = $product->featured_image;
+                                // Handle both old format (products/file.jpg) and new format (/storage/products/file.jpg)
+                                if($imageUrl && !str_starts_with($imageUrl, '/storage/') && !str_starts_with($imageUrl, 'http')) {
+                                    $imageUrl = '/storage/' . $imageUrl;
+                                }
+                            @endphp
+                            @if($imageUrl)
+                            <img src="{{ $imageUrl }}" alt="{{ $product->name }}" width="50" height="50" class="rounded object-cover">
                             @else
                             <div class="bg-secondary rounded" style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;">
                                 <i class="bi bi-image text-white"></i>

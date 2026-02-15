@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
@@ -27,7 +28,7 @@ class CategoryController extends Controller
             'name' => 'required|string|max:255',
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:5120',
             'is_active' => 'boolean',
         ]);
 
@@ -35,7 +36,8 @@ class CategoryController extends Controller
         $data['slug'] = Str::slug($request->name);
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('categories', 'public');
+            $path = $request->file('image')->store('categories', 'public');
+            $data['image'] = Storage::url($path);
         }
 
         Category::create($data);
@@ -60,7 +62,7 @@ class CategoryController extends Controller
             'name' => 'required|string|max:255',
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:5120',
             'is_active' => 'boolean',
         ]);
 
@@ -68,7 +70,15 @@ class CategoryController extends Controller
         $data['slug'] = Str::slug($request->name);
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('categories', 'public');
+            // Delete old image if exists
+            if ($category->image) {
+                $oldPath = str_replace('/storage/', '', $category->image);
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            }
+            $path = $request->file('image')->store('categories', 'public');
+            $data['image'] = Storage::url($path);
         }
 
         $category->update($data);
@@ -78,6 +88,14 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
+        // Delete image from storage
+        if ($category->image) {
+            $oldPath = str_replace('/storage/', '', $category->image);
+            if (Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+        }
+        
         $category->delete();
         return back()->with('success', 'Category deleted successfully.');
     }

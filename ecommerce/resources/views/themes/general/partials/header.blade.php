@@ -22,18 +22,39 @@
     </div>
 </div>
 
+@php
+// Site Branding Settings - Query settings with homepage group
+$siteNameSetting = \App\Models\Setting::where('key', 'site_name')->first();
+$siteTaglineSetting = \App\Models\Setting::where('key', 'site_tagline')->first();
+$siteLogoIconSetting = \App\Models\Setting::where('key', 'site_logo_icon')->first();
+$siteLogoImageSetting = \App\Models\Setting::where('key', 'site_logo')->first();
+
+$siteName = $siteNameSetting ? $siteNameSetting->value : 'Halal Food';
+$siteTagline = $siteTaglineSetting ? $siteTaglineSetting->value : 'Premium Quality Store';
+$siteLogoIcon = $siteLogoIconSetting ? $siteLogoIconSetting->value : 'bi bi-shop';
+$siteLogoImage = $siteLogoImageSetting ? $siteLogoImageSetting->value : '';
+@endphp
+
 <!-- Main Header -->
 <header class="bg-white shadow-md sticky top-0 z-40">
     <div class="container mx-auto px-4">
         <div class="flex items-center justify-between py-4">
             <!-- Logo -->
             <a href="{{ route('home') }}" class="flex items-center space-x-2">
-                <div class="w-12 h-12 gradient-halal rounded-full flex items-center justify-center">
-                    <i class="bi bi-shop text-white text-xl"></i>
-                </div>
+                @php
+                    $logoPath = trim($siteLogoImage ?? '');
+                    $hasLogo = !empty($logoPath) && $logoPath !== '';
+                @endphp
+                @if($hasLogo)
+                    <img src="{{ $logoPath }}" alt="{{ $siteName }}" class="h-12 w-auto object-contain">
+                @else
+                    <div class="w-12 h-12 gradient-halal rounded-full flex items-center justify-center">
+                        <i class="{{ $siteLogoIcon }} text-white text-xl"></i>
+                    </div>
+                @endif
                 <div>
-                    <h1 class="font-poppins text-2xl font-bold text-halal-green">Halal Food</h1>
-                    <p class="text-xs text-gray-500 -mt-1">Premium Quality Store</p>
+                    <h1 class="font-poppins text-2xl font-bold text-halal-green">{{ $siteName }}</h1>
+                    <p class="text-xs text-gray-500 -mt-1">{{ $siteTagline }}</p>
                 </div>
             </a>
             

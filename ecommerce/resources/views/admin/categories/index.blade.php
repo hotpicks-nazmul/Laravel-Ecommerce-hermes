@@ -29,7 +29,13 @@
                     <tr>
                         <td>
                             @if($category->image)
-                            <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" width="50" height="50" class="rounded">
+                                @php
+                                    $imageUrl = $category->image;
+                                    if (!str_starts_with($imageUrl, 'http') && !str_starts_with($imageUrl, '/storage/')) {
+                                        $imageUrl = '/storage/' . $imageUrl;
+                                    }
+                                @endphp
+                                <img src="{{ $imageUrl }}" alt="{{ $category->name }}" width="50" height="50" class="rounded">
                             @else
                             <div class="bg-secondary rounded" style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;">
                                 <i class="bi bi-folder text-white"></i>

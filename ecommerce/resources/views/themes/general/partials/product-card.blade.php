@@ -3,12 +3,24 @@
     <div class="relative overflow-hidden">
         <a href="{{ route('products.show', $product->slug) }}">
             @php
-                $imageUrl = $product->image ?? 'https://via.placeholder.com/300x300?text=No+Image';
-                // Check if it's an external URL or local uploads
-                if (str_starts_with($imageUrl, '/uploads/')) {
-                    $imageUrl = asset($imageUrl);
-                } elseif (!str_starts_with($imageUrl, 'http')) {
-                    $imageUrl = asset('storage/' . $imageUrl);
+                $imageUrl = $product->featured_image ?? '';
+                // Handle different image path formats
+                if ($imageUrl) {
+                    if (str_starts_with($imageUrl, 'http')) {
+                        // External URL - use as is
+                        $imageUrl = $imageUrl;
+                    } elseif (str_starts_with($imageUrl, '/storage/')) {
+                        // New format with /storage/ prefix - use as is
+                        $imageUrl = $imageUrl;
+                    } elseif (str_starts_with($imageUrl, '/uploads/')) {
+                        // Old uploads format
+                        $imageUrl = asset($imageUrl);
+                    } else {
+                        // Relative path - prepend storage
+                        $imageUrl = asset('storage/' . $imageUrl);
+                    }
+                } else {
+                    $imageUrl = 'https://via.placeholder.com/300x300?text=No+Image';
                 }
             @endphp
             <img src="{{ $imageUrl }}" 

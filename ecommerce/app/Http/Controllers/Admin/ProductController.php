@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -54,23 +55,27 @@ class ProductController extends Controller
             'stock' => 'required|integer|min:0',
             'description' => 'required|string',
             'short_description' => 'nullable|string|max:500',
-            'image' => 'nullable|image|max:2048',
-            'images.*' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:5120',
+            'images.*' => 'nullable|image|max:5120',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
         ]);
 
-        $data = $request->all();
+        $data = $request->except(['description', 'stock']);
         $data['slug'] = Str::slug($request->name);
+        $data['long_description'] = $request->description;
+        $data['quantity'] = $request->stock;
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('products', 'public');
+            $path = $request->file('image')->store('products', 'public');
+            $data['featured_image'] = Storage::url($path);
         }
 
         if ($request->hasFile('images')) {
             $images = [];
             foreach ($request->file('images') as $image) {
-                $images[] = $image->store('products', 'public');
+                $path = $image->store('products', 'public');
+                $images[] = Storage::url($path);
             }
             $data['images'] = json_encode($images);
         }
@@ -111,23 +116,34 @@ class ProductController extends Controller
             'stock' => 'required|integer|min:0',
             'description' => 'required|string',
             'short_description' => 'nullable|string|max:500',
-            'image' => 'nullable|image|max:2048',
-            'images.*' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:5120',
+            'images.*' => 'nullable|image|max:5120',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
         ]);
 
-        $data = $request->all();
+        $data = $request->except(['description', 'stock']);
         $data['slug'] = Str::slug($request->name);
+        $data['long_description'] = $request->description;
+        $data['quantity'] = $request->stock;
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('products', 'public');
+            // Delete old image if exists
+            if ($product->featured_image) {
+                $oldPath = str_replace('/storage/', '', $product->featured_image);
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            }
+            $path = $request->file('image')->store('products', 'public');
+            $data['featured_image'] = Storage::url($path);
         }
 
         if ($request->hasFile('images')) {
             $images = json_decode($product->images ?? '[]', true);
             foreach ($request->file('images') as $image) {
-                $images[] = $image->store('products', 'public');
+                $path = $image->store('products', 'public');
+                $images[] = Storage::url($path);
             }
             $data['images'] = json_encode($images);
         }
@@ -142,6 +158,23 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
+        // Delete main image
+        if ($product->featured_image) {
+            $oldPath = str_replace('/storage/', '', $product->featured_image);
+            if (Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+        }
+        
+        // Delete gallery images
+        $images = json_decode($product->images ?? '[]', true);
+        foreach ($images as $image) {
+            $oldPath = str_replace('/storage/', '', $image);
+            if (Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+        }
+        
         $product->delete();
         return back()->with('success', 'Product deleted successfully.');
     }
@@ -185,13 +218,14 @@ class ProductController extends Controller
     public function uploadImages(Request $request, Product $product)
     {
         $request->validate([
-            'images.*' => 'required|image|max:2048',
+            'images.*' => 'required|image|max:5120',
         ]);
 
         $images = json_decode($product->images ?? '[]', true);
 
         foreach ($request->file('images') as $image) {
-            $images[] = $image->store('products', 'public');
+            $path = $image->store('products', 'public');
+            $images[] = Storage::url($path);
         }
 
         $product->update(['images' => json_encode($images)]);
@@ -207,6 +241,12 @@ class ProductController extends Controller
         $images = json_decode($product->images ?? '[]', true);
         
         if (isset($images[$index])) {
+            // Delete file from storage
+            $oldPath = str_replace('/storage/', '', $images[$index]);
+            if (Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+            
             unset($images[$index]);
             $product->update(['images' => json_encode(array_values($images))]);
         }

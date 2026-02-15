@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Blog;
+use Illuminate\Support\Facades\Storage;
 
 class BlogController extends Controller
 {
@@ -25,9 +26,10 @@ class BlogController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required',
             'status' => 'required|in:published,draft',
+            'image' => 'nullable|image|max:5120',
         ]);
 
-        Blog::create([
+        $data = [
             'title' => $request->title,
             'slug' => \Str::slug($request->title),
             'content' => $request->content,
@@ -35,7 +37,14 @@ class BlogController extends Controller
             'status' => $request->status,
             'author_id' => auth()->id(),
             'published_at' => $request->status === 'published' ? now() : null,
-        ]);
+        ];
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('blogs', 'public');
+            $data['image'] = Storage::url($path);
+        }
+
+        Blog::create($data);
 
         return redirect()->route('admin.blogs.index')->with('success', 'Blog created successfully.');
     }
@@ -56,22 +65,45 @@ class BlogController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required',
             'status' => 'required|in:published,draft',
+            'image' => 'nullable|image|max:5120',
         ]);
 
-        $blog->update([
+        $data = [
             'title' => $request->title,
             'slug' => \Str::slug($request->title),
             'content' => $request->content,
             'excerpt' => $request->excerpt,
             'status' => $request->status,
             'published_at' => $request->status === 'published' && !$blog->published_at ? now() : $blog->published_at,
-        ]);
+        ];
+
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($blog->image) {
+                $oldPath = str_replace('/storage/', '', $blog->image);
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            }
+            $path = $request->file('image')->store('blogs', 'public');
+            $data['image'] = Storage::url($path);
+        }
+
+        $blog->update($data);
 
         return redirect()->route('admin.blogs.index')->with('success', 'Blog updated successfully.');
     }
 
     public function destroy(Blog $blog)
     {
+        // Delete image from storage
+        if ($blog->image) {
+            $oldPath = str_replace('/storage/', '', $blog->image);
+            if (Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+        }
+        
         $blog->delete();
         return redirect()->route('admin.blogs.index')->with('success', 'Blog deleted successfully.');
     }

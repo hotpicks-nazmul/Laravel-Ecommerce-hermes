@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SliderController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\HeroController;
+use App\Http\Controllers\Admin\HomePageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -82,6 +83,12 @@ Route::post('/banners/{banner}/toggle', [BannerController::class, 'toggle'])->na
 Route::prefix('hero')->name('hero.')->group(function () {
     Route::get('/', [HeroController::class, 'index'])->name('index');
     Route::put('/', [HeroController::class, 'update'])->name('update');
+});
+
+// Home Page Settings
+Route::prefix('homepage')->name('homepage.')->group(function () {
+    Route::get('/', [HomePageController::class, 'index'])->name('index');
+    Route::put('/', [HomePageController::class, 'update'])->name('update');
 });
 
 // Theme Management

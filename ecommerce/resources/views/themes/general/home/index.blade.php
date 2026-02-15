@@ -8,6 +8,14 @@ $hero = function($key, $default = '') use ($heroSettings) {
 $heroJson = function($key) use ($hero) {
     return json_decode($hero($key, '{}'), true);
 };
+
+// Home Page Settings
+$homeSettings = \App\Models\Setting::where('group', 'homepage')->get()->keyBy('key');
+$home = function($key, $default = '') use ($homeSettings) {
+    return $homeSettings->has($key) ? $homeSettings[$key]->value : $default;
+};
+$productColumns = (int) $home('homepage_product_columns', '6');
+$gridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $productColumns;
 @endphp
 
 @section('content')
@@ -278,27 +286,30 @@ $heroJson = function($key) use ($hero) {
 </section>
 
 <!-- Featured Products -->
+@if($home('homepage_show_featured_section', '1') == '1')
 <section class="py-12">
     <div class="container mx-auto px-4">
         <div class="flex items-center justify-between mb-8">
             <div>
-                <h2 class="font-poppins text-3xl font-bold text-gray-800">Featured Products</h2>
-                <p class="text-gray-600 mt-1">Handpicked premium quality products for you</p>
+                <h2 class="font-poppins text-3xl font-bold text-gray-800">{{ $home('homepage_featured_title', 'Featured Products') }}</h2>
+                <p class="text-gray-600 mt-1">{{ $home('homepage_featured_subtitle', 'Handpicked premium quality products for you') }}</p>
             </div>
             <a href="{{ route('products.index') }}" class="text-halal-green hover:text-halal-dark font-medium flex items-center">
                 View All <i class="bi bi-arrow-right ml-1"></i>
             </a>
         </div>
         
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div class="{{ $gridClass }} gap-5">
             @foreach($featuredProducts as $product)
                 @include('themes.general.partials.product-card', ['product' => $product])
             @endforeach
         </div>
     </div>
 </section>
+@endif
 
 <!-- Banner Section -->
+@if($home('homepage_show_banner_section', '1') == '1')
 <section class="py-8">
     <div class="container mx-auto px-4">
         <div class="grid md:grid-cols-2 gap-6">
@@ -332,29 +343,33 @@ $heroJson = function($key) use ($hero) {
         </div>
     </div>
 </section>
+@endif
 
 <!-- New Arrivals -->
+@if($home('homepage_show_new_arrivals_section', '1') == '1')
 <section class="py-12 bg-gray-50">
     <div class="container mx-auto px-4">
         <div class="flex items-center justify-between mb-8">
             <div>
-                <h2 class="font-poppins text-3xl font-bold text-gray-800">New Arrivals</h2>
-                <p class="text-gray-600 mt-1">Fresh products just arrived in our store</p>
+                <h2 class="font-poppins text-3xl font-bold text-gray-800">{{ $home('homepage_new_arrivals_title', 'New Arrivals') }}</h2>
+                <p class="text-gray-600 mt-1">{{ $home('homepage_new_arrivals_subtitle', 'Fresh products just arrived in our store') }}</p>
             </div>
             <a href="{{ route('products.index', ['sort' => 'newest']) }}" class="text-halal-green hover:text-halal-dark font-medium flex items-center">
                 View All <i class="bi bi-arrow-right ml-1"></i>
             </a>
         </div>
         
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div class="{{ $gridClass }} gap-5">
             @foreach($latestProducts as $product)
                 @include('themes.general.partials.product-card', ['product' => $product])
             @endforeach
         </div>
     </div>
 </section>
+@endif
 
 <!-- Why Choose Us -->
+@if($home('homepage_show_why_choose_us_section', '1') == '1')
 <section class="py-16 bg-halal-dark text-white">
     <div class="container mx-auto px-4">
         <div class="text-center mb-12">
@@ -397,24 +412,25 @@ $heroJson = function($key) use ($hero) {
         </div>
     </div>
 </section>
+@endif
 
 <!-- Sale Products -->
-@if($saleProducts->count() > 0)
+@if($saleProducts->count() > 0 && $home('homepage_show_sale_section', '1') == '1')
 <section class="py-12">
     <div class="container mx-auto px-4">
         <div class="flex items-center justify-between mb-8">
             <div>
                 <h2 class="font-poppins text-3xl font-bold text-gray-800">
-                    <i class="bi bi-fire text-red-500"></i> Hot Deals
+                    <i class="bi bi-fire text-red-500"></i> {{ $home('homepage_sale_title', 'Hot Deals') }}
                 </h2>
-                <p class="text-gray-600 mt-1">Limited time offers - Grab them before they're gone!</p>
+                <p class="text-gray-600 mt-1">{{ $home('homepage_sale_subtitle', 'Limited time offers - Grab them before they are gone!') }}</p>
             </div>
             <a href="{{ route('products.index', ['sort' => 'discount']) }}" class="text-halal-green hover:text-halal-dark font-medium flex items-center">
                 View All <i class="bi bi-arrow-right ml-1"></i>
             </a>
         </div>
         
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div class="{{ $gridClass }} gap-5">
             @foreach($saleProducts as $product)
                 @include('themes.general.partials.product-card', ['product' => $product])
             @endforeach
@@ -424,6 +440,7 @@ $heroJson = function($key) use ($hero) {
 @endif
 
 <!-- Testimonials -->
+@if($home('homepage_show_testimonials_section', '1') == '1')
 <section class="py-12 bg-gray-50">
     <div class="container mx-auto px-4">
         <div class="text-center mb-10">
@@ -488,9 +505,10 @@ $heroJson = function($key) use ($hero) {
         </div>
     </div>
 </section>
+@endif
 
 <!-- Blog Section -->
-@if($latestBlogs->count() > 0)
+@if($latestBlogs->count() > 0 && $home('homepage_show_blog_section', '1') == '1')
 <section class="py-12">
     <div class="container mx-auto px-4">
         <div class="flex items-center justify-between mb-8">
