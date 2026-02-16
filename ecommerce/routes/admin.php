@@ -83,6 +83,7 @@ Route::post('/banners/{banner}/toggle', [BannerController::class, 'toggle'])->na
 Route::prefix('hero')->name('hero.')->group(function () {
     Route::get('/', [HeroController::class, 'index'])->name('index');
     Route::put('/', [HeroController::class, 'update'])->name('update');
+    Route::post('/type', [HeroController::class, 'updateType'])->name('update-type');
 });
 
 // Home Page Settings
@@ -125,6 +126,8 @@ Route::prefix('settings')->name('settings.')->group(function () {
     Route::post('/seo', [SettingController::class, 'updateSeo'])->name('seo.update');
     Route::get('/social', [SettingController::class, 'social'])->name('social');
     Route::post('/social', [SettingController::class, 'updateSocial'])->name('social.update');
+    Route::get('/social-login', [SettingController::class, 'socialLogin'])->name('social-login');
+    Route::put('/social-login', [SettingController::class, 'updateSocialLogin'])->name('social-login.update');
     Route::get('/maintenance', [SettingController::class, 'maintenance'])->name('maintenance');
     Route::post('/maintenance', [SettingController::class, 'updateMaintenance'])->name('maintenance.update');
 });

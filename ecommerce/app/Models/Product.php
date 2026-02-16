@@ -145,4 +145,28 @@ class Product extends Model
     {
         return $value;
     }
+
+    /**
+     * Check if product is on sale.
+     */
+    public function isOnSale()
+    {
+        return $this->sale_price && $this->sale_price < $this->price;
+    }
+
+    /**
+     * Get current price (sale price if on sale, otherwise regular price).
+     */
+    public function getCurrentPriceAttribute()
+    {
+        return $this->sale_price ?? $this->price;
+    }
+
+    /**
+     * Get review count.
+     */
+    public function getReviewCountAttribute()
+    {
+        return $this->reviews()->count();
+    }
 }

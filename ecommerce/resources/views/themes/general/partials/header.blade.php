@@ -82,6 +82,9 @@ $siteLogoImage = $siteLogoImageSetting ? $siteLogoImageSetting->value : '';
                         <i class="bi bi-chevron-down text-xs"></i>
                     </button>
                     <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                        <a href="{{ route('account.dashboard') }}" class="flex items-center px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-halal-green">
+                            <i class="bi bi-grid mr-2"></i>Dashboard
+                        </a>
                         <a href="{{ route('account.profile') }}" class="flex items-center px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-halal-green">
                             <i class="bi bi-person mr-2"></i>My Profile
                         </a>
@@ -90,6 +93,9 @@ $siteLogoImage = $siteLogoImageSetting ? $siteLogoImageSetting->value : '';
                         </a>
                         <a href="{{ route('account.wishlist') }}" class="flex items-center px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-halal-green">
                             <i class="bi bi-heart mr-2"></i>Wishlist
+                        </a>
+                        <a href="{{ route('account.addresses') }}" class="flex items-center px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-halal-green">
+                            <i class="bi bi-geo-alt mr-2"></i>Addresses
                         </a>
                         <hr class="my-2">
                         <form action="{{ route('logout') }}" method="POST">
@@ -101,17 +107,23 @@ $siteLogoImage = $siteLogoImageSetting ? $siteLogoImageSetting->value : '';
                     </div>
                 </div>
                 @else
-                <a href="{{ route('login') }}" class="flex items-center space-x-1 text-gray-700 hover:text-halal-green transition-colors">
-                    <i class="bi bi-person-circle text-2xl"></i>
-                    <span class="hidden lg:block">Login</span>
-                </a>
+                <div class="flex items-center space-x-3">
+                    <a href="{{ route('login') }}" class="flex items-center space-x-1 text-gray-700 hover:text-halal-green transition-colors">
+                        <i class="bi bi-person-circle text-2xl"></i>
+                        <span class="hidden lg:block">Login</span>
+                    </a>
+                    <a href="{{ route('register') }}" class="bg-halal-green text-white px-4 py-2 rounded-full hover:bg-halal-dark transition-colors text-sm font-medium">
+                        Register
+                    </a>
+                </div>
                 @endauth
                 
                 <!-- Wishlist -->
-                <a href="{{ route('account.wishlist') }}" class="relative text-gray-700 hover:text-halal-green transition-colors">
+                @php $wishlistCount = auth()->check() ? \App\Models\Wishlist::where('user_id', auth()->id())->count() : 0; @endphp
+                <button onclick="openWishlistSidebar()" class="relative text-gray-700 hover:text-halal-green transition-colors">
                     <i class="bi bi-heart text-2xl"></i>
-                    <span class="absolute -top-1 -right-1 w-5 h-5 bg-halal-gold text-white text-xs rounded-full flex items-center justify-center wishlist-count">0</span>
-                </a>
+                    <span class="absolute -top-1 -right-1 w-5 h-5 bg-halal-gold text-white text-xs rounded-full flex items-center justify-center wishlist-count {{ $wishlistCount == 0 ? 'hidden' : '' }}">{{ $wishlistCount }}</span>
+                </button>
                 
                 <!-- Cart -->
                 <button onclick="openCartSidebar()" class="relative flex items-center space-x-2 bg-halal-green text-white px-4 py-2 rounded-full hover:bg-halal-dark transition-colors">

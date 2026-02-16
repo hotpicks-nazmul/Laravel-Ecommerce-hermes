@@ -78,12 +78,13 @@ Route::prefix('api')->name('api.')->group(function () {
     Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
     Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+    Route::get('/wishlist/items', [WishlistController::class, 'items'])->name('wishlist.items');
     Route::post('/chat/send', [ChatController::class, 'aiChat'])->name('chat.send');
     Route::get('/products/quick-view/{id}', [ProductController::class, 'quickView'])->name('products.quick-view');
 });
 
 // Wishlist Routes
-Route::prefix('wishlist')->name('wishlist.')->group(function () {
+Route::prefix('wishlist')->name('wishlist.')->middleware('auth')->group(function () {
     Route::get('/', [WishlistController::class, 'index'])->name('index');
     Route::post('/add', [WishlistController::class, 'add'])->name('add');
     Route::post('/remove', [WishlistController::class, 'remove'])->name('remove');
@@ -96,33 +97,6 @@ Route::prefix('checkout')->name('checkout.')->middleware('auth')->group(function
     Route::post('/process', [CheckoutController::class, 'process'])->name('process');
     Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
     Route::get('/cancel', [CheckoutController::class, 'cancel'])->name('cancel');
-});
-
-// Payment Routes
-Route::prefix('payment')->name('payment.')->group(function () {
-    Route::post('/bkash/create', [PaymentController::class, 'bkashCreate'])->name('bkash.create');
-    Route::post('/bkash/execute', [PaymentController::class, 'bkashExecute'])->name('bkash.execute');
-    Route::get('/bkash/callback', [PaymentController::class, 'bkashCallback'])->name('bkash.callback');
-    Route::post('/sslcommerz/create', [PaymentController::class, 'sslcommerzCreate'])->name('sslcommerz.create');
-    Route::post('/sslcommerz/success', [PaymentController::class, 'sslcommerzSuccess'])->name('sslcommerz.success');
-    Route::post('/sslcommerz/fail', [PaymentController::class, 'sslcommerzFail'])->name('sslcommerz.fail');
-    Route::post('/sslcommerz/cancel', [PaymentController::class, 'sslcommerzCancel'])->name('sslcommerz.cancel');
-    Route::post('/sslcommerz/ipn', [PaymentController::class, 'sslcommerzIpn'])->name('sslcommerz.ipn');
-});
-
-// Order Routes
-Route::prefix('orders')->name('orders.')->middleware('auth')->group(function () {
-    Route::get('/', [OrderController::class, 'index'])->name('index');
-    Route::get('/{order}', [OrderController::class, 'show'])->name('show');
-    Route::post('/{order}/cancel', [OrderController::class, 'cancel'])->name('cancel');
-    Route::get('/track/{order}', [OrderController::class, 'track'])->name('track');
-});
-
-// Wishlist Routes
-Route::prefix('wishlist')->name('wishlist.')->middleware('auth')->group(function () {
-    Route::get('/', [WishlistController::class, 'index'])->name('index');
-    Route::post('/add', [WishlistController::class, 'add'])->name('add');
-    Route::post('/remove', [WishlistController::class, 'remove'])->name('remove');
 });
 
 // Review Routes
@@ -162,6 +136,7 @@ Route::middleware('auth')->group(function () {
     
     // Account Routes
     Route::prefix('account')->name('account.')->group(function () {
+        Route::get('/', [UserController::class, 'dashboard'])->name('dashboard');
         Route::get('/profile', [UserController::class, 'profile'])->name('profile');
         Route::put('/profile', [UserController::class, 'updateProfile'])->name('profile.update');
         Route::get('/orders', [OrderController::class, 'index'])->name('orders');

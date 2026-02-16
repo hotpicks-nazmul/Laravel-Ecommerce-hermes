@@ -41,6 +41,9 @@
                 </div>
             </div>
             <div class="mt-4 space-y-2">
+                <a href="{{ route('account.dashboard') }}" class="flex items-center text-gray-600 hover:text-halal-green py-2">
+                    <i class="bi bi-grid mr-3"></i> Dashboard
+                </a>
                 <a href="{{ route('account.profile') }}" class="flex items-center text-gray-600 hover:text-halal-green py-2">
                     <i class="bi bi-person mr-3"></i> My Profile
                 </a>
@@ -49,6 +52,9 @@
                 </a>
                 <a href="{{ route('account.wishlist') }}" class="flex items-center text-gray-600 hover:text-halal-green py-2">
                     <i class="bi bi-heart mr-3"></i> Wishlist
+                </a>
+                <a href="{{ route('account.addresses') }}" class="flex items-center text-gray-600 hover:text-halal-green py-2">
+                    <i class="bi bi-geo-alt mr-3"></i> Addresses
                 </a>
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf

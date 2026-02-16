@@ -276,8 +276,13 @@
             <div class="nav-header">Settings</div>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">
+                    <a class="nav-link {{ request()->routeIs('admin.settings.index') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">
                         <i class="bi bi-gear"></i> Settings
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.settings.social-login') ? 'active' : '' }}" href="{{ route('admin.settings.social-login') }}">
+                        <i class="bi bi-google"></i> Social Login
                     </a>
                 </li>
                 <li class="nav-item">
@@ -385,6 +390,33 @@
         // Sidebar toggle
         document.getElementById('sidebarToggle')?.addEventListener('click', function() {
             document.getElementById('sidebar').classList.toggle('show');
+        });
+        
+        // Save sidebar scroll position before page unload
+        window.addEventListener('beforeunload', function() {
+            const sidebar = document.querySelector('.sidebar-menu');
+            if (sidebar) {
+                sessionStorage.setItem('sidebarScrollPosition', sidebar.scrollTop);
+            }
+        });
+        
+        // Restore sidebar scroll position on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar-menu');
+            const savedPosition = sessionStorage.getItem('sidebarScrollPosition');
+            
+            if (sidebar && savedPosition) {
+                sidebar.scrollTop = parseInt(savedPosition);
+            }
+            
+            // Scroll active menu item into view
+            const activeLink = document.querySelector('.sidebar-menu .nav-link.active');
+            if (activeLink) {
+                // Small delay to ensure DOM is ready
+                setTimeout(function() {
+                    activeLink.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
         });
         
         // Initialize DataTables only on tables with data-table class

@@ -54,8 +54,9 @@
                     </svg>
                 </a>
                 @auth
-                <button onclick="toggleWishlist({{ $product->id }})" class="bg-white text-gray-900 p-2 rounded-full hover:bg-red-500 hover:text-white transition-colors wishlist-btn-{{ $product->id }}" title="Add to Wishlist">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                @php $inWishlist = \App\Models\Wishlist::where('user_id', auth()->id())->where('product_id', $product->id)->exists(); @endphp
+                <button onclick="toggleWishlist({{ $product->id }})" class="p-2 rounded-full transition-colors wishlist-btn-{{ $product->id }} {{ $inWishlist ? 'bg-red-500 text-white' : 'bg-white text-gray-900 hover:bg-red-500 hover:text-white' }}" title="{{ $inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' }}">
+                    <svg class="w-5 h-5" fill="{{ $inWishlist ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                     </svg>
                 </button>
@@ -127,16 +128,61 @@ async function toggleWishlist(productId) {
         
         if (data.success) {
             const btn = document.querySelector(`.wishlist-btn-${productId}`);
+            const svg = btn.querySelector('svg');
             if (data.added) {
                 btn.classList.add('bg-red-500', 'text-white');
-                btn.classList.remove('text-gray-900');
+                btn.classList.remove('text-gray-900', 'bg-white');
+                svg.setAttribute('fill', 'currentColor');
             } else {
                 btn.classList.remove('bg-red-500', 'text-white');
-                btn.classList.add('text-gray-900');
+                btn.classList.add('text-gray-900', 'bg-white');
+                svg.setAttribute('fill', 'none');
             }
+            
+            // Update wishlist count in header
+            updateWishlistCount(data.added ? 1 : -1);
+            
+            // Show toast message
+            showToast(data.message, 'success');
+        } else if (data.login_required) {
+            showToast(data.message, 'error');
+            setTimeout(() => {
+                window.location.href = '{{ route("login") }}';
+            }, 1500);
         }
     } catch (error) {
         console.error('Error:', error);
+        showToast('An error occurred', 'error');
     }
+}
+
+function updateWishlistCount(change) {
+    const countElements = document.querySelectorAll('.wishlist-count');
+    countElements.forEach(el => {
+        let count = parseInt(el.textContent) || 0;
+        count += change;
+        el.textContent = count;
+        if (count <= 0) {
+            el.classList.add('hidden');
+        } else {
+            el.classList.remove('hidden');
+        }
+    });
+}
+
+function showToast(message, type = 'info') {
+    const existingToast = document.querySelector('.toast-notification');
+    if (existingToast) existingToast.remove();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast-notification fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+    } text-white`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
 }
 </script>

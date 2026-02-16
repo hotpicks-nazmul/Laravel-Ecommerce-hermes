@@ -9,24 +9,18 @@
             <!-- Product Image -->
             <div class="relative">
                 @php
-                    $imageUrl = $product->featured_image ?? '';
-                    // Handle different image path formats
-                    if ($imageUrl) {
-                        if (str_starts_with($imageUrl, 'http')) {
-                            // External URL - use as is
-                            $imageUrl = $imageUrl;
-                        } elseif (str_starts_with($imageUrl, '/storage/')) {
-                            // New format with /storage/ prefix - use as is
-                            $imageUrl = $imageUrl;
-                        } elseif (str_starts_with($imageUrl, '/uploads/')) {
-                            // Old uploads format
-                            $imageUrl = asset($imageUrl);
+                    $imagePath = $product->featured_image ?? $product->image ?? '';
+                    $imageUrl = 'https://via.placeholder.com/500x500?text=No+Image';
+                    if ($imagePath) {
+                        if (str_starts_with($imagePath, 'http')) {
+                            $imageUrl = $imagePath;
+                        } elseif (str_starts_with($imagePath, '/storage/')) {
+                            $imageUrl = $imagePath;
+                        } elseif (str_starts_with($imagePath, '/uploads/')) {
+                            $imageUrl = asset($imagePath);
                         } else {
-                            // Relative path - prepend storage
-                            $imageUrl = asset('storage/' . $imageUrl);
+                            $imageUrl = asset('storage/' . $imagePath);
                         }
-                    } else {
-                        $imageUrl = 'https://via.placeholder.com/500x500?text=No+Image';
                     }
                 @endphp
                 <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="w-full h-96 object-cover rounded-lg">

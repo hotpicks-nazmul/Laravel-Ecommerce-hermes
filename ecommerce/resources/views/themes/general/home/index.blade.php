@@ -9,6 +9,12 @@ $heroJson = function($key) use ($hero) {
     return json_decode($hero($key, '{}'), true);
 };
 
+// Get hero type (default to 'standard')
+$heroType = $hero('hero_type', 'standard');
+
+// Get sliders if hero type is slider
+$sliders = $heroType === 'slider' ? \App\Models\Slider::where('is_active', true)->orderBy('order')->get() : collect();
+
 // Home Page Settings
 $homeSettings = \App\Models\Setting::where('group', 'homepage')->get()->keyBy('key');
 $home = function($key, $default = '') use ($homeSettings) {
@@ -19,7 +25,97 @@ $gridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $productColumns;
 @endphp
 
 @section('content')
-<!-- Hero Section - Modern & Robust -->
+@if($heroType === 'slider' && $sliders->count() > 0)
+<!-- Hero Slider Section -->
+<section class="hero-slider-section">
+    <div id="heroSlider" class="hero-slider">
+        <!-- Indicators -->
+        <div class="hero-slider-indicators">
+            @foreach($sliders as $index => $slider)
+            <button type="button" data-slide="{{ $index }}" 
+                class="hero-indicator {{ $index === 0 ? 'active' : '' }}"></button>
+            @endforeach
+        </div>
+        
+        <!-- Slides -->
+        <div class="hero-slider-wrapper">
+            @foreach($sliders as $index => $slider)
+            <div class="hero-slide {{ $index === 0 ? 'active' : '' }}" data-index="{{ $index }}">
+                <img src="{{ Storage::url($slider->image) }}" class="hero-slide-img" alt="{{ $slider->title }}">
+                <div class="hero-slide-overlay"></div>
+                <div class="hero-slide-content">
+                    <div class="container mx-auto px-4">
+                        <div class="max-w-2xl text-white">
+                            @if($slider->subtitle)
+                            <p class="hero-slide-subtitle">{{ $slider->subtitle }}</p>
+                            @endif
+                            <h1 class="hero-slide-title">{{ $slider->title }}</h1>
+                            <a href="{{ $slider->link ?? route('products.index') }}" class="hero-slide-btn">
+                                {{ $slider->button_text ?? 'Shop Now' }}
+                                <i class="bi bi-arrow-right ml-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        
+        <!-- Controls -->
+        <button class="hero-slider-prev" type="button">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+        <button class="hero-slider-next" type="button">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+    
+    <!-- Features Bar -->
+    <div class="hero-features-bar">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 py-4">
+                <div class="flex items-center justify-center text-white py-2">
+                    <div class="w-12 h-12 bg-halal-gold/20 rounded-xl flex items-center justify-center mr-3">
+                        <i class="{{ $hero('hero_feature1_icon', 'bi bi-truck') }} text-halal-gold text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium">{{ $hero('hero_feature1_title', 'Free Delivery') }}</p>
+                        <p class="text-xs text-gray-300">{{ $hero('hero_feature1_subtitle', 'Orders over  Tk500') }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center text-white py-2">
+                    <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mr-3">
+                        <i class="{{ $hero('hero_feature2_icon', 'bi bi-shield-check') }} text-green-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium">{{ $hero('hero_feature2_title', '100% Halal') }}</p>
+                        <p class="text-xs text-gray-300">{{ $hero('hero_feature2_subtitle', 'Certified Quality') }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center text-white py-2">
+                    <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mr-3">
+                        <i class="{{ $hero('hero_feature3_icon', 'bi bi-cash-coin') }} text-blue-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium">{{ $hero('hero_feature3_title', 'Best Prices') }}</p>
+                        <p class="text-xs text-gray-300">{{ $hero('hero_feature3_subtitle', 'Guaranteed') }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center text-white py-2">
+                    <div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mr-3">
+                        <i class="{{ $hero('hero_feature4_icon', 'bi bi-headset') }} text-purple-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium">{{ $hero('hero_feature4_title', '24/7 Support') }}</p>
+                        <p class="text-xs text-gray-300">{{ $hero('hero_feature4_subtitle', 'Always Here') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+@else
+<!-- Hero Section - Standard (Default) -->
 <section class="relative min-h-[600px] md:min-h-[700px] overflow-hidden">
     <!-- Background with overlay -->
     <div class="absolute inset-0">
@@ -176,6 +272,7 @@ $gridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $productColumns;
         </div>
     </div>
 </section>
+@endif
 
 <!-- Categories Section - Modern & Attractive -->
 <section class="py-16 bg-gradient-to-b from-white via-gray-50 to-white relative overflow-hidden">
@@ -552,3 +649,295 @@ $gridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $productColumns;
 </section>
 @endif
 @endsection
+
+@push('styles')
+<style>
+    /* Hero Slider Styles - Custom Implementation */
+    .hero-slider-section {
+        position: relative;
+        overflow: hidden;
+        min-height: 500px;
+    }
+    
+    @media (min-width: 768px) {
+        .hero-slider-section {
+            min-height: 600px;
+        }
+    }
+    
+    .hero-slider {
+        position: relative;
+        height: 500px;
+        width: 100%;
+    }
+    
+    @media (min-width: 768px) {
+        .hero-slider {
+            height: 600px;
+        }
+    }
+    
+    .hero-slider-wrapper {
+        position: relative;
+        height: 100%;
+        width: 100%;
+    }
+    
+    .hero-slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.8s ease-in-out, visibility 0.8s;
+        z-index: 1;
+    }
+    
+    .hero-slide.active {
+        opacity: 1;
+        visibility: visible;
+        z-index: 2;
+    }
+    
+    .hero-slide-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+    
+    .hero-slide-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to right, rgba(30, 58, 38, 0.9), rgba(30, 58, 38, 0.7), transparent);
+        z-index: 1;
+    }
+    
+    .hero-slide-content {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        transform: translateY(-50%);
+        z-index: 2;
+        padding: 0 2rem;
+    }
+    
+    .hero-slide-subtitle {
+        color: #D4AF37;
+        font-size: 1.25rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    
+    .hero-slide-title {
+        font-family: 'Poppins', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 1.5rem;
+        color: white;
+    }
+    
+    @media (min-width: 768px) {
+        .hero-slide-title {
+            font-size: 3.5rem;
+        }
+        .hero-slide-content {
+            padding: 0 4rem;
+        }
+    }
+    
+    @media (min-width: 1024px) {
+        .hero-slide-title {
+            font-size: 4.5rem;
+        }
+        .hero-slide-content {
+            padding: 0 6rem;
+        }
+    }
+    
+    .hero-slide-btn {
+        display: inline-flex;
+        align-items: center;
+        background-color: #D4AF37;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
+    }
+    
+    .hero-slide-btn:hover {
+        background-color: #e5b919;
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(212, 175, 55, 0.4);
+        color: white;
+    }
+    
+    .hero-features-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 20;
+    }
+    
+    /* Slider Controls */
+    .hero-slider-prev,
+    .hero-slider-next {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 50px;
+        height: 50px;
+        background-color: rgba(30, 58, 38, 0.5);
+        border: none;
+        border-radius: 50%;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+        z-index: 10;
+        transition: background-color 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .hero-slider-prev:hover,
+    .hero-slider-next:hover {
+        background-color: rgba(30, 58, 38, 0.8);
+    }
+    
+    .hero-slider-prev {
+        left: 20px;
+    }
+    
+    .hero-slider-next {
+        right: 20px;
+    }
+    
+    /* Slider Indicators */
+    .hero-slider-indicators {
+        position: absolute;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        z-index: 10;
+    }
+    
+    .hero-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: none;
+        background-color: rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        padding: 0;
+    }
+    
+    .hero-indicator.active {
+        background-color: #D4AF37;
+    }
+    
+    .hero-indicator:hover {
+        background-color: rgba(255, 255, 255, 0.8);
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+    // Custom Hero Slider
+    document.addEventListener('DOMContentLoaded', function() {
+        const slider = document.getElementById('heroSlider');
+        if (!slider) return;
+        
+        const slides = slider.querySelectorAll('.hero-slide');
+        const indicators = slider.querySelectorAll('.hero-indicator');
+        const prevBtn = slider.querySelector('.hero-slider-prev');
+        const nextBtn = slider.querySelector('.hero-slider-next');
+        
+        if (slides.length === 0) return;
+        
+        let currentSlide = 0;
+        let slideInterval;
+        
+        function showSlide(index) {
+            // Handle wrap around
+            if (index >= slides.length) index = 0;
+            if (index < 0) index = slides.length - 1;
+            
+            // Update slides
+            slides.forEach((slide, i) => {
+                if (i === index) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+            
+            // Update indicators
+            indicators.forEach((indicator, i) => {
+                if (i === index) {
+                    indicator.classList.add('active');
+                } else {
+                    indicator.classList.remove('active');
+                }
+            });
+            
+            currentSlide = index;
+        }
+        
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+        
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+        
+        function startAutoPlay() {
+            slideInterval = setInterval(nextSlide, 5000);
+        }
+        
+        function stopAutoPlay() {
+            clearInterval(slideInterval);
+        }
+        
+        // Event listeners
+        if (prevBtn) prevBtn.addEventListener('click', () => {
+            prevSlide();
+            stopAutoPlay();
+            startAutoPlay();
+        });
+        
+        if (nextBtn) nextBtn.addEventListener('click', () => {
+            nextSlide();
+            stopAutoPlay();
+            startAutoPlay();
+        });
+        
+        indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', () => {
+                showSlide(index);
+                stopAutoPlay();
+                startAutoPlay();
+            });
+        });
+        
+        // Start auto-play
+        startAutoPlay();
+    });
+</script>
+@endpush

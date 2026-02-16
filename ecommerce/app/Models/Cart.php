@@ -43,7 +43,7 @@ class Cart extends Model
                 'name' => $product->name,
                 'price' => $product->final_price,
                 'quantity' => $quantity,
-                'image' => $product->image,
+                'image' => $product->featured_image ?? $product->image,
             ];
         }
 

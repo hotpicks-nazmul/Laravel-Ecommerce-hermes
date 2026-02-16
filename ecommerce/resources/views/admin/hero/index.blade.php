@@ -25,6 +25,134 @@
     </div>
 </div>
 
+<!-- Hero Type Selector -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-semibold">
+                    <i class="bi bi-toggle-on text-primary me-2"></i>
+                    Hero Section Type
+                </h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('admin.hero.update-type') }}" method="POST">
+                    @csrf
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Select Hero Type</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="hero_type" id="hero_standard" value="standard" 
+                                    {{ ($heroSettings['hero_type']->value ?? 'standard') === 'standard' ? 'checked' : '' }}>
+                                <label class="btn btn-outline-primary" for="hero_standard">
+                                    <i class="bi bi-card-image me-1"></i> Standard Hero
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="hero_type" id="hero_slider" value="slider"
+                                    {{ ($heroSettings['hero_type']->value ?? 'standard') === 'slider' ? 'checked' : '' }}>
+                                <label class="btn btn-outline-primary" for="hero_slider">
+                                    <i class="bi bi-images me-1"></i> Image Slider
+                                </label>
+                            </div>
+                            <div class="form-text mt-2">
+                                <strong>Standard Hero:</strong> Displays a static hero section with customizable content.<br>
+                                <strong>Image Slider:</strong> Displays a rotating image slider using slides from the Sliders management.
+                            </div>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i> Update Hero Type
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slider Info Card (shown when slider type is selected) -->
+@if(($heroSettings['hero_type']->value ?? 'standard') === 'slider')
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm border-start border-4 border-info">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="bi bi-info-circle-fill text-info fs-3"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 fw-semibold">Image Slider Mode Active</h6>
+                        <p class="mb-0 text-muted small">
+                            The homepage will display an image slider. You can manage slider images from the 
+                            <a href="{{ route('admin.sliders.index') }}" class="text-primary fw-medium">Sliders Management</a> page.
+                        </p>
+                    </div>
+                    <div>
+                        <a href="{{ route('admin.sliders.index') }}" class="btn btn-info btn-sm">
+                            <i class="bi bi-gear me-1"></i> Manage Sliders
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slider Preview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-semibold">
+                    <i class="bi bi-images text-primary me-2"></i>
+                    Active Sliders Preview
+                </h5>
+            </div>
+            <div class="card-body">
+                @if($sliders->count() > 0)
+                <div id="sliderPreview" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        @foreach($sliders as $index => $slider)
+                        <button type="button" data-bs-target="#sliderPreview" data-bs-slide-to="{{ $index }}" 
+                            class="{{ $index === 0 ? 'active' : '' }}"></button>
+                        @endforeach
+                    </div>
+                    <div class="carousel-inner rounded overflow-hidden">
+                        @foreach($sliders as $index => $slider)
+                        <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                            <img src="{{ Storage::url($slider->image) }}" class="d-block w-100" alt="{{ $slider->title }}" style="max-height: 400px; object-fit: cover;">
+                            <div class="carousel-caption d-none d-md-block" style="background: rgba(0,0,0,0.5); border-radius: 10px;">
+                                <h5>{{ $slider->title }}</h5>
+                                <p>{{ $slider->subtitle }}</p>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#sliderPreview" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#sliderPreview" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                    </button>
+                </div>
+                @else
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-images fs-1"></i>
+                    <p class="mt-2">No active sliders found.</p>
+                    <a href="{{ route('admin.sliders.create') }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus me-1"></i> Add Slider
+                    </a>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
+<!-- Standard Hero Settings (shown when standard type is selected) -->
+@if(($heroSettings['hero_type']->value ?? 'standard') === 'standard')
 <form action="{{ route('admin.hero.update') }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
@@ -430,6 +558,7 @@
         </div>
     </div>
 </form>
+@endif
 @endsection
 
 @push('styles')
@@ -450,5 +579,20 @@
     .badge {
         font-weight: 500;
     }
+    .carousel-item img {
+        max-height: 400px;
+        object-fit: cover;
+    }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+    // Auto-submit on hero type change
+    document.querySelectorAll('input[name="hero_type"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+</script>
 @endpush

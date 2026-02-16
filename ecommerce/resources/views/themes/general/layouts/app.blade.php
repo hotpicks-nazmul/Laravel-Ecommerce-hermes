@@ -96,6 +96,9 @@
     <!-- Cart Sidebar -->
     @include('themes.general.partials.cart-sidebar')
     
+    <!-- Wishlist Sidebar -->
+    @include('themes.general.partials.wishlist-sidebar')
+    
     <!-- Quick View Modal -->
     <div id="quick-view-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
         <div class="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
@@ -155,12 +158,45 @@
                     product_id: productId
                 },
                 success: function(response) {
-                    showToast(response.message, 'success');
+                    if (response.success) {
+                        showToast(response.message, 'success');
+                        // Update wishlist count
+                        updateWishlistCount(response.added ? 1 : -1);
+                        // Update button state if exists
+                        var btn = $('.wishlist-btn-' + productId);
+                        if (btn.length) {
+                            if (response.added) {
+                                btn.addClass('bg-red-500 text-white').removeClass('text-gray-900 bg-white');
+                                btn.find('svg').attr('fill', 'currentColor');
+                            } else {
+                                btn.removeClass('bg-red-500 text-white').addClass('text-gray-900 bg-white');
+                                btn.find('svg').attr('fill', 'none');
+                            }
+                        }
+                    } else if (response.login_required) {
+                        showToast(response.message, 'error');
+                        setTimeout(function() {
+                            window.location.href = '{{ route("login") }}';
+                        }, 1500);
+                    }
                 },
                 error: function() {
                     showToast('Please login to add to wishlist', 'error');
                 }
             });
+        }
+        
+        // Update wishlist count in header
+        function updateWishlistCount(change) {
+            var countEl = $('.wishlist-count');
+            var currentCount = parseInt(countEl.text()) || 0;
+            var newCount = currentCount + change;
+            countEl.text(newCount);
+            if (newCount <= 0) {
+                countEl.addClass('hidden');
+            } else {
+                countEl.removeClass('hidden');
+            }
         }
         
         $(document).ready(function() {

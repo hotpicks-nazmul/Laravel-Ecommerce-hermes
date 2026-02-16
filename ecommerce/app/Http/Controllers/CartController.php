@@ -52,12 +52,28 @@ class CartController extends Controller
                 $productItem = Product::find($productId);
                 if ($productItem) {
                     $price = $item['price'] ?? ($productItem->sale_price ?? $productItem->price);
+                    $imagePath = $item['image'] ?? $productItem->featured_image ?? $productItem->image;
+                    
+                    // Build proper image URL
+                    $imageUrl = null;
+                    if ($imagePath) {
+                        if (str_starts_with($imagePath, 'http')) {
+                            $imageUrl = $imagePath;
+                        } elseif (str_starts_with($imagePath, '/storage/')) {
+                            $imageUrl = $imagePath;
+                        } elseif (str_starts_with($imagePath, '/uploads/')) {
+                            $imageUrl = asset($imagePath);
+                        } else {
+                            $imageUrl = asset('storage/' . $imagePath);
+                        }
+                    }
+                    
                     $items[] = [
                         'id' => $index,
                         'product_id' => $productId,
                         'name' => $item['name'] ?? $productItem->name,
                         'price' => $price,
-                        'image' => $item['image'] ?? $productItem->image,
+                        'image' => $imageUrl,
                         'quantity' => $item['quantity'] ?? 1,
                     ];
                 }
@@ -149,12 +165,28 @@ class CartController extends Controller
                 $product = Product::find($productId);
                 if ($product) {
                     $price = $item['price'] ?? ($product->sale_price ?? $product->price);
+                    $imagePath = $item['image'] ?? $product->featured_image ?? $product->image;
+                    
+                    // Build proper image URL
+                    $imageUrl = null;
+                    if ($imagePath) {
+                        if (str_starts_with($imagePath, 'http')) {
+                            $imageUrl = $imagePath;
+                        } elseif (str_starts_with($imagePath, '/storage/')) {
+                            $imageUrl = $imagePath;
+                        } elseif (str_starts_with($imagePath, '/uploads/')) {
+                            $imageUrl = asset($imagePath);
+                        } else {
+                            $imageUrl = asset('storage/' . $imagePath);
+                        }
+                    }
+                    
                     $items[] = [
                         'id' => $index,
                         'product_id' => $productId,
                         'name' => $item['name'] ?? $product->name,
                         'price' => $price,
-                        'image' => $item['image'] ?? $product->image,
+                        'image' => $imageUrl,
                         'quantity' => $item['quantity'] ?? 1,
                         'subtotal' => $price * ($item['quantity'] ?? 1),
                     ];

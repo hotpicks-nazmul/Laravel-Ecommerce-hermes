@@ -10,6 +10,7 @@ use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Address;
+use App\Models\Setting;
 use Laravel\Socialite\Facades\Socialite;
 
 class UserController extends Controller
@@ -155,6 +156,21 @@ class UserController extends Controller
      */
     public function redirectToProvider($provider)
     {
+        // Check if provider is enabled
+        $settings = Setting::where('group', 'social_login')->pluck('value', 'key');
+        $enabledKey = "{$provider}_enabled";
+        
+        if (($settings[$enabledKey] ?? '0') !== '1') {
+            return redirect()->route('login')->with('error', ucfirst($provider) . ' login is not enabled.');
+        }
+        
+        // Configure the provider with credentials from settings
+        config([
+            "services.{$provider}.client_id" => $settings["{$provider}_client_id"] ?? '',
+            "services.{$provider}.client_secret" => $settings["{$provider}_client_secret"] ?? '',
+            "services.{$provider}.redirect" => url("/auth/{$provider}/callback"),
+        ]);
+        
         return Socialite::driver($provider)->redirect();
     }
 
@@ -163,27 +179,60 @@ class UserController extends Controller
      */
     public function handleProviderCallback($provider)
     {
+        // Check if provider is enabled
+        $settings = Setting::where('group', 'social_login')->pluck('value', 'key');
+        $enabledKey = "{$provider}_enabled";
+        
+        if (($settings[$enabledKey] ?? '0') !== '1') {
+            return redirect()->route('login')->with('error', ucfirst($provider) . ' login is not enabled.');
+        }
+        
+        // Configure the provider with credentials from settings
+        config([
+            "services.{$provider}.client_id" => $settings["{$provider}_client_id"] ?? '',
+            "services.{$provider}.client_secret" => $settings["{$provider}_client_secret"] ?? '',
+            "services.{$provider}.redirect" => url("/auth/{$provider}/callback"),
+        ]);
+        
         try {
             $socialUser = Socialite::driver($provider)->user();
             
-            $user = User::where('email', $socialUser->getEmail())->first();
+            // Check if user already exists with this provider
+            $user = User::where('provider', $provider)
+                ->where('provider_id', $socialUser->getId())
+                ->first();
             
             if (!$user) {
-                $user = User::create([
-                    'name' => $socialUser->getName(),
-                    'email' => $socialUser->getEmail(),
-                    'password' => Hash::make(Str::random(16)),
-                    'provider' => $provider,
-                    'provider_id' => $socialUser->getId(),
-                    'avatar' => $socialUser->getAvatar(),
-                ]);
+                // Check if user exists with this email
+                $user = User::where('email', $socialUser->getEmail())->first();
+                
+                if ($user) {
+                    // Update existing user with provider info
+                    $user->update([
+                        'provider' => $provider,
+                        'provider_id' => $socialUser->getId(),
+                        'avatar' => $socialUser->getAvatar() ?? $user->avatar,
+                    ]);
+                } else {
+                    // Create new user
+                    $user = User::create([
+                        'name' => $socialUser->getName() ?? explode('@', $socialUser->getEmail())[0],
+                        'email' => $socialUser->getEmail(),
+                        'password' => Hash::make(Str::random(16)),
+                        'provider' => $provider,
+                        'provider_id' => $socialUser->getId(),
+                        'avatar' => $socialUser->getAvatar(),
+                        'email_verified_at' => now(), // Social login users are pre-verified
+                    ]);
+                }
             }
             
             Auth::login($user);
             
-            return redirect()->route('home');
+            return redirect()->intended(route('home'));
         } catch (\Exception $e) {
-            return redirect()->route('login')->with('error', 'Authentication failed.');
+            \Log::error("Social login error ({$provider}): " . $e->getMessage());
+            return redirect()->route('login')->with('error', 'Authentication failed. Please try again.');
         }
     }
 
@@ -234,12 +283,26 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:20',
             'avatar' => 'nullable|image|max:2048',
+            'current_password' => 'nullable|required_with:password',
+            'password' => 'nullable|string|min:8|confirmed',
         ]);
 
         $data = $request->only(['name', 'email', 'phone']);
         
         if ($request->hasFile('avatar')) {
+            // Delete old avatar if exists
+            if ($user->avatar && \Storage::disk('public')->exists($user->avatar)) {
+                \Storage::disk('public')->delete($user->avatar);
+            }
             $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+        }
+
+        // Handle password change
+        if ($request->filled('password')) {
+            if (!\Hash::check($request->current_password, $user->password)) {
+                return back()->withErrors(['current_password' => 'Current password is incorrect.']);
+            }
+            $data['password'] = \Hash::make($request->password);
         }
 
         $user->update($data);

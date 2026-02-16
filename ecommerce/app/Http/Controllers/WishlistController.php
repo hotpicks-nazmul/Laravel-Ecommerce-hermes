@@ -18,6 +18,55 @@ class WishlistController extends Controller
     }
 
     /**
+     * Get wishlist items for sidebar.
+     */
+    public function items()
+    {
+        if (!auth()->check()) {
+            return response()->json([
+                'items' => [],
+                'count' => 0
+            ]);
+        }
+
+        $wishlist = Wishlist::where('user_id', auth()->id())
+            ->with('product')
+            ->get();
+
+        $items = $wishlist->map(function ($item) {
+            $product = $item->product;
+            $imagePath = $product->featured_image ?? ($product->image ?? null);
+            
+            // Build proper image URL
+            $imageUrl = null;
+            if ($imagePath) {
+                if (str_starts_with($imagePath, 'http')) {
+                    $imageUrl = $imagePath;
+                } elseif (str_starts_with($imagePath, '/storage/')) {
+                    $imageUrl = $imagePath;
+                } elseif (str_starts_with($imagePath, '/uploads/')) {
+                    $imageUrl = asset($imagePath);
+                } else {
+                    $imageUrl = asset('storage/' . $imagePath);
+                }
+            }
+            
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'price' => $product->price,
+                'sale_price' => $product->sale_price,
+                'image' => $imageUrl,
+            ];
+        });
+
+        return response()->json([
+            'items' => $items,
+            'count' => $items->count()
+        ]);
+    }
+
+    /**
      * Add item to wishlist.
      */
     public function add(Request $request)
@@ -93,10 +142,14 @@ class WishlistController extends Controller
                 ->where('product_id', $request->product_id)
                 ->delete();
 
+            // Get updated items
+            $items = $this->getWishlistItems();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Product removed from wishlist!',
-                'added' => false
+                'added' => false,
+                'items' => $items
             ]);
         }
 
@@ -105,10 +158,51 @@ class WishlistController extends Controller
             'product_id' => $request->product_id,
         ]);
 
+        // Get updated items
+        $items = $this->getWishlistItems();
+
         return response()->json([
             'success' => true,
             'message' => 'Product added to wishlist!',
-            'added' => true
+            'added' => true,
+            'items' => $items
         ]);
+    }
+
+    /**
+     * Get wishlist items helper.
+     */
+    private function getWishlistItems()
+    {
+        $wishlist = Wishlist::where('user_id', auth()->id())
+            ->with('product')
+            ->get();
+
+        return $wishlist->map(function ($item) {
+            $product = $item->product;
+            $imagePath = $product->featured_image ?? ($product->image ?? null);
+            
+            // Build proper image URL
+            $imageUrl = null;
+            if ($imagePath) {
+                if (str_starts_with($imagePath, 'http')) {
+                    $imageUrl = $imagePath;
+                } elseif (str_starts_with($imagePath, '/storage/')) {
+                    $imageUrl = $imagePath;
+                } elseif (str_starts_with($imagePath, '/uploads/')) {
+                    $imageUrl = asset($imagePath);
+                } else {
+                    $imageUrl = asset('storage/' . $imagePath);
+                }
+            }
+            
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'price' => $product->price,
+                'sale_price' => $product->sale_price,
+                'image' => $imageUrl,
+            ];
+        });
     }
 }

@@ -125,4 +125,37 @@ class SettingController extends Controller
         // Restore backup logic
         return back()->with('success', 'Backup restored successfully.');
     }
+
+    /**
+     * Social Login Settings
+     */
+    public function socialLogin()
+    {
+        $settings = Setting::where('group', 'social_login')->pluck('value', 'key');
+        return view('admin.settings.social-login', compact('settings'));
+    }
+
+    /**
+     * Update Social Login Settings
+     */
+    public function updateSocialLogin(Request $request)
+    {
+        $settings = [
+            'google_enabled' => $request->has('google_enabled') ? '1' : '0',
+            'google_client_id' => $request->google_client_id ?? '',
+            'google_client_secret' => $request->google_client_secret ?? '',
+            'facebook_enabled' => $request->has('facebook_enabled') ? '1' : '0',
+            'facebook_client_id' => $request->facebook_client_id ?? '',
+            'facebook_client_secret' => $request->facebook_client_secret ?? '',
+        ];
+
+        foreach ($settings as $key => $value) {
+            Setting::updateOrCreate(
+                ['key' => $key, 'group' => 'social_login'],
+                ['value' => $value]
+            );
+        }
+
+        return back()->with('success', 'Social login settings updated successfully.');
+    }
 }

@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Services\ThemeService;
+use App\Models\Category;
 
 class ThemeMiddleware
 {
@@ -39,6 +40,10 @@ class ThemeMiddleware
         // Share theme data with all views
         view()->share('activeTheme', $activeTheme);
         view()->share('themeSettings', $this->themeService->getThemeSettings());
+        
+        // Share categories with all views for header navigation
+        $categories = Category::withCount('products')->orderBy('name')->get();
+        view()->share('categories', $categories);
 
         return $next($request);
     }

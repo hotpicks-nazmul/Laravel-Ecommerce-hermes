@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Models\Slider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -15,8 +16,9 @@ class HeroController extends Controller
     public function index()
     {
         $heroSettings = Setting::where('group', 'hero')->get()->keyBy('key');
+        $sliders = Slider::where('is_active', true)->orderBy('order')->get();
         
-        return view('admin.hero.index', compact('heroSettings'));
+        return view('admin.hero.index', compact('heroSettings', 'sliders'));
     }
 
     /**
@@ -48,5 +50,20 @@ class HeroController extends Controller
         
         return redirect()->route('admin.hero.index')
             ->with('success', 'Hero settings updated successfully!');
+    }
+
+    /**
+     * Update hero type setting.
+     */
+    public function updateType(Request $request)
+    {
+        $request->validate([
+            'hero_type' => 'required|in:standard,slider',
+        ]);
+        
+        Setting::set('hero_type', $request->hero_type, 'hero');
+        
+        return redirect()->route('admin.hero.index')
+            ->with('success', 'Hero type updated successfully!');
     }
 }
