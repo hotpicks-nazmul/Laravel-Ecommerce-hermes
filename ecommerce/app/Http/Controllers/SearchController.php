@@ -46,19 +46,53 @@ class SearchController extends Controller
             return response()->json([]);
         }
 
+        // Search products with relevance scoring
         $products = Product::where('is_active', true)
-            ->where('name', 'like', "%{$query}%")
-            ->take(5)
-            ->get(['id', 'name', 'slug', 'price']);
+            ->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('short_description', 'like', "%{$query}%")
+                  ->orWhere('sku', 'like', "%{$query}%");
+            })
+            ->with('category:id,name,slug')
+            ->get(['id', 'name', 'slug', 'price', 'sale_price', 'featured_image', 'category_id'])
+            ->map(function ($product) use ($query) {
+                // Calculate relevance score
+                $product->relevance = 0;
+                $lowerName = strtolower($product->name);
+                $lowerQuery = strtolower($query);
+                
+                // Highest priority: name starts with query
+                if (str_starts_with($lowerName, $lowerQuery)) {
+                    $product->relevance = 100;
+                }
+                // High priority: name contains query at word boundary
+                elseif (preg_match('/\b' . preg_quote($lowerQuery, '/') . '/i', $product->name)) {
+                    $product->relevance = 80;
+                }
+                // Medium priority: name contains query anywhere
+                elseif (str_contains($lowerName, $lowerQuery)) {
+                    $product->relevance = 60;
+                }
+                // Lower priority: found in description or SKU
+                else {
+                    $product->relevance = 40;
+                }
+                
+                return $product;
+            })
+            ->sortByDesc('relevance')
+            ->take(8)
+            ->values();
 
         $categories = Category::where('status', 'active')
             ->where('name', 'like', "%{$query}%")
             ->take(3)
-            ->get(['id', 'name', 'slug']);
+            ->get(['id', 'name', 'slug', 'image']);
 
         return response()->json([
             'products' => $products,
             'categories' => $categories,
+            'query' => $query,
         ]);
     }
 }

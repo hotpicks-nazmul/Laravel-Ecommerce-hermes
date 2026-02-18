@@ -37,6 +37,9 @@ Route::get('/terms', [PageController::class, 'terms'])->name('terms');
 Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('/pages/{slug}', [PageController::class, 'show'])->name('pages.show');
 
+// Newsletter Routes
+Route::post('/newsletter/subscribe', [PageController::class, 'newsletterSubscribe'])->name('newsletter.subscribe');
+
 // Blog Routes
 Route::prefix('blogs')->name('blogs.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Frontend\BlogController::class, 'index'])->name('index');
@@ -104,6 +107,7 @@ Route::prefix('reviews')->name('reviews.')->middleware('auth')->group(function (
     Route::post('/', [ReviewController::class, 'store'])->name('store');
     Route::put('/{review}', [ReviewController::class, 'update'])->name('update');
     Route::delete('/{review}', [ReviewController::class, 'destroy'])->name('destroy');
+    Route::post('/{review}/vote', [ReviewController::class, 'vote'])->name('vote');
 });
 
 // Chat Routes

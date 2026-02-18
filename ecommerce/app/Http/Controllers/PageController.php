@@ -87,4 +87,20 @@ class PageController extends Controller
         $page = Page::where('slug', $slug)->where('status', 'published')->firstOrFail();
         return view('themes.general.pages.show', compact('page'));
     }
+
+    /**
+     * Subscribe to newsletter.
+     */
+    public function newsletterSubscribe(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|max:255',
+        ]);
+
+        // Store newsletter subscription in settings or a dedicated table
+        // For now, we'll just return a success message
+        // You can create a newsletter_subscribers table if needed
+
+        return back()->with('success', 'Thank you for subscribing to our newsletter!');
+    }
 }

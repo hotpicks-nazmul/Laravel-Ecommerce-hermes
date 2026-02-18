@@ -23,7 +23,7 @@
     </div>
 </div>
 
-<form action="{{ route('admin.settings.social-login.update') }}" method="POST">
+<form action="{{ route('admin.settings.social-login.update') }}" method="POST" id="social-login-form">
     @csrf
     @method('PUT')
 
@@ -124,13 +124,12 @@
             </div>
         </div>
     </div>
-
-    <div class="card border-0 shadow-sm">
-        <div class="card-body">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-lg me-1"></i> Save Settings
-            </button>
-        </div>
-    </div>
 </form>
+
+<!-- Floating Save Button -->
+<div class="floating-save-container">
+    <button type="submit" form="social-login-form" class="btn btn-primary floating-save-btn">
+        <i class="bi bi-check-lg me-1"></i> Save Settings
+    </button>
+</div>
 @endsection

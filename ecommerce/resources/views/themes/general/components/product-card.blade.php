@@ -82,18 +82,22 @@
         </h3>
         
         <!-- Rating -->
-        @if($product->review_count > 0)
+        @php $reviewCount = $product->approved_reviews_count ?? 0; @endphp
+        @if($reviewCount > 0)
         <div class="flex items-center mt-2">
             <div class="flex text-yellow-400">
+                @php $avgRating = $product->average_rating ?? 0; @endphp
                 @for($i = 1; $i <= 5; $i++)
-                    @if($i <= $product->average_rating)
+                    @if($avgRating >= $i)
                     <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                    @elseif($avgRating >= $i - 0.5)
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" clip-path="inset(0 50% 0 0)"/></svg>
                     @else
                     <svg class="w-4 h-4 fill-current text-gray-300" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
                     @endif
                 @endfor
             </div>
-            <span class="text-xs text-gray-500 ml-1">({{ $product->review_count }})</span>
+            <span class="text-xs text-gray-500 ml-1">({{ $reviewCount }})</span>
         </div>
         @endif
         

@@ -76,13 +76,22 @@ function toggleChat() {
     chatOpen = !chatOpen;
     const chatWindow = document.getElementById('chatWindow');
     const chatToggle = document.getElementById('chatToggle');
+    const whatsappWidget = document.getElementById('whatsapp-widget');
     
     if (chatOpen) {
         chatWindow.classList.remove('hidden');
         chatToggle.innerHTML = '<i class="bi bi-x-lg text-xl"></i>';
+        // Hide WhatsApp widget when chat is open
+        if (whatsappWidget) {
+            whatsappWidget.classList.add('hidden');
+        }
     } else {
         chatWindow.classList.add('hidden');
         chatToggle.innerHTML = '<i class="bi bi-chat-dots-fill text-xl group-hover:scale-110 transition-transform"></i>';
+        // Show WhatsApp widget when chat is closed
+        if (whatsappWidget) {
+            whatsappWidget.classList.remove('hidden');
+        }
     }
 }
 

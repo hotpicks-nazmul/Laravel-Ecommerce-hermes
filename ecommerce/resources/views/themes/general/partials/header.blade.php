@@ -61,12 +61,18 @@ $siteLogoImage = $siteLogoImageSetting ? $siteLogoImageSetting->value : '';
             <!-- Search Bar -->
             <div class="hidden md:flex flex-1 max-w-xl mx-8">
                 <form action="{{ route('products.index') }}" method="GET" class="w-full">
-                    <div class="relative">
-                        <input type="text" name="search" placeholder="Search for fresh halal meat, groceries..." 
-                            class="w-full pl-4 pr-12 py-3 border-2 border-gray-200 rounded-full focus:border-halal-green focus:outline-none transition-colors">
-                        <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 bg-halal-green text-white p-2 rounded-full hover:bg-halal-dark transition-colors">
+                    <div class="relative" id="searchContainer">
+                        <input type="text" name="search" id="searchInput" placeholder="Search for fresh halal meat, groceries..." 
+                            class="w-full pl-4 pr-14 py-3 border-2 border-gray-200 rounded-full focus:border-halal-green focus:outline-none transition-colors"
+                            autocomplete="off">
+                        <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 bg-halal-green text-white w-10 h-10 rounded-full hover:bg-halal-dark transition-colors flex items-center justify-center">
                             <i class="bi bi-search"></i>
                         </button>
+                        
+                        <!-- Live Search Results Dropdown -->
+                        <div id="searchResults" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-96 overflow-y-auto z-50 hidden">
+                            <!-- Results will be populated by JavaScript -->
+                        </div>
                     </div>
                 </form>
             </div>
@@ -183,3 +189,153 @@ $siteLogoImage = $siteLogoImageSetting ? $siteLogoImageSetting->value : '';
         </div>
     </nav>
 </header>
+
+<!-- Live Search Script -->
+<script>
+let searchTimeout;
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+
+if (searchInput) {
+    searchInput.addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+        
+        if (query.length < 2) {
+            searchResults.classList.add('hidden');
+            searchResults.innerHTML = '';
+            return;
+        }
+        
+        // Show loading state
+        searchResults.classList.remove('hidden');
+        searchResults.innerHTML = `
+            <div class="p-4 text-center text-gray-500">
+                <i class="bi bi-arrow-repeat animate-spin text-2xl"></i>
+                <p class="mt-2">Searching...</p>
+            </div>
+        `;
+        
+        // Debounce search
+        searchTimeout = setTimeout(() => {
+            fetch(`{{ route('search.suggestions') }}?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    renderSearchResults(data, query);
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                    searchResults.innerHTML = `
+                        <div class="p-4 text-center text-red-500">
+                            <i class="bi bi-exclamation-circle text-2xl"></i>
+                            <p class="mt-2">Error loading results</p>
+                        </div>
+                    `;
+                });
+        }, 300);
+    });
+    
+    // Close search results when clicking outside
+    document.addEventListener('click', function(e) {
+        const searchContainer = document.getElementById('searchContainer');
+        if (searchContainer && !searchContainer.contains(e.target)) {
+            searchResults.classList.add('hidden');
+        }
+    });
+    
+    // Show results on focus if there's a query
+    searchInput.addEventListener('focus', function(e) {
+        if (e.target.value.trim().length >= 2) {
+            searchResults.classList.remove('hidden');
+        }
+    });
+}
+
+function renderSearchResults(data, query) {
+    const { products, categories } = data;
+    
+    if (products.length === 0 && categories.length === 0) {
+        searchResults.innerHTML = `
+            <div class="p-6 text-center">
+                <i class="bi bi-search text-4xl text-gray-300"></i>
+                <p class="mt-2 text-gray-500">No results found for "${query}"</p>
+                <p class="text-sm text-gray-400 mt-1">Try different keywords</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    
+    // Categories section
+    if (categories.length > 0) {
+        html += `
+            <div class="p-3 bg-gray-50 border-b border-gray-100">
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Categories</span>
+            </div>
+        `;
+        categories.forEach(category => {
+            const imageUrl = category.image || 'https://via.placeholder.com/50x50?text=C';
+            html += `
+                <a href="{{ route('products.index') }}?category=${category.slug}" class="flex items-center p-3 hover:bg-green-50 transition-colors border-b border-gray-50">
+                    <img src="${imageUrl}" alt="${category.name}" class="w-10 h-10 rounded-lg object-cover bg-gray-100">
+                    <div class="ml-3">
+                        <p class="font-medium text-gray-800">${highlightMatch(category.name, query)}</p>
+                        <p class="text-xs text-gray-500">Browse category</p>
+                    </div>
+                    <i class="bi bi-chevron-right ml-auto text-gray-400"></i>
+                </a>
+            `;
+        });
+    }
+    
+    // Products section
+    if (products.length > 0) {
+        html += `
+            <div class="p-3 bg-gray-50 border-b border-gray-100">
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Products</span>
+            </div>
+        `;
+        products.forEach(product => {
+            const price = product.sale_price || product.price;
+            const originalPrice = product.sale_price ? product.price : null;
+            
+            // Handle image URL
+            let imageUrl = product.featured_image || 'https://via.placeholder.com/60x60?text=P';
+            if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/storage/') && !imageUrl.startsWith('/uploads/')) {
+                imageUrl = '/storage/' + imageUrl;
+            }
+            
+            html += `
+                <a href="{{ route('products.show', '') }}/${product.slug}" class="flex items-center p-3 hover:bg-green-50 transition-colors border-b border-gray-50 last:border-b-0">
+                    <img src="${imageUrl}" alt="${product.name}" class="w-14 h-14 rounded-lg object-cover bg-gray-100">
+                    <div class="ml-3 flex-1">
+                        <p class="font-medium text-gray-800 line-clamp-1">${highlightMatch(product.name, query)}</p>
+                        <div class="flex items-center mt-1">
+                            <span class="text-halal-green font-semibold">৳${Number(price).toLocaleString()}</span>
+                            ${originalPrice ? `<span class="text-gray-400 text-sm line-through ml-2">৳${Number(originalPrice).toLocaleString()}</span>` : ''}
+                        </div>
+                        ${product.category ? `<span class="text-xs text-gray-500">${product.category.name}</span>` : ''}
+                    </div>
+                    <i class="bi bi-arrow-right ml-2 text-gray-400"></i>
+                </a>
+            `;
+        });
+    }
+    
+    // View all results link
+    html += `
+        <a href="{{ route('products.index') }}?search=${encodeURIComponent(query)}" class="block p-3 text-center bg-halal-green text-white hover:bg-halal-dark transition-colors rounded-b-xl">
+            <i class="bi bi-search mr-2"></i>View all results for "${query}"
+        </a>
+    `;
+    
+    searchResults.innerHTML = html;
+}
+
+function highlightMatch(text, query) {
+    if (!query) return text;
+    const regex = new RegExp(`(${query})`, 'gi');
+    return text.replace(regex, '<mark class="bg-yellow-200 px-0.5 rounded">$1</mark>');
+}
+</script>

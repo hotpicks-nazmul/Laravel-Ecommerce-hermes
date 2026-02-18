@@ -153,7 +153,7 @@
 
 <!-- Standard Hero Settings (shown when standard type is selected) -->
 @if(($heroSettings['hero_type']->value ?? 'standard') === 'standard')
-<form action="{{ route('admin.hero.update') }}" method="POST" enctype="multipart/form-data">
+<form action="{{ route('admin.hero.update') }}" method="POST" enctype="multipart/form-data" id="hero-form">
     @csrf
     @method('PUT')
 
@@ -558,6 +558,13 @@
         </div>
     </div>
 </form>
+
+<!-- Floating Save Button -->
+<div class="floating-save-container">
+    <button type="submit" form="hero-form" class="btn btn-primary floating-save-btn">
+        <i class="bi bi-check-lg me-1"></i> Save All Settings
+    </button>
+</div>
 @endif
 @endsection
 

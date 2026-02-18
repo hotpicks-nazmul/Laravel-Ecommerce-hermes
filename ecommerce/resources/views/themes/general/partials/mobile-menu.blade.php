@@ -19,12 +19,18 @@
         
         <!-- Search -->
         <form action="{{ route('products.index') }}" method="GET" class="mb-6">
-            <div class="relative">
-                <input type="text" name="search" placeholder="Search products..." 
-                    class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:border-halal-green focus:outline-none">
-                <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-halal-green">
+            <div class="relative" id="mobileSearchContainer">
+                <input type="text" name="search" id="mobileSearchInput" placeholder="Search products..." 
+                    class="w-full pl-4 pr-14 py-2 border border-gray-300 rounded-full focus:border-halal-green focus:outline-none"
+                    autocomplete="off">
+                <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 bg-halal-green text-white w-10 h-10 rounded-full hover:bg-halal-dark transition-colors flex items-center justify-center">
                     <i class="bi bi-search"></i>
                 </button>
+                
+                <!-- Live Search Results Dropdown -->
+                <div id="mobileSearchResults" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-80 overflow-y-auto z-50 hidden">
+                    <!-- Results will be populated by JavaScript -->
+                </div>
             </div>
         </form>
         
@@ -137,5 +143,112 @@ function closeMobileMenu() {
     document.getElementById('mobileMenu').classList.add('-translate-x-full');
     document.getElementById('mobileMenuOverlay').classList.add('hidden');
     document.body.style.overflow = '';
+}
+
+// Mobile Live Search
+let mobileSearchTimeout;
+const mobileSearchInput = document.getElementById('mobileSearchInput');
+const mobileSearchResults = document.getElementById('mobileSearchResults');
+
+if (mobileSearchInput) {
+    mobileSearchInput.addEventListener('input', function(e) {
+        clearTimeout(mobileSearchTimeout);
+        const query = e.target.value.trim();
+        
+        if (query.length < 2) {
+            mobileSearchResults.classList.add('hidden');
+            mobileSearchResults.innerHTML = '';
+            return;
+        }
+        
+        // Show loading state
+        mobileSearchResults.classList.remove('hidden');
+        mobileSearchResults.innerHTML = `
+            <div class="p-4 text-center text-gray-500">
+                <i class="bi bi-arrow-repeat animate-spin text-xl"></i>
+                <p class="mt-1 text-sm">Searching...</p>
+            </div>
+        `;
+        
+        // Debounce search
+        mobileSearchTimeout = setTimeout(() => {
+            fetch(`{{ route('search.suggestions') }}?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    renderMobileSearchResults(data, query);
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                    mobileSearchResults.innerHTML = `
+                        <div class="p-4 text-center text-red-500">
+                            <i class="bi bi-exclamation-circle text-xl"></i>
+                            <p class="mt-1 text-sm">Error loading results</p>
+                        </div>
+                    `;
+                });
+        }, 300);
+    });
+}
+
+function renderMobileSearchResults(data, query) {
+    const { products, categories } = data;
+    
+    if (products.length === 0 && categories.length === 0) {
+        mobileSearchResults.innerHTML = `
+            <div class="p-4 text-center">
+                <i class="bi bi-search text-3xl text-gray-300"></i>
+                <p class="mt-1 text-gray-500 text-sm">No results found</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    
+    // Categories section
+    if (categories.length > 0) {
+        html += `<div class="p-2 bg-gray-50 text-xs font-semibold text-gray-500 uppercase">Categories</div>`;
+        categories.forEach(category => {
+            html += `
+                <a href="{{ route('products.index') }}?category=${category.slug}" class="flex items-center p-2 hover:bg-green-50 border-b border-gray-50" onclick="closeMobileMenu()">
+                    <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <i class="bi bi-folder text-gray-400"></i>
+                    </div>
+                    <span class="ml-2 text-sm text-gray-700">${category.name}</span>
+                </a>
+            `;
+        });
+    }
+    
+    // Products section
+    if (products.length > 0) {
+        html += `<div class="p-2 bg-gray-50 text-xs font-semibold text-gray-500 uppercase">Products</div>`;
+        products.forEach(product => {
+            const price = product.sale_price || product.price;
+            let imageUrl = product.featured_image || 'https://via.placeholder.com/50x50?text=P';
+            if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/storage/') && !imageUrl.startsWith('/uploads/')) {
+                imageUrl = '/storage/' + imageUrl;
+            }
+            
+            html += `
+                <a href="{{ route('products.show', '') }}/${product.slug}" class="flex items-center p-2 hover:bg-green-50 border-b border-gray-50" onclick="closeMobileMenu()">
+                    <img src="${imageUrl}" alt="${product.name}" class="w-12 h-12 rounded-lg object-cover bg-gray-100">
+                    <div class="ml-2 flex-1">
+                        <p class="text-sm font-medium text-gray-800 line-clamp-1">${product.name}</p>
+                        <span class="text-halal-green text-sm font-semibold">৳${Number(price).toLocaleString()}</span>
+                    </div>
+                </a>
+            `;
+        });
+    }
+    
+    // View all link
+    html += `
+        <a href="{{ route('products.index') }}?search=${encodeURIComponent(query)}" class="block p-3 text-center bg-halal-green text-white text-sm" onclick="closeMobileMenu()">
+            View all results
+        </a>
+    `;
+    
+    mobileSearchResults.innerHTML = html;
 }
 </script>

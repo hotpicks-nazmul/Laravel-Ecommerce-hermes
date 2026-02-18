@@ -22,6 +22,14 @@ $home = function($key, $default = '') use ($homeSettings) {
 };
 $productColumns = (int) $home('homepage_product_columns', '6');
 $gridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $productColumns;
+
+// Individual section column settings
+$featuredColumns = (int) $home('homepage_featured_columns', '6');
+$featuredGridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $featuredColumns;
+$newArrivalsColumns = (int) $home('homepage_new_arrivals_columns', '6');
+$newArrivalsGridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $newArrivalsColumns;
+$saleColumns = (int) $home('homepage_sale_columns', '6');
+$saleGridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $saleColumns;
 @endphp
 
 @section('content')
@@ -396,7 +404,7 @@ $gridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $productColumns;
             </a>
         </div>
         
-        <div class="{{ $gridClass }} gap-5">
+        <div class="{{ $featuredGridClass }} gap-5">
             @foreach($featuredProducts as $product)
                 @include('themes.general.partials.product-card', ['product' => $product])
             @endforeach
@@ -407,39 +415,64 @@ $gridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $productColumns;
 
 <!-- Banner Section -->
 @if($home('homepage_show_banner_section', '1') == '1')
+@php
+    // Count visible banners for dynamic grid
+    $visibleBanners = [];
+    for($j = 1; $j <= 4; $j++) {
+        if($home('banner' . $j . '_visible', '1') == '1') {
+            $visibleBanners[] = $j;
+        }
+    }
+    $bannerCount = count($visibleBanners);
+    $bannerGridClass = match($bannerCount) {
+        1 => 'grid md:grid-cols-1 max-w-md mx-auto',
+        2 => 'grid md:grid-cols-2',
+        3 => 'grid md:grid-cols-3',
+        default => 'grid md:grid-cols-2 lg:grid-cols-4',
+    };
+    $bannerConfigs = [
+        1 => ['gradient' => 'from-halal-green to-green-600', 'badge_bg' => 'bg-halal-gold', 'text_muted' => 'text-green-100'],
+        2 => ['gradient' => 'from-halal-gold to-yellow-500', 'badge_bg' => 'bg-halal-dark', 'text_muted' => 'text-yellow-100'],
+        3 => ['gradient' => 'from-blue-500 to-blue-600', 'badge_bg' => 'bg-white', 'badge_text' => 'text-blue-600', 'text_muted' => 'text-blue-100'],
+        4 => ['gradient' => 'from-red-500 to-red-600', 'badge_bg' => 'bg-white', 'badge_text' => 'text-red-600', 'text_muted' => 'text-red-100'],
+    ];
+@endphp
+@if($bannerCount > 0)
 <section class="py-8">
     <div class="container mx-auto px-4">
-        <div class="grid md:grid-cols-2 gap-6">
-            <div class="bg-gradient-to-r from-halal-green to-green-600 rounded-2xl p-8 text-white relative overflow-hidden">
-                <div class="absolute right-0 top-0 opacity-20">
-                    <i class="bi bi-piggy-bank text-[150px] transform rotate-12"></i>
+        <div class="{{ $bannerGridClass }} gap-6">
+            @foreach($visibleBanners as $i)
+                @php
+                    $title = $home('banner' . $i . '_title', '');
+                    $hasContent = !empty($title);
+                @endphp
+                @if($hasContent)
+                <div class="bg-gradient-to-r {{ $bannerConfigs[$i]['gradient'] }} rounded-2xl p-6 text-white relative overflow-hidden">
+                    <div class="absolute right-0 top-0 opacity-20">
+                        <i class="bi {{ $home('banner' . $i . '_icon', 'bi-star-fill') }} text-[100px] transform rotate-12"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <span class="{{ $bannerConfigs[$i]['badge_bg'] }} {{ $bannerConfigs[$i]['badge_text'] ?? 'text-white' }} px-3 py-1 rounded-full text-sm font-medium">{{ $home('banner' . $i . '_badge', 'Offer') }}</span>
+                        <h3 class="font-poppins text-xl font-bold mt-3">{{ $title }}</h3>
+                        <p class="{{ $bannerConfigs[$i]['text_muted'] }} mt-2 text-sm">{{ $home('banner' . $i . '_description', '') }}</p>
+                        @php $link = $home('banner' . $i . '_link', ''); @endphp
+                        @if($link)
+                            <a href="{{ route('products.index', ['category' => $link]) }}" class="inline-block mt-3 bg-white text-gray-800 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-100 transition-colors">
+                                {{ $home('banner' . $i . '_button_text', 'Shop Now') }} <i class="bi bi-arrow-right ml-1"></i>
+                            </a>
+                        @else
+                            <span class="inline-block mt-3 bg-white/20 text-white px-4 py-2 rounded-full text-sm font-medium">
+                                {{ $home('banner' . $i . '_button_text', 'Shop Now') }} <i class="bi bi-arrow-right ml-1"></i>
+                            </span>
+                        @endif
+                    </div>
                 </div>
-                <div class="relative z-10">
-                    <span class="bg-halal-gold text-white px-3 py-1 rounded-full text-sm font-medium">Special Offer</span>
-                    <h3 class="font-poppins text-2xl font-bold mt-4">Weekend Special!</h3>
-                    <p class="text-green-100 mt-2">Get 20% off on all beef products this weekend</p>
-                    <a href="{{ route('products.index', ['category' => 'beef']) }}" class="inline-block mt-4 bg-white text-halal-green px-6 py-2 rounded-full font-medium hover:bg-green-50 transition-colors">
-                        Shop Beef <i class="bi bi-arrow-right ml-1"></i>
-                    </a>
-                </div>
-            </div>
-            
-            <div class="bg-gradient-to-r from-halal-gold to-yellow-500 rounded-2xl p-8 text-white relative overflow-hidden">
-                <div class="absolute right-0 top-0 opacity-20">
-                    <i class="bi bi-lightning-charge-fill text-[150px] transform rotate-12"></i>
-                </div>
-                <div class="relative z-10">
-                    <span class="bg-halal-dark text-white px-3 py-1 rounded-full text-sm font-medium">Flash Sale</span>
-                    <h3 class="font-poppins text-2xl font-bold mt-4">Flash Sale!</h3>
-                    <p class="text-yellow-100 mt-2">Limited time offer on fresh chicken</p>
-                    <a href="{{ route('products.index', ['category' => 'chicken']) }}" class="inline-block mt-4 bg-white text-halal-gold px-6 py-2 rounded-full font-medium hover:bg-yellow-50 transition-colors">
-                        Shop Chicken <i class="bi bi-arrow-right ml-1"></i>
-                    </a>
-                </div>
-            </div>
+                @endif
+            @endforeach
         </div>
     </div>
 </section>
+@endif
 @endif
 
 <!-- New Arrivals -->
@@ -456,7 +489,7 @@ $gridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $productColumns;
             </a>
         </div>
         
-        <div class="{{ $gridClass }} gap-5">
+        <div class="{{ $newArrivalsGridClass }} gap-5">
             @foreach($latestProducts as $product)
                 @include('themes.general.partials.product-card', ['product' => $product])
             @endforeach
@@ -470,42 +503,27 @@ $gridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $productColumns;
 <section class="py-16 bg-halal-dark text-white">
     <div class="container mx-auto px-4">
         <div class="text-center mb-12">
-            <h2 class="font-poppins text-3xl font-bold">Why Choose Us?</h2>
-            <p class="text-gray-400 mt-2">We are committed to providing the best halal products</p>
+            <h2 class="font-poppins text-3xl font-bold">{{ $home('why_choose_us_title', 'Why Choose Us?') }}</h2>
+            <p class="text-gray-400 mt-2">{{ $home('why_choose_us_subtitle', 'We are committed to providing the best halal products') }}</p>
         </div>
         
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div class="text-center">
-                <div class="w-20 h-20 mx-auto bg-halal-green rounded-full flex items-center justify-center mb-4">
-                    <i class="bi bi-patch-check-fill text-3xl text-halal-gold"></i>
+            @for($i = 1; $i <= 4; $i++)
+                @php
+                    $icon = $home('why_choose_us_icon_' . $i, 'bi-patch-check-fill');
+                    $title = $home('why_choose_us_title_' . $i, 'Feature ' . $i);
+                    $desc = $home('why_choose_us_desc_' . $i, 'Feature description');
+                @endphp
+                @if($title && $title !== 'Feature ' . $i)
+                <div class="text-center">
+                    <div class="w-20 h-20 mx-auto bg-halal-green rounded-full flex items-center justify-center mb-4">
+                        <i class="bi {{ $icon }} text-3xl text-halal-gold"></i>
+                    </div>
+                    <h3 class="font-poppins text-xl font-bold mb-2">{{ $title }}</h3>
+                    <p class="text-gray-400">{{ $desc }}</p>
                 </div>
-                <h3 class="font-poppins text-xl font-bold mb-2">100% Halal Certified</h3>
-                <p class="text-gray-400">All our products are certified halal by recognized Islamic authorities</p>
-            </div>
-            
-            <div class="text-center">
-                <div class="w-20 h-20 mx-auto bg-halal-green rounded-full flex items-center justify-center mb-4">
-                    <i class="bi bi-thermometer-snow text-3xl text-halal-gold"></i>
-                </div>
-                <h3 class="font-poppins text-xl font-bold mb-2">Fresh & Cold Storage</h3>
-                <p class="text-gray-400">Maintained at optimal temperature from farm to your door</p>
-            </div>
-            
-            <div class="text-center">
-                <div class="w-20 h-20 mx-auto bg-halal-green rounded-full flex items-center justify-center mb-4">
-                    <i class="bi bi-truck text-3xl text-halal-gold"></i>
-                </div>
-                <h3 class="font-poppins text-xl font-bold mb-2">Fast Delivery</h3>
-                <p class="text-gray-400">Same day delivery in Dhaka, 1-2 days nationwide</p>
-            </div>
-            
-            <div class="text-center">
-                <div class="w-20 h-20 mx-auto bg-halal-green rounded-full flex items-center justify-center mb-4">
-                    <i class="bi bi-hand-thumbs-up-fill text-3xl text-halal-gold"></i>
-                </div>
-                <h3 class="font-poppins text-xl font-bold mb-2">Quality Guarantee</h3>
-                <p class="text-gray-400">Not satisfied? We offer easy returns and refunds</p>
-            </div>
+                @endif
+            @endfor
         </div>
     </div>
 </section>
@@ -527,7 +545,7 @@ $gridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $productColumns;
             </a>
         </div>
         
-        <div class="{{ $gridClass }} gap-5">
+        <div class="{{ $saleGridClass }} gap-5">
             @foreach($saleProducts as $product)
                 @include('themes.general.partials.product-card', ['product' => $product])
             @endforeach
@@ -541,64 +559,45 @@ $gridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $productColumns;
 <section class="py-12 bg-gray-50">
     <div class="container mx-auto px-4">
         <div class="text-center mb-10">
-            <h2 class="font-poppins text-3xl font-bold text-gray-800">What Our Customers Say</h2>
-            <p class="text-gray-600 mt-2">Trusted by thousands of customers across Bangladesh</p>
+            <h2 class="font-poppins text-3xl font-bold text-gray-800">{{ $home('testimonials_title', 'What Our Customers Say') }}</h2>
+            <p class="text-gray-600 mt-2">{{ $home('testimonials_subtitle', 'Trusted by thousands of customers across Bangladesh') }}</p>
         </div>
         
         <div class="grid md:grid-cols-3 gap-6">
-            <div class="bg-white p-6 rounded-xl shadow-md">
-                <div class="flex text-halal-gold mb-4">
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                </div>
-                <p class="text-gray-600 mb-4">"The quality of meat is exceptional! Fresh, clean, and properly packed. Best halal meat store in Dhaka!"</p>
-                <div class="flex items-center">
-                    <div class="w-12 h-12 bg-halal-green rounded-full flex items-center justify-center text-white font-bold">RA</div>
-                    <div class="ml-3">
-                        <h4 class="font-medium text-gray-800">Rahim Ahmed</h4>
-                        <p class="text-sm text-gray-500">Dhaka</p>
+            @for($i = 1; $i <= 3; $i++)
+                @php
+                    $name = $home('testimonial' . $i . '_name', '');
+                    $location = $home('testimonial' . $i . '_location', '');
+                    $text = $home('testimonial' . $i . '_text', '');
+                    $rating = (int) $home('testimonial' . $i . '_rating', '5');
+                    $colors = ['bg-halal-green', 'bg-halal-gold', 'bg-halal-dark'];
+                @endphp
+                @if($name && $text)
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <div class="flex text-halal-gold mb-4">
+                        @for($s = 1; $s <= 5; $s++)
+                            @if($s <= $rating)
+                                <i class="bi bi-star-fill"></i>
+                            @elseif($s - 0.5 <= $rating)
+                                <i class="bi bi-star-half"></i>
+                            @else
+                                <i class="bi bi-star"></i>
+                            @endif
+                        @endfor
+                    </div>
+                    <p class="text-gray-600 mb-4">"{{ $text }}"</p>
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 {{ $colors[$i - 1] ?? 'bg-halal-green' }} rounded-full flex items-center justify-center text-white font-bold">
+                            {{ strtoupper(substr($name, 0, 1) . substr($name, strpos($name, ' ') !== false ? strpos($name, ' ') + 1 : 1, 1)) }}
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="font-medium text-gray-800">{{ $name }}</h4>
+                            <p class="text-sm text-gray-500">{{ $location }}</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="bg-white p-6 rounded-xl shadow-md">
-                <div class="flex text-halal-gold mb-4">
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                </div>
-                <p class="text-gray-600 mb-4">"Fast delivery and great customer service. The beef was so tender and fresh. Highly recommended!"</p>
-                <div class="flex items-center">
-                    <div class="w-12 h-12 bg-halal-gold rounded-full flex items-center justify-center text-white font-bold">SK</div>
-                    <div class="ml-3">
-                        <h4 class="font-medium text-gray-800">Sarah Khan</h4>
-                        <p class="text-sm text-gray-500">Chittagong</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white p-6 rounded-xl shadow-md">
-                <div class="flex text-halal-gold mb-4">
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-half"></i>
-                </div>
-                <p class="text-gray-600 mb-4">"Finally found a reliable halal meat shop online. The prices are reasonable and quality is top-notch!"</p>
-                <div class="flex items-center">
-                    <div class="w-12 h-12 bg-halal-dark rounded-full flex items-center justify-center text-white font-bold">MH</div>
-                    <div class="ml-3">
-                        <h4 class="font-medium text-gray-800">Mohammad Hossain</h4>
-                        <p class="text-sm text-gray-500">Sylhet</p>
-                    </div>
-                </div>
-            </div>
+                @endif
+            @endfor
         </div>
     </div>
 </section>

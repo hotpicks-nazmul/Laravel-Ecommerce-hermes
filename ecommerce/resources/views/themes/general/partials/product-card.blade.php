@@ -85,15 +85,18 @@
         <!-- Rating -->
         <div class="flex items-center mt-2">
             <div class="flex text-halal-gold">
+                @php $avgRating = $product->average_rating ?? 0; @endphp
                 @for($i = 1; $i <= 5; $i++)
-                    @if($i <= ($product->rating ?? 4))
+                    @if($avgRating >= $i)
                         <i class="bi bi-star-fill text-sm"></i>
+                    @elseif($avgRating >= $i - 0.5)
+                        <i class="bi bi-star-half text-sm"></i>
                     @else
                         <i class="bi bi-star text-sm text-gray-300"></i>
                     @endif
                 @endfor
             </div>
-            <span class="text-xs text-gray-500 ml-2">({{ $product->reviews_count ?? 0 }})</span>
+            <span class="text-xs text-gray-500 ml-2">({{ $product->approved_reviews_count ?? 0 }})</span>
         </div>
         
         <!-- Price -->

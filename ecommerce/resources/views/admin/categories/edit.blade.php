@@ -12,7 +12,7 @@
 
 <div class="card">
     <div class="card-body">
-        <form action="{{ route('admin.categories.update', $category->id) }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('admin.categories.update', $category->id) }}" method="POST" enctype="multipart/form-data" id="category-form">
             @csrf
             @method('PUT')
             
@@ -80,14 +80,17 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="border-top pt-3">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg me-1"></i> Update Category
-                </button>
-                <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
-            </div>
         </form>
     </div>
+</div>
+
+<!-- Floating Save Button -->
+<div class="floating-save-container">
+    <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary floating-reset-btn">
+        <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
+    <button type="submit" form="category-form" class="btn btn-primary floating-save-btn">
+        <i class="bi bi-check-lg me-1"></i> Update Category
+    </button>
 </div>
 @endsection

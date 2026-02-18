@@ -128,6 +128,10 @@ Route::prefix('settings')->name('settings.')->group(function () {
     Route::post('/social', [SettingController::class, 'updateSocial'])->name('social.update');
     Route::get('/social-login', [SettingController::class, 'socialLogin'])->name('social-login');
     Route::put('/social-login', [SettingController::class, 'updateSocialLogin'])->name('social-login.update');
+    Route::get('/whatsapp', [SettingController::class, 'whatsapp'])->name('whatsapp');
+    Route::post('/whatsapp', [SettingController::class, 'updateWhatsapp'])->name('whatsapp.update');
+    Route::get('/footer', [SettingController::class, 'footer'])->name('footer');
+    Route::post('/footer', [SettingController::class, 'updateFooter'])->name('footer.update');
     Route::get('/maintenance', [SettingController::class, 'maintenance'])->name('maintenance');
     Route::post('/maintenance', [SettingController::class, 'updateMaintenance'])->name('maintenance.update');
 });

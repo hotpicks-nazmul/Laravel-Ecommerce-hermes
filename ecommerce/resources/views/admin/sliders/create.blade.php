@@ -23,7 +23,7 @@
     </div>
 </div>
 
-<form action="{{ route('admin.sliders.store') }}" method="POST" enctype="multipart/form-data">
+<form action="{{ route('admin.sliders.store') }}" method="POST" enctype="multipart/form-data" id="slider-form">
     @csrf
     
     <div class="row">
@@ -77,15 +77,17 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-check-lg me-1"></i> Create Slider
-                    </button>
-                </div>
-            </div>
         </div>
     </div>
 </form>
+
+<!-- Floating Save Button -->
+<div class="floating-save-container">
+    <a href="{{ route('admin.sliders.index') }}" class="btn btn-secondary floating-reset-btn">
+        <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
+    <button type="submit" form="slider-form" class="btn btn-primary floating-save-btn">
+        <i class="bi bi-check-lg me-1"></i> Create Slider
+    </button>
+</div>
 @endsection

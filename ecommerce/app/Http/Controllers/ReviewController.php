@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Review;
+use App\Models\ReviewVote;
 use App\Models\Product;
 
 class ReviewController extends Controller
@@ -49,7 +50,9 @@ class ReviewController extends Controller
             'rating' => $request->rating,
             'title' => $request->title,
             'comment' => $request->comment,
-            'is_approved' => false,
+            'status' => 'pending',
+            'helpful_count' => 0,
+            'not_helpful_count' => 0,
         ]);
 
         return back()->with('success', 'Review submitted successfully. It will be visible after approval.');
@@ -92,5 +95,74 @@ class ReviewController extends Controller
         $review->delete();
 
         return back()->with('success', 'Review deleted successfully.');
+    }
+
+    /**
+     * Vote on a review (helpful/not helpful).
+     */
+    public function vote(Request $request, Review $review)
+    {
+        $request->validate([
+            'is_helpful' => 'required|boolean',
+        ]);
+
+        $userId = auth()->id();
+
+        // Check if user has already voted
+        $existingVote = $review->getUserVote($userId);
+
+        if ($existingVote) {
+            // If same vote, remove it
+            if ($existingVote->is_helpful === (bool) $request->is_helpful) {
+                $existingVote->delete();
+                
+                if ($request->is_helpful) {
+                    $review->decrement('helpful_count');
+                } else {
+                    $review->decrement('not_helpful_count');
+                }
+                
+                $message = 'Vote removed.';
+            } else {
+                // Change vote
+                $existingVote->update(['is_helpful' => $request->is_helpful]);
+                
+                if ($request->is_helpful) {
+                    $review->increment('helpful_count');
+                    $review->decrement('not_helpful_count');
+                } else {
+                    $review->increment('not_helpful_count');
+                    $review->decrement('helpful_count');
+                }
+                
+                $message = 'Vote updated.';
+            }
+        } else {
+            // Create new vote
+            ReviewVote::create([
+                'review_id' => $review->id,
+                'user_id' => $userId,
+                'is_helpful' => $request->is_helpful,
+            ]);
+
+            if ($request->is_helpful) {
+                $review->increment('helpful_count');
+            } else {
+                $review->increment('not_helpful_count');
+            }
+
+            $message = 'Thank you for your feedback!';
+        }
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'helpful_count' => $review->fresh()->helpful_count,
+                'not_helpful_count' => $review->fresh()->not_helpful_count,
+            ]);
+        }
+
+        return back()->with('success', $message);
     }
 }

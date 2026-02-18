@@ -14,7 +14,7 @@
                 <h5 class="mb-0">Meta Settings</h5>
             </div>
             <div class="card-body">
-                <form action="{{ route('admin.seo.meta.update') }}" method="POST">
+                <form action="{{ route('admin.seo.meta.update') }}" method="POST" id="seo-form">
                     @csrf
                     
                     <div class="mb-3">
@@ -48,12 +48,6 @@
                     <div class="mb-3">
                         <label class="form-label">Facebook Pixel ID</label>
                         <input type="text" name="facebook_pixel_id" class="form-control" value="{{ old('facebook_pixel_id', $settings['facebook_pixel_id'] ?? '') }}">
-                    </div>
-                    
-                    <div class="text-end">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-1"></i> Save SEO Settings
-                        </button>
                     </div>
                 </form>
             </div>
@@ -144,5 +138,12 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Floating Save Button -->
+<div class="floating-save-container">
+    <button type="submit" form="seo-form" class="btn btn-primary floating-save-btn">
+        <i class="bi bi-check-lg me-1"></i> Save SEO Settings
+    </button>
 </div>
 @endsection

@@ -9,7 +9,7 @@
 
 <div class="card">
     <div class="card-body">
-        <form action="{{ route('admin.settings.general.update') }}" method="POST">
+        <form action="{{ route('admin.settings.general.update') }}" method="POST" id="settings-form">
             @csrf
             
             <div class="row mb-3">
@@ -66,13 +66,14 @@
                 <label class="form-label">Site Favicon URL</label>
                 <input type="text" name="site_favicon" class="form-control" value="{{ old('site_favicon', $settings['site_favicon'] ?? '') }}">
             </div>
-            
-            <div class="text-end">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg me-1"></i> Save Settings
-                </button>
-            </div>
         </form>
     </div>
+</div>
+
+<!-- Floating Save Button -->
+<div class="floating-save-container">
+    <button type="submit" form="settings-form" class="btn btn-primary floating-save-btn">
+        <i class="bi bi-check-lg me-1"></i> Save Settings
+    </button>
 </div>
 @endsection

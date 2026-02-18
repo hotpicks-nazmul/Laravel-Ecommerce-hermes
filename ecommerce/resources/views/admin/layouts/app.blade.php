@@ -172,6 +172,182 @@
                 margin-left: 0;
             }
         }
+        
+        /* Floating Save Button */
+        .floating-save-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .floating-save-btn {
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .floating-save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+        
+        .floating-save-btn.btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        
+        .floating-save-btn.btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+        }
+        
+        .floating-reset-btn {
+            padding: 12px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            background-color: #6c757d;
+            border: none;
+            color: white;
+        }
+        
+        .floating-reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            background-color: #5c636a;
+            color: white;
+        }
+        
+        /* Add padding at bottom of content to prevent overlap with floating button */
+        .content-area.has-floating-save {
+            padding-bottom: 100px;
+        }
+        
+        /* Admin Toast Notification */
+        .admin-toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .admin-toast {
+            min-width: 300px;
+            max-width: 400px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .admin-toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .admin-toast.hide {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+        
+        .admin-toast.success {
+            border-left: 4px solid #10b981;
+        }
+        
+        .admin-toast.error {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .admin-toast.warning {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .admin-toast-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .admin-toast.success .admin-toast-icon {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        
+        .admin-toast.error .admin-toast-icon {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+        
+        .admin-toast.warning .admin-toast-icon {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+        
+        .admin-toast-content {
+            flex: 1;
+        }
+        
+        .admin-toast-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 2px;
+        }
+        
+        .admin-toast-message {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .admin-toast-close {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+        
+        .admin-toast-close:hover {
+            color: #4b5563;
+        }
+        
+        /* Hide original save buttons when floating is active */
+        .original-save-container {
+            display: none;
+        }
+        
+        @media (max-width: 575.98px) {
+            .floating-save-container {
+                bottom: 15px;
+                right: 15px;
+                left: 15px;
+                justify-content: center;
+            }
+            
+            .floating-save-btn,
+            .floating-reset-btn {
+                padding: 10px 18px;
+                font-size: 0.9rem;
+            }
+        }
     </style>
     
     @stack('styles')
@@ -283,6 +459,16 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('admin.settings.social-login') ? 'active' : '' }}" href="{{ route('admin.settings.social-login') }}">
                         <i class="bi bi-google"></i> Social Login
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.settings.whatsapp') ? 'active' : '' }}" href="{{ route('admin.settings.whatsapp') }}">
+                        <i class="bi bi-whatsapp"></i> WhatsApp Chat
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.settings.footer') ? 'active' : '' }}" href="{{ route('admin.settings.footer') }}">
+                        <i class="bi bi-layout-text-window-reverse"></i> Footer Settings
                     </a>
                 </li>
                 <li class="nav-item">
@@ -434,6 +620,63 @@
                     });
                 }
             });
+        });
+        
+        // Admin Toast Notification System
+        window.adminToast = function(type, title, message, duration = 4000) {
+            let container = document.querySelector('.admin-toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'admin-toast-container';
+                document.body.appendChild(container);
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = `admin-toast ${type}`;
+            
+            const icons = {
+                success: 'bi-check-circle-fill',
+                error: 'bi-x-circle-fill',
+                warning: 'bi-exclamation-triangle-fill'
+            };
+            
+            toast.innerHTML = `
+                <div class="admin-toast-icon">
+                    <i class="bi ${icons[type]} fs-5"></i>
+                </div>
+                <div class="admin-toast-content">
+                    <div class="admin-toast-title">${title}</div>
+                    <div class="admin-toast-message">${message}</div>
+                </div>
+                <button class="admin-toast-close" onclick="this.parentElement.remove()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            // Auto remove
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 400);
+            }, duration);
+        };
+        
+        // Show session messages as toasts
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(session('success'))
+                adminToast('success', 'Success!', '{{ session('success') }}');
+            @endif
+            @if(session('error'))
+                adminToast('error', 'Error!', '{{ session('error') }}');
+            @endif
+            @if(session('warning'))
+                adminToast('warning', 'Warning!', '{{ session('warning') }}');
+            @endif
         });
     </script>
     

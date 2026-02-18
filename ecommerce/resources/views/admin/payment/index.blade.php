@@ -24,7 +24,7 @@
                 </form>
             </div>
             <div class="card-body">
-                <form action="{{ route('admin.payment.bkash.update') }}" method="POST">
+                <form action="{{ route('admin.payment.bkash.update') }}" method="POST" id="bkash-form">
                     @csrf
                     <div class="mb-3">
                         <label class="form-label">API Key</label>
@@ -42,7 +42,6 @@
                         <input type="checkbox" name="bkash_sandbox" class="form-check-input" id="bkashSandbox" {{ ($gateways['bkash']['sandbox'] ?? false) ? 'checked' : '' }}>
                         <label class="form-check-label" for="bkashSandbox">Sandbox Mode</label>
                     </div>
-                    <button type="submit" class="btn btn-primary">Save bKash Settings</button>
                 </form>
             </div>
         </div>
@@ -64,7 +63,7 @@
                 </form>
             </div>
             <div class="card-body">
-                <form action="{{ route('admin.payment.sslcommerz.update') }}" method="POST">
+                <form action="{{ route('admin.payment.sslcommerz.update') }}" method="POST" id="sslcommerz-form">
                     @csrf
                     <div class="mb-3">
                         <label class="form-label">Store ID</label>
@@ -78,7 +77,6 @@
                         <input type="checkbox" name="sslcommerz_sandbox" class="form-check-input" id="sslSandbox" {{ ($gateways['sslcommerz']['sandbox'] ?? false) ? 'checked' : '' }}>
                         <label class="form-check-label" for="sslSandbox">Sandbox Mode</label>
                     </div>
-                    <button type="submit" class="btn btn-primary">Save SSLCommerz Settings</button>
                 </form>
             </div>
         </div>
@@ -100,7 +98,7 @@
                 </form>
             </div>
             <div class="card-body">
-                <form action="{{ route('admin.payment.nagad.update') }}" method="POST">
+                <form action="{{ route('admin.payment.nagad.update') }}" method="POST" id="nagad-form">
                     @csrf
                     <div class="mb-3">
                         <label class="form-label">Merchant ID</label>
@@ -110,7 +108,6 @@
                         <label class="form-label">API Key</label>
                         <input type="password" name="nagad_api_key" class="form-control" value="{{ $gateways['nagad']['api_key'] ?? '' }}">
                     </div>
-                    <button type="submit" class="btn btn-primary">Save Nagad Settings</button>
                 </form>
             </div>
         </div>
@@ -132,16 +129,33 @@
                 </form>
             </div>
             <div class="card-body">
-                <form action="{{ route('admin.payment.cod.update') }}" method="POST">
+                <form action="{{ route('admin.payment.cod.update') }}" method="POST" id="cod-form">
                     @csrf
                     <div class="mb-3">
                         <label class="form-label">COD Instructions</label>
                         <textarea name="cod_instructions" class="form-control" rows="3">{{ $gateways['cod']['instructions'] ?? 'Pay with cash upon delivery.' }}</textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary">Save COD Settings</button>
                 </form>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Floating Save Buttons for Payment Gateways -->
+<div class="floating-save-container">
+    <div class="btn-group">
+        <button type="submit" form="bkash-form" class="btn btn-primary floating-save-btn">
+            <i class="bi bi-check-lg me-1"></i> bKash
+        </button>
+        <button type="submit" form="sslcommerz-form" class="btn btn-primary floating-save-btn">
+            <i class="bi bi-check-lg me-1"></i> SSLCommerz
+        </button>
+        <button type="submit" form="nagad-form" class="btn btn-primary floating-save-btn">
+            <i class="bi bi-check-lg me-1"></i> Nagad
+        </button>
+        <button type="submit" form="cod-form" class="btn btn-primary floating-save-btn">
+            <i class="bi bi-check-lg me-1"></i> COD
+        </button>
     </div>
 </div>
 @endsection

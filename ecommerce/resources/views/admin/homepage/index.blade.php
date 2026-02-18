@@ -18,7 +18,7 @@
         </div>
     </div>
 
-    <form action="{{ route('admin.homepage.update') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('admin.homepage.update') }}" method="POST" enctype="multipart/form-data" id="homepage-form">
         @csrf
         @method('PUT')
         
@@ -132,6 +132,41 @@
                                        min="4" max="12">
                             </div>
                         </div>
+                        
+                        <hr class="my-4">
+                        
+                        <h6 class="mb-3">Section Column Settings</h6>
+                        <p class="text-muted small mb-3">Set columns for each product section independently</p>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">Featured Columns</label>
+                                @php $featuredCols = $homeSettings['homepage_featured_columns']->value ?? 6; @endphp
+                                <select name="homepage_featured_columns" class="form-select">
+                                    @for($i = 2; $i <= 6; $i++)
+                                        <option value="{{ $i }}" {{ $featuredCols == $i ? 'selected' : '' }}>{{ $i }} Columns</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">New Arrivals Columns</label>
+                                @php $newArrivalsCols = $homeSettings['homepage_new_arrivals_columns']->value ?? 6; @endphp
+                                <select name="homepage_new_arrivals_columns" class="form-select">
+                                    @for($i = 2; $i <= 6; $i++)
+                                        <option value="{{ $i }}" {{ $newArrivalsCols == $i ? 'selected' : '' }}>{{ $i }} Columns</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">Sale Columns</label>
+                                @php $saleCols = $homeSettings['homepage_sale_columns']->value ?? 6; @endphp
+                                <select name="homepage_sale_columns" class="form-select">
+                                    @for($i = 2; $i <= 6; $i++)
+                                        <option value="{{ $i }}" {{ $saleCols == $i ? 'selected' : '' }}>{{ $i }} Columns</option>
+                                    @endfor
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -223,6 +258,75 @@
             </div>
         </div>
         
+        <!-- Why Choose Us Section -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-patch-check me-2 text-primary"></i>
+                            Why Choose Us Section
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Section Title</label>
+                                <input type="text" name="why_choose_us_title" 
+                                       class="form-control" 
+                                       value="{{ $homeSettings['why_choose_us_title']->value ?? 'Why Choose Us?' }}"
+                                       placeholder="Why Choose Us?">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Section Subtitle</label>
+                                <input type="text" name="why_choose_us_subtitle" 
+                                       class="form-control" 
+                                       value="{{ $homeSettings['why_choose_us_subtitle']->value ?? 'We are committed to providing the best halal products' }}"
+                                       placeholder="We are committed to providing the best halal products">
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        <h6 class="mb-3">Feature Cards</h6>
+                        
+                        @for($i = 1; $i <= 4; $i++)
+                        <div class="row mb-3 align-items-end">
+                            <div class="col-12 mb-2">
+                                <span class="badge bg-primary">Feature {{ $i }}</span>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Icon (Bootstrap)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="{{ $homeSettings['why_choose_us_icon_' . $i]->value ?? 'bi-patch-check-fill' }}"></i></span>
+                                    <input type="text" name="why_choose_us_icon_{{ $i }}" 
+                                           class="form-control icon-input" 
+                                           data-preview="icon-preview-{{ $i }}"
+                                           value="{{ $homeSettings['why_choose_us_icon_' . $i]->value ?? 'bi-patch-check-fill' }}"
+                                           placeholder="bi-patch-check-fill">
+                                </div>
+                                <p class="text-muted small mt-1">e.g., bi-truck, bi-shield-check</p>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Title</label>
+                                <input type="text" name="why_choose_us_title_{{ $i }}" 
+                                       class="form-control" 
+                                       value="{{ $homeSettings['why_choose_us_title_' . $i]->value ?? '' }}"
+                                       placeholder="Feature Title">
+                            </div>
+                            <div class="col-md-5 mb-3">
+                                <label class="form-label">Description</label>
+                                <input type="text" name="why_choose_us_desc_{{ $i }}" 
+                                       class="form-control" 
+                                       value="{{ $homeSettings['why_choose_us_desc_' . $i]->value ?? '' }}"
+                                       placeholder="Feature description">
+                            </div>
+                        </div>
+                        @endfor
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Section Titles -->
         <div class="row">
             <div class="col-12 mb-4">
@@ -297,14 +401,167 @@
             </div>
         </div>
         
+        <!-- Banner Section Settings -->
         <div class="row">
-            <div class="col-12">
-                <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="bi bi-check-lg me-2"></i> Save Settings
-                </button>
+            <div class="col-12 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-megaphone me-2 text-success"></i>
+                            Banner Section Settings
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @php
+                                $bannerColors = [
+                                    1 => ['color' => 'primary', 'label' => 'Green', 'gradient' => 'from-halal-green to-green-600'],
+                                    2 => ['color' => 'warning', 'label' => 'Gold', 'gradient' => 'from-halal-gold to-yellow-500'],
+                                    3 => ['color' => 'info', 'label' => 'Blue', 'gradient' => 'from-blue-500 to-blue-600'],
+                                    4 => ['color' => 'danger', 'label' => 'Red', 'gradient' => 'from-red-500 to-red-600'],
+                                ];
+                            @endphp
+                            @for($i = 1; $i <= 4; $i++)
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="border rounded p-3 h-100">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0 text-{{ $bannerColors[$i]['color'] }}">
+                                            <i class="bi bi-{{ $i }}-circle me-2"></i>Banner {{ $i }} ({{ $bannerColors[$i]['label'] }})
+                                        </h6>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="banner{{ $i }}_visible"
+                                                   id="banner{{ $i }}_visible" value="1"
+                                                   {{ ($homeSettings['banner' . $i . '_visible']->value ?? '1') == '1' ? 'checked' : '' }}>
+                                            <label class="form-check-label small" for="banner{{ $i }}_visible">Show</label>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Badge Text</label>
+                                        <input type="text" name="banner{{ $i }}_badge" 
+                                               class="form-control" 
+                                               value="{{ $homeSettings['banner' . $i . '_badge']->value ?? '' }}"
+                                               placeholder="{{ $i == 1 ? 'Special Offer' : ($i == 2 ? 'Flash Sale' : ($i == 3 ? 'New Arrival' : 'Hot Deal')) }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Title</label>
+                                        <input type="text" name="banner{{ $i }}_title" 
+                                               class="form-control" 
+                                               value="{{ $homeSettings['banner' . $i . '_title']->value ?? '' }}"
+                                               placeholder="{{ $i == 1 ? 'Weekend Special!' : ($i == 2 ? 'Flash Sale!' : ($i == 3 ? 'Fresh Products' : 'Best Sellers')) }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Description</label>
+                                        <textarea name="banner{{ $i }}_description" class="form-control" rows="2" placeholder="Banner description">{{ $homeSettings['banner' . $i . '_description']->value ?? '' }}</textarea>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label">Button Text</label>
+                                            <input type="text" name="banner{{ $i }}_button_text" 
+                                                   class="form-control" 
+                                                   value="{{ $homeSettings['banner' . $i . '_button_text']->value ?? '' }}"
+                                                   placeholder="Shop Now">
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label">Link</label>
+                                            <input type="text" name="banner{{ $i }}_link" 
+                                                   class="form-control" 
+                                                   value="{{ $homeSettings['banner' . $i . '_link']->value ?? '' }}"
+                                                   placeholder="category-slug">
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Icon (Bootstrap)</label>
+                                        <input type="text" name="banner{{ $i }}_icon" 
+                                               class="form-control" 
+                                               value="{{ $homeSettings['banner' . $i . '_icon']->value ?? '' }}"
+                                               placeholder="bi-star-fill">
+                                    </div>
+                                </div>
+                            </div>
+                            @endfor
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Testimonials Section Settings -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-chat-quote me-2 text-secondary"></i>
+                            Testimonials Section Settings
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Section Title</label>
+                                <input type="text" name="testimonials_title" 
+                                       class="form-control" 
+                                       value="{{ $homeSettings['testimonials_title']->value ?? 'What Our Customers Say' }}"
+                                       placeholder="What Our Customers Say">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Section Subtitle</label>
+                                <input type="text" name="testimonials_subtitle" 
+                                       class="form-control" 
+                                       value="{{ $homeSettings['testimonials_subtitle']->value ?? 'Trusted by thousands of customers across Bangladesh' }}"
+                                       placeholder="Trusted by thousands of customers across Bangladesh">
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <div class="row">
+                            @for($i = 1; $i <= 3; $i++)
+                            <div class="col-md-4 mb-3">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="mb-3"><span class="badge bg-secondary">Testimonial {{ $i }}</span></h6>
+                                    <div class="mb-3">
+                                        <label class="form-label">Customer Name</label>
+                                        <input type="text" name="testimonial{{ $i }}_name" 
+                                               class="form-control" 
+                                               value="{{ $homeSettings['testimonial' . $i . '_name']->value ?? '' }}"
+                                               placeholder="John Doe">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Location</label>
+                                        <input type="text" name="testimonial{{ $i }}_location" 
+                                               class="form-control" 
+                                               value="{{ $homeSettings['testimonial' . $i . '_location']->value ?? '' }}"
+                                               placeholder="Dhaka">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Review Text</label>
+                                        <textarea name="testimonial{{ $i }}_text" class="form-control" rows="3" placeholder="Customer review...">{{ $homeSettings['testimonial' . $i . '_text']->value ?? '' }}</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Rating (1-5)</label>
+                                        <select name="testimonial{{ $i }}_rating" class="form-select">
+                                            @for($r = 1; $r <= 5; $r++)
+                                                <option value="{{ $r }}" {{ ($homeSettings['testimonial' . $i . '_rating']->value ?? 5) == $r ? 'selected' : '' }}>{{ $r }} Star{{ $r > 1 ? 's' : '' }}</option>
+                                            @endfor
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            @endfor
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </form>
+</div>
+
+<!-- Floating Save Button -->
+<div class="floating-save-container">
+    <button type="submit" form="homepage-form" class="btn btn-primary floating-save-btn">
+        <i class="bi bi-check-lg me-1"></i> Save Settings
+    </button>
 </div>
 @endsection
 

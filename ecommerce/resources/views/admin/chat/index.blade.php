@@ -79,7 +79,7 @@
                 <h5 class="mb-0">AI Chatbot Settings</h5>
             </div>
             <div class="card-body">
-                <form action="{{ route('admin.chat.ai-settings') }}" method="POST">
+                <form action="{{ route('admin.chat.ai-settings') }}" method="POST" id="ai-settings-form">
                     @csrf
                     <div class="mb-3">
                         <div class="form-check form-switch">
@@ -95,11 +95,17 @@
                         <label class="form-label">Welcome Message</label>
                         <textarea name="ai_welcome_message" class="form-control" rows="2">{{ $aiSettings['welcome_message'] ?? 'Hello! How can I help you today?' }}</textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary">Save AI Settings</button>
                 </form>
             </div>
         </div>
     </div>
+</div>
+
+<!-- Floating Save Button -->
+<div class="floating-save-container">
+    <button type="submit" form="ai-settings-form" class="btn btn-primary floating-save-btn">
+        <i class="bi bi-check-lg me-1"></i> Save AI Settings
+    </button>
 </div>
 @endsection
 

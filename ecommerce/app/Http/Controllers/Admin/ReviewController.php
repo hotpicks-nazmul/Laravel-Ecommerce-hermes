@@ -10,15 +10,37 @@ class ReviewController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Review::with('user', 'product');
+        $query = Review::with(['user', 'product']);
 
+        // Filter by status
         if ($request->status === 'pending') {
-            $query->where('is_approved', false);
+            $query->where('status', 'pending');
         } elseif ($request->status === 'approved') {
-            $query->where('is_approved', true);
+            $query->where('status', 'approved');
+        } elseif ($request->status === 'rejected') {
+            $query->where('status', 'rejected');
         }
 
-        $reviews = $query->latest()->paginate(15);
+        // Filter by rating
+        if ($request->rating) {
+            $query->where('rating', $request->rating);
+        }
+
+        // Search by product name or customer name
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('product', function ($pq) use ($search) {
+                    $pq->where('name', 'like', "%{$search}%");
+                })->orWhereHas('user', function ($uq) use ($search) {
+                    $uq->where('name', 'like', "%{$search}%")
+                       ->orWhere('email', 'like', "%{$search}%");
+                })->orWhere('title', 'like', "%{$search}%")
+                  ->orWhere('comment', 'like', "%{$search}%");
+            });
+        }
+
+        $reviews = $query->latest()->paginate(15)->appends($request->query());
 
         return view('admin.reviews.index', compact('reviews'));
     }
@@ -31,7 +53,7 @@ class ReviewController extends Controller
             'comment' => 'sometimes|string|max:1000',
         ]);
 
-        $review->update($request->all());
+        $review->update($request->only(['rating', 'title', 'comment']));
 
         return back()->with('success', 'Review updated successfully.');
     }
@@ -44,21 +66,44 @@ class ReviewController extends Controller
 
     public function approve(Review $review)
     {
-        $review->update(['is_approved' => true]);
+        $review->update(['status' => 'approved']);
         return back()->with('success', 'Review approved successfully.');
+    }
+
+    public function reject(Review $review)
+    {
+        $review->update(['status' => 'rejected']);
+        return back()->with('success', 'Review rejected successfully.');
     }
 
     public function bulkAction(Request $request)
     {
-        $action = $request->action;
-        $ids = $request->ids;
+        $request->validate([
+            'action' => 'required|in:delete,approve,reject',
+            'ids' => 'required|string',
+        ]);
 
-        if ($action === 'delete') {
-            Review::whereIn('id', $ids)->delete();
-        } elseif ($action === 'approve') {
-            Review::whereIn('id', $ids)->update(['is_approved' => true]);
+        $ids = json_decode($request->ids, true);
+
+        if (!is_array($ids) || empty($ids)) {
+            return back()->with('error', 'No reviews selected.');
         }
 
-        return back()->with('success', 'Bulk action completed.');
+        switch ($request->action) {
+            case 'delete':
+                Review::whereIn('id', $ids)->delete();
+                $message = count($ids) . ' review(s) deleted successfully.';
+                break;
+            case 'approve':
+                Review::whereIn('id', $ids)->update(['status' => 'approved']);
+                $message = count($ids) . ' review(s) approved successfully.';
+                break;
+            case 'reject':
+                Review::whereIn('id', $ids)->update(['status' => 'rejected']);
+                $message = count($ids) . ' review(s) rejected successfully.';
+                break;
+        }
+
+        return back()->with('success', $message);
     }
 }

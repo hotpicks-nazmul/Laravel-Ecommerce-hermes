@@ -119,6 +119,9 @@
     <!-- Chat Widget -->
     @include('themes.general.partials.chat-widget')
     
+    <!-- WhatsApp Widget -->
+    @include('themes.general.partials.whatsapp-widget')
+    
     <!-- Mobile Menu -->
     @include('themes.general.partials.mobile-menu')
     

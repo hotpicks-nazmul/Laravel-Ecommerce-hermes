@@ -29,6 +29,9 @@ class HomePageController extends Controller
             'homepage_featured_products_count' => 'required|integer|min:4|max:12',
             'homepage_new_arrivals_count' => 'required|integer|min:4|max:12',
             'homepage_sale_products_count' => 'required|integer|min:4|max:12',
+            'homepage_featured_columns' => 'required|integer|min:2|max:6',
+            'homepage_new_arrivals_columns' => 'required|integer|min:2|max:6',
+            'homepage_sale_columns' => 'required|integer|min:2|max:6',
             'homepage_show_featured_section' => 'nullable|in:0,1',
             'homepage_show_new_arrivals_section' => 'nullable|in:0,1',
             'homepage_show_sale_section' => 'nullable|in:0,1',
@@ -48,9 +51,87 @@ class HomePageController extends Controller
             'site_tagline' => 'nullable|string|max:255',
             'site_logo' => 'nullable|image|mimes:jpeg,png,jpg,svg,webp|max:2048',
             'site_logo_icon' => 'nullable|string|max:255',
+            // Why Choose Us Section
+            'why_choose_us_title' => 'nullable|string|max:255',
+            'why_choose_us_subtitle' => 'nullable|string|max:255',
+            'why_choose_us_icon_1' => 'nullable|string|max:255',
+            'why_choose_us_title_1' => 'nullable|string|max:255',
+            'why_choose_us_desc_1' => 'nullable|string|max:500',
+            'why_choose_us_icon_2' => 'nullable|string|max:255',
+            'why_choose_us_title_2' => 'nullable|string|max:255',
+            'why_choose_us_desc_2' => 'nullable|string|max:500',
+            'why_choose_us_icon_3' => 'nullable|string|max:255',
+            'why_choose_us_title_3' => 'nullable|string|max:255',
+            'why_choose_us_desc_3' => 'nullable|string|max:500',
+            'why_choose_us_icon_4' => 'nullable|string|max:255',
+            'why_choose_us_title_4' => 'nullable|string|max:255',
+            'why_choose_us_desc_4' => 'nullable|string|max:500',
+            // Banner Section
+            'banner1_visible' => 'nullable|in:0,1',
+            'banner2_visible' => 'nullable|in:0,1',
+            'banner3_visible' => 'nullable|in:0,1',
+            'banner4_visible' => 'nullable|in:0,1',
+            'banner1_badge' => 'nullable|string|max:255',
+            'banner1_title' => 'nullable|string|max:255',
+            'banner1_description' => 'nullable|string|max:500',
+            'banner1_button_text' => 'nullable|string|max:255',
+            'banner1_link' => 'nullable|string|max:255',
+            'banner1_icon' => 'nullable|string|max:255',
+            'banner2_badge' => 'nullable|string|max:255',
+            'banner2_title' => 'nullable|string|max:255',
+            'banner2_description' => 'nullable|string|max:500',
+            'banner2_button_text' => 'nullable|string|max:255',
+            'banner2_link' => 'nullable|string|max:255',
+            'banner2_icon' => 'nullable|string|max:255',
+            'banner3_badge' => 'nullable|string|max:255',
+            'banner3_title' => 'nullable|string|max:255',
+            'banner3_description' => 'nullable|string|max:500',
+            'banner3_button_text' => 'nullable|string|max:255',
+            'banner3_link' => 'nullable|string|max:255',
+            'banner3_icon' => 'nullable|string|max:255',
+            'banner4_badge' => 'nullable|string|max:255',
+            'banner4_title' => 'nullable|string|max:255',
+            'banner4_description' => 'nullable|string|max:500',
+            'banner4_button_text' => 'nullable|string|max:255',
+            'banner4_link' => 'nullable|string|max:255',
+            'banner4_icon' => 'nullable|string|max:255',
+            // Testimonials Section
+            'testimonials_title' => 'nullable|string|max:255',
+            'testimonials_subtitle' => 'nullable|string|max:255',
+            'testimonial1_name' => 'nullable|string|max:255',
+            'testimonial1_location' => 'nullable|string|max:255',
+            'testimonial1_text' => 'nullable|string|max:500',
+            'testimonial1_rating' => 'nullable|integer|min:1|max:5',
+            'testimonial2_name' => 'nullable|string|max:255',
+            'testimonial2_location' => 'nullable|string|max:255',
+            'testimonial2_text' => 'nullable|string|max:500',
+            'testimonial2_rating' => 'nullable|integer|min:1|max:5',
+            'testimonial3_name' => 'nullable|string|max:255',
+            'testimonial3_location' => 'nullable|string|max:255',
+            'testimonial3_text' => 'nullable|string|max:500',
+            'testimonial3_rating' => 'nullable|integer|min:1|max:5',
         ]);
         
         $settings = $request->except(['_token', '_method']);
+        
+        // Handle checkbox fields that need default to '0' when unchecked
+        $checkboxFields = [
+            'homepage_show_featured_section',
+            'homepage_show_new_arrivals_section',
+            'homepage_show_sale_section',
+            'homepage_show_testimonials_section',
+            'homepage_show_blog_section',
+            'homepage_show_banner_section',
+            'homepage_show_why_choose_us_section',
+            'banner1_visible',
+            'banner2_visible',
+            'banner3_visible',
+            'banner4_visible',
+        ];
+        
+        foreach ($checkboxFields as $field) {
+            $settings[$field] = $request->has($field) ? '1' : '0';
+        }
         
         // Handle logo file upload
         if ($request->hasFile('site_logo')) {

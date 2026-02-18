@@ -70,6 +70,14 @@ class Product extends Model
         return $this->hasMany(Review::class);
     }
 
+    /**
+     * Get approved reviews only.
+     */
+    public function approvedReviews()
+    {
+        return $this->hasMany(Review::class)->where('status', 'approved');
+    }
+
     public function getFinalPriceAttribute()
     {
         return $this->sale_price ?? $this->price;
@@ -83,9 +91,32 @@ class Product extends Model
         return 0;
     }
 
+    /**
+     * Get average rating from approved reviews only.
+     */
     public function getAverageRatingAttribute()
     {
-        return $this->reviews()->avg('rating') ?? 0;
+        return $this->approvedReviews()->avg('rating') ?? 0;
+    }
+
+    /**
+     * Get approved reviews count.
+     */
+    public function getApprovedReviewsCountAttribute()
+    {
+        return $this->approvedReviews()->count();
+    }
+
+    /**
+     * Get rating distribution for approved reviews.
+     */
+    public function getRatingDistributionAttribute()
+    {
+        $distribution = [];
+        for ($i = 5; $i >= 1; $i--) {
+            $distribution[$i] = $this->approvedReviews()->where('rating', $i)->count();
+        }
+        return $distribution;
     }
 
     public function scopeActive($query)

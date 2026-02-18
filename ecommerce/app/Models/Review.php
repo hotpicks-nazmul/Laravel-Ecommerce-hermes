@@ -15,12 +15,23 @@ class Review extends Model
         'rating',
         'title',
         'comment',
-        'is_approved',
+        'status',
+        'images',
+        'helpful_count',
+        'not_helpful_count',
     ];
 
     protected $casts = [
-        'is_approved' => 'boolean',
+        'images' => 'array',
     ];
+
+    /**
+     * Check if review is approved.
+     */
+    public function getIsApprovedAttribute()
+    {
+        return $this->status === 'approved';
+    }
 
     public function user()
     {
@@ -30,5 +41,54 @@ class Review extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function votes()
+    {
+        return $this->hasMany(ReviewVote::class);
+    }
+
+    /**
+     * Scope for approved reviews.
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('status', 'approved');
+    }
+
+    /**
+     * Scope for pending reviews.
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    /**
+     * Check if a user has voted on this review.
+     */
+    public function hasVoted($userId)
+    {
+        return $this->votes()->where('user_id', $userId)->exists();
+    }
+
+    /**
+     * Get user's vote for this review.
+     */
+    public function getUserVote($userId)
+    {
+        return $this->votes()->where('user_id', $userId)->first();
+    }
+
+    /**
+     * Get helpful percentage.
+     */
+    public function getHelpfulPercentageAttribute()
+    {
+        $total = $this->helpful_count + $this->not_helpful_count;
+        if ($total === 0) {
+            return 0;
+        }
+        return round(($this->helpful_count / $total) * 100);
     }
 }
