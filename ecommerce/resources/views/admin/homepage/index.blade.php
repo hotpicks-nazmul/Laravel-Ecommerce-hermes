@@ -18,6 +18,55 @@
         </div>
     </div>
 
+    <!-- Section Order - Drag and Drop -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-arrows-move me-2 text-primary"></i>
+                        Section Order (Drag & Drop)
+                    </h5>
+                    <span class="badge bg-info">Drag sections to reorder</span>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Drag and drop sections below to change their order on the homepage. The order from top to bottom will be reflected on the frontend.</p>
+                    
+                    <div id="section-order-container" class="section-order-list">
+                        @foreach($sectionOrder as $index => $sectionKey)
+                            @if(isset($availableSections[$sectionKey]))
+                            <div class="section-item" data-section="{{ $sectionKey }}" draggable="true">
+                                <div class="section-card">
+                                    <div class="drag-handle">
+                                        <i class="bi bi-grip-vertical"></i>
+                                    </div>
+                                    <div class="section-icon">
+                                        <i class="bi {{ $availableSections[$sectionKey]['icon'] }}"></i>
+                                    </div>
+                                    <div class="section-info">
+                                        <h6 class="section-title">{{ $availableSections[$sectionKey]['label'] }}</h6>
+                                        <small class="section-desc">{{ $availableSections[$sectionKey]['description'] }}</small>
+                                    </div>
+                                    <div class="section-position">
+                                        <span class="position-badge">{{ $index + 1 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+                        @endforeach
+                    </div>
+                    
+                    <div class="mt-3">
+                        <div id="order-save-status" class="alert alert-success d-none">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <span>Section order saved successfully!</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <form action="{{ route('admin.homepage.update') }}" method="POST" enctype="multipart/form-data" id="homepage-form">
         @csrf
         @method('PUT')
@@ -580,5 +629,323 @@
     .card-header {
         border-radius: 12px 12px 0 0 !important;
     }
+    
+    /* Vertical Drag and Drop Styles */
+    .section-order-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-width: 600px;
+    }
+    
+    .section-item {
+        background: #fff;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+    
+    .section-item .section-card {
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        background: #fff;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: grab;
+    }
+    
+    .section-item:hover .section-card {
+        border-color: #667eea;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .section-item.dragging {
+        opacity: 0.5;
+    }
+    
+    .section-item.dragging .section-card {
+        transform: scale(1.02);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.25);
+    }
+    
+    .section-item.drag-over {
+        position: relative;
+    }
+    
+    .section-item.drag-over::before {
+        content: '';
+        position: absolute;
+        top: -6px;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 2px;
+        animation: pulse 1s infinite;
+    }
+    
+    .section-item.drag-over::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border: 2px dashed #667eea;
+        border-radius: 12px;
+        background: rgba(102, 126, 234, 0.05);
+        pointer-events: none;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .drag-handle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        margin-right: 16px;
+        color: #adb5bd;
+        transition: color 0.2s ease;
+    }
+    
+    .section-item:hover .drag-handle {
+        color: #667eea;
+    }
+    
+    .drag-handle i {
+        font-size: 1.25rem;
+    }
+    
+    .section-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        margin-right: 16px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+    
+    .section-icon i {
+        font-size: 1.25rem;
+        color: #667eea;
+    }
+    
+    .section-item:hover .section-icon {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+    
+    .section-item:hover .section-icon i {
+        color: #fff;
+    }
+    
+    .section-info {
+        flex: 1;
+    }
+    
+    .section-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #343a40;
+        transition: color 0.2s ease;
+    }
+    
+    .section-item:hover .section-title {
+        color: #667eea;
+    }
+    
+    .section-desc {
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+    
+    .section-position {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 16px;
+    }
+    
+    .position-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 32px;
+        padding: 0 10px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    
+    .section-item:hover .position-badge {
+        transform: scale(1.1);
+    }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('section-order-container');
+    const saveStatus = document.getElementById('order-save-status');
+    let draggedItem = null;
+    let placeholder = null;
+    
+    // Create placeholder element
+    function createPlaceholder() {
+        const div = document.createElement('div');
+        div.className = 'section-item placeholder';
+        div.innerHTML = '<div class="section-card" style="border: 2px dashed #667eea; background: rgba(102, 126, 234, 0.05); min-height: 80px;"></div>';
+        return div;
+    }
+    
+    // Add drag events to each section item
+    const sections = container.querySelectorAll('.section-item');
+    
+    sections.forEach(item => {
+        item.addEventListener('dragstart', function(e) {
+            draggedItem = this;
+            placeholder = createPlaceholder();
+            
+            setTimeout(() => {
+                this.classList.add('dragging');
+                this.style.opacity = '0.5';
+            }, 0);
+            
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', '');
+        });
+        
+        item.addEventListener('dragend', function(e) {
+            this.classList.remove('dragging');
+            this.style.opacity = '1';
+            
+            // Remove placeholder if exists
+            if (placeholder && placeholder.parentNode) {
+                placeholder.parentNode.removeChild(placeholder);
+            }
+            
+            // Remove all drag-over classes
+            document.querySelectorAll('.section-item').forEach(item => {
+                item.classList.remove('drag-over');
+            });
+            
+            updatePositions();
+            saveOrder();
+        });
+    });
+    
+    // Container events
+    container.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        
+        const afterElement = getDragAfterElement(container, e.clientY);
+        
+        if (afterElement == null) {
+            if (draggedItem !== container.lastElementChild) {
+                container.appendChild(draggedItem);
+            }
+        } else {
+            if (draggedItem !== afterElement) {
+                container.insertBefore(draggedItem, afterElement);
+            }
+        }
+    });
+    
+    container.addEventListener('dragenter', function(e) {
+        e.preventDefault();
+        const item = e.target.closest('.section-item');
+        if (item && item !== draggedItem) {
+            item.classList.add('drag-over');
+        }
+    });
+    
+    container.addEventListener('dragleave', function(e) {
+        const item = e.target.closest('.section-item');
+        if (item && !item.contains(e.relatedTarget)) {
+            item.classList.remove('drag-over');
+        }
+    });
+    
+    container.addEventListener('drop', function(e) {
+        e.preventDefault();
+        document.querySelectorAll('.section-item').forEach(item => {
+            item.classList.remove('drag-over');
+        });
+    });
+    
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.section-item:not(.dragging)')];
+        
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+    
+    function updatePositions() {
+        const items = container.querySelectorAll('.section-item');
+        items.forEach((item, index) => {
+            const badge = item.querySelector('.position-badge');
+            if (badge) {
+                badge.textContent = index + 1;
+                // Add animation
+                badge.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    badge.style.transform = 'scale(1)';
+                }, 150);
+            }
+        });
+    }
+    
+    function saveOrder() {
+        const items = container.querySelectorAll('.section-item');
+        const sections = Array.from(items).map(item => item.dataset.section);
+        
+        fetch('{{ route("admin.homepage.section-order") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ sections: sections })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                saveStatus.classList.remove('d-none');
+                saveStatus.style.animation = 'fadeIn 0.3s ease';
+                setTimeout(() => {
+                    saveStatus.classList.add('d-none');
+                }, 3000);
+            }
+        })
+        .catch(error => {
+            console.error('Error saving section order:', error);
+        });
+    }
+});
+</script>
 @endpush

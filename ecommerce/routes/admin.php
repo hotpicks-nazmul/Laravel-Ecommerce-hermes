@@ -90,6 +90,7 @@ Route::prefix('hero')->name('hero.')->group(function () {
 Route::prefix('homepage')->name('homepage.')->group(function () {
     Route::get('/', [HomePageController::class, 'index'])->name('index');
     Route::put('/', [HomePageController::class, 'update'])->name('update');
+    Route::post('/section-order', [HomePageController::class, 'updateSectionOrder'])->name('section-order');
 });
 
 // Theme Management
@@ -111,6 +112,10 @@ Route::delete('/media/{id}', [\App\Http\Controllers\Admin\MediaController::class
 
 // Blog Management
 Route::resource('blogs', \App\Http\Controllers\Admin\BlogController::class);
+Route::prefix('blog-settings')->name('blog-settings.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\BlogController::class, 'settings'])->name('index');
+    Route::post('/', [\App\Http\Controllers\Admin\BlogController::class, 'updateSettings'])->name('update');
+});
 
 // Settings Management
 Route::prefix('settings')->name('settings.')->group(function () {

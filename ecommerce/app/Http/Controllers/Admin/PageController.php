@@ -27,11 +27,12 @@ class PageController extends Controller
             'content' => 'required|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
-            'is_active' => 'boolean',
         ]);
 
-        $data = $request->all();
+        $data = $request->except('is_active');
         $data['slug'] = Str::slug($request->title);
+        $data['status'] = $request->has('is_active') && $request->is_active ? 'published' : 'draft';
+        $data['created_by'] = auth()->id();
 
         Page::create($data);
 
@@ -55,11 +56,11 @@ class PageController extends Controller
             'content' => 'required|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
-            'is_active' => 'boolean',
         ]);
 
-        $data = $request->all();
+        $data = $request->except('is_active');
         $data['slug'] = Str::slug($request->title);
+        $data['status'] = $request->has('is_active') && $request->is_active ? 'published' : 'draft';
 
         $page->update($data);
 
@@ -74,7 +75,7 @@ class PageController extends Controller
 
     public function toggle(Page $page)
     {
-        $page->update(['is_active' => !$page->is_active]);
+        $page->update(['status' => $page->status === 'published' ? 'draft' : 'published']);
         return back()->with('success', 'Page status updated.');
     }
 }

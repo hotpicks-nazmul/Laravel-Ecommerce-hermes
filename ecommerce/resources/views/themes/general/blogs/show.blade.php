@@ -4,409 +4,877 @@
 
 @push('styles')
 <style>
-.blog-hero {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 60px 0;
-    position: relative;
+/* Blog Page Layout */
+.blog-page {
+    display: flex;
+    min-height: 100vh;
+    background: #f5f5f5;
+}
+
+/* Fixed Left Sidebar */
+.blog-sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: #fff;
+    border-right: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.blog-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.blog-sidebar::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 4px;
+}
+
+.sidebar-header {
+    padding: 24px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #fafafa;
+}
+
+.sidebar-header h4 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar-header h4 i {
+    color: #1976d2;
+}
+
+/* Search in Sidebar */
+.sidebar-search {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.sidebar-search .search-form {
+    display: flex;
+    gap: 8px;
+}
+
+.sidebar-search .search-input {
+    flex: 1;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.sidebar-search .search-input:focus {
+    outline: none;
+    border-color: #1976d2;
+}
+
+.sidebar-search .search-btn {
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.sidebar-search .search-btn:hover {
+    background: #1565c0;
+}
+
+/* Categories in Sidebar */
+.sidebar-categories {
+    padding: 16px 0;
+}
+
+.sidebar-categories .category-title {
+    padding: 0 20px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #888;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-categories .category-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-categories .category-list li a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    color: #555;
+    text-decoration: none;
+    transition: all 0.3s;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-categories .category-list li a:hover,
+.sidebar-categories .category-list li a.active {
+    background: #e3f2fd;
+    color: #1976d2;
+    border-left-color: #1976d2;
+}
+
+.sidebar-categories .category-list li a .count {
+    background: #f0f0f0;
+    color: #888;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.sidebar-categories .category-list li a:hover .count,
+.sidebar-categories .category-list li a.active .count {
+    background: #1976d2;
+    color: #fff;
+}
+
+/* Main Content Area */
+.blog-main {
+    flex: 1;
+    padding: 30px;
+    max-width: calc(100% - 280px);
+    overflow-x: hidden;
+}
+
+/* Article Container */
+.article-container {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* Featured Image */
+.article-featured-image {
+    width: 100%;
+    max-height: 450px;
     overflow: hidden;
 }
-.blog-hero::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+
+.article-featured-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
-.blog-featured-image {
+
+/* Article Header */
+.article-header {
+    padding: 30px 30px 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.article-header .category-badge {
+    display: inline-block;
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 6px 14px;
     border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-    margin-top: -80px;
-    position: relative;
-    z-index: 10;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 16px;
 }
-.blog-content-wrapper {
-    background: #fff;
-    border-radius: 20px;
-    padding: 40px;
-    margin-top: -40px;
-    position: relative;
-    z-index: 5;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+
+.article-header .article-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+    line-height: 1.3;
 }
-.blog-content {
-    font-size: 1.1rem;
+
+.article-header .article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 24px;
+    color: #666;
+    font-size: 14px;
+}
+
+.article-header .article-meta .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.article-header .article-meta .author-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.article-header .article-meta .author-info img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.article-header .article-meta .author-info .author-name {
+    font-weight: 600;
+    color: #333;
+}
+
+/* Article Content */
+.article-content {
+    padding: 30px;
+    font-size: 17px;
     line-height: 1.9;
     color: #444;
 }
-.blog-content p {
+
+.article-content p {
     margin-bottom: 1.8rem;
 }
-.blog-content h2, .blog-content h3, .blog-content h4 {
+
+.article-content h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1a1a1a;
     margin-top: 2.5rem;
     margin-bottom: 1.2rem;
-    color: #333;
-    font-weight: 700;
 }
-.blog-content img {
+
+.article-content h3 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.article-content h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-top: 1.8rem;
+    margin-bottom: 0.8rem;
+}
+
+.article-content img {
     max-width: 100%;
     height: auto;
-    border-radius: 12px;
+    border-radius: 8px;
     margin: 2rem 0;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
-.blog-content ul, .blog-content ol {
+
+.article-content ul,
+.article-content ol {
     margin-bottom: 1.8rem;
     padding-left: 2rem;
 }
-.blog-content li {
-    margin-bottom: 0.5rem;
+
+.article-content li {
+    margin-bottom: 0.6rem;
 }
-.blog-content blockquote {
-    border-left: 4px solid #667eea;
+
+.article-content blockquote {
+    border-left: 4px solid #1976d2;
     padding: 20px 24px;
     margin: 2rem 0;
     font-style: italic;
-    color: #666;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-    border-radius: 0 12px 12px 0;
-}
-.blog-content a {
-    color: #667eea;
-    text-decoration: underline;
-}
-.blog-content a:hover {
-    color: #764ba2;
-}
-.blog-content code {
+    color: #555;
     background: #f8f9fa;
-    padding: 2px 8px;
+    border-radius: 0 8px 8px 0;
+}
+
+.article-content a {
+    color: #1976d2;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.article-content a:hover {
+    color: #1565c0;
+}
+
+.article-content code {
+    background: #f5f5f5;
+    padding: 3px 8px;
     border-radius: 4px;
     font-size: 0.9em;
+    color: #d32f2f;
 }
-.blog-content pre {
+
+.article-content pre {
     background: #2d3748;
     color: #e2e8f0;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 8px;
     overflow-x: auto;
     margin: 1.5rem 0;
 }
-.sidebar-wrapper {
-    position: sticky;
-    top: 100px;
+
+.article-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
 }
-.sidebar-card {
-    border: none;
-    border-radius: 16px;
-    overflow: hidden;
-    background: #fff;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+
+.article-content th,
+.article-content td {
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    text-align: left;
 }
-.sidebar-card .card-body {
-    padding: 24px;
+
+.article-content th {
+    background: #f5f5f5;
+    font-weight: 600;
 }
-.author-box {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-    border-radius: 16px;
-    padding: 24px;
+
+/* Article Footer */
+.article-footer {
+    padding: 24px 30px;
+    border-top: 1px solid #f0f0f0;
+    background: #fafafa;
+}
+
+.article-footer .footer-row {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
     align-items: center;
     gap: 20px;
 }
-.author-box img {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #fff;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+
+/* Tags */
+.article-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
 }
-.share-buttons .btn {
-    width: 40px;
-    height: 40px;
+
+.article-tags .tag-label {
+    font-weight: 600;
+    color: #333;
+    margin-right: 8px;
+}
+
+.article-tags .tag {
+    display: inline-block;
+    padding: 6px 14px;
+    background: #f0f0f0;
+    color: #555;
+    border-radius: 20px;
+    font-size: 13px;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.article-tags .tag:hover {
+    background: #1976d2;
+    color: #fff;
+}
+
+/* Share Buttons */
+.article-share {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.article-share .share-label {
+    font-weight: 600;
+    color: #333;
+}
+
+.article-share .share-btn {
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
-    transition: all 0.3s ease;
-}
-.share-buttons .btn:hover {
-    transform: translateY(-3px);
-}
-.tag-badge {
-    display: inline-block;
-    padding: 8px 16px;
-    background: #f8f9fa;
-    border-radius: 20px;
-    color: #555;
-    font-size: 14px;
-    margin: 4px;
-    transition: all 0.3s ease;
-}
-.tag-badge:hover {
-    background: #667eea;
     color: #fff;
+    text-decoration: none;
+    transition: all 0.3s;
 }
-.related-card {
-    border: none;
-    border-radius: 16px;
-    overflow: hidden;
-    transition: all 0.3s ease;
+
+.article-share .share-btn:hover {
+    transform: translateY(-2px);
 }
-.related-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-.related-card img {
-    height: 140px;
-    object-fit: cover;
-}
-.recent-post-item {
+
+.article-share .btn-facebook { background: #1877f2; }
+.article-share .btn-twitter { background: #1da1f2; }
+.article-share .btn-linkedin { background: #0077b5; }
+.article-share .btn-whatsapp { background: #25d366; }
+
+/* Author Box */
+.author-box {
+    margin-top: 30px;
+    padding: 24px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     display: flex;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid #f0f0f0;
+    gap: 20px;
+    align-items: flex-start;
 }
-.recent-post-item:last-child {
-    border-bottom: none;
-}
-.recent-post-item img {
-    width: 70px;
-    height: 70px;
+
+.author-box .author-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
     object-fit: cover;
-    border-radius: 10px;
     flex-shrink: 0;
 }
-.newsletter-section {
+
+.author-box .author-info .author-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+}
+
+.author-box .author-info .author-role {
+    color: #1976d2;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.author-box .author-info .author-bio {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+/* Related Posts Section */
+.related-posts-section {
+    margin-top: 40px;
+}
+
+.related-posts-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.related-posts-section .section-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.related-posts-section .section-title i {
+    color: #1976d2;
+}
+
+/* Carousel Navigation */
+.carousel-nav {
+    display: flex;
+    gap: 8px;
+}
+
+.carousel-nav .nav-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.carousel-nav .nav-btn:hover {
+    background: #1976d2;
+    border-color: #1976d2;
+    color: #fff;
+}
+
+/* Related Posts Carousel */
+.related-posts-carousel {
+    position: relative;
+    overflow: hidden;
+}
+
+.carousel-track {
+    display: flex;
+    gap: 20px;
+    transition: transform 0.5s ease;
+}
+
+/* Related Post Card */
+.related-post-card {
+    min-width: calc(25% - 15px);
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: all 0.3s;
+}
+
+.related-post-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.related-post-card .card-image {
+    height: 150px;
+    overflow: hidden;
+}
+
+.related-post-card .card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+
+.related-post-card:hover .card-image img {
+    transform: scale(1.08);
+}
+
+.related-post-card .card-image .placeholder-image {
+    width: 100%;
+    height: 100%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 60px 0;
-    margin-top: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.related-post-card .card-image .placeholder-image i {
+    font-size: 2rem;
+    color: rgba(255,255,255,0.4);
+}
+
+.related-post-card .card-content {
+    padding: 16px;
+}
+
+.related-post-card .card-category {
+    font-size: 11px;
+    font-weight: 600;
+    color: #1976d2;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.related-post-card .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.related-post-card .card-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.related-post-card .card-title a:hover {
+    color: #1976d2;
+}
+
+.related-post-card .card-date {
+    font-size: 12px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .related-post-card {
+        min-width: calc(33.333% - 14px);
+    }
+}
+
+@media (max-width: 992px) {
+    .blog-page {
+        flex-direction: column;
+    }
+    
+    .blog-sidebar {
+        width: 100%;
+        min-width: 100%;
+        height: auto;
+        position: relative;
+    }
+    
+    .blog-main {
+        max-width: 100%;
+        padding: 20px;
+    }
+    
+    .sidebar-categories .category-list {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 0 16px 16px;
+        gap: 8px;
+    }
+    
+    .sidebar-categories .category-list li a {
+        padding: 8px 16px;
+        border-radius: 20px;
+        border-left: none;
+        background: #f5f5f5;
+    }
+    
+    .sidebar-categories .category-list li a:hover,
+    .sidebar-categories .category-list li a.active {
+        background: #1976d2;
+        color: #fff;
+    }
+    
+    .related-post-card {
+        min-width: calc(50% - 10px);
+    }
+}
+
+@media (max-width: 768px) {
+    .article-header .article-title {
+        font-size: 24px;
+    }
+    
+    .article-content {
+        padding: 20px;
+    }
+    
+    .article-footer .footer-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .author-box {
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
+    }
+    
+    .related-post-card {
+        min-width: calc(100% - 10px);
+    }
 }
 </style>
 @endpush
 
 @section('content')
-<!-- Hero Section -->
-<section class="blog-hero text-white">
-    <div class="container position-relative">
-        <div class="row justify-content-center">
-            <div class="col-lg-10 text-center">
-                @if($blog->category)
-                    <span class="badge bg-white text-primary px-3 py-2 rounded-pill mb-3">
-                        {{ $blog->category->name }}
-                    </span>
-                @endif
-                <h1 class="display-5 fw-bold mb-4">{{ $blog->title }}</h1>
-                <div class="d-flex flex-wrap align-items-center justify-content-center gap-4">
-                    @if($blog->author)
-                        <div class="d-flex align-items-center">
-                            <img src="{{ $blog->author->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($blog->author->name ?? 'Admin') . '&background=fff&color=667eea' }}" 
-                                 alt="{{ $blog->author->name ?? 'Admin' }}"
-                                 class="rounded-circle me-2" 
-                                 width="40" height="40">
-                            <span>{{ $blog->author->name ?? 'Admin' }}</span>
-                        </div>
-                    @endif
-                    <span class="opacity-75">
-                        <i class="bi bi-calendar3 me-1"></i>
-                        {{ $blog->published_at ? $blog->published_at->format('F d, Y') : '' }}
-                    </span>
-                    @if($blog->reading_time)
-                        <span class="opacity-75">
-                            <i class="bi bi-clock me-1"></i>
-                            {{ $blog->reading_time }} min read
-                        </span>
-                    @endif
-                </div>
-            </div>
+<div class="blog-page">
+    <!-- Fixed Left Sidebar -->
+    <aside class="blog-sidebar">
+        <div class="sidebar-header">
+            <h4><i class="bi bi-journal-text"></i> Blog</h4>
         </div>
-    </div>
-</section>
+        
+        <!-- Search -->
+        <div class="sidebar-search">
+            <form action="{{ route('blogs.index') }}" method="GET" class="search-form">
+                <input type="text" class="search-input" name="search" placeholder="Search posts...">
+                <button type="submit" class="search-btn"><i class="bi bi-search"></i></button>
+            </form>
+        </div>
+        
+        <!-- Categories -->
+        <div class="sidebar-categories">
+            <h5 class="category-title">Categories</h5>
+            <ul class="category-list">
+                <li>
+                    <a href="{{ route('blogs.index') }}">
+                        <span>All Posts</span>
+                        <span class="count">{{ \App\Models\Blog::published()->count() }}</span>
+                    </a>
+                </li>
+                @foreach(\App\Models\Category::where('status', 'active')->get() as $category)
+                    <li>
+                        <a href="{{ route('blogs.index', ['category' => $category->slug]) }}" 
+                           class="{{ $blog->category && $blog->category->slug == $category->slug ? 'active' : '' }}">
+                            <span>{{ $category->name }}</span>
+                            <span class="count">{{ $category->blogs()->where('status', 'published')->where('published_at', '<=', now())->count() }}</span>
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </aside>
 
-<!-- Blog Content -->
-<section class="py-5">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <!-- Featured Image -->
-                @if($blog->featured_image)
-                    <img src="{{ asset('storage/' . $blog->featured_image) }}" 
-                         alt="{{ $blog->title }}"
-                         class="blog-featured-image img-fluid w-100"
-                         style="max-height: 500px; object-fit: cover;">
+    <!-- Main Content Area -->
+    <main class="blog-main">
+        <!-- Article Container -->
+        <article class="article-container">
+            <!-- Featured Image -->
+            @if($blog->featured_image)
+                <div class="article-featured-image">
+                    <img src="{{ asset('storage/' . $blog->featured_image) }}" alt="{{ $blog->title }}">
+                </div>
+            @endif
+
+            <!-- Article Header -->
+            <header class="article-header">
+                @if($blog->category)
+                    <span class="category-badge">{{ $blog->category->name }}</span>
                 @endif
-                
-                <!-- Content -->
-                <div class="blog-content-wrapper">
-                    <div class="row">
-                        <div class="col-lg-8">
-                            <div class="blog-content">
-                                {!! $blog->content !!}
-                            </div>
-                            
-                            <!-- Tags -->
-                            @if($blog->tags)
-                                <div class="mt-5 pt-4 border-top">
-                                    <h6 class="fw-bold mb-3">
-                                        <i class="bi bi-tags me-2"></i>Tags
-                                    </h6>
-                                    <div>
-                                        @foreach(json_decode($blog->tags) ?? [] as $tag)
-                                            <a href="{{ route('blogs.index', ['search' => $tag]) }}" class="tag-badge text-decoration-none">
-                                                {{ $tag }}
-                                            </a>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
-                            
-                            <!-- Share -->
-                            <div class="mt-5 pt-4 border-top">
-                                <h6 class="fw-bold mb-3">
-                                    <i class="bi bi-share me-2"></i>Share this article
-                                </h6>
-                                <div class="share-buttons d-flex gap-2">
-                                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}" 
-                                       target="_blank"
-                                       class="btn btn-primary">
-                                        <i class="bi bi-facebook"></i>
-                                    </a>
-                                    <a href="https://twitter.com/intent/tweet?url={{ urlencode(url()->current()) }}&text={{ urlencode($blog->title) }}" 
-                                       target="_blank"
-                                       class="btn btn-info text-white">
-                                        <i class="bi bi-twitter"></i>
-                                    </a>
-                                    <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ urlencode(url()->current()) }}&title={{ urlencode($blog->title) }}" 
-                                       target="_blank"
-                                       class="btn btn-primary" style="background: #0077b5; border-color: #0077b5;">
-                                        <i class="bi bi-linkedin"></i>
-                                    </a>
-                                    <a href="https://api.whatsapp.com/send?text={{ urlencode($blog->title . ' - ' . url()->current()) }}" 
-                                       target="_blank"
-                                       class="btn btn-success">
-                                        <i class="bi bi-whatsapp"></i>
-                                    </a>
-                                </div>
-                            </div>
-                            
-                            <!-- Author Box -->
-                            @if($blog->author)
-                                <div class="author-box mt-5">
-                                    <img src="{{ $blog->author->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($blog->author->name ?? 'Admin') . '&background=667eea&color=fff' }}" 
-                                         alt="{{ $blog->author->name ?? 'Admin' }}">
-                                    <div>
-                                        <h5 class="fw-bold mb-1">Written by {{ $blog->author->name ?? 'Admin' }}</h5>
-                                        <p class="text-muted mb-0">{{ $blog->author->bio ?? 'Content Writer' }}</p>
-                                    </div>
-                                </div>
-                            @endif
+                <h1 class="article-title">{{ $blog->title }}</h1>
+                <div class="article-meta">
+                    @if($blog->author)
+                        <div class="author-info">
+                            <img src="{{ $blog->author->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($blog->author->name ?? 'Admin') . '&background=1976d2&color=fff' }}" 
+                                 alt="{{ $blog->author->name ?? 'Admin' }}">
+                            <span class="author-name">{{ $blog->author->name ?? 'Admin' }}</span>
                         </div>
-                        
-                        <!-- Sidebar -->
-                        <div class="col-lg-4 mt-5 mt-lg-0">
-                            <div class="sidebar-wrapper">
-                                <!-- Recent Posts -->
-                                @php
-                                    $recentPosts = \App\Models\Blog::with('author')->published()->latest('published_at')->take(4)->get();
-                                @endphp
-                                @if($recentPosts->count() > 0)
-                                    <div class="sidebar-card">
-                                        <div class="card-body">
-                                            <h6 class="fw-bold mb-4">
-                                                <i class="bi bi-clock-history me-2 text-primary"></i>Recent Posts
-                                            </h6>
-                                            @foreach($recentPosts as $post)
-                                                <a href="{{ route('blogs.show', $post->slug) }}" class="recent-post-item text-decoration-none">
-                                                    @if($post->featured_image)
-                                                        <img src="{{ asset('storage/' . $post->featured_image) }}" 
-                                                             alt="{{ $post->title }}">
-                                                    @else
-                                                        <div class="bg-gradient d-flex align-items-center justify-content-center" 
-                                                             style="width: 70px; height: 70px; border-radius: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); flex-shrink: 0;">
-                                                            <i class="bi bi-journal text-white" style="font-size: 1.5rem; opacity: 0.7;"></i>
-                                                        </div>
-                                                    @endif
-                                                    <div>
-                                                        <h6 class="text-dark mb-1" style="font-size: 14px; line-height: 1.4;">
-                                                            {{ Str::limit($post->title, 40) }}
-                                                        </h6>
-                                                        <small class="text-muted">
-                                                            {{ $post->published_at ? $post->published_at->format('M d, Y') : '' }}
-                                                        </small>
-                                                    </div>
-                                                </a>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
+                    @endif
+                    <div class="meta-item">
+                        <i class="bi bi-calendar3"></i>
+                        <span>{{ $blog->published_at ? $blog->published_at->format('F d, Y') : '' }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="bi bi-clock"></i>
+                        <span>{{ ceil(str_word_count(strip_tags($blog->content)) / 200) }} min read</span>
                     </div>
                 </div>
-                
-                <!-- Related Posts -->
-                @if($relatedBlogs->count() > 0)
-                    <div class="mt-5 pt-5">
-                        <h4 class="fw-bold mb-4">
-                            <i class="bi bi-journal-text me-2 text-primary"></i>Related Articles
-                        </h4>
-                        <div class="row g-4">
-                            @foreach($relatedBlogs as $related)
-                                <div class="col-md-4">
-                                    <article class="related-card bg-white">
-                                        @if($related->featured_image)
-                                            <a href="{{ route('blogs.show', $related->slug) }}">
-                                                <img src="{{ asset('storage/' . $related->featured_image) }}" 
-                                                     class="w-100"
-                                                     alt="{{ $related->title }}">
-                                            </a>
-                                        @else
-                                            <div class="bg-gradient d-flex align-items-center justify-content-center" 
-                                                 style="height: 140px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                                <i class="bi bi-journal text-white" style="font-size: 2.5rem; opacity: 0.5;"></i>
-                                            </div>
-                                        @endif
-                                        <div class="p-3">
-                                            <h6 class="fw-bold">
-                                                <a href="{{ route('blogs.show', $related->slug) }}" class="text-dark text-decoration-none">
-                                                    {{ Str::limit($related->title, 50) }}
-                                                </a>
-                                            </h6>
-                                            <small class="text-muted">
-                                                <i class="bi bi-calendar me-1"></i>
-                                                {{ $related->published_at ? $related->published_at->format('M d, Y') : '' }}
-                                            </small>
-                                        </div>
-                                    </article>
-                                </div>
+            </header>
+
+            <!-- Article Content -->
+            <div class="article-content">
+                {!! $blog->content !!}
+            </div>
+
+            <!-- Article Footer -->
+            <footer class="article-footer">
+                <div class="footer-row">
+                    <!-- Tags -->
+                    @if($blog->tags)
+                        <div class="article-tags">
+                            <span class="tag-label"><i class="bi bi-tags me-1"></i> Tags:</span>
+                            @foreach(is_array($blog->tags) ? $blog->tags : json_decode($blog->tags, true) ?? [] as $tag)
+                                <a href="{{ route('blogs.index', ['search' => $tag]) }}" class="tag">{{ $tag }}</a>
                             @endforeach
                         </div>
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
-</section>
+                    @endif
 
-<!-- Newsletter Section -->
-<section class="newsletter-section text-white text-center">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-6">
-                <i class="bi bi-envelope-paper-heart mb-3" style="font-size: 3rem;"></i>
-                <h3 class="fw-bold mb-2">Subscribe to Our Newsletter</h3>
-                <p class="opacity-75 mb-4">Get the latest posts delivered right to your inbox</p>
-                <form class="d-flex gap-2">
-                    <input type="email" class="form-control" placeholder="Your email address" style="border-radius: 12px; padding: 14px 20px;">
-                    <button type="submit" class="btn btn-light fw-bold px-4" style="border-radius: 12px;">
-                        Subscribe
-                    </button>
-                </form>
+                    <!-- Share -->
+                    <div class="article-share">
+                        <span class="share-label">Share:</span>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}" 
+                           target="_blank" class="share-btn btn-facebook">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="https://twitter.com/intent/tweet?url={{ urlencode(url()->current()) }}&text={{ urlencode($blog->title) }}" 
+                           target="_blank" class="share-btn btn-twitter">
+                            <i class="bi bi-twitter"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ urlencode(url()->current()) }}&title={{ urlencode($blog->title) }}" 
+                           target="_blank" class="share-btn btn-linkedin">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                        <a href="https://api.whatsapp.com/send?text={{ urlencode($blog->title . ' - ' . url()->current()) }}" 
+                           target="_blank" class="share-btn btn-whatsapp">
+                            <i class="bi bi-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+            </footer>
+        </article>
+
+        <!-- Author Box -->
+        @if($blog->author)
+            <div class="author-box">
+                <img src="{{ $blog->author->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($blog->author->name ?? 'Admin') . '&background=1976d2&color=fff&size=160' }}" 
+                     alt="{{ $blog->author->name ?? 'Admin' }}"
+                     class="author-avatar">
+                <div class="author-info">
+                    <h4 class="author-name">{{ $blog->author->name ?? 'Admin' }}</h4>
+                    <p class="author-role">Content Writer</p>
+                    <p class="author-bio">{{ $blog->author->bio ?? 'Passionate about sharing knowledge and insights through engaging content.' }}</p>
+                </div>
             </div>
-        </div>
-    </div>
-</section>
+        @endif
+
+        <!-- Related Posts Section -->
+        @if($relatedBlogs->count() > 0)
+            <section class="related-posts-section">
+                <div class="section-header">
+                    <h3 class="section-title"><i class="bi bi-journal-text"></i> Related Posts</h3>
+                    <div class="carousel-nav">
+                        <button class="nav-btn" onclick="scrollCarousel(-1)">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <button class="nav-btn" onclick="scrollCarousel(1)">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="related-posts-carousel">
+                    <div class="carousel-track" id="carouselTrack">
+                        @foreach($relatedBlogs as $related)
+                            <article class="related-post-card">
+                                <div class="card-image">
+                                    @if($related->featured_image)
+                                        <a href="{{ route('blogs.show', $related->slug) }}">
+                                            <img src="{{ asset('storage/' . $related->featured_image) }}" alt="{{ $related->title }}">
+                                        </a>
+                                    @else
+                                        <div class="placeholder-image">
+                                            <i class="bi bi-journal-text"></i>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="card-content">
+                                    @if($related->category)
+                                        <span class="card-category">{{ $related->category->name }}</span>
+                                    @endif
+                                    <h4 class="card-title">
+                                        <a href="{{ route('blogs.show', $related->slug) }}">{{ Str::limit($related->title, 50) }}</a>
+                                    </h4>
+                                    <span class="card-date">
+                                        <i class="bi bi-calendar3"></i>
+                                        {{ $related->published_at->format('M d, Y') }}
+                                    </span>
+                                </div>
+                            </article>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+        @endif
+    </main>
+</div>
+
+@push('scripts')
+<script>
+let carouselPosition = 0;
+const cardWidth = 280; // card width + gap
+
+function scrollCarousel(direction) {
+    const track = document.getElementById('carouselTrack');
+    const cards = track.querySelectorAll('.related-post-card');
+    const visibleCards = Math.floor(track.parentElement.offsetWidth / cardWidth);
+    const maxPosition = Math.max(0, cards.length - visibleCards);
+    
+    carouselPosition += direction;
+    carouselPosition = Math.max(0, Math.min(carouselPosition, maxPosition));
+    
+    track.style.transform = `translateX(-${carouselPosition * cardWidth}px)`;
+}
+</script>
+@endpush
 @endsection

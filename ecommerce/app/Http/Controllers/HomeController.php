@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Banner;
 use App\Models\Blog;
+use App\Models\Setting;
 use App\Services\ThemeService;
 
 class HomeController extends Controller
@@ -62,12 +63,26 @@ class HomeController extends Controller
             ->take(3)
             ->get();
 
+        // Get section order from settings
+        $sectionOrderSetting = Setting::where('key', 'homepage_section_order')->first();
+        $sectionOrder = $sectionOrderSetting ? json_decode($sectionOrderSetting->value, true) : [
+            'categories',
+            'featured',
+            'banner',
+            'new_arrivals',
+            'why_choose_us',
+            'sale',
+            'testimonials',
+            'blog'
+        ];
+
         return view('themes.' . $theme . '.home.index', compact(
             'featuredProducts',
             'latestProducts',
             'categories',
             'saleProducts',
-            'latestBlogs'
+            'latestBlogs',
+            'sectionOrder'
         ));
     }
 }

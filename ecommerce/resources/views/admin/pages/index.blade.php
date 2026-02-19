@@ -29,8 +29,8 @@
                         <td>{{ $page->title }}</td>
                         <td><code>{{ $page->slug }}</code></td>
                         <td>
-                            <span class="badge {{ $page->is_published ? 'bg-success' : 'bg-secondary' }}">
-                                {{ $page->is_published ? 'Published' : 'Draft' }}
+                            <span class="badge {{ $page->status === 'published' ? 'bg-success' : 'bg-secondary' }}">
+                                {{ $page->status === 'published' ? 'Published' : 'Draft' }}
                             </span>
                         </td>
                         <td>{{ $page->updated_at->format('d M, Y') }}</td>

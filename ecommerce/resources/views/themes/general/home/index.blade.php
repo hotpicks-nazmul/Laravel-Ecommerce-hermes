@@ -30,6 +30,9 @@ $newArrivalsColumns = (int) $home('homepage_new_arrivals_columns', '6');
 $newArrivalsGridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $newArrivalsColumns;
 $saleColumns = (int) $home('homepage_sale_columns', '6');
 $saleGridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $saleColumns;
+
+// Section order with default fallback
+$sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arrivals', 'why_choose_us', 'sale', 'testimonials', 'blog'];
 @endphp
 
 @section('content')
@@ -282,371 +285,389 @@ $saleGridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $saleColumns;
 </section>
 @endif
 
-<!-- Categories Section - Modern & Attractive -->
-<section class="py-16 bg-gradient-to-b from-white via-gray-50 to-white relative overflow-hidden">
-    <!-- Decorative Background Elements -->
-    <div class="absolute inset-0 pointer-events-none">
-        <div class="absolute top-10 left-10 w-32 h-32 bg-halal-green/5 rounded-full blur-2xl"></div>
-        <div class="absolute bottom-10 right-10 w-40 h-40 bg-halal-gold/5 rounded-full blur-2xl"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-green-50/50 rounded-full blur-3xl"></div>
-    </div>
-    
-    <div class="container mx-auto px-4 relative z-10">
-        <!-- Section Header -->
-        <div class="text-center mb-12">
-            <div class="inline-flex items-center bg-halal-green/10 text-halal-green px-4 py-2 rounded-full text-sm font-medium mb-4">
-                <i class="bi bi-grid-3x3-gap-fill mr-2"></i>
-                Explore Our Collection
+{{-- Render sections in the saved order --}}
+@foreach($sectionOrder as $section)
+    @if($section === 'categories')
+        <!-- Categories Section - Modern & Attractive -->
+        <section class="py-16 bg-gradient-to-b from-white via-gray-50 to-white relative overflow-hidden" data-section="categories">
+            <!-- Decorative Background Elements -->
+            <div class="absolute inset-0 pointer-events-none">
+                <div class="absolute top-10 left-10 w-32 h-32 bg-halal-green/5 rounded-full blur-2xl"></div>
+                <div class="absolute bottom-10 right-10 w-40 h-40 bg-halal-gold/5 rounded-full blur-2xl"></div>
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-green-50/50 rounded-full blur-3xl"></div>
             </div>
-            <h2 class="font-poppins text-3xl md:text-4xl font-bold text-gray-800 mb-3">
-                Shop by <span class="text-halal-green">Category</span>
-            </h2>
-            <p class="text-gray-600 max-w-2xl mx-auto text-lg">Browse our wide range of premium halal products, carefully sourced and quality assured</p>
             
-            <!-- Decorative Line -->
-            <div class="flex items-center justify-center mt-6 space-x-2">
-                <div class="w-12 h-1 bg-halal-green rounded-full"></div>
-                <div class="w-3 h-3 bg-halal-gold rounded-full"></div>
-                <div class="w-12 h-1 bg-halal-green rounded-full"></div>
-            </div>
-        </div>
-        
-        <!-- Categories Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
-            @php
-                $categoryIcons = [
-                    'fresh-meat' => 'bi bi-cup-hot-fill',
-                    'poultry' => 'bi bi-egg-fill',
-                    'seafood' => 'bi bi-fish',
-                    'fruits-vegetables' => 'bi bi-tree-fill',
-                    'dairy-eggs' => 'bi bi-cup-straw',
-                    'grocery' => 'bi bi-basket3-fill',
-                ];
-                $categoryColors = [
-                    'fresh-meat' => ['bg' => 'from-red-500 to-red-600', 'light' => 'bg-red-50', 'text' => 'text-red-500'],
-                    'poultry' => ['bg' => 'from-orange-500 to-orange-600', 'light' => 'bg-orange-50', 'text' => 'text-orange-500'],
-                    'seafood' => ['bg' => 'from-blue-500 to-blue-600', 'light' => 'bg-blue-50', 'text' => 'text-blue-500'],
-                    'fruits-vegetables' => ['bg' => 'from-green-500 to-green-600', 'light' => 'bg-green-50', 'text' => 'text-green-500'],
-                    'dairy-eggs' => ['bg' => 'from-yellow-500 to-yellow-600', 'light' => 'bg-yellow-50', 'text' => 'text-yellow-600'],
-                    'grocery' => ['bg' => 'from-purple-500 to-purple-600', 'light' => 'bg-purple-50', 'text' => 'text-purple-500'],
-                ];
-                $defaultIcon = 'bi bi-tag-fill';
-                $defaultColor = ['bg' => 'from-halal-green to-green-600', 'light' => 'bg-green-50', 'text' => 'text-halal-green'];
-            @endphp
-            
-            @foreach($categories as $category)
-                @php
-                    $icon = $categoryIcons[$category->slug] ?? $defaultIcon;
-                    $color = $categoryColors[$category->slug] ?? $defaultColor;
-                @endphp
-                <a href="{{ route('products.index', ['category' => $category->slug]) }}" 
-                   class="group relative bg-white rounded-2xl p-5 text-center shadow-sm hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 hover:border-transparent overflow-hidden">
+            <div class="container mx-auto px-4 relative z-10">
+                <!-- Section Header -->
+                <div class="text-center mb-12">
+                    <div class="inline-flex items-center bg-halal-green/10 text-halal-green px-4 py-2 rounded-full text-sm font-medium mb-4">
+                        <i class="bi bi-grid-3x3-gap-fill mr-2"></i>
+                        Explore Our Collection
+                    </div>
+                    <h2 class="font-poppins text-3xl md:text-4xl font-bold text-gray-800 mb-3">
+                        Shop by <span class="text-halal-green">Category</span>
+                    </h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto text-lg">Browse our wide range of premium halal products, carefully sourced and quality assured</p>
                     
-                    <!-- Hover Background Gradient -->
-                    <div class="absolute inset-0 bg-gradient-to-br {{ $color['bg'] }} opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
+                    <!-- Decorative Line -->
+                    <div class="flex items-center justify-center mt-6 space-x-2">
+                        <div class="w-12 h-1 bg-halal-green rounded-full"></div>
+                        <div class="w-3 h-3 bg-halal-gold rounded-full"></div>
+                        <div class="w-12 h-1 bg-halal-green rounded-full"></div>
+                    </div>
+                </div>
+                
+                <!-- Categories Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
+                    @php
+                        $categoryIcons = [
+                            'fresh-meat' => 'bi bi-cup-hot-fill',
+                            'poultry' => 'bi bi-egg-fill',
+                            'seafood' => 'bi bi-fish',
+                            'fruits-vegetables' => 'bi bi-tree-fill',
+                            'dairy-eggs' => 'bi bi-cup-straw',
+                            'grocery' => 'bi bi-basket3-fill',
+                        ];
+                        $categoryColors = [
+                            'fresh-meat' => ['bg' => 'from-red-500 to-red-600', 'light' => 'bg-red-50', 'text' => 'text-red-500'],
+                            'poultry' => ['bg' => 'from-orange-500 to-orange-600', 'light' => 'bg-orange-50', 'text' => 'text-orange-500'],
+                            'seafood' => ['bg' => 'from-blue-500 to-blue-600', 'light' => 'bg-blue-50', 'text' => 'text-blue-500'],
+                            'fruits-vegetables' => ['bg' => 'from-green-500 to-green-600', 'light' => 'bg-green-50', 'text' => 'text-green-500'],
+                            'dairy-eggs' => ['bg' => 'from-yellow-500 to-yellow-600', 'light' => 'bg-yellow-50', 'text' => 'text-yellow-600'],
+                            'grocery' => ['bg' => 'from-purple-500 to-purple-600', 'light' => 'bg-purple-50', 'text' => 'text-purple-500'],
+                        ];
+                        $defaultIcon = 'bi bi-tag-fill';
+                        $defaultColor = ['bg' => 'from-halal-green to-green-600', 'light' => 'bg-green-50', 'text' => 'text-halal-green'];
+                    @endphp
                     
-                    <!-- Card Content -->
-                    <div class="relative z-10">
-                        <!-- Icon Container -->
-                        <div class="w-20 h-20 mx-auto mb-4 {{ $color['light'] }} rounded-2xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-500 transform group-hover:scale-110 group-hover:rotate-3">
-                            <i class="{{ $icon }} text-3xl {{ $color['text'] }} group-hover:text-white transition-colors duration-300"></i>
-                        </div>
-                        
-                        <!-- Category Name -->
-                        <h3 class="font-semibold text-gray-800 group-hover:text-white transition-colors duration-300 mb-1 text-sm md:text-base">
-                            {{ $category->name }}
-                        </h3>
-                        
-                        <!-- Product Count Badge -->
-                        <span class="inline-flex items-center text-xs {{ $color['text'] }} group-hover:text-white/80 transition-colors duration-300">
-                            <i class="bi bi-box-seam mr-1"></i>
-                            {{ $category->products_count ?? 0 }} Products
-                        </span>
-                        
-                        <!-- Arrow Indicator -->
-                        <div class="mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                            <span class="inline-flex items-center text-white text-sm font-medium">
-                                Explore <i class="bi bi-arrow-right ml-1"></i>
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <!-- Corner Decoration -->
-                    <div class="absolute -top-4 -right-4 w-16 h-16 {{ $color['light'] }} rounded-full opacity-50 group-hover:opacity-0 transition-opacity duration-300"></div>
-                    <div class="absolute -bottom-4 -left-4 w-12 h-12 {{ $color['light'] }} rounded-full opacity-50 group-hover:opacity-0 transition-opacity duration-300"></div>
-                </a>
-            @endforeach
-        </div>
-        
-        <!-- View All Categories Button -->
-        <div class="text-center mt-10">
-            <a href="{{ route('products.index') }}" 
-               class="inline-flex items-center bg-halal-dark text-white px-8 py-3 rounded-full font-medium hover:bg-halal-green transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                <i class="bi bi-grid-fill mr-2"></i>
-                View All Categories
-                <i class="bi bi-arrow-right ml-2"></i>
-            </a>
-        </div>
-    </div>
-</section>
-
-<!-- Featured Products -->
-@if($home('homepage_show_featured_section', '1') == '1')
-<section class="py-12">
-    <div class="container mx-auto px-4">
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <h2 class="font-poppins text-3xl font-bold text-gray-800">{{ $home('homepage_featured_title', 'Featured Products') }}</h2>
-                <p class="text-gray-600 mt-1">{{ $home('homepage_featured_subtitle', 'Handpicked premium quality products for you') }}</p>
-            </div>
-            <a href="{{ route('products.index') }}" class="text-halal-green hover:text-halal-dark font-medium flex items-center">
-                View All <i class="bi bi-arrow-right ml-1"></i>
-            </a>
-        </div>
-        
-        <div class="{{ $featuredGridClass }} gap-5">
-            @foreach($featuredProducts as $product)
-                @include('themes.general.partials.product-card', ['product' => $product])
-            @endforeach
-        </div>
-    </div>
-</section>
-@endif
-
-<!-- Banner Section -->
-@if($home('homepage_show_banner_section', '1') == '1')
-@php
-    // Count visible banners for dynamic grid
-    $visibleBanners = [];
-    for($j = 1; $j <= 4; $j++) {
-        if($home('banner' . $j . '_visible', '1') == '1') {
-            $visibleBanners[] = $j;
-        }
-    }
-    $bannerCount = count($visibleBanners);
-    $bannerGridClass = match($bannerCount) {
-        1 => 'grid md:grid-cols-1 max-w-md mx-auto',
-        2 => 'grid md:grid-cols-2',
-        3 => 'grid md:grid-cols-3',
-        default => 'grid md:grid-cols-2 lg:grid-cols-4',
-    };
-    $bannerConfigs = [
-        1 => ['gradient' => 'from-halal-green to-green-600', 'badge_bg' => 'bg-halal-gold', 'text_muted' => 'text-green-100'],
-        2 => ['gradient' => 'from-halal-gold to-yellow-500', 'badge_bg' => 'bg-halal-dark', 'text_muted' => 'text-yellow-100'],
-        3 => ['gradient' => 'from-blue-500 to-blue-600', 'badge_bg' => 'bg-white', 'badge_text' => 'text-blue-600', 'text_muted' => 'text-blue-100'],
-        4 => ['gradient' => 'from-red-500 to-red-600', 'badge_bg' => 'bg-white', 'badge_text' => 'text-red-600', 'text_muted' => 'text-red-100'],
-    ];
-@endphp
-@if($bannerCount > 0)
-<section class="py-8">
-    <div class="container mx-auto px-4">
-        <div class="{{ $bannerGridClass }} gap-6">
-            @foreach($visibleBanners as $i)
-                @php
-                    $title = $home('banner' . $i . '_title', '');
-                    $hasContent = !empty($title);
-                @endphp
-                @if($hasContent)
-                <div class="bg-gradient-to-r {{ $bannerConfigs[$i]['gradient'] }} rounded-2xl p-6 text-white relative overflow-hidden">
-                    <div class="absolute right-0 top-0 opacity-20">
-                        <i class="bi {{ $home('banner' . $i . '_icon', 'bi-star-fill') }} text-[100px] transform rotate-12"></i>
-                    </div>
-                    <div class="relative z-10">
-                        <span class="{{ $bannerConfigs[$i]['badge_bg'] }} {{ $bannerConfigs[$i]['badge_text'] ?? 'text-white' }} px-3 py-1 rounded-full text-sm font-medium">{{ $home('banner' . $i . '_badge', 'Offer') }}</span>
-                        <h3 class="font-poppins text-xl font-bold mt-3">{{ $title }}</h3>
-                        <p class="{{ $bannerConfigs[$i]['text_muted'] }} mt-2 text-sm">{{ $home('banner' . $i . '_description', '') }}</p>
-                        @php $link = $home('banner' . $i . '_link', ''); @endphp
-                        @if($link)
-                            <a href="{{ route('products.index', ['category' => $link]) }}" class="inline-block mt-3 bg-white text-gray-800 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-100 transition-colors">
-                                {{ $home('banner' . $i . '_button_text', 'Shop Now') }} <i class="bi bi-arrow-right ml-1"></i>
-                            </a>
-                        @else
-                            <span class="inline-block mt-3 bg-white/20 text-white px-4 py-2 rounded-full text-sm font-medium">
-                                {{ $home('banner' . $i . '_button_text', 'Shop Now') }} <i class="bi bi-arrow-right ml-1"></i>
-                            </span>
-                        @endif
-                    </div>
+                    @foreach($categories as $category)
+                        @php
+                            $icon = $categoryIcons[$category->slug] ?? $defaultIcon;
+                            $color = $categoryColors[$category->slug] ?? $defaultColor;
+                        @endphp
+                        <a href="{{ route('products.index', ['category' => $category->slug]) }}" 
+                           class="group relative bg-white rounded-2xl p-5 text-center shadow-sm hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 hover:border-transparent overflow-hidden">
+                            
+                            <!-- Hover Background Gradient -->
+                            <div class="absolute inset-0 bg-gradient-to-br {{ $color['bg'] }} opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
+                            
+                            <!-- Card Content -->
+                            <div class="relative z-10">
+                                <!-- Icon Container -->
+                                <div class="w-20 h-20 mx-auto mb-4 {{ $color['light'] }} rounded-2xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-500 transform group-hover:scale-110 group-hover:rotate-3">
+                                    <i class="{{ $icon }} text-3xl {{ $color['text'] }} group-hover:text-white transition-colors duration-300"></i>
+                                </div>
+                                
+                                <!-- Category Name -->
+                                <h3 class="font-semibold text-gray-800 group-hover:text-white transition-colors duration-300 mb-1 text-sm md:text-base">
+                                    {{ $category->name }}
+                                </h3>
+                                
+                                <!-- Product Count Badge -->
+                                <span class="inline-flex items-center text-xs {{ $color['text'] }} group-hover:text-white/80 transition-colors duration-300">
+                                    <i class="bi bi-box-seam mr-1"></i>
+                                    {{ $category->products_count ?? 0 }} Products
+                                </span>
+                                
+                                <!-- Arrow Indicator -->
+                                <div class="mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                                    <span class="inline-flex items-center text-white text-sm font-medium">
+                                        Explore <i class="bi bi-arrow-right ml-1"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- Corner Decoration -->
+                            <div class="absolute -top-4 -right-4 w-16 h-16 {{ $color['light'] }} rounded-full opacity-50 group-hover:opacity-0 transition-opacity duration-300"></div>
+                            <div class="absolute -bottom-4 -left-4 w-12 h-12 {{ $color['light'] }} rounded-full opacity-50 group-hover:opacity-0 transition-opacity duration-300"></div>
+                        </a>
+                    @endforeach
                 </div>
-                @endif
-            @endforeach
-        </div>
-    </div>
-</section>
-@endif
-@endif
-
-<!-- New Arrivals -->
-@if($home('homepage_show_new_arrivals_section', '1') == '1')
-<section class="py-12 bg-gray-50">
-    <div class="container mx-auto px-4">
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <h2 class="font-poppins text-3xl font-bold text-gray-800">{{ $home('homepage_new_arrivals_title', 'New Arrivals') }}</h2>
-                <p class="text-gray-600 mt-1">{{ $home('homepage_new_arrivals_subtitle', 'Fresh products just arrived in our store') }}</p>
-            </div>
-            <a href="{{ route('products.index', ['sort' => 'newest']) }}" class="text-halal-green hover:text-halal-dark font-medium flex items-center">
-                View All <i class="bi bi-arrow-right ml-1"></i>
-            </a>
-        </div>
-        
-        <div class="{{ $newArrivalsGridClass }} gap-5">
-            @foreach($latestProducts as $product)
-                @include('themes.general.partials.product-card', ['product' => $product])
-            @endforeach
-        </div>
-    </div>
-</section>
-@endif
-
-<!-- Why Choose Us -->
-@if($home('homepage_show_why_choose_us_section', '1') == '1')
-<section class="py-16 bg-halal-dark text-white">
-    <div class="container mx-auto px-4">
-        <div class="text-center mb-12">
-            <h2 class="font-poppins text-3xl font-bold">{{ $home('why_choose_us_title', 'Why Choose Us?') }}</h2>
-            <p class="text-gray-400 mt-2">{{ $home('why_choose_us_subtitle', 'We are committed to providing the best halal products') }}</p>
-        </div>
-        
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            @for($i = 1; $i <= 4; $i++)
-                @php
-                    $icon = $home('why_choose_us_icon_' . $i, 'bi-patch-check-fill');
-                    $title = $home('why_choose_us_title_' . $i, 'Feature ' . $i);
-                    $desc = $home('why_choose_us_desc_' . $i, 'Feature description');
-                @endphp
-                @if($title && $title !== 'Feature ' . $i)
-                <div class="text-center">
-                    <div class="w-20 h-20 mx-auto bg-halal-green rounded-full flex items-center justify-center mb-4">
-                        <i class="bi {{ $icon }} text-3xl text-halal-gold"></i>
-                    </div>
-                    <h3 class="font-poppins text-xl font-bold mb-2">{{ $title }}</h3>
-                    <p class="text-gray-400">{{ $desc }}</p>
-                </div>
-                @endif
-            @endfor
-        </div>
-    </div>
-</section>
-@endif
-
-<!-- Sale Products -->
-@if($saleProducts->count() > 0 && $home('homepage_show_sale_section', '1') == '1')
-<section class="py-12">
-    <div class="container mx-auto px-4">
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <h2 class="font-poppins text-3xl font-bold text-gray-800">
-                    <i class="bi bi-fire text-red-500"></i> {{ $home('homepage_sale_title', 'Hot Deals') }}
-                </h2>
-                <p class="text-gray-600 mt-1">{{ $home('homepage_sale_subtitle', 'Limited time offers - Grab them before they are gone!') }}</p>
-            </div>
-            <a href="{{ route('products.index', ['sort' => 'discount']) }}" class="text-halal-green hover:text-halal-dark font-medium flex items-center">
-                View All <i class="bi bi-arrow-right ml-1"></i>
-            </a>
-        </div>
-        
-        <div class="{{ $saleGridClass }} gap-5">
-            @foreach($saleProducts as $product)
-                @include('themes.general.partials.product-card', ['product' => $product])
-            @endforeach
-        </div>
-    </div>
-</section>
-@endif
-
-<!-- Testimonials -->
-@if($home('homepage_show_testimonials_section', '1') == '1')
-<section class="py-12 bg-gray-50">
-    <div class="container mx-auto px-4">
-        <div class="text-center mb-10">
-            <h2 class="font-poppins text-3xl font-bold text-gray-800">{{ $home('testimonials_title', 'What Our Customers Say') }}</h2>
-            <p class="text-gray-600 mt-2">{{ $home('testimonials_subtitle', 'Trusted by thousands of customers across Bangladesh') }}</p>
-        </div>
-        
-        <div class="grid md:grid-cols-3 gap-6">
-            @for($i = 1; $i <= 3; $i++)
-                @php
-                    $name = $home('testimonial' . $i . '_name', '');
-                    $location = $home('testimonial' . $i . '_location', '');
-                    $text = $home('testimonial' . $i . '_text', '');
-                    $rating = (int) $home('testimonial' . $i . '_rating', '5');
-                    $colors = ['bg-halal-green', 'bg-halal-gold', 'bg-halal-dark'];
-                @endphp
-                @if($name && $text)
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex text-halal-gold mb-4">
-                        @for($s = 1; $s <= 5; $s++)
-                            @if($s <= $rating)
-                                <i class="bi bi-star-fill"></i>
-                            @elseif($s - 0.5 <= $rating)
-                                <i class="bi bi-star-half"></i>
-                            @else
-                                <i class="bi bi-star"></i>
-                            @endif
-                        @endfor
-                    </div>
-                    <p class="text-gray-600 mb-4">"{{ $text }}"</p>
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 {{ $colors[$i - 1] ?? 'bg-halal-green' }} rounded-full flex items-center justify-center text-white font-bold">
-                            {{ strtoupper(substr($name, 0, 1) . substr($name, strpos($name, ' ') !== false ? strpos($name, ' ') + 1 : 1, 1)) }}
-                        </div>
-                        <div class="ml-3">
-                            <h4 class="font-medium text-gray-800">{{ $name }}</h4>
-                            <p class="text-sm text-gray-500">{{ $location }}</p>
-                        </div>
-                    </div>
-                </div>
-                @endif
-            @endfor
-        </div>
-    </div>
-</section>
-@endif
-
-<!-- Blog Section -->
-@if($latestBlogs->count() > 0 && $home('homepage_show_blog_section', '1') == '1')
-<section class="py-12">
-    <div class="container mx-auto px-4">
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <h2 class="font-poppins text-3xl font-bold text-gray-800">From Our Blog</h2>
-                <p class="text-gray-600 mt-1">Tips, recipes, and halal food insights</p>
-            </div>
-            <a href="{{ route('blogs.index') }}" class="text-halal-green hover:text-halal-dark font-medium flex items-center">
-                View All <i class="bi bi-arrow-right ml-1"></i>
-            </a>
-        </div>
-        
-        <div class="grid md:grid-cols-3 gap-6">
-            @foreach($latestBlogs as $blog)
-            <article class="bg-white rounded-xl shadow-md overflow-hidden group">
-                <div class="overflow-hidden">
-                    <img src="{{ $blog->image ?? 'https://via.placeholder.com/400x250?text=Blog' }}" 
-                        alt="{{ $blog->title }}" 
-                        class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
-                </div>
-                <div class="p-5">
-                    <div class="flex items-center text-sm text-gray-500 mb-2">
-                        <i class="bi bi-calendar3 mr-1"></i>
-                        {{ $blog->created_at->format('M d, Y') }}
-                        <span class="mx-2">-</span>
-                        <i class="bi bi-person mr-1"></i>
-                        {{ $blog->author->name ?? 'Admin' }}
-                    </div>
-                    <h3 class="font-poppins text-lg font-bold text-gray-800 mb-2 hover:text-halal-green transition-colors">
-                        <a href="{{ route('blogs.show', $blog->slug) }}">{{ Str::limit($blog->title, 50) }}</a>
-                    </h3>
-                    <p class="text-gray-600 text-sm">{{ Str::limit(strip_tags($blog->content), 100) }}</p>
-                    <a href="{{ route('blogs.show', $blog->slug) }}" class="inline-block mt-3 text-halal-green font-medium hover:text-halal-dark">
-                        Read More <i class="bi bi-arrow-right ml-1"></i>
+                
+                <!-- View All Categories Button -->
+                <div class="text-center mt-10">
+                    <a href="{{ route('products.index') }}" 
+                       class="inline-flex items-center bg-halal-dark text-white px-8 py-3 rounded-full font-medium hover:bg-halal-green transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        <i class="bi bi-grid-fill mr-2"></i>
+                        View All Categories
+                        <i class="bi bi-arrow-right ml-2"></i>
                     </a>
                 </div>
-            </article>
-            @endforeach
-        </div>
-    </div>
-</section>
-@endif
+            </div>
+        </section>
+
+    @elseif($section === 'featured')
+        <!-- Featured Products -->
+        @if($home('homepage_show_featured_section', '1') == '1')
+        <section class="py-12" data-section="featured">
+            <div class="container mx-auto px-4">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 class="font-poppins text-3xl font-bold text-gray-800">{{ $home('homepage_featured_title', 'Featured Products') }}</h2>
+                        <p class="text-gray-600 mt-1">{{ $home('homepage_featured_subtitle', 'Handpicked premium quality products for you') }}</p>
+                    </div>
+                    <a href="{{ route('products.index') }}" class="text-halal-green hover:text-halal-dark font-medium flex items-center">
+                        View All <i class="bi bi-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                
+                <div class="{{ $featuredGridClass }} gap-5">
+                    @foreach($featuredProducts as $product)
+                        @include('themes.general.partials.product-card', ['product' => $product])
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        @endif
+
+    @elseif($section === 'banner')
+        <!-- Banner Section -->
+        @if($home('homepage_show_banner_section', '1') == '1')
+        @php
+            // Count visible banners for dynamic grid
+            $visibleBanners = [];
+            for($j = 1; $j <= 4; $j++) {
+                if($home('banner' . $j . '_visible', '1') == '1') {
+                    $visibleBanners[] = $j;
+                }
+            }
+            $bannerCount = count($visibleBanners);
+            $bannerGridClass = match($bannerCount) {
+                1 => 'grid md:grid-cols-1 max-w-md mx-auto',
+                2 => 'grid md:grid-cols-2',
+                3 => 'grid md:grid-cols-3',
+                default => 'grid md:grid-cols-2 lg:grid-cols-4',
+            };
+            $bannerConfigs = [
+                1 => ['gradient' => 'from-halal-green to-green-600', 'badge_bg' => 'bg-halal-gold', 'text_muted' => 'text-green-100'],
+                2 => ['gradient' => 'from-halal-gold to-yellow-500', 'badge_bg' => 'bg-halal-dark', 'text_muted' => 'text-yellow-100'],
+                3 => ['gradient' => 'from-blue-500 to-blue-600', 'badge_bg' => 'bg-white', 'badge_text' => 'text-blue-600', 'text_muted' => 'text-blue-100'],
+                4 => ['gradient' => 'from-red-500 to-red-600', 'badge_bg' => 'bg-white', 'badge_text' => 'text-red-600', 'text_muted' => 'text-red-100'],
+            ];
+        @endphp
+        @if($bannerCount > 0)
+        <section class="py-8" data-section="banner">
+            <div class="container mx-auto px-4">
+                <div class="{{ $bannerGridClass }} gap-6">
+                    @foreach($visibleBanners as $i)
+                        @php
+                            $title = $home('banner' . $i . '_title', '');
+                            $hasContent = !empty($title);
+                        @endphp
+                        @if($hasContent)
+                        <div class="bg-gradient-to-r {{ $bannerConfigs[$i]['gradient'] }} rounded-2xl p-6 text-white relative overflow-hidden">
+                            <div class="absolute right-0 top-0 opacity-20">
+                                <i class="bi {{ $home('banner' . $i . '_icon', 'bi-star-fill') }} text-[100px] transform rotate-12"></i>
+                            </div>
+                            <div class="relative z-10">
+                                <span class="{{ $bannerConfigs[$i]['badge_bg'] }} {{ $bannerConfigs[$i]['badge_text'] ?? 'text-white' }} px-3 py-1 rounded-full text-sm font-medium">{{ $home('banner' . $i . '_badge', 'Offer') }}</span>
+                                <h3 class="font-poppins text-xl font-bold mt-3">{{ $title }}</h3>
+                                <p class="{{ $bannerConfigs[$i]['text_muted'] }} mt-2 text-sm">{{ $home('banner' . $i . '_description', '') }}</p>
+                                @php $link = $home('banner' . $i . '_link', ''); @endphp
+                                @if($link)
+                                    <a href="{{ route('products.index', ['category' => $link]) }}" class="inline-block mt-3 bg-white text-gray-800 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-100 transition-colors">
+                                        {{ $home('banner' . $i . '_button_text', 'Shop Now') }} <i class="bi bi-arrow-right ml-1"></i>
+                                    </a>
+                                @else
+                                    <span class="inline-block mt-3 bg-white/20 text-white px-4 py-2 rounded-full text-sm font-medium">
+                                        {{ $home('banner' . $i . '_button_text', 'Shop Now') }} <i class="bi bi-arrow-right ml-1"></i>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        @endif
+        @endif
+
+    @elseif($section === 'new_arrivals')
+        <!-- New Arrivals -->
+        @if($home('homepage_show_new_arrivals_section', '1') == '1')
+        <section class="py-12 bg-gray-50" data-section="new_arrivals">
+            <div class="container mx-auto px-4">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 class="font-poppins text-3xl font-bold text-gray-800">{{ $home('homepage_new_arrivals_title', 'New Arrivals') }}</h2>
+                        <p class="text-gray-600 mt-1">{{ $home('homepage_new_arrivals_subtitle', 'Fresh products just arrived in our store') }}</p>
+                    </div>
+                    <a href="{{ route('products.index', ['sort' => 'newest']) }}" class="text-halal-green hover:text-halal-dark font-medium flex items-center">
+                        View All <i class="bi bi-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                
+                <div class="{{ $newArrivalsGridClass }} gap-5">
+                    @foreach($latestProducts as $product)
+                        @include('themes.general.partials.product-card', ['product' => $product])
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        @endif
+
+    @elseif($section === 'why_choose_us')
+        <!-- Why Choose Us -->
+        @if($home('homepage_show_why_choose_us_section', '1') == '1')
+        <section class="py-16 bg-halal-dark text-white" data-section="why_choose_us">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="font-poppins text-3xl font-bold">{{ $home('why_choose_us_title', 'Why Choose Us?') }}</h2>
+                    <p class="text-gray-400 mt-2">{{ $home('why_choose_us_subtitle', 'We are committed to providing the best halal products') }}</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    @for($i = 1; $i <= 4; $i++)
+                        @php
+                            $icon = $home('why_choose_us_icon_' . $i, 'bi-patch-check-fill');
+                            $title = $home('why_choose_us_title_' . $i, 'Feature ' . $i);
+                            $desc = $home('why_choose_us_desc_' . $i, 'Feature description');
+                        @endphp
+                        @if($title && $title !== 'Feature ' . $i)
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto bg-halal-green rounded-full flex items-center justify-center mb-4">
+                                <i class="bi {{ $icon }} text-3xl text-halal-gold"></i>
+                            </div>
+                            <h3 class="font-poppins text-xl font-bold mb-2">{{ $title }}</h3>
+                            <p class="text-gray-400">{{ $desc }}</p>
+                        </div>
+                        @endif
+                    @endfor
+                </div>
+            </div>
+        </section>
+        @endif
+
+    @elseif($section === 'sale')
+        <!-- Sale Products -->
+        @if($saleProducts->count() > 0 && $home('homepage_show_sale_section', '1') == '1')
+        <section class="py-12" data-section="sale">
+            <div class="container mx-auto px-4">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 class="font-poppins text-3xl font-bold text-gray-800">
+                            <i class="bi bi-fire text-red-500"></i> {{ $home('homepage_sale_title', 'Hot Deals') }}
+                        </h2>
+                        <p class="text-gray-600 mt-1">{{ $home('homepage_sale_subtitle', 'Limited time offers - Grab them before they are gone!') }}</p>
+                    </div>
+                    <a href="{{ route('products.index', ['sort' => 'discount']) }}" class="text-halal-green hover:text-halal-dark font-medium flex items-center">
+                        View All <i class="bi bi-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                
+                <div class="{{ $saleGridClass }} gap-5">
+                    @foreach($saleProducts as $product)
+                        @include('themes.general.partials.product-card', ['product' => $product])
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        @endif
+
+    @elseif($section === 'testimonials')
+        <!-- Testimonials -->
+        @if($home('homepage_show_testimonials_section', '1') == '1')
+        <section class="py-12 bg-gray-50" data-section="testimonials">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-10">
+                    <h2 class="font-poppins text-3xl font-bold text-gray-800">{{ $home('testimonials_title', 'What Our Customers Say') }}</h2>
+                    <p class="text-gray-600 mt-2">{{ $home('testimonials_subtitle', 'Trusted by thousands of customers across Bangladesh') }}</p>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-6">
+                    @for($i = 1; $i <= 3; $i++)
+                        @php
+                            $name = $home('testimonial' . $i . '_name', '');
+                            $location = $home('testimonial' . $i . '_location', '');
+                            $text = $home('testimonial' . $i . '_text', '');
+                            $rating = (int) $home('testimonial' . $i . '_rating', '5');
+                            $colors = ['bg-halal-green', 'bg-halal-gold', 'bg-halal-dark'];
+                        @endphp
+                        @if($name && $text)
+                        <div class="bg-white p-6 rounded-xl shadow-md">
+                            <div class="flex text-halal-gold mb-4">
+                                @for($s = 1; $s <= 5; $s++)
+                                    @if($s <= $rating)
+                                        <i class="bi bi-star-fill"></i>
+                                    @elseif($s - 0.5 <= $rating)
+                                        <i class="bi bi-star-half"></i>
+                                    @else
+                                        <i class="bi bi-star"></i>
+                                    @endif
+                                @endfor
+                            </div>
+                            <p class="text-gray-600 mb-4">"{{ $text }}"</p>
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 {{ $colors[$i - 1] ?? 'bg-halal-green' }} rounded-full flex items-center justify-center text-white font-bold">
+                                    {{ strtoupper(substr($name, 0, 1) . substr($name, strpos($name, ' ') !== false ? strpos($name, ' ') + 1 : 1, 1)) }}
+                                </div>
+                                <div class="ml-3">
+                                    <h4 class="font-medium text-gray-800">{{ $name }}</h4>
+                                    <p class="text-sm text-gray-500">{{ $location }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                    @endfor
+                </div>
+            </div>
+        </section>
+        @endif
+
+    @elseif($section === 'blog')
+        <!-- Blog Section -->
+        @if($latestBlogs->count() > 0 && $home('homepage_show_blog_section', '1') == '1')
+        <section class="py-12" data-section="blog">
+            <div class="container mx-auto px-4">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 class="font-poppins text-3xl font-bold text-gray-800">From Our Blog</h2>
+                        <p class="text-gray-600 mt-1">Tips, recipes, and halal food insights</p>
+                    </div>
+                    <a href="{{ route('blogs.index') }}" class="text-halal-green hover:text-halal-dark font-medium flex items-center">
+                        View All <i class="bi bi-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-6">
+                    @foreach($latestBlogs as $blog)
+                    <article class="bg-white rounded-xl shadow-md overflow-hidden group">
+                        <div class="overflow-hidden">
+                            @if($blog->featured_image)
+                                <img src="{{ Storage::url($blog->featured_image) }}" 
+                                    alt="{{ $blog->title }}" 
+                                    class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                            @else
+                                <img src="https://via.placeholder.com/400x250?text=Blog" 
+                                    alt="{{ $blog->title }}" 
+                                    class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                            @endif
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-center text-sm text-gray-500 mb-2">
+                                <i class="bi bi-calendar3 mr-1"></i>
+                                {{ $blog->published_at ? $blog->published_at->format('M d, Y') : $blog->created_at->format('M d, Y') }}
+                                <span class="mx-2">-</span>
+                                <i class="bi bi-person mr-1"></i>
+                                {{ $blog->author->name ?? 'Admin' }}
+                            </div>
+                            <h3 class="font-poppins text-lg font-bold text-gray-800 mb-2 hover:text-halal-green transition-colors">
+                                <a href="{{ route('blogs.show', $blog->slug) }}">{{ Str::limit($blog->title, 50) }}</a>
+                            </h3>
+                            <p class="text-gray-600 text-sm">{{ Str::limit(strip_tags($blog->content), 100) }}</p>
+                            <a href="{{ route('blogs.show', $blog->slug) }}" class="inline-block mt-3 text-halal-green font-medium hover:text-halal-dark">
+                                Read More <i class="bi bi-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+                    </article>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        @endif
+    @endif
+@endforeach
 @endsection
 
 @push('styles')
@@ -798,21 +819,19 @@ $saleGridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $saleColumns;
         width: 50px;
         height: 50px;
         background-color: rgba(30, 58, 38, 0.5);
-        border: none;
+        border: 2px solid rgba(255, 255, 255, 0.3);
         border-radius: 50%;
         color: white;
         font-size: 1.5rem;
         cursor: pointer;
+        transition: all 0.3s ease;
         z-index: 10;
-        transition: background-color 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
     }
     
     .hero-slider-prev:hover,
     .hero-slider-next:hover {
-        background-color: rgba(30, 58, 38, 0.8);
+        background-color: #D4AF37;
+        border-color: #D4AF37;
     }
     
     .hero-slider-prev {
@@ -838,26 +857,23 @@ $saleGridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $saleColumns;
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        border: none;
         background-color: rgba(255, 255, 255, 0.5);
+        border: none;
         cursor: pointer;
-        transition: background-color 0.3s ease;
-        padding: 0;
+        transition: all 0.3s ease;
     }
     
     .hero-indicator.active {
         background-color: #D4AF37;
-    }
-    
-    .hero-indicator:hover {
-        background-color: rgba(255, 255, 255, 0.8);
+        width: 30px;
+        border-radius: 6px;
     }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-    // Custom Hero Slider
+    // Hero Slider Functionality
     document.addEventListener('DOMContentLoaded', function() {
         const slider = document.getElementById('heroSlider');
         if (!slider) return;
@@ -867,76 +883,62 @@ $saleGridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $saleColumns;
         const prevBtn = slider.querySelector('.hero-slider-prev');
         const nextBtn = slider.querySelector('.hero-slider-next');
         
-        if (slides.length === 0) return;
-        
         let currentSlide = 0;
         let slideInterval;
         
         function showSlide(index) {
-            // Handle wrap around
-            if (index >= slides.length) index = 0;
-            if (index < 0) index = slides.length - 1;
-            
-            // Update slides
             slides.forEach((slide, i) => {
-                if (i === index) {
-                    slide.classList.add('active');
-                } else {
-                    slide.classList.remove('active');
-                }
+                slide.classList.toggle('active', i === index);
             });
-            
-            // Update indicators
             indicators.forEach((indicator, i) => {
-                if (i === index) {
-                    indicator.classList.add('active');
-                } else {
-                    indicator.classList.remove('active');
-                }
+                indicator.classList.toggle('active', i === index);
             });
-            
             currentSlide = index;
         }
         
         function nextSlide() {
-            showSlide(currentSlide + 1);
+            showSlide((currentSlide + 1) % slides.length);
         }
         
         function prevSlide() {
-            showSlide(currentSlide - 1);
+            showSlide((currentSlide - 1 + slides.length) % slides.length);
         }
         
-        function startAutoPlay() {
+        function startAutoSlide() {
             slideInterval = setInterval(nextSlide, 5000);
         }
         
-        function stopAutoPlay() {
+        function stopAutoSlide() {
             clearInterval(slideInterval);
         }
         
         // Event listeners
-        if (prevBtn) prevBtn.addEventListener('click', () => {
-            prevSlide();
-            stopAutoPlay();
-            startAutoPlay();
-        });
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                stopAutoSlide();
+                nextSlide();
+                startAutoSlide();
+            });
+        }
         
-        if (nextBtn) nextBtn.addEventListener('click', () => {
-            nextSlide();
-            stopAutoPlay();
-            startAutoPlay();
-        });
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                stopAutoSlide();
+                prevSlide();
+                startAutoSlide();
+            });
+        }
         
         indicators.forEach((indicator, index) => {
             indicator.addEventListener('click', () => {
+                stopAutoSlide();
                 showSlide(index);
-                stopAutoPlay();
-                startAutoPlay();
+                startAutoSlide();
             });
         });
         
-        // Start auto-play
-        startAutoPlay();
+        // Start auto slide
+        startAutoSlide();
     });
 </script>
 @endpush

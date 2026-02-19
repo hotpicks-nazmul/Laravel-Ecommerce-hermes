@@ -39,6 +39,11 @@ class Category extends Model
         return $this->hasMany(Product::class);
     }
 
+    public function blogs()
+    {
+        return $this->hasMany(Blog::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

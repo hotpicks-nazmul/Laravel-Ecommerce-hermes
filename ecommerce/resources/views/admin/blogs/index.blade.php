@@ -5,9 +5,14 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0">Blog Posts</h4>
-    <a href="{{ route('admin.blogs.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> Add New Post
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('admin.blog-settings.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-gear me-1"></i> Settings
+        </a>
+        <a href="{{ route('admin.blogs.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Add New Post
+        </a>
+    </div>
 </div>
 
 <div class="card">
@@ -39,16 +44,17 @@
                         <td>{{ $blog->title }}</td>
                         <td>{{ $blog->author->name ?? 'N/A' }}</td>
                         <td>
-                            <span class="badge {{ $blog->is_published ? 'bg-success' : 'bg-secondary' }}">
-                                {{ $blog->is_published ? 'Published' : 'Draft' }}
+                            @php $isPublished = $blog->status === 'published' && $blog->published_at && $blog->published_at->isPast(); @endphp
+                            <span class="badge {{ $isPublished ? 'bg-success' : 'bg-secondary' }}">
+                                {{ $isPublished ? 'Published' : 'Draft' }}
                             </span>
                         </td>
                         <td>{{ $blog->published_at ? $blog->published_at->format('d M, Y') : 'Not published' }}</td>
                         <td>
-                            <a href="{{ route('admin.blogs.edit', $blog->id) }}" class="btn btn-sm btn-outline-primary">
+                            <a href="{{ route('admin.blogs.edit', $blog->slug) }}" class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form action="{{ route('admin.blogs.destroy', $blog->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?')">
+                            <form action="{{ route('admin.blogs.destroy', $blog->slug) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-outline-danger">
                                     <i class="bi bi-trash"></i>
@@ -71,10 +77,12 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    @if(isset($blogs) && $blogs->count() > 0)
     $('#blogsTable').DataTable({
         pageLength: 25,
         order: [[4, 'desc']]
     });
+    @endif
 });
 </script>
 @endpush

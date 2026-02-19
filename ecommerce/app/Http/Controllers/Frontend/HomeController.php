@@ -63,6 +63,19 @@ class HomeController extends Controller
             ->take(3)
             ->get();
 
+        // Get section order from settings
+        $sectionOrderSetting = Setting::where('key', 'homepage_section_order')->first();
+        $sectionOrder = $sectionOrderSetting ? json_decode($sectionOrderSetting->value, true) : [
+            'categories',
+            'featured',
+            'banner',
+            'new_arrivals',
+            'why_choose_us',
+            'sale',
+            'testimonials',
+            'blog'
+        ];
+
         // Get active theme
         $activeTheme = $this->theme->getActiveTheme();
 
@@ -71,7 +84,8 @@ class HomeController extends Controller
             'latestProducts',
             'categories',
             'saleProducts',
-            'latestBlogs'
+            'latestBlogs',
+            'sectionOrder'
         ));
     }
 }

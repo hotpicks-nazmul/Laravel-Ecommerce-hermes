@@ -4,331 +4,516 @@
 
 @push('styles')
 <style>
-.blog-hero {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 80px 0;
-    margin-bottom: -40px;
-    position: relative;
-    overflow: hidden;
+/* Blog Page Layout */
+.blog-page {
+    display: flex;
+    min-height: 100vh;
+    background: #f5f5f5;
 }
-.blog-hero::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-.blog-card {
-    border: none;
-    border-radius: 16px;
-    overflow: hidden;
-    transition: all 0.3s ease;
+
+/* Fixed Left Sidebar */
+.blog-sidebar {
+    width: 280px;
+    min-width: 280px;
     background: #fff;
+    border-right: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    flex-shrink: 0;
 }
-.blog-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+
+.blog-sidebar::-webkit-scrollbar {
+    width: 4px;
 }
-.blog-card .card-img-top {
-    height: 220px;
-    object-fit: cover;
-    transition: transform 0.5s ease;
+
+.blog-sidebar::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 4px;
 }
-.blog-card:hover .card-img-top {
-    transform: scale(1.05);
+
+.sidebar-header {
+    padding: 24px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #fafafa;
 }
-.blog-card .card-body {
-    padding: 24px;
+
+.sidebar-header h4 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
-.blog-category {
-    display: inline-block;
-    padding: 6px 14px;
-    border-radius: 20px;
+
+.sidebar-header h4 i {
+    color: #1976d2;
+}
+
+/* Search in Sidebar */
+.sidebar-search {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.sidebar-search .search-form {
+    display: flex;
+    gap: 8px;
+}
+
+.sidebar-search .search-input {
+    flex: 1;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.sidebar-search .search-input:focus {
+    outline: none;
+    border-color: #1976d2;
+}
+
+.sidebar-search .search-btn {
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.sidebar-search .search-btn:hover {
+    background: #1565c0;
+}
+
+/* Categories in Sidebar */
+.sidebar-categories {
+    padding: 16px 0;
+}
+
+.sidebar-categories .category-title {
+    padding: 0 20px 12px;
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
+    color: #888;
     letter-spacing: 0.5px;
-    margin-bottom: 12px;
 }
-.sidebar-wrapper {
-    position: sticky;
-    top: 100px;
+
+.sidebar-categories .category-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
-.sidebar-card {
-    border: none;
-    border-radius: 16px;
-    overflow: hidden;
-    background: #fff;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-}
-.sidebar-card .card-body {
-    padding: 24px;
-}
-.search-input {
-    border-radius: 12px;
+
+.sidebar-categories .category-list li a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 12px 20px;
-    border: 2px solid #e9ecef;
-    transition: all 0.3s ease;
-}
-.search-input:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-}
-.category-list li {
-    padding: 10px 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-.category-list li:last-child {
-    border-bottom: none;
-}
-.category-list a {
     color: #555;
     text-decoration: none;
+    transition: all 0.3s;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-categories .category-list li a:hover,
+.sidebar-categories .category-list li a.active {
+    background: #e3f2fd;
+    color: #1976d2;
+    border-left-color: #1976d2;
+}
+
+.sidebar-categories .category-list li a .count {
+    background: #f0f0f0;
+    color: #888;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.sidebar-categories .category-list li a:hover .count,
+.sidebar-categories .category-list li a.active .count {
+    background: #1976d2;
+    color: #fff;
+}
+
+/* Main Content Area */
+.blog-main {
+    flex: 1;
+    padding: 30px;
+    max-width: calc(100% - 280px);
+}
+
+/* Page Header */
+.blog-page-header {
+    margin-bottom: 30px;
+}
+
+.blog-page-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+}
+
+.blog-page-header p {
+    color: #666;
+    font-size: 15px;
+}
+
+/* Blog Posts Grid */
+.blog-posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+/* Blog Card */
+.blog-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     transition: all 0.3s ease;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
 }
-.category-list a:hover {
-    color: #667eea;
-    padding-left: 8px;
+
+.blog-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
 }
-.recent-post-item {
-    display: flex;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid #f0f0f0;
+
+.blog-card .card-image {
+    height: 200px;
+    overflow: hidden;
+    position: relative;
 }
-.recent-post-item:last-child {
-    border-bottom: none;
-}
-.recent-post-item img {
-    width: 70px;
-    height: 70px;
+
+.blog-card .card-image img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    border-radius: 10px;
-    flex-shrink: 0;
+    transition: transform 0.5s ease;
 }
-.pagination .page-link {
-    border-radius: 10px;
-    margin: 0 4px;
+
+.blog-card:hover .card-image img {
+    transform: scale(1.08);
+}
+
+.blog-card .card-image .placeholder-image {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.blog-card .card-image .placeholder-image i {
+    font-size: 3rem;
+    color: rgba(255,255,255,0.4);
+}
+
+.blog-card .card-image .category-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(255,255,255,0.95);
+    color: #1976d2;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.blog-card .card-content {
+    padding: 20px;
+}
+
+.blog-card .card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.blog-card .card-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.blog-card .card-title a:hover {
+    color: #1976d2;
+}
+
+.blog-card .card-excerpt {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.blog-card .card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.blog-card .card-meta .author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.blog-card .card-meta .author img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.blog-card .card-meta .author .name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+}
+
+.blog-card .card-meta .date {
+    font-size: 12px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Pagination */
+.blog-pagination {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.blog-pagination .pagination {
+    gap: 6px;
+}
+
+.blog-pagination .page-link {
     border: none;
-    padding: 12px 18px;
+    border-radius: 8px;
+    padding: 10px 16px;
     color: #555;
     font-weight: 500;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    transition: all 0.3s;
 }
-.pagination .page-item.active .page-link {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+.blog-pagination .page-link:hover {
+    background: #e3f2fd;
+    color: #1976d2;
 }
+
+.blog-pagination .page-item.active .page-link {
+    background: #1976d2;
+    color: #fff;
+}
+
+/* Empty State */
 .empty-state {
-    padding: 80px 20px;
     text-align: center;
+    padding: 60px 20px;
+    background: #fff;
+    border-radius: 12px;
 }
+
 .empty-state i {
-    font-size: 80px;
+    font-size: 4rem;
     color: #ddd;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
-.newsletter-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 60px 0;
-    margin-top: 60px;
+
+.empty-state h4 {
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    color: #888;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .blog-page {
+        flex-direction: column;
+    }
+    
+    .blog-sidebar {
+        width: 100%;
+        min-width: 100%;
+        height: auto;
+        position: relative;
+    }
+    
+    .blog-main {
+        max-width: 100%;
+        padding: 20px;
+    }
+    
+    .sidebar-categories .category-list {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 0 16px 16px;
+        gap: 8px;
+    }
+    
+    .sidebar-categories .category-list li a {
+        padding: 8px 16px;
+        border-radius: 20px;
+        border-left: none;
+        background: #f5f5f5;
+    }
+    
+    .sidebar-categories .category-list li a:hover,
+    .sidebar-categories .category-list li a.active {
+        background: #1976d2;
+        color: #fff;
+    }
+}
+
+@media (max-width: 576px) {
+    .blog-posts-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 @endpush
 
 @section('content')
-<!-- Hero Section -->
-<section class="blog-hero text-white text-center">
-    <div class="container position-relative">
-        <h1 class="display-4 fw-bold mb-3">Our Blog</h1>
-        <p class="lead mb-0 opacity-75">Discover insights, tips, and stories from our team</p>
-    </div>
-</section>
+<div class="blog-page">
+    <!-- Fixed Left Sidebar -->
+    <aside class="blog-sidebar">
+        <div class="sidebar-header">
+            <h4><i class="bi bi-journal-text"></i> Blog</h4>
+        </div>
+        
+        <!-- Search -->
+        <div class="sidebar-search">
+            <form action="{{ route('blogs.index') }}" method="GET" class="search-form">
+                <input type="text" class="search-input" name="search" placeholder="Search posts..." value="{{ request('search') }}">
+                <button type="submit" class="search-btn"><i class="bi bi-search"></i></button>
+            </form>
+        </div>
+        
+        <!-- Categories -->
+        <div class="sidebar-categories">
+            <h5 class="category-title">Categories</h5>
+            <ul class="category-list">
+                <li>
+                    <a href="{{ route('blogs.index') }}" class="{{ !request('category') && !request('search') ? 'active' : '' }}">
+                        <span>All Posts</span>
+                        <span class="count">{{ \App\Models\Blog::published()->count() }}</span>
+                    </a>
+                </li>
+                @foreach($categories as $category)
+                    <li>
+                        <a href="{{ route('blogs.index', ['category' => $category->slug]) }}" 
+                           class="{{ request('category') == $category->slug ? 'active' : '' }}">
+                            <span>{{ $category->name }}</span>
+                            <span class="count">{{ $category->blogs()->where('status', 'published')->where('published_at', '<=', now())->count() }}</span>
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </aside>
 
-<!-- Blog Section -->
-<section class="py-5">
-    <div class="container">
-        <div class="row g-4">
-            <!-- Blog Posts -->
-            <div class="col-lg-8">
-                @if($blogs->count() > 0)
-                    <div class="row g-4">
-                        @foreach($blogs as $blog)
-                            <div class="col-md-6">
-                                <article class="blog-card h-100">
-                                    <div class="overflow-hidden">
-                                        @if($blog->featured_image)
-                                            <a href="{{ route('blogs.show', $blog->slug) }}">
-                                                <img src="{{ asset('storage/' . $blog->featured_image) }}" 
-                                                     class="card-img-top" 
-                                                     alt="{{ $blog->title }}">
-                                            </a>
-                                        @else
-                                            <a href="{{ route('blogs.show', $blog->slug) }}">
-                                                <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center" 
-                                                     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 220px;">
-                                                    <i class="bi bi-journal-text text-white" style="font-size: 4rem; opacity: 0.5;"></i>
-                                                </div>
-                                            </a>
-                                        @endif
-                                    </div>
-                                    
-                                    <div class="card-body">
-                                        @if($blog->category)
-                                            <span class="blog-category bg-primary bg-opacity-10 text-primary">
-                                                {{ $blog->category->name }}
-                                            </span>
-                                        @endif
-                                        
-                                        <h5 class="card-title mb-3">
-                                            <a href="{{ route('blogs.show', $blog->slug) }}" class="text-dark text-decoration-none">
-                                                {{ $blog->title }}
-                                            </a>
-                                        </h5>
-                                        
-                                        <p class="card-text text-muted mb-4">
-                                            {{ Str::limit(strip_tags($blog->content), 120) }}
-                                        </p>
-                                        
-                                        <div class="d-flex align-items-center justify-content-between mt-auto">
-                                            <div class="d-flex align-items-center">
-                                                @if($blog->author)
-                                                    <img src="{{ $blog->author->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($blog->author->name ?? 'Admin') . '&background=667eea&color=fff' }}" 
-                                                         alt="{{ $blog->author->name ?? 'Admin' }}"
-                                                         class="rounded-circle me-2" 
-                                                         width="36" height="36">
-                                                    <div>
-                                                        <small class="d-block fw-medium text-dark">{{ $blog->author->name ?? 'Admin' }}</small>
-                                                        <small class="text-muted">
-                                                            {{ $blog->published_at ? $blog->published_at->format('M d, Y') : '' }}
-                                                        </small>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                            <a href="{{ route('blogs.show', $blog->slug) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                                Read More <i class="bi bi-arrow-right ms-1"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </article>
-                            </div>
-                        @endforeach
-                    </div>
-                    
-                    <!-- Pagination -->
-                    @if($blogs->hasPages())
-                        <div class="mt-5 d-flex justify-content-center">
-                            {{ $blogs->links() }}
-                        </div>
-                    @endif
-                @else
-                    <div class="empty-state bg-white rounded-4">
-                        <i class="bi bi-journal-text"></i>
-                        <h4 class="fw-bold">No blog posts yet</h4>
-                        <p class="text-muted">Check back later for new content.</p>
-                    </div>
-                @endif
-            </div>
-            
-            <!-- Sidebar -->
-            <div class="col-lg-4">
-                <div class="sidebar-wrapper">
-                    <!-- Search & Categories Combined -->
-                    <div class="sidebar-card mb-4">
-                        <div class="card-body">
-                            <h5 class="fw-bold mb-4">
-                                <i class="bi bi-search me-2 text-primary"></i>Search & Filter
-                            </h5>
-                            <form action="{{ route('blogs.index') }}" method="GET" class="mb-4">
-                                <div class="input-group">
-                                    <input type="text" class="form-control search-input" name="search" placeholder="Search articles..." value="{{ request('search') }}">
-                                    <button class="btn btn-primary px-4" type="submit" style="border-radius: 0 12px 12px 0;">
-                                        <i class="bi bi-arrow-right"></i>
-                                    </button>
+    <!-- Main Content Area -->
+    <main class="blog-main">
+        <!-- Page Header -->
+        <div class="blog-page-header">
+            @if(request('search'))
+                <h1>Search Results for "{{ request('search') }}"</h1>
+                <p>{{ $blogs->total() }} post(s) found</p>
+            @elseif(request('category'))
+                @php $cat = \App\Models\Category::where('slug', request('category'))->first(); @endphp
+                <h1>{{ $cat ? $cat->name : 'Category' }}</h1>
+                <p>Browse all posts in this category</p>
+            @else
+                <h1>All Posts</h1>
+                <p>Discover our latest articles and insights</p>
+            @endif
+        </div>
+
+        @if($blogs->count() > 0)
+            <!-- Blog Posts Grid -->
+            <div class="blog-posts-grid">
+                @foreach($blogs as $blog)
+                    <article class="blog-card">
+                        <div class="card-image">
+                            @if($blog->featured_image)
+                                <a href="{{ route('blogs.show', $blog->slug) }}">
+                                    <img src="{{ asset('storage/' . $blog->featured_image) }}" alt="{{ $blog->title }}">
+                                </a>
+                            @else
+                                <div class="placeholder-image">
+                                    <i class="bi bi-journal-text"></i>
                                 </div>
-                            </form>
-                            
-                            <h6 class="fw-bold mb-3">
-                                <i class="bi bi-folder me-2 text-primary"></i>Categories
-                            </h6>
-                            <ul class="category-list list-unstyled mb-0">
-                                <li>
-                                    <a href="{{ route('blogs.index') }}" class="{{ !request('category') ? 'text-primary fw-bold' : '' }}">
-                                        <span>All Posts</span>
-                                        <span class="badge bg-light text-dark">{{ \App\Models\Blog::published()->count() }}</span>
-                                    </a>
-                                </li>
-                                @foreach($categories as $category)
-                                    <li>
-                                        <a href="{{ route('blogs.index', ['category' => $category->slug]) }}" 
-                                           class="{{ request('category') == $category->slug ? 'text-primary fw-bold' : '' }}">
-                                            <span>{{ $category->name }}</span>
-                                        </a>
-                                    </li>
-                                @endforeach
-                            </ul>
+                            @endif
+                            @if($blog->category)
+                                <span class="category-badge">{{ $blog->category->name }}</span>
+                            @endif
                         </div>
-                    </div>
-                    
-                    <!-- Recent Posts -->
-                    @php
-                        $recentPosts = \App\Models\Blog::with('author')->published()->latest('published_at')->take(4)->get();
-                    @endphp
-                    @if($recentPosts->count() > 0)
-                        <div class="sidebar-card">
-                            <div class="card-body">
-                                <h5 class="fw-bold mb-4">
-                                    <i class="bi bi-clock-history me-2 text-primary"></i>Recent Posts
-                                </h5>
-                                @foreach($recentPosts as $post)
-                                    <a href="{{ route('blogs.show', $post->slug) }}" class="recent-post-item text-decoration-none">
-                                        @if($post->featured_image)
-                                            <img src="{{ asset('storage/' . $post->featured_image) }}" 
-                                                 alt="{{ $post->title }}">
-                                        @else
-                                            <div class="bg-gradient d-flex align-items-center justify-content-center" 
-                                                 style="width: 70px; height: 70px; border-radius: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); flex-shrink: 0;">
-                                                <i class="bi bi-journal text-white" style="font-size: 1.5rem; opacity: 0.7;"></i>
-                                            </div>
-                                        @endif
-                                        <div>
-                                            <h6 class="text-dark mb-1" style="font-size: 14px; line-height: 1.4;">
-                                                {{ Str::limit($post->title, 45) }}
-                                            </h6>
-                                            <small class="text-muted">
-                                                {{ $post->published_at ? $post->published_at->format('M d, Y') : '' }}
-                                            </small>
-                                        </div>
-                                    </a>
-                                @endforeach
+                        <div class="card-content">
+                            <h3 class="card-title">
+                                <a href="{{ route('blogs.show', $blog->slug) }}">{{ $blog->title }}</a>
+                            </h3>
+                            <p class="card-excerpt">{{ Str::limit(strip_tags($blog->content), 120) }}</p>
+                            <div class="card-meta">
+                                @if($blog->author)
+                                    <div class="author">
+                                        <img src="{{ $blog->author->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($blog->author->name ?? 'Admin') . '&background=1976d2&color=fff' }}" 
+                                             alt="{{ $blog->author->name ?? 'Admin' }}">
+                                        <span class="name">{{ $blog->author->name ?? 'Admin' }}</span>
+                                    </div>
+                                @endif
+                                <span class="date">
+                                    <i class="bi bi-calendar3"></i>
+                                    {{ $blog->published_at ? $blog->published_at->format('M d, Y') : '' }}
+                                </span>
                             </div>
                         </div>
-                    @endif
-                </div>
+                    </article>
+                @endforeach
             </div>
-        </div>
-    </div>
-</section>
 
-<!-- Newsletter Section -->
-<section class="newsletter-section text-white text-center">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-6">
-                <i class="bi bi-envelope-paper-heart mb-3" style="font-size: 3rem;"></i>
-                <h3 class="fw-bold mb-2">Subscribe to Our Newsletter</h3>
-                <p class="opacity-75 mb-4">Get the latest posts delivered right to your inbox</p>
-                <form class="d-flex gap-2">
-                    <input type="email" class="form-control" placeholder="Your email address" style="border-radius: 12px; padding: 14px 20px;">
-                    <button type="submit" class="btn btn-light fw-bold px-4" style="border-radius: 12px;">
-                        Subscribe
-                    </button>
-                </form>
+            <!-- Pagination -->
+            @if($blogs->hasPages())
+                <div class="blog-pagination">
+                    {{ $blogs->links() }}
+                </div>
+            @endif
+        @else
+            <div class="empty-state">
+                <i class="bi bi-journal-text"></i>
+                <h4>No posts found</h4>
+                <p>Try adjusting your search or filter to find what you're looking for.</p>
+                <a href="{{ route('blogs.index') }}" class="btn btn-primary mt-3">View All Posts</a>
             </div>
-        </div>
-    </div>
-</section>
+        @endif
+    </main>
+</div>
 @endsection

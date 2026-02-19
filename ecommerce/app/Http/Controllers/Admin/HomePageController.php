@@ -16,7 +16,66 @@ class HomePageController extends Controller
     {
         $homeSettings = Setting::where('group', 'homepage')->get()->keyBy('key');
         
-        return view('admin.homepage.index', compact('homeSettings'));
+        // Get section order with default fallback
+        $sectionOrder = json_decode($homeSettings['homepage_section_order']->value ?? '[]', true);
+        if (empty($sectionOrder)) {
+            $sectionOrder = [
+                'categories',
+                'featured',
+                'banner',
+                'new_arrivals',
+                'why_choose_us',
+                'sale',
+                'testimonials',
+                'blog'
+            ];
+        }
+        
+        // Define all available sections with their labels and icons
+        $availableSections = [
+            'categories' => [
+                'label' => 'Categories',
+                'icon' => 'bi-grid-3x3-gap',
+                'description' => 'Product categories showcase'
+            ],
+            'featured' => [
+                'label' => 'Featured Products',
+                'icon' => 'bi-star-fill',
+                'description' => 'Handpicked premium products'
+            ],
+            'banner' => [
+                'label' => 'Banner Section',
+                'icon' => 'bi-megaphone',
+                'description' => 'Promotional banners'
+            ],
+            'new_arrivals' => [
+                'label' => 'New Arrivals',
+                'icon' => 'bi-box-seam',
+                'description' => 'Latest products in store'
+            ],
+            'why_choose_us' => [
+                'label' => 'Why Choose Us',
+                'icon' => 'bi-patch-check',
+                'description' => 'Trust badges and features'
+            ],
+            'sale' => [
+                'label' => 'Hot Deals',
+                'icon' => 'bi-fire',
+                'description' => 'Products on sale'
+            ],
+            'testimonials' => [
+                'label' => 'Testimonials',
+                'icon' => 'bi-chat-quote',
+                'description' => 'Customer reviews'
+            ],
+            'blog' => [
+                'label' => 'Blog Section',
+                'icon' => 'bi-newspaper',
+                'description' => 'Latest blog posts'
+            ],
+        ];
+        
+        return view('admin.homepage.index', compact('homeSettings', 'sectionOrder', 'availableSections'));
     }
 
     /**
@@ -155,5 +214,23 @@ class HomePageController extends Controller
         
         return redirect()->route('admin.homepage.index')
             ->with('success', 'Home page settings updated successfully!');
+    }
+    
+    /**
+     * Update the section order via AJAX.
+     */
+    public function updateSectionOrder(Request $request)
+    {
+        $validated = $request->validate([
+            'sections' => 'required|array',
+            'sections.*' => 'string|in:categories,featured,banner,new_arrivals,why_choose_us,sale,testimonials,blog',
+        ]);
+        
+        Setting::set('homepage_section_order', json_encode($validated['sections']), 'homepage');
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Section order updated successfully!'
+        ]);
     }
 }

@@ -16,11 +16,24 @@ class MediaController extends Controller
 
     public function upload(Request $request)
     {
+        // Support both 'file' and 'image' field names (for different uploaders)
+        $file = $request->file('file') ?? $request->file('image');
+        
+        if (!$file) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No file uploaded',
+            ], 400);
+        }
+        
+        // Validate file
         $request->validate([
-            'file' => 'required|file|max:10240', // 10MB max
+            'file' => 'nullable|file|max:10240', // 10MB max
+            'image' => 'nullable|image|max:10240', // 10MB max for images
         ]);
 
-        $path = $request->file('file')->store('uploads', 'public');
+        // Store in blog-images folder for better organization
+        $path = $file->store('blog-images', 'public');
 
         return response()->json([
             'success' => true,
