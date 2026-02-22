@@ -34,6 +34,7 @@ class DashboardController extends Controller
         $pendingOrders = Order::where('status', 'pending')->count();
         $processingOrders = Order::where('status', 'processing')->count();
         $completedOrders = Order::where('status', 'completed')->count();
+        $cancelledOrders = Order::where('status', 'cancelled')->count();
         
         // Product status counts
         $activeProducts = Product::where('is_active', true)->count();
@@ -54,6 +55,7 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
         
+        // Sales by month for current year (for line/bar chart)
         $salesByMonth = Order::where('payment_status', 'paid')
             ->select(
                 DB::raw('MONTH(created_at) as month'),
@@ -62,6 +64,97 @@ class DashboardController extends Controller
             ->whereYear('created_at', date('Y'))
             ->groupBy('month')
             ->pluck('total', 'month');
+
+        // Prepare monthly sales data for chart (all 12 months)
+        $monthlySalesData = [];
+        $monthlyOrderCounts = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $monthlySalesData[] = round($salesByMonth->get($i, 0), 2);
+            $monthlyOrderCounts[] = Order::whereYear('created_at', date('Y'))
+                ->whereMonth('created_at', $i)
+                ->count();
+        }
+
+        // Last 7 days sales data (for area chart)
+        $last7DaysSales = [];
+        $last7DaysLabels = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $last7DaysLabels[] = $date->format('D');
+            $last7DaysSales[] = round(Order::where('payment_status', 'paid')
+                ->whereDate('created_at', $date->format('Y-m-d'))
+                ->sum('total'), 2);
+        }
+
+        // Last 30 days sales data
+        $last30DaysSales = [];
+        $last30DaysLabels = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $last30DaysLabels[] = $date->format('d M');
+            $last30DaysSales[] = round(Order::where('payment_status', 'paid')
+                ->whereDate('created_at', $date->format('Y-m-d'))
+                ->sum('total'), 2);
+        }
+
+        // Growth calculations
+        $lastMonthSales = Order::where('payment_status', 'paid')
+            ->whereMonth('created_at', now()->subMonth()->month)
+            ->whereYear('created_at', now()->subMonth()->year)
+            ->sum('total');
+        
+        $currentMonthSales = Order::where('payment_status', 'paid')
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->sum('total');
+
+        $salesGrowth = $lastMonthSales > 0 
+            ? round((($currentMonthSales - $lastMonthSales) / $lastMonthSales) * 100, 1) 
+            : ($currentMonthSales > 0 ? 100 : 0);
+
+        // Customer growth
+        $lastMonthCustomers = User::where('role', 'customer')
+            ->whereMonth('created_at', now()->subMonth()->month)
+            ->whereYear('created_at', now()->subMonth()->year)
+            ->count();
+        
+        $currentMonthCustomers = User::where('role', 'customer')
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        $customerGrowth = $lastMonthCustomers > 0 
+            ? round((($currentMonthCustomers - $lastMonthCustomers) / $lastMonthCustomers) * 100, 1) 
+            : ($currentMonthCustomers > 0 ? 100 : 0);
+
+        // Order growth
+        $lastMonthOrders = Order::whereMonth('created_at', now()->subMonth()->month)
+            ->whereYear('created_at', now()->subMonth()->year)
+            ->count();
+        
+        $currentMonthOrders = Order::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        $orderGrowth = $lastMonthOrders > 0 
+            ? round((($currentMonthOrders - $lastMonthOrders) / $lastMonthOrders) * 100, 1) 
+            : ($currentMonthOrders > 0 ? 100 : 0);
+
+        // Sales by category for pie/doughnut chart
+        $salesByCategory = DB::table('order_items')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->select('categories.name', DB::raw('SUM(order_items.quantity * order_items.price) as total_sales'))
+            ->groupBy('categories.id', 'categories.name')
+            ->orderByDesc('total_sales')
+            ->take(6)
+            ->get();
+
+        // Payment method distribution
+        $paymentMethods = Order::where('payment_status', 'paid')
+            ->select('payment_method', DB::raw('COUNT(*) as count'), DB::raw('SUM(total) as total'))
+            ->groupBy('payment_method')
+            ->get();
 
         return view('admin.dashboard', compact(
             'totalSales',
@@ -73,13 +166,25 @@ class DashboardController extends Controller
             'recentOrders',
             'topProducts',
             'salesByMonth',
+            'monthlySalesData',
+            'monthlyOrderCounts',
+            'last7DaysSales',
+            'last7DaysLabels',
+            'last30DaysSales',
+            'last30DaysLabels',
             'pendingOrders',
             'processingOrders',
             'completedOrders',
+            'cancelledOrders',
             'activeProducts',
             'outOfStockProducts',
             'lowStockProducts',
-            'categoryDistribution'
+            'categoryDistribution',
+            'salesGrowth',
+            'customerGrowth',
+            'orderGrowth',
+            'salesByCategory',
+            'paymentMethods'
         ));
     }
 

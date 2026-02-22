@@ -73,8 +73,8 @@
         
         <div class="row">
             <!-- Site Branding Settings -->
-            <div class="col-lg-6 mb-4">
-                <div class="card border-0 shadow-sm">
+            <div class="col-lg-4 mb-3">
+                <div class="card border-0 shadow-sm h-100">
                     <div class="card-header bg-white">
                         <h5 class="mb-0">
                             <i class="bi bi-palette2 me-2 text-primary"></i>
@@ -127,9 +127,105 @@
                 </div>
             </div>
             
+            <!-- Section Visibility -->
+            <div class="col-lg-4 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-eye-slash me-2 text-primary"></i>
+                            Section Visibility
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6 mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="homepage_show_featured_section" 
+                                           id="show_featured" value="1"
+                                           {{ ($homeSettings['homepage_show_featured_section']->value ?? '1') == '1' ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-semibold" for="show_featured">
+                                        <i class="bi bi-star-fill text-warning me-1"></i> Featured
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="homepage_show_categories_section" 
+                                           id="show_categories" value="1"
+                                           {{ ($homeSettings['homepage_show_categories_section']->value ?? '1') == '1' ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-semibold" for="show_categories">
+                                        <i class="bi bi-grid-3x3-gap text-success me-1"></i> Categories
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="homepage_show_new_arrivals_section" 
+                                           id="show_new_arrivals" value="1"
+                                           {{ ($homeSettings['homepage_show_new_arrivals_section']->value ?? '1') == '1' ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-semibold" for="show_new_arrivals">
+                                        <i class="bi bi-box-seam text-info me-1"></i> New Arrivals
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="homepage_show_sale_section" 
+                                           id="show_sale" value="1"
+                                           {{ ($homeSettings['homepage_show_sale_section']->value ?? '1') == '1' ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-semibold" for="show_sale">
+                                        <i class="bi bi-fire text-danger me-1"></i> Hot Deals
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="homepage_show_banner_section" 
+                                           id="show_banner" value="1"
+                                           {{ ($homeSettings['homepage_show_banner_section']->value ?? '1') == '1' ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-semibold" for="show_banner">
+                                        <i class="bi bi-megaphone text-success me-1"></i> Banner
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="homepage_show_why_choose_us_section" 
+                                           id="show_why_choose_us" value="1"
+                                           {{ ($homeSettings['homepage_show_why_choose_us_section']->value ?? '1') == '1' ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-semibold" for="show_why_choose_us">
+                                        <i class="bi bi-patch-check text-primary me-1"></i> Why Choose Us
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="homepage_show_testimonials_section" 
+                                           id="show_testimonials" value="1"
+                                           {{ ($homeSettings['homepage_show_testimonials_section']->value ?? '1') == '1' ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-semibold" for="show_testimonials">
+                                        <i class="bi bi-chat-quote text-secondary me-1"></i> Testimonials
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="homepage_show_blog_section" 
+                                           id="show_blog" value="1"
+                                           {{ ($homeSettings['homepage_show_blog_section']->value ?? '1') == '1' ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-semibold" for="show_blog">
+                                        <i class="bi bi-newspaper text-dark me-1"></i> Blog
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Product Grid Settings -->
-            <div class="col-lg-6 mb-4">
-                <div class="card border-0 shadow-sm">
+            <div class="col-lg-4 mb-3">
+                <div class="card border-0 shadow-sm h-100">
                     <div class="card-header bg-white">
                         <h5 class="mb-0">
                             <i class="bi bi-grid-3x3-gap me-2 text-primary"></i>
@@ -137,7 +233,7 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label class="form-label fw-semibold">Product Columns (Large Screens)</label>
                             <p class="text-muted small mb-2">Select how many products to show per row on large screens</p>
                             <div class="d-flex gap-2 flex-wrap">
@@ -156,149 +252,151 @@
                             </div>
                         </div>
                         
-                        <hr class="my-4">
-                        
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Featured Products Count</label>
+                                <label class="form-label fw-semibold">Featured</label>
                                 <input type="number" name="homepage_featured_products_count" 
                                        class="form-control" 
                                        value="{{ $homeSettings['homepage_featured_products_count']->value ?? 8 }}"
-                                       min="4" max="12">
+                                       min="4" max="100">
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">New Arrivals Count</label>
+                                <label class="form-label fw-semibold">New Arrivals</label>
                                 <input type="number" name="homepage_new_arrivals_count" 
                                        class="form-control" 
                                        value="{{ $homeSettings['homepage_new_arrivals_count']->value ?? 8 }}"
-                                       min="4" max="12">
+                                       min="4" max="100">
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Sale Products Count</label>
+                                <label class="form-label fw-semibold">Sale</label>
                                 <input type="number" name="homepage_sale_products_count" 
                                        class="form-control" 
                                        value="{{ $homeSettings['homepage_sale_products_count']->value ?? 8 }}"
-                                       min="4" max="12">
+                                       min="4" max="100">
                             </div>
                         </div>
                         
-                        <hr class="my-4">
-                        
-                        <h6 class="mb-3">Section Column Settings</h6>
-                        <p class="text-muted small mb-3">Set columns for each product section independently</p>
-                        
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Featured Columns</label>
+                                <label class="form-label fw-semibold">Featured Cols</label>
                                 @php $featuredCols = $homeSettings['homepage_featured_columns']->value ?? 6; @endphp
                                 <select name="homepage_featured_columns" class="form-select">
                                     @for($i = 2; $i <= 6; $i++)
-                                        <option value="{{ $i }}" {{ $featuredCols == $i ? 'selected' : '' }}>{{ $i }} Columns</option>
+                                        <option value="{{ $i }}" {{ $featuredCols == $i ? 'selected' : '' }}>{{ $i }} Cols</option>
                                     @endfor
                                 </select>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">New Arrivals Columns</label>
+                                <label class="form-label fw-semibold">New Arrivals Cols</label>
                                 @php $newArrivalsCols = $homeSettings['homepage_new_arrivals_columns']->value ?? 6; @endphp
                                 <select name="homepage_new_arrivals_columns" class="form-select">
                                     @for($i = 2; $i <= 6; $i++)
-                                        <option value="{{ $i }}" {{ $newArrivalsCols == $i ? 'selected' : '' }}>{{ $i }} Columns</option>
+                                        <option value="{{ $i }}" {{ $newArrivalsCols == $i ? 'selected' : '' }}>{{ $i }} Cols</option>
                                     @endfor
                                 </select>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Sale Columns</label>
+                                <label class="form-label fw-semibold">Sale Cols</label>
                                 @php $saleCols = $homeSettings['homepage_sale_columns']->value ?? 6; @endphp
                                 <select name="homepage_sale_columns" class="form-select">
                                     @for($i = 2; $i <= 6; $i++)
-                                        <option value="{{ $i }}" {{ $saleCols == $i ? 'selected' : '' }}>{{ $i }} Columns</option>
+                                        <option value="{{ $i }}" {{ $saleCols == $i ? 'selected' : '' }}>{{ $i }} Cols</option>
+                                    @endfor
+                                </select>
+                            </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+        
+        <!-- Category Section Settings -->
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-grid-3x3-gap me-2 text-primary"></i>
+                            Shop by Category Section
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">Section Title</label>
+                                <input type="text" name="homepage_categories_title" 
+                                       class="form-control" 
+                                       value="{{ isset($homeSettings['homepage_categories_title']) ? $homeSettings['homepage_categories_title']->value : 'Shop by Category' }}"
+                                       placeholder="Shop by Category">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">Section Subtitle</label>
+                                <input type="text" name="homepage_categories_subtitle" 
+                                       class="form-control" 
+                                       value="{{ isset($homeSettings['homepage_categories_subtitle']) ? $homeSettings['homepage_categories_subtitle']->value : 'Browse our wide range of halal products' }}"
+                                       placeholder="Browse our wide range of halal products">
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label fw-semibold">Display Style</label>
+                                @php $categoryStyle = isset($homeSettings['homepage_category_style']) ? $homeSettings['homepage_category_style']->value : 'grid'; @endphp
+                                <select name="homepage_category_style" class="form-select" id="category-style-select">
+                                    <option value="grid" {{ $categoryStyle == 'grid' ? 'selected' : '' }}>Grid Style</option>
+                                    <option value="cards" {{ $categoryStyle == 'cards' ? 'selected' : '' }}>Card Style</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label fw-semibold">Columns</label>
+                                @php $categoryColumns = (int)(isset($homeSettings['homepage_category_columns']) ? $homeSettings['homepage_category_columns']->value : 6); @endphp
+                                <select name="homepage_category_columns" class="form-select">
+                                    @for($i = 3; $i <= 8; $i++)
+                                        <option value="{{ $i }}" {{ $categoryColumns == $i ? 'selected' : '' }}>{{ $i }} Cols</option>
                                     @endfor
                                 </select>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Section Visibility -->
-            <div class="col-lg-6 mb-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0">
-                            <i class="bi bi-eye-slash me-2 text-primary"></i>
-                            Section Visibility
-                        </h5>
-                    </div>
-                    <div class="card-body">
+                        
+                        <hr class="my-3">
+                        
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="homepage_show_featured_section" 
-                                           id="show_featured" value="1"
-                                           {{ ($homeSettings['homepage_show_featured_section']->value ?? '1') == '1' ? 'checked' : '' }}>
-                                    <label class="form-check-label fw-semibold" for="show_featured">
-                                        <i class="bi bi-star-fill text-warning me-1"></i> Featured Products
-                                    </label>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Select Categories to Display</label>
+                                <p class="text-muted small mb-3">Drag to reorder. Selected categories will be displayed on the homepage in the order shown below.</p>
+                                
+                                <div class="category-selector-container">
+                                    <div class="row">
+                                        @php
+                                            $selectedIds = $selectedCategoryIds ?? [];
+                                        @endphp
+                                        @foreach($allCategories as $category)
+                                            <div class="col-md-4 col-lg-3 mb-2">
+                                                <div class="form-check category-check {{ in_array($category->id, $selectedIds) ? 'selected' : '' }}" data-category-id="{{ $category->id }}">
+                                                    <input class="form-check-input category-checkbox" type="checkbox" 
+                                                           name="homepage_selected_categories[]" 
+                                                           value="{{ $category->id }}" 
+                                                           id="cat_{{ $category->id }}"
+                                                           {{ in_array($category->id, $selectedIds) ? 'checked' : '' }}>
+                                                    <label class="form-check-label d-flex align-items-center" for="cat_{{ $category->id }}">
+                                                        @if($category->icon)
+                                                            <i class="{{ $category->icon }} me-2 text-primary"></i>
+                                                        @else
+                                                            <i class="bi bi-tag-fill me-2 text-secondary"></i>
+                                                        @endif
+                                                        <span>{{ $category->name }}</span>
+                                                        <span class="badge bg-light text-dark ms-auto">{{ $category->products_count ?? 0 }}</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="homepage_show_new_arrivals_section" 
-                                           id="show_new_arrivals" value="1"
-                                           {{ ($homeSettings['homepage_show_new_arrivals_section']->value ?? '1') == '1' ? 'checked' : '' }}>
-                                    <label class="form-check-label fw-semibold" for="show_new_arrivals">
-                                        <i class="bi bi-box-seam text-info me-1"></i> New Arrivals
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="homepage_show_sale_section" 
-                                           id="show_sale" value="1"
-                                           {{ ($homeSettings['homepage_show_sale_section']->value ?? '1') == '1' ? 'checked' : '' }}>
-                                    <label class="form-check-label fw-semibold" for="show_sale">
-                                        <i class="bi bi-fire text-danger me-1"></i> Hot Deals
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="homepage_show_banner_section" 
-                                           id="show_banner" value="1"
-                                           {{ ($homeSettings['homepage_show_banner_section']->value ?? '1') == '1' ? 'checked' : '' }}>
-                                    <label class="form-check-label fw-semibold" for="show_banner">
-                                        <i class="bi bi-megaphone text-success me-1"></i> Banner Section
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="homepage_show_why_choose_us_section" 
-                                           id="show_why_choose_us" value="1"
-                                           {{ ($homeSettings['homepage_show_why_choose_us_section']->value ?? '1') == '1' ? 'checked' : '' }}>
-                                    <label class="form-check-label fw-semibold" for="show_why_choose_us">
-                                        <i class="bi bi-patch-check text-primary me-1"></i> Why Choose Us
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="homepage_show_testimonials_section" 
-                                           id="show_testimonials" value="1"
-                                           {{ ($homeSettings['homepage_show_testimonials_section']->value ?? '1') == '1' ? 'checked' : '' }}>
-                                    <label class="form-check-label fw-semibold" for="show_testimonials">
-                                        <i class="bi bi-chat-quote text-secondary me-1"></i> Testimonials
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="homepage_show_blog_section" 
-                                           id="show_blog" value="1"
-                                           {{ ($homeSettings['homepage_show_blog_section']->value ?? '1') == '1' ? 'checked' : '' }}>
-                                    <label class="form-check-label fw-semibold" for="show_blog">
-                                        <i class="bi bi-newspaper text-dark me-1"></i> Blog Section
-                                    </label>
+                                
+                                <div class="mt-3">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" id="select-all-categories">
+                                        <i class="bi bi-check-all me-1"></i> Select All
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm ms-2" id="deselect-all-categories">
+                                        <i class="bi bi-x-lg me-1"></i> Deselect All
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -309,7 +407,7 @@
         
         <!-- Why Choose Us Section -->
         <div class="row">
-            <div class="col-12 mb-4">
+            <div class="col-12 mb-3">
                 <div class="card border-0 shadow-sm">
                     <div class="card-header bg-white">
                         <h5 class="mb-0">
@@ -318,7 +416,7 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="row mb-4">
+                        <div class="row mb-3">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-semibold">Section Title</label>
                                 <input type="text" name="why_choose_us_title" 
@@ -335,17 +433,17 @@
                             </div>
                         </div>
                         
-                        <hr class="my-4">
+                        <hr class="my-3">
                         <h6 class="mb-3">Feature Cards</h6>
                         
                         @for($i = 1; $i <= 4; $i++)
-                        <div class="row mb-3 align-items-end">
-                            <div class="col-12 mb-2">
+                        <div class="row mb-2 align-items-center">
+                            <div class="col-auto">
                                 <span class="badge bg-primary">Feature {{ $i }}</span>
                             </div>
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">Icon (Bootstrap)</label>
-                                <div class="input-group">
+                            <div class="col-md-2">
+                                <label class="form-label small">Icon (Bootstrap)</label>
+                                <div class="input-group input-group-sm">
                                     <span class="input-group-text"><i class="{{ $homeSettings['why_choose_us_icon_' . $i]->value ?? 'bi-patch-check-fill' }}"></i></span>
                                     <input type="text" name="why_choose_us_icon_{{ $i }}" 
                                            class="form-control icon-input" 
@@ -353,19 +451,18 @@
                                            value="{{ $homeSettings['why_choose_us_icon_' . $i]->value ?? 'bi-patch-check-fill' }}"
                                            placeholder="bi-patch-check-fill">
                                 </div>
-                                <p class="text-muted small mt-1">e.g., bi-truck, bi-shield-check</p>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Title</label>
+                            <div class="col-md-3">
+                                <label class="form-label small">Title</label>
                                 <input type="text" name="why_choose_us_title_{{ $i }}" 
-                                       class="form-control" 
+                                       class="form-control form-control-sm" 
                                        value="{{ $homeSettings['why_choose_us_title_' . $i]->value ?? '' }}"
                                        placeholder="Feature Title">
                             </div>
-                            <div class="col-md-5 mb-3">
-                                <label class="form-label">Description</label>
+                            <div class="col-md-5">
+                                <label class="form-label small">Description</label>
                                 <input type="text" name="why_choose_us_desc_{{ $i }}" 
-                                       class="form-control" 
+                                       class="form-control form-control-sm" 
                                        value="{{ $homeSettings['why_choose_us_desc_' . $i]->value ?? '' }}"
                                        placeholder="Feature description">
                             </div>
@@ -388,20 +485,6 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Categories Section Title</label>
-                                <input type="text" name="homepage_categories_title" 
-                                       class="form-control" 
-                                       value="{{ $homeSettings['homepage_categories_title']->value ?? 'Shop by Category' }}"
-                                       placeholder="Shop by Category">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Categories Section Subtitle</label>
-                                <input type="text" name="homepage_categories_subtitle" 
-                                       class="form-control" 
-                                       value="{{ $homeSettings['homepage_categories_subtitle']->value ?? 'Browse our wide range of halal products' }}"
-                                       placeholder="Browse our wide range of halal products">
-                            </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-semibold">Featured Products Title</label>
                                 <input type="text" name="homepage_featured_title" 
@@ -795,6 +878,45 @@
     .section-item:hover .position-badge {
         transform: scale(1.1);
     }
+    
+    /* Category Selector Styles */
+    .category-selector-container {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 12px;
+        background: #f8f9fa;
+    }
+    
+    .category-check {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 10px 12px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .category-check:hover {
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+    }
+    
+    .category-check.selected {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        border-color: #667eea;
+    }
+    
+    .category-check .form-check-input:checked + .form-check-label {
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .category-check .form-check-label {
+        width: 100%;
+        cursor: pointer;
+    }
 </style>
 @endpush
 
@@ -946,6 +1068,54 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error saving section order:', error);
         });
     }
+    
+    // Category selector functionality
+    const selectAllBtn = document.getElementById('select-all-categories');
+    const deselectAllBtn = document.getElementById('deselect-all-categories');
+    const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
+    const categoryChecks = document.querySelectorAll('.category-check');
+    
+    // Select all categories
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', function() {
+            categoryCheckboxes.forEach(checkbox => {
+                checkbox.checked = true;
+                checkbox.closest('.category-check').classList.add('selected');
+            });
+        });
+    }
+    
+    // Deselect all categories
+    if (deselectAllBtn) {
+        deselectAllBtn.addEventListener('click', function() {
+            categoryCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+                checkbox.closest('.category-check').classList.remove('selected');
+            });
+        });
+    }
+    
+    // Toggle selected class on checkbox change
+    categoryCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                this.closest('.category-check').classList.add('selected');
+            } else {
+                this.closest('.category-check').classList.remove('selected');
+            }
+        });
+    });
+    
+    // Click on category-check div to toggle checkbox
+    categoryChecks.forEach(check => {
+        check.addEventListener('click', function(e) {
+            if (e.target.tagName !== 'INPUT') {
+                const checkbox = this.querySelector('.category-checkbox');
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event('change'));
+            }
+        });
+    });
 });
 </script>
 @endpush

@@ -23,12 +23,17 @@ class HomeController extends Controller
      */
     public function index()
     {
+        // Get product count settings from database
+        $featuredCount = (int) Setting::where('key', 'homepage_featured_products_count')->value('value') ?: 8;
+        $newArrivalsCount = (int) Setting::where('key', 'homepage_new_arrivals_count')->value('value') ?: 8;
+        $saleCount = (int) Setting::where('key', 'homepage_sale_products_count')->value('value') ?: 8;
+
         // Get featured products
         $featuredProducts = Product::active()
             ->featured()
             ->with('category')
             ->inStock()
-            ->take(8)
+            ->take($featuredCount)
             ->get();
 
         // Get latest products
@@ -36,25 +41,41 @@ class HomeController extends Controller
             ->with('category')
             ->inStock()
             ->latest()
-            ->take(8)
+            ->take($newArrivalsCount)
             ->get();
 
-        // Get categories
-        $categories = Category::active()
-            ->parents()
-            ->ordered()
-            ->with(['children' => function ($query) {
-                $query->active()->ordered();
-            }])
-            ->take(6)
-            ->get();
+        // Get categories based on settings
+        $selectedCategoryIds = json_decode(Setting::where('key', 'homepage_selected_categories')->value('value') ?? '[]', true);
+        
+        if (!empty($selectedCategoryIds)) {
+            // Get selected categories in the order they were saved
+            $categories = Category::active()
+                ->whereIn('id', $selectedCategoryIds)
+                ->with(['children' => function ($query) {
+                    $query->active()->ordered();
+                }])
+                ->get()
+                ->sortBy(function($category) use ($selectedCategoryIds) {
+                    return array_search($category->id, $selectedCategoryIds);
+                });
+        } else {
+            // Fallback to default behavior
+            $categories = Category::active()
+                ->parents()
+                ->ordered()
+                ->with(['children' => function ($query) {
+                    $query->active()->ordered();
+                }])
+                ->take(6)
+                ->get();
+        }
 
         // Get sale products
         $saleProducts = Product::active()
             ->whereNotNull('sale_price')
             ->where('sale_price', '<', \DB::raw('price'))
             ->inStock()
-            ->take(4)
+            ->take($saleCount)
             ->get();
 
         // Get latest blog posts

@@ -26,12 +26,17 @@ class HomeController extends Controller
     {
         $theme = $this->themeService->getActiveTheme();
         
+        // Get product count settings from database
+        $featuredCount = (int) Setting::where('key', 'homepage_featured_products_count')->value('value') ?: 8;
+        $newArrivalsCount = (int) Setting::where('key', 'homepage_new_arrivals_count')->value('value') ?: 8;
+        $saleCount = (int) Setting::where('key', 'homepage_sale_products_count')->value('value') ?: 8;
+        
         // Get featured products
         $featuredProducts = Product::where('is_featured', true)
             ->where('is_active', true)
             ->with('category')
             ->where('quantity', '>', 0)
-            ->take(8)
+            ->take($featuredCount)
             ->get();
         
         // Get latest products
@@ -39,7 +44,7 @@ class HomeController extends Controller
             ->with('category')
             ->where('quantity', '>', 0)
             ->latest()
-            ->take(8)
+            ->take($newArrivalsCount)
             ->get();
         
         // Get categories
@@ -53,7 +58,7 @@ class HomeController extends Controller
             ->whereNotNull('sale_price')
             ->where('sale_price', '>', 0)
             ->where('quantity', '>', 0)
-            ->take(4)
+            ->take($saleCount)
             ->get();
 
         // Get latest blog posts

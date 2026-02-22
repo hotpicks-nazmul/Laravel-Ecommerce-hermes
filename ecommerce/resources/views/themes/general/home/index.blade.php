@@ -288,7 +288,16 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
 {{-- Render sections in the saved order --}}
 @foreach($sectionOrder as $section)
     @if($section === 'categories')
-        <!-- Categories Section - Modern & Attractive -->
+        @if($home('homepage_show_categories_section', '1') == '1')
+        @php
+            // Get category settings
+            $categoryStyle = $home('homepage_category_style', 'grid');
+            $categoryColumns = (int) $home('homepage_category_columns', '6');
+            $categoryTitle = $home('homepage_categories_title', 'Shop by Category');
+            $categorySubtitle = $home('homepage_categories_subtitle', 'Browse our wide range of premium halal products, carefully sourced and quality assured');
+        @endphp
+        
+        <!-- Categories Section - {{ $categoryStyle == 'grid' ? 'Grid' : 'Card' }} Style -->
         <section class="py-16 bg-gradient-to-b from-white via-gray-50 to-white relative overflow-hidden" data-section="categories">
             <!-- Decorative Background Elements -->
             <div class="absolute inset-0 pointer-events-none">
@@ -305,9 +314,9 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                         Explore Our Collection
                     </div>
                     <h2 class="font-poppins text-3xl md:text-4xl font-bold text-gray-800 mb-3">
-                        Shop by <span class="text-halal-green">Category</span>
+                        {!! $categoryTitle !!}
                     </h2>
-                    <p class="text-gray-600 max-w-2xl mx-auto text-lg">Browse our wide range of premium halal products, carefully sourced and quality assured</p>
+                    <p class="text-gray-600 max-w-2xl mx-auto text-lg">{{ $categorySubtitle }}</p>
                     
                     <!-- Decorative Line -->
                     <div class="flex items-center justify-center mt-6 space-x-2">
@@ -317,72 +326,128 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                     </div>
                 </div>
                 
-                <!-- Categories Grid -->
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
-                    @php
-                        $categoryIcons = [
-                            'fresh-meat' => 'bi bi-cup-hot-fill',
-                            'poultry' => 'bi bi-egg-fill',
-                            'seafood' => 'bi bi-fish',
-                            'fruits-vegetables' => 'bi bi-tree-fill',
-                            'dairy-eggs' => 'bi bi-cup-straw',
-                            'grocery' => 'bi bi-basket3-fill',
-                        ];
-                        $categoryColors = [
-                            'fresh-meat' => ['bg' => 'from-red-500 to-red-600', 'light' => 'bg-red-50', 'text' => 'text-red-500'],
-                            'poultry' => ['bg' => 'from-orange-500 to-orange-600', 'light' => 'bg-orange-50', 'text' => 'text-orange-500'],
-                            'seafood' => ['bg' => 'from-blue-500 to-blue-600', 'light' => 'bg-blue-50', 'text' => 'text-blue-500'],
-                            'fruits-vegetables' => ['bg' => 'from-green-500 to-green-600', 'light' => 'bg-green-50', 'text' => 'text-green-500'],
-                            'dairy-eggs' => ['bg' => 'from-yellow-500 to-yellow-600', 'light' => 'bg-yellow-50', 'text' => 'text-yellow-600'],
-                            'grocery' => ['bg' => 'from-purple-500 to-purple-600', 'light' => 'bg-purple-50', 'text' => 'text-purple-500'],
-                        ];
-                        $defaultIcon = 'bi bi-tag-fill';
-                        $defaultColor = ['bg' => 'from-halal-green to-green-600', 'light' => 'bg-green-50', 'text' => 'text-halal-green'];
-                    @endphp
-                    
-                    @foreach($categories as $category)
+                @if($categoryStyle == 'grid')
+                    <!-- Grid Style Categories - Centered -->
+                    <div class="flex flex-wrap justify-center gap-5">
                         @php
-                            $icon = $categoryIcons[$category->slug] ?? $defaultIcon;
-                            $color = $categoryColors[$category->slug] ?? $defaultColor;
+                            $categoryIcons = [
+                                'fresh-meat' => 'bi bi-cup-hot-fill',
+                                'poultry' => 'bi bi-egg-fill',
+                                'seafood' => 'bi bi-fish',
+                                'fruits-vegetables' => 'bi bi-tree-fill',
+                                'dairy-eggs' => 'bi bi-cup-straw',
+                                'grocery' => 'bi bi-basket3-fill',
+                            ];
+                            $categoryColors = [
+                                'fresh-meat' => ['bg' => 'from-red-500 to-red-600', 'light' => 'bg-red-50', 'text' => 'text-red-500'],
+                                'poultry' => ['bg' => 'from-orange-500 to-orange-600', 'light' => 'bg-orange-50', 'text' => 'text-orange-500'],
+                                'seafood' => ['bg' => 'from-blue-500 to-blue-600', 'light' => 'bg-blue-50', 'text' => 'text-blue-500'],
+                                'fruits-vegetables' => ['bg' => 'from-green-500 to-green-600', 'light' => 'bg-green-50', 'text' => 'text-green-500'],
+                                'dairy-eggs' => ['bg' => 'from-yellow-500 to-yellow-600', 'light' => 'bg-yellow-50', 'text' => 'text-yellow-600'],
+                                'grocery' => ['bg' => 'from-purple-500 to-purple-600', 'light' => 'bg-purple-50', 'text' => 'text-purple-500'],
+                            ];
+                            $defaultIcon = 'bi bi-tag-fill';
+                            $defaultColor = ['bg' => 'from-halal-green to-green-600', 'light' => 'bg-green-50', 'text' => 'text-halal-green'];
                         @endphp
-                        <a href="{{ route('products.index', ['category' => $category->slug]) }}" 
-                           class="group relative bg-white rounded-2xl p-5 text-center shadow-sm hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 hover:border-transparent overflow-hidden">
-                            
-                            <!-- Hover Background Gradient -->
-                            <div class="absolute inset-0 bg-gradient-to-br {{ $color['bg'] }} opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
-                            
-                            <!-- Card Content -->
-                            <div class="relative z-10">
-                                <!-- Icon Container -->
-                                <div class="w-20 h-20 mx-auto mb-4 {{ $color['light'] }} rounded-2xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-500 transform group-hover:scale-110 group-hover:rotate-3">
-                                    <i class="{{ $icon }} text-3xl {{ $color['text'] }} group-hover:text-white transition-colors duration-300"></i>
-                                </div>
+                        
+                        @foreach($categories as $category)
+                            @php
+                                $icon = $category->icon ?? ($categoryIcons[$category->slug] ?? $defaultIcon);
+                                $color = $categoryColors[$category->slug] ?? $defaultColor;
+                            @endphp
+                            <a href="{{ route('products.index', ['category' => $category->slug]) }}" 
+                               class="group relative bg-white rounded-2xl p-5 text-center shadow-sm hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 hover:border-transparent overflow-hidden"
+                               style="width: calc({{ 100 / $categoryColumns }}% - 1rem); min-width: 140px; max-width: 180px;">
                                 
-                                <!-- Category Name -->
-                                <h3 class="font-semibold text-gray-800 group-hover:text-white transition-colors duration-300 mb-1 text-sm md:text-base">
-                                    {{ $category->name }}
-                                </h3>
+                                <!-- Hover Background Gradient -->
+                                <div class="absolute inset-0 bg-gradient-to-br {{ $color['bg'] }} opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
                                 
-                                <!-- Product Count Badge -->
-                                <span class="inline-flex items-center text-xs {{ $color['text'] }} group-hover:text-white/80 transition-colors duration-300">
-                                    <i class="bi bi-box-seam mr-1"></i>
-                                    {{ $category->products_count ?? 0 }} Products
-                                </span>
-                                
-                                <!-- Arrow Indicator -->
-                                <div class="mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                                    <span class="inline-flex items-center text-white text-sm font-medium">
-                                        Explore <i class="bi bi-arrow-right ml-1"></i>
+                                <!-- Card Content -->
+                                <div class="relative z-10">
+                                    <!-- Icon Container -->
+                                    <div class="w-16 h-16 mx-auto mb-3 {{ $color['light'] }} rounded-2xl flex items-center justify-center group-hover:bg-white/20 transition-all duration-500 transform group-hover:scale-110 group-hover:rotate-3">
+                                        <i class="{{ $icon }} text-2xl {{ $color['text'] }} group-hover:text-white transition-colors duration-300"></i>
+                                    </div>
+                                    
+                                    <!-- Category Name -->
+                                    <h3 class="font-semibold text-gray-800 group-hover:text-white transition-colors duration-300 mb-1 text-sm">
+                                        {{ $category->name }}
+                                    </h3>
+                                    
+                                    <!-- Product Count Badge -->
+                                    <span class="inline-flex items-center text-xs {{ $color['text'] }} group-hover:text-white/80 transition-colors duration-300">
+                                        <i class="bi bi-box-seam mr-1"></i>
+                                        {{ $category->products_count ?? 0 }} Products
                                     </span>
+                                    
+                                    <!-- Arrow Indicator -->
+                                    <div class="mt-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                                        <span class="inline-flex items-center text-white text-xs font-medium">
+                                            Explore <i class="bi bi-arrow-right ml-1"></i>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <!-- Corner Decoration -->
-                            <div class="absolute -top-4 -right-4 w-16 h-16 {{ $color['light'] }} rounded-full opacity-50 group-hover:opacity-0 transition-opacity duration-300"></div>
-                            <div class="absolute -bottom-4 -left-4 w-12 h-12 {{ $color['light'] }} rounded-full opacity-50 group-hover:opacity-0 transition-opacity duration-300"></div>
-                        </a>
-                    @endforeach
-                </div>
+                                
+                                <!-- Corner Decoration -->
+                                <div class="absolute -top-4 -right-4 w-12 h-12 {{ $color['light'] }} rounded-full opacity-50 group-hover:opacity-0 transition-opacity duration-300"></div>
+                            </a>
+                        @endforeach
+                    </div>
+                @else
+                    <!-- Card Style Categories - Centered -->
+                    <div class="flex flex-wrap justify-center gap-6">
+                        @php
+                            $cardColors = [
+                                'fresh-meat' => 'from-red-500 to-red-600',
+                                'poultry' => 'from-orange-500 to-orange-600',
+                                'seafood' => 'from-blue-500 to-blue-600',
+                                'fruits-vegetables' => 'from-green-500 to-green-600',
+                                'dairy-eggs' => 'from-yellow-500 to-yellow-600',
+                                'grocery' => 'from-purple-500 to-purple-600',
+                            ];
+                            $defaultCardColor = 'from-halal-green to-green-600';
+                        @endphp
+                        
+                        @foreach($categories as $category)
+                            @php
+                                $icon = $category->icon ?? 'bi bi-tag-fill';
+                                $cardColor = $cardColors[$category->slug] ?? $defaultCardColor;
+                            @endphp
+                            <a href="{{ route('products.index', ['category' => $category->slug]) }}" 
+                               class="group relative bg-gradient-to-br {{ $cardColor }} rounded-2xl p-6 text-white shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden"
+                               style="width: calc({{ 100 / $categoryColumns }}% - 1.5rem); min-width: 160px; max-width: 250px;">
+                                
+                                <!-- Background Pattern -->
+                                <div class="absolute inset-0 opacity-10">
+                                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-white rounded-full"></div>
+                                    <div class="absolute -bottom-10 -left-10 w-24 h-24 bg-white rounded-full"></div>
+                                </div>
+                                
+                                <!-- Card Content -->
+                                <div class="relative z-10 text-center">
+                                    <!-- Icon -->
+                                    <div class="w-16 h-16 mx-auto mb-3 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm group-hover:bg-white/30 transition-all duration-300 transform group-hover:scale-110">
+                                        <i class="{{ $icon }} text-3xl text-white"></i>
+                                    </div>
+                                    
+                                    <!-- Category Name -->
+                                    <h3 class="font-bold text-lg mb-1">{{ $category->name }}</h3>
+                                    
+                                    <!-- Product Count -->
+                                    <p class="text-white/80 text-xs mb-2">
+                                        <i class="bi bi-box-seam mr-1"></i>
+                                        {{ $category->products_count ?? 0 }} Products
+                                    </p>
+                                    
+                                    <!-- Arrow Button -->
+                                    <div class="inline-flex items-center bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full text-xs font-medium transition-all duration-300">
+                                        Shop Now <i class="bi bi-arrow-right ml-1 group-hover:translate-x-1 transition-transform"></i>
+                                    </div>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
                 
                 <!-- View All Categories Button -->
                 <div class="text-center mt-10">
@@ -395,6 +460,7 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                 </div>
             </div>
         </section>
+        @endif
 
     @elseif($section === 'featured')
         <!-- Featured Products -->
@@ -411,10 +477,22 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                     </a>
                 </div>
                 
-                <div class="{{ $featuredGridClass }} gap-5">
-                    @foreach($featuredProducts as $product)
-                        @include('themes.general.partials.product-card', ['product' => $product])
-                    @endforeach
+                <!-- Product Slider -->
+                <div class="product-slider-container relative">
+                    <div class="product-slider" id="featured-slider">
+                        <div class="swiper-wrapper">
+                            @foreach($featuredProducts as $product)
+                                <div class="swiper-slide">
+                                    @include('themes.general.partials.product-card', ['product' => $product])
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <!-- Navigation Buttons -->
+                    <div class="swiper-button-prev featured-slider-prev"></div>
+                    <div class="swiper-button-next featured-slider-next"></div>
+                    <!-- Pagination -->
+                    <div class="swiper-pagination featured-slider-pagination"></div>
                 </div>
             </div>
         </section>
@@ -498,10 +576,22 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                     </a>
                 </div>
                 
-                <div class="{{ $newArrivalsGridClass }} gap-5">
-                    @foreach($latestProducts as $product)
-                        @include('themes.general.partials.product-card', ['product' => $product])
-                    @endforeach
+                <!-- Product Slider -->
+                <div class="product-slider-container relative">
+                    <div class="product-slider" id="new-arrivals-slider">
+                        <div class="swiper-wrapper">
+                            @foreach($latestProducts as $product)
+                                <div class="swiper-slide">
+                                    @include('themes.general.partials.product-card', ['product' => $product])
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <!-- Navigation Buttons -->
+                    <div class="swiper-button-prev new-arrivals-slider-prev"></div>
+                    <div class="swiper-button-next new-arrivals-slider-next"></div>
+                    <!-- Pagination -->
+                    <div class="swiper-pagination new-arrivals-slider-pagination"></div>
                 </div>
             </div>
         </section>
@@ -556,10 +646,22 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                     </a>
                 </div>
                 
-                <div class="{{ $saleGridClass }} gap-5">
-                    @foreach($saleProducts as $product)
-                        @include('themes.general.partials.product-card', ['product' => $product])
-                    @endforeach
+                <!-- Product Slider -->
+                <div class="product-slider-container relative">
+                    <div class="product-slider" id="sale-slider">
+                        <div class="swiper-wrapper">
+                            @foreach($saleProducts as $product)
+                                <div class="swiper-slide">
+                                    @include('themes.general.partials.product-card', ['product' => $product])
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <!-- Navigation Buttons -->
+                    <div class="swiper-button-prev sale-slider-prev"></div>
+                    <div class="swiper-button-next sale-slider-next"></div>
+                    <!-- Pagination -->
+                    <div class="swiper-pagination sale-slider-pagination"></div>
                 </div>
             </div>
         </section>
@@ -868,6 +970,92 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
         width: 30px;
         border-radius: 6px;
     }
+    
+    /* Product Slider Styles - Swiper */
+    .product-slider-container {
+        position: relative;
+        padding: 0 10px;
+    }
+    
+    .product-slider {
+        overflow: hidden;
+        padding-bottom: 50px;
+    }
+    
+    .product-slider .swiper-slide {
+        height: auto;
+    }
+    
+    .product-slider .swiper-slide > div {
+        height: 100%;
+    }
+    
+    /* Swiper Navigation Buttons */
+    .swiper-button-prev,
+    .swiper-button-next {
+        width: 36px;
+        height: 36px;
+        background-color: #2D5A27;
+        border-radius: 50%;
+        color: white;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+    }
+    
+    .swiper-button-prev:hover,
+    .swiper-button-next:hover {
+        background-color: #D4AF37;
+    }
+    
+    .swiper-button-prev::after,
+    .swiper-button-next::after {
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .swiper-button-prev {
+        left: -5px;
+    }
+    
+    .swiper-button-next {
+        right: -5px;
+    }
+    
+    /* Swiper Pagination */
+    .swiper-pagination-bullet {
+        width: 10px;
+        height: 10px;
+        background-color: #ccc;
+        opacity: 1;
+    }
+    
+    .swiper-pagination-bullet-active {
+        background-color: #2D5A27;
+        width: 20px;
+        border-radius: 5px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .product-slider-container {
+            padding: 0 30px;
+        }
+        
+        .swiper-button-prev,
+        .swiper-button-next {
+            width: 30px;
+            height: 30px;
+        }
+        
+        .swiper-button-prev::after,
+        .swiper-button-next::after {
+            font-size: 12px;
+        }
+    }
 </style>
 @endpush
 
@@ -939,6 +1127,115 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
         
         // Start auto slide
         startAutoSlide();
+    });
+    
+    // Initialize Product Sliders with Swiper
+    document.addEventListener('DOMContentLoaded', function() {
+        // Column settings from PHP
+        const featuredColumns = {{ $featuredColumns ?? 6 }};
+        const newArrivalsColumns = {{ $newArrivalsColumns ?? 6 }};
+        const saleColumns = {{ $saleColumns ?? 6 }};
+        
+        // Function to create responsive breakpoints based on column setting
+        function createBreakpoints(maxColumns) {
+            return {
+                0: {
+                    slidesPerView: 2,
+                    spaceBetween: 12,
+                },
+                640: {
+                    slidesPerView: Math.min(2, maxColumns),
+                    spaceBetween: 16,
+                },
+                768: {
+                    slidesPerView: Math.min(3, maxColumns),
+                    spaceBetween: 20,
+                },
+                1024: {
+                    slidesPerView: Math.min(4, maxColumns),
+                    spaceBetween: 20,
+                },
+                1280: {
+                    slidesPerView: maxColumns,
+                    spaceBetween: 24,
+                },
+            };
+        }
+        
+        // Initialize Featured Products Slider
+        const featuredSlider = document.getElementById('featured-slider');
+        if (featuredSlider) {
+            new Swiper('#featured-slider', {
+                slidesPerView: 2,
+                spaceBetween: 16,
+                loop: true,
+                loopAdditionalSlides: 2,
+                autoplay: {
+                    delay: 4000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true,
+                },
+                pagination: {
+                    el: '.featured-slider-pagination',
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: '.featured-slider-next',
+                    prevEl: '.featured-slider-prev',
+                },
+                breakpoints: createBreakpoints(featuredColumns),
+            });
+        }
+        
+        // Initialize New Arrivals Slider
+        const newArrivalsSlider = document.getElementById('new-arrivals-slider');
+        if (newArrivalsSlider) {
+            new Swiper('#new-arrivals-slider', {
+                slidesPerView: 2,
+                spaceBetween: 16,
+                loop: true,
+                loopAdditionalSlides: 2,
+                autoplay: {
+                    delay: 4000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true,
+                },
+                pagination: {
+                    el: '.new-arrivals-slider-pagination',
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: '.new-arrivals-slider-next',
+                    prevEl: '.new-arrivals-slider-prev',
+                },
+                breakpoints: createBreakpoints(newArrivalsColumns),
+            });
+        }
+        
+        // Initialize Sale Products Slider
+        const saleSlider = document.getElementById('sale-slider');
+        if (saleSlider) {
+            new Swiper('#sale-slider', {
+                slidesPerView: 2,
+                spaceBetween: 16,
+                loop: true,
+                loopAdditionalSlides: 2,
+                autoplay: {
+                    delay: 4000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true,
+                },
+                pagination: {
+                    el: '.sale-slider-pagination',
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: '.sale-slider-next',
+                    prevEl: '.sale-slider-prev',
+                },
+                breakpoints: createBreakpoints(saleColumns),
+            });
+        }
     });
 </script>
 @endpush

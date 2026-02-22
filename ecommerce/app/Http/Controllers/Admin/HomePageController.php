@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -75,7 +76,19 @@ class HomePageController extends Controller
             ],
         ];
         
-        return view('admin.homepage.index', compact('homeSettings', 'sectionOrder', 'availableSections'));
+        // Get all active categories for selection
+        $allCategories = Category::active()
+            ->parents()
+            ->ordered()
+            ->with(['children' => function ($query) {
+                $query->active()->ordered();
+            }])
+            ->get();
+        
+        // Get selected categories for homepage
+        $selectedCategoryIds = json_decode($homeSettings['homepage_selected_categories']->value ?? '[]', true);
+        
+        return view('admin.homepage.index', compact('homeSettings', 'sectionOrder', 'availableSections', 'allCategories', 'selectedCategoryIds'));
     }
 
     /**
@@ -85,13 +98,14 @@ class HomePageController extends Controller
     {
         $validated = $request->validate([
             'homepage_product_columns' => 'required|integer|min:2|max:6',
-            'homepage_featured_products_count' => 'required|integer|min:4|max:12',
-            'homepage_new_arrivals_count' => 'required|integer|min:4|max:12',
-            'homepage_sale_products_count' => 'required|integer|min:4|max:12',
+            'homepage_featured_products_count' => 'required|integer|min:4|max:100',
+            'homepage_new_arrivals_count' => 'required|integer|min:4|max:100',
+            'homepage_sale_products_count' => 'required|integer|min:4|max:100',
             'homepage_featured_columns' => 'required|integer|min:2|max:6',
             'homepage_new_arrivals_columns' => 'required|integer|min:2|max:6',
             'homepage_sale_columns' => 'required|integer|min:2|max:6',
             'homepage_show_featured_section' => 'nullable|in:0,1',
+            'homepage_show_categories_section' => 'nullable|in:0,1',
             'homepage_show_new_arrivals_section' => 'nullable|in:0,1',
             'homepage_show_sale_section' => 'nullable|in:0,1',
             'homepage_show_testimonials_section' => 'nullable|in:0,1',
@@ -110,6 +124,11 @@ class HomePageController extends Controller
             'site_tagline' => 'nullable|string|max:255',
             'site_logo' => 'nullable|image|mimes:jpeg,png,jpg,svg,webp|max:2048',
             'site_logo_icon' => 'nullable|string|max:255',
+            // Category Section Settings
+            'homepage_selected_categories' => 'nullable|array',
+            'homepage_selected_categories.*' => 'integer|exists:categories,id',
+            'homepage_category_style' => 'nullable|string|in:grid,cards',
+            'homepage_category_columns' => 'nullable|integer|min:3|max:8',
             // Why Choose Us Section
             'why_choose_us_title' => 'nullable|string|max:255',
             'why_choose_us_subtitle' => 'nullable|string|max:255',
@@ -173,9 +192,17 @@ class HomePageController extends Controller
         
         $settings = $request->except(['_token', '_method']);
         
+        // Handle selected categories - store as JSON
+        if ($request->has('homepage_selected_categories')) {
+            $settings['homepage_selected_categories'] = json_encode($request->input('homepage_selected_categories'));
+        } else {
+            $settings['homepage_selected_categories'] = json_encode([]);
+        }
+        
         // Handle checkbox fields that need default to '0' when unchecked
         $checkboxFields = [
             'homepage_show_featured_section',
+            'homepage_show_categories_section',
             'homepage_show_new_arrivals_section',
             'homepage_show_sale_section',
             'homepage_show_testimonials_section',
