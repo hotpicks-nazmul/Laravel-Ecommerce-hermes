@@ -13,7 +13,7 @@ class OrderItem extends Model
         'order_id',
         'product_id',
         'product_name',
-        'variant',
+        'variation',
         'quantity',
         'price',
         'total',
@@ -22,6 +22,7 @@ class OrderItem extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'total' => 'decimal:2',
+        'variation' => 'array',
     ];
 
     public function order()

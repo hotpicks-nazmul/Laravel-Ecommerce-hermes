@@ -240,7 +240,7 @@
                                 <td>{{ $order->billing_full_name }}</td>
                                 <td>৳{{ number_format($order->total, 2) }}</td>
                                 <td>
-                                    <span class="badge bg-{{ $order->status_badge_class }}">{{ ucfirst($order->status) }}</span>
+                                    <span class="badge {{ $order->status_badge_class }}">{{ ucfirst($order->status) }}</span>
                                 </td>
                                 <td>{{ $order->created_at->format('d M, Y') }}</td>
                                 <td>

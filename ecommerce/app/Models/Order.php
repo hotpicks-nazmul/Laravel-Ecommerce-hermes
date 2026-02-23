@@ -12,7 +12,8 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'order_number',
-        'billing_name',
+        'billing_first_name',
+        'billing_last_name',
         'billing_email',
         'billing_phone',
         'billing_address',
@@ -20,7 +21,8 @@ class Order extends Model
         'billing_state',
         'billing_postcode',
         'billing_country',
-        'shipping_name',
+        'shipping_first_name',
+        'shipping_last_name',
         'shipping_email',
         'shipping_phone',
         'shipping_address',
@@ -34,13 +36,14 @@ class Order extends Model
         'discount',
         'total',
         'payment_method',
+        'payment_gateway',
         'payment_status',
         'transaction_id',
         'status',
         'tracking_number',
         'shipping_company',
         'notes',
-        'coupon_id',
+        'coupon_code',
     ];
 
     protected $casts = [
@@ -66,26 +69,69 @@ class Order extends Model
         return $this->belongsTo(Coupon::class);
     }
 
-    public function getStatusBadgeAttribute()
+    /**
+     * Get the billing full name.
+     */
+    public function getBillingFullNameAttribute()
+    {
+        return trim($this->billing_first_name . ' ' . $this->billing_last_name);
+    }
+
+    /**
+     * Get the shipping full name.
+     */
+    public function getShippingFullNameAttribute()
+    {
+        if ($this->shipping_first_name || $this->shipping_last_name) {
+            return trim($this->shipping_first_name . ' ' . $this->shipping_last_name);
+        }
+        return $this->billing_full_name;
+    }
+
+    /**
+     * Get the status badge class for Bootstrap.
+     */
+    public function getStatusBadgeClassAttribute()
     {
         return match($this->status) {
-            'pending' => 'warning',
-            'processing' => 'info',
-            'shipped' => 'primary',
-            'delivered' => 'success',
-            'cancelled' => 'danger',
-            default => 'secondary',
+            'pending' => 'bg-warning',
+            'processing' => 'bg-info',
+            'confirmed' => 'bg-primary',
+            'shipped' => 'bg-primary',
+            'delivered' => 'bg-success',
+            'cancelled' => 'bg-danger',
+            'refunded' => 'bg-secondary',
+            default => 'bg-secondary',
         };
     }
 
-    public function getPaymentStatusBadgeAttribute()
+    /**
+     * Get the status badge attribute (alias for compatibility).
+     */
+    public function getStatusBadgeAttribute()
+    {
+        return $this->status_badge_class;
+    }
+
+    /**
+     * Get the payment status badge class for Bootstrap.
+     */
+    public function getPaymentStatusBadgeClassAttribute()
     {
         return match($this->payment_status) {
-            'pending' => 'warning',
-            'paid' => 'success',
-            'failed' => 'danger',
-            'refunded' => 'info',
-            default => 'secondary',
+            'pending' => 'bg-warning',
+            'paid' => 'bg-success',
+            'failed' => 'bg-danger',
+            'refunded' => 'bg-info',
+            default => 'bg-secondary',
         };
+    }
+
+    /**
+     * Get the payment status badge attribute (alias for compatibility).
+     */
+    public function getPaymentStatusBadgeAttribute()
+    {
+        return $this->payment_status_badge_class;
     }
 }

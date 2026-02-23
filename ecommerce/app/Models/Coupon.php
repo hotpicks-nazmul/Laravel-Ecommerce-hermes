@@ -13,27 +13,61 @@ class Coupon extends Model
         'code',
         'type',
         'value',
-        'min_order',
+        'min_order_amount',
         'max_discount',
         'usage_limit',
         'used_count',
-        'starts_at',
-        'expires_at',
-        'is_active',
+        'start_date',
+        'end_date',
+        'status',
     ];
 
     protected $casts = [
         'value' => 'decimal:2',
-        'min_order' => 'decimal:2',
+        'min_order_amount' => 'decimal:2',
         'max_discount' => 'decimal:2',
-        'starts_at' => 'datetime',
-        'expires_at' => 'datetime',
-        'is_active' => 'boolean',
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
     ];
 
+    /**
+     * Check if coupon is active.
+     */
+    public function getIsActiveAttribute()
+    {
+        return $this->status === 'active';
+    }
+
+    /**
+     * Get the minimum order attribute (alias for compatibility).
+     */
+    public function getMinOrderAttribute()
+    {
+        return $this->min_order_amount;
+    }
+
+    /**
+     * Get the starts at attribute (alias for compatibility).
+     */
+    public function getStartsAtAttribute()
+    {
+        return $this->start_date;
+    }
+
+    /**
+     * Get the expires at attribute (alias for compatibility).
+     */
+    public function getExpiresAtAttribute()
+    {
+        return $this->end_date;
+    }
+
+    /**
+     * Check if coupon is valid for use.
+     */
     public function isValid($orderTotal = 0)
     {
-        if (!$this->is_active) {
+        if ($this->status !== 'active') {
             return false;
         }
 
@@ -41,21 +75,24 @@ class Coupon extends Model
             return false;
         }
 
-        if ($this->starts_at && now()->lt($this->starts_at)) {
+        if ($this->start_date && now()->lt($this->start_date)) {
             return false;
         }
 
-        if ($this->expires_at && now()->gt($this->expires_at)) {
+        if ($this->end_date && now()->gt($this->end_date)) {
             return false;
         }
 
-        if ($this->min_order && $orderTotal < $this->min_order) {
+        if ($this->min_order_amount && $orderTotal < $this->min_order_amount) {
             return false;
         }
 
         return true;
     }
 
+    /**
+     * Calculate discount amount for given order total.
+     */
     public function calculateDiscount($orderTotal)
     {
         if ($this->type === 'percentage') {
@@ -68,5 +105,29 @@ class Coupon extends Model
         }
 
         return min($discount, $orderTotal);
+    }
+
+    /**
+     * Scope to get active coupons.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    /**
+     * Scope to get valid coupons (active and within date range).
+     */
+    public function scopeValid($query)
+    {
+        return $query->where('status', 'active')
+            ->where(function ($q) {
+                $q->whereNull('start_date')
+                    ->orWhere('start_date', '<=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('end_date')
+                    ->orWhere('end_date', '>=', now());
+            });
     }
 }

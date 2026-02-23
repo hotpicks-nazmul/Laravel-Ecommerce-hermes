@@ -25,15 +25,18 @@ class CouponController extends Controller
             'code' => 'required|string|max:50|unique:coupons',
             'type' => 'required|in:percentage,fixed',
             'value' => 'required|numeric|min:0',
-            'min_order' => 'nullable|numeric|min:0',
+            'min_order_amount' => 'nullable|numeric|min:0',
             'max_discount' => 'nullable|numeric|min:0',
             'usage_limit' => 'nullable|integer|min:0',
-            'starts_at' => 'nullable|date',
-            'expires_at' => 'nullable|date|after:starts_at',
-            'is_active' => 'boolean',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after:start_date',
+            'status' => 'required|in:active,inactive',
         ]);
 
-        Coupon::create($request->all());
+        $data = $request->all();
+        $data['code'] = strtoupper($data['code']);
+        
+        Coupon::create($data);
 
         return redirect()->route('admin.coupons.index')->with('success', 'Coupon created successfully.');
     }
@@ -54,15 +57,18 @@ class CouponController extends Controller
             'code' => 'required|string|max:50|unique:coupons,code,' . $coupon->id,
             'type' => 'required|in:percentage,fixed',
             'value' => 'required|numeric|min:0',
-            'min_order' => 'nullable|numeric|min:0',
+            'min_order_amount' => 'nullable|numeric|min:0',
             'max_discount' => 'nullable|numeric|min:0',
             'usage_limit' => 'nullable|integer|min:0',
-            'starts_at' => 'nullable|date',
-            'expires_at' => 'nullable|date|after:starts_at',
-            'is_active' => 'boolean',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after:start_date',
+            'status' => 'required|in:active,inactive',
         ]);
 
-        $coupon->update($request->all());
+        $data = $request->all();
+        $data['code'] = strtoupper($data['code']);
+        
+        $coupon->update($data);
 
         return redirect()->route('admin.coupons.index')->with('success', 'Coupon updated successfully.');
     }
@@ -75,7 +81,9 @@ class CouponController extends Controller
 
     public function toggle(Coupon $coupon)
     {
-        $coupon->update(['is_active' => !$coupon->is_active]);
+        $coupon->update([
+            'status' => $coupon->status === 'active' ? 'inactive' : 'active'
+        ]);
         return back()->with('success', 'Coupon status updated.');
     }
 }
