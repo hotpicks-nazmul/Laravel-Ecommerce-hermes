@@ -15,13 +15,19 @@ class Product extends Model
         'name',
         'slug',
         'sku',
+        'product_code',
+        'barcode',
+        'brand',
         'short_description',
         'long_description',
         'price',
         'sale_price',
         'cost_price',
+        'purchase_price',
         'quantity',
+        'low_stock_threshold',
         'stock_status',
+        'stock_update_date',
         'weight',
         'dimensions',
         'images',
@@ -32,12 +38,30 @@ class Product extends Model
         'tags',
         'is_featured',
         'is_active',
+        'is_approved',
+        'approved_at',
         'is_digital',
         'download_link',
+        'file_name',
+        'file_path',
+        'file_size',
+        'file_type',
+        'file_format',
+        'download_limit',
+        'download_expiry_days',
+        'installation_instructions',
+        'system_requirements',
+        'version',
+        'license_type',
+        'additional_files',
+        'requires_license_key',
+        'auto_generate_license',
         'meta_title',
         'meta_description',
         'meta_keywords',
         'created_by',
+        'seller_id',
+        'product_source',
     ];
 
     protected $casts = [
@@ -46,25 +70,57 @@ class Product extends Model
         'attributes' => 'array',
         'variations' => 'array',
         'tags' => 'array',
+        'additional_files' => 'array',
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
         'is_digital' => 'boolean',
+        'is_approved' => 'boolean',
+        'requires_license_key' => 'boolean',
+        'auto_generate_license' => 'boolean',
         'price' => 'decimal:2',
         'sale_price' => 'decimal:2',
         'cost_price' => 'decimal:2',
+        'purchase_price' => 'decimal:2',
         'weight' => 'decimal:2',
+        'stock_update_date' => 'date',
+        'approved_at' => 'datetime',
     ];
 
+    /**
+     * Get the category of the product.
+     */
     public function category()
     {
         return $this->belongsTo(Category::class);
     }
 
+    /**
+     * Get the seller of the product (for seller products).
+     */
+    public function seller()
+    {
+        return $this->belongsTo(User::class, 'seller_id');
+    }
+
+    /**
+     * Get the creator of the product.
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Get the order items for the product.
+     */
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
     }
 
+    /**
+     * Get the reviews for the product.
+     */
     public function reviews()
     {
         return $this->hasMany(Review::class);
@@ -76,6 +132,30 @@ class Product extends Model
     public function approvedReviews()
     {
         return $this->hasMany(Review::class)->where('status', 'approved');
+    }
+
+    /**
+     * Get the license keys for digital product.
+     */
+    public function licenseKeys()
+    {
+        return $this->hasMany(LicenseKey::class);
+    }
+
+    /**
+     * Get the digital downloads for this product.
+     */
+    public function digitalDownloads()
+    {
+        return $this->hasMany(DigitalDownload::class);
+    }
+
+    /**
+     * Get available license keys.
+     */
+    public function availableLicenseKeys()
+    {
+        return $this->licenseKeys()->available();
     }
 
     public function getFinalPriceAttribute()
@@ -132,6 +212,186 @@ class Product extends Model
     public function scopeInStock($query)
     {
         return $query->where('quantity', '>', 0);
+    }
+
+    /**
+     * Scope for in-house products (products without seller).
+     */
+    public function scopeInHouse($query)
+    {
+        return $query->where('product_source', 'in_house')
+                     ->whereNull('seller_id');
+    }
+
+    /**
+     * Scope for seller products.
+     */
+    public function scopeSellerProducts($query)
+    {
+        return $query->where('product_source', 'seller')
+                     ->whereNotNull('seller_id');
+    }
+
+    /**
+     * Scope for approved products.
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('is_approved', true);
+    }
+
+    /**
+     * Scope for low stock products.
+     */
+    public function scopeLowStock($query)
+    {
+        return $query->whereColumn('quantity', '<=', 'low_stock_threshold')
+                     ->where('quantity', '>', 0);
+    }
+
+    /**
+     * Scope for out of stock products.
+     */
+    public function scopeOutOfStock($query)
+    {
+        return $query->where('quantity', '<=', 0);
+    }
+
+    /**
+     * Scope for digital products.
+     */
+    public function scopeDigital($query)
+    {
+        return $query->where('is_digital', true);
+    }
+
+    /**
+     * Scope for physical products.
+     */
+    public function scopePhysical($query)
+    {
+        return $query->where('is_digital', false);
+    }
+
+    /**
+     * Check if product is digital.
+     */
+    public function isDigital(): bool
+    {
+        return (bool) $this->is_digital;
+    }
+
+    /**
+     * Check if product requires license key.
+     */
+    public function requiresLicenseKey(): bool
+    {
+        return $this->is_digital && $this->requires_license_key;
+    }
+
+    /**
+     * Get file size formatted.
+     */
+    public function getFileSizeFormattedAttribute(): string
+    {
+        if (!$this->file_size) {
+            return 'N/A';
+        }
+
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $size = $this->file_size;
+        $unit = 0;
+
+        while ($size >= 1024 && $unit < count($units) - 1) {
+            $size /= 1024;
+            $unit++;
+        }
+
+        return round($size, 2) . ' ' . $units[$unit];
+    }
+
+    /**
+     * Get available license keys count.
+     */
+    public function getAvailableLicenseKeysCountAttribute(): int
+    {
+        return $this->licenseKeys()->available()->count();
+    }
+
+    /**
+     * Check if product is in-house.
+     */
+    public function isInHouse(): bool
+    {
+        return $this->product_source === 'in_house' && $this->seller_id === null;
+    }
+
+    /**
+     * Check if product is from seller.
+     */
+    public function isSellerProduct(): bool
+    {
+        return $this->product_source === 'seller' && $this->seller_id !== null;
+    }
+
+    /**
+     * Check if product is low on stock.
+     */
+    public function isLowStock(): bool
+    {
+        return $this->quantity <= $this->low_stock_threshold && $this->quantity > 0;
+    }
+
+    /**
+     * Check if product is out of stock.
+     */
+    public function isOutOfStock(): bool
+    {
+        return $this->quantity <= 0;
+    }
+
+    /**
+     * Get profit margin.
+     */
+    public function getProfitMarginAttribute(): float
+    {
+        $cost = $this->purchase_price ?? $this->cost_price ?? 0;
+        $price = $this->sale_price ?? $this->price;
+        
+        if ($cost > 0 && $price > 0) {
+            return round((($price - $cost) / $price) * 100, 2);
+        }
+        
+        return 0;
+    }
+
+    /**
+     * Get profit amount.
+     */
+    public function getProfitAmountAttribute(): float
+    {
+        $cost = $this->purchase_price ?? $this->cost_price ?? 0;
+        $price = $this->sale_price ?? $this->price;
+        
+        return $price - $cost;
+    }
+
+    /**
+     * Get stock value (quantity * cost price).
+     */
+    public function getStockValueAttribute(): float
+    {
+        $cost = $this->purchase_price ?? $this->cost_price ?? 0;
+        return $this->quantity * $cost;
+    }
+
+    /**
+     * Get retail value (quantity * selling price).
+     */
+    public function getRetailValueAttribute(): float
+    {
+        $price = $this->sale_price ?? $this->price;
+        return $this->quantity * $price;
     }
 
     /**

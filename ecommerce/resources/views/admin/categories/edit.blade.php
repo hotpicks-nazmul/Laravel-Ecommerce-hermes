@@ -1,86 +1,289 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Edit Category')
+@section('title', 'Edit Category: ' . $category->name)
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0">Edit Category: {{ $category->name }}</h4>
-    <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> Back to Categories
-    </a>
+    <div>
+        <h4 class="mb-1">Edit Category</h4>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                @foreach($category->breadcrumb as $crumb)
+                    <li class="breadcrumb-item {{ $loop->last ? 'active' : '' }}">
+                        @if(!$loop->last)
+                            <a href="{{ route('admin.categories.edit', $crumb->id) }}">{{ $crumb->name }}</a>
+                        @else
+                            {{ $crumb->name }}
+                        @endif
+                    </li>
+                @endforeach
+            </ol>
+        </nav>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ route('admin.categories.show', $category->id) }}" class="btn btn-outline-info">
+            <i class="bi bi-eye me-1"></i> View
+        </a>
+        <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
+    </div>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <form action="{{ route('admin.categories.update', $category->id) }}" method="POST" enctype="multipart/form-data" id="category-form">
-            @csrf
-            @method('PUT')
-            
-            <div class="row">
-                <div class="col-md-8">
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Basic Information</h6>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('admin.categories.update', $category->id) }}" method="POST" enctype="multipart/form-data" id="category-form">
+                    @csrf
+                    @method('PUT')
+                    
                     <div class="mb-3">
-                        <label for="name" class="form-label">Category Name *</label>
-                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $category->name) }}" required>
+                        <label for="name" class="form-label">Category Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $category->name) }}" required placeholder="Enter category name">
                         @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                     
                     <div class="mb-3">
+                        <label for="slug" class="form-label">Slug</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">/category/</span>
+                            <input type="text" class="form-control bg-light" id="slug" value="{{ $category->slug }}" readonly>
+                        </div>
+                        <div class="form-text">Auto-generated from name. Unique identifier for the category URL.</div>
+                    </div>
+                    
+                    <div class="mb-3">
                         <label for="parent_id" class="form-label">Parent Category</label>
                         <select class="form-select @error('parent_id') is-invalid @enderror" id="parent_id" name="parent_id">
-                            <option value="">None (Top Level)</option>
-                            @foreach($categories as $parent)
-                                <option value="{{ $parent->id }}" {{ old('parent_id', $category->parent_id) == $parent->id ? 'selected' : '' }}>
-                                    {{ $parent->name }}
+                            <option value="">None (Top Level Category)</option>
+                            @foreach($categories as $id => $name)
+                                <option value="{{ $id }}" {{ old('parent_id', $category->parent_id) == $id ? 'selected' : '' }}>
+                                    {{ $name }}
                                 </option>
                             @endforeach
                         </select>
                         @error('parent_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        <div class="form-text">Select a parent to make this a subcategory.</div>
                     </div>
                     
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="4">{{ old('description', $category->description) }}</textarea>
+                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="4" placeholder="Enter category description">{{ old('description', $category->description) }}</textarea>
                         @error('description')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                </div>
-                
-                <div class="col-md-4">
-                    <div class="mb-3">
-                        <label for="image" class="form-label">Category Image</label>
-                        @if($category->image)
-                            @php
-                                $imageUrl = $category->image;
-                                if (!str_starts_with($imageUrl, 'http') && !str_starts_with($imageUrl, '/storage/')) {
-                                    $imageUrl = '/storage/' . $imageUrl;
-                                }
-                            @endphp
-                            <div class="mb-2">
-                                <img src="{{ $imageUrl }}" class="img-thumbnail" style="max-width: 150px; max-height: 150px;">
-                            </div>
-                        @endif
-                        <input type="file" class="form-control @error('image') is-invalid @enderror" id="image" name="image" accept="image/*">
-                        @error('image')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
                     
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', $category->status === 'active') ? 'checked' : '' }}>
-                            <label class="form-check-label" for="is_active">
-                                Active
-                            </label>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="icon" class="form-label">Icon Class</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="{{ $category->icon ?? 'bi bi-folder' }}"></i></span>
+                                <input type="text" class="form-control @error('icon') is-invalid @enderror" id="icon" name="icon" value="{{ old('icon', $category->icon) }}" placeholder="e.g., bi bi-folder" onchange="updateIconPreview(this.value)">
+                            </div>
+                            @error('icon')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">Bootstrap Icons or FontAwesome class</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="sort_order" class="form-label">Sort Order</label>
+                            <input type="number" class="form-control @error('sort_order') is-invalid @enderror" id="sort_order" name="sort_order" value="{{ old('sort_order', $category->sort_order) }}" min="0">
+                            @error('sort_order')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">Lower numbers appear first</div>
                         </div>
                     </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- SEO Settings -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-search me-2"></i>SEO Settings</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="meta_title" class="form-label">Meta Title</label>
+                    <input type="text" class="form-control @error('meta_title') is-invalid @enderror" id="meta_title" name="meta_title" value="{{ old('meta_title', $category->meta_title) }}" placeholder="SEO title for search engines" form="category-form">
+                    @error('meta_title')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div class="d-flex justify-content-between">
+                        <div class="form-text">Recommended: 50-60 characters</div>
+                        <span class="form-text text-muted" id="metaTitleCount">{{ strlen($category->meta_title ?? '') }}/60</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="meta_description" class="form-label">Meta Description</label>
+                    <textarea class="form-control @error('meta_description') is-invalid @enderror" id="meta_description" name="meta_description" rows="3" placeholder="SEO description for search engines" form="category-form">{{ old('meta_description', $category->meta_description) }}</textarea>
+                    @error('meta_description')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div class="d-flex justify-content-between">
+                        <div class="form-text">Recommended: 150-160 characters</div>
+                        <span class="form-text text-muted" id="metaDescCount">{{ strlen($category->meta_description ?? '') }}/160</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="meta_keywords" class="form-label">Meta Keywords</label>
+                    <input type="text" class="form-control @error('meta_keywords') is-invalid @enderror" id="meta_keywords" name="meta_keywords" value="{{ old('meta_keywords', $category->meta_keywords) }}" placeholder="keyword1, keyword2, keyword3" form="category-form">
+                    @error('meta_keywords')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div class="form-text">Separate keywords with commas</div>
                 </div>
             </div>
-        </form>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Image Upload -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-image me-2"></i>Category Image</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    @if($category->image)
+                        <div class="image-upload-preview mb-2" id="imagePreview">
+                            <img src="{{ $category->image_url }}" alt="{{ $category->name }}" class="img-thumbnail" style="max-width: 100%; max-height: 200px;">
+                            <button type="button" class="btn btn-sm btn-outline-danger mt-2 w-100" onclick="removeImage()">
+                                <i class="bi bi-trash me-1"></i> Remove Image
+                            </button>
+                        </div>
+                    @else
+                        <div class="image-upload-preview mb-2" id="imagePreview" style="display: none;">
+                            <img src="" alt="Preview" class="img-thumbnail" style="max-width: 100%; max-height: 200px;">
+                            <button type="button" class="btn btn-sm btn-outline-danger mt-2 w-100" onclick="removeImage()">
+                                <i class="bi bi-trash me-1"></i> Remove Image
+                            </button>
+                        </div>
+                    @endif
+                    <input type="file" class="form-control @error('image') is-invalid @enderror" id="image" name="image" accept="image/*" form="category-form" onchange="previewImage(this)">
+                    @error('image')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div class="form-text">Recommended size: 800x800px. Max 5MB.</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status & Visibility -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Status & Visibility</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select @error('status') is-invalid @enderror" id="status" name="status" form="category-form">
+                        <option value="active" {{ old('status', $category->status) === 'active' ? 'selected' : '' }}>Active</option>
+                        <option value="inactive" {{ old('status', $category->status) === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                    </select>
+                    @error('status')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" value="1" {{ old('is_featured', $category->is_featured) ? 'checked' : '' }} form="category-form">
+                    <label class="form-check-label" for="is_featured">
+                        <i class="bi bi-star-fill text-warning me-1"></i> Featured Category
+                    </label>
+                    <div class="form-text">Featured categories may be highlighted on the homepage</div>
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="show_in_menu" name="show_in_menu" value="1" {{ old('show_in_menu', $category->show_in_menu) ? 'checked' : '' }} form="category-form">
+                    <label class="form-check-label" for="show_in_menu">
+                        <i class="bi bi-list text-primary me-1"></i> Show in Menu
+                    </label>
+                    <div class="form-text">Display in navigation menu</div>
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="show_in_homepage" name="show_in_homepage" value="1" {{ old('show_in_homepage', $category->show_in_homepage) ? 'checked' : '' }} form="category-form">
+                    <label class="form-check-label" for="show_in_homepage">
+                        <i class="bi bi-house text-success me-1"></i> Show on Homepage
+                    </label>
+                    <div class="form-text">Display on homepage category section</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Statistics</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Total Products:</span>
+                    <span class="badge bg-info">{{ $category->products()->count() }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Active Products:</span>
+                    <span class="badge bg-success">{{ $category->products()->where('is_active', true)->count() }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Subcategories:</span>
+                    <span class="badge bg-warning">{{ $category->children()->count() }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Depth Level:</span>
+                    <span class="badge bg-secondary">{{ $category->depth }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="submit" form="category-form" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i> Update Category
+                    </button>
+                    <a href="{{ route('admin.categories.create') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-lg me-1"></i> Add New Category
+                    </a>
+                    @if($category->canBeDeleted())
+                        <form action="{{ route('admin.categories.destroy', $category->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this category?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <i class="bi bi-trash me-1"></i> Delete Category
+                            </button>
+                        </form>
+                    @else
+                        <button type="button" class="btn btn-outline-secondary" disabled title="Cannot delete - has children or products">
+                            <i class="bi bi-trash me-1"></i> Cannot Delete
+                        </button>
+                        <div class="form-text text-center">
+                            @if($category->children()->count() > 0)
+                                Has {{ $category->children()->count() }} subcategories
+                            @endif
+                            @if($category->products()->count() > 0)
+                                @if($category->children()->count() > 0)<br>@endif
+                                Has {{ $category->products()->count() }} products
+                            @endif
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -94,3 +297,50 @@
     </button>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+// Preview image before upload
+function previewImage(input) {
+    const preview = document.getElementById('imagePreview');
+    const img = preview.querySelector('img');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            img.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Remove image preview
+function removeImage() {
+    const preview = document.getElementById('imagePreview');
+    const input = document.getElementById('image');
+    
+    preview.style.display = 'none';
+    input.value = '';
+}
+
+// Update icon preview
+function updateIconPreview(iconClass) {
+    const iconSpan = document.querySelector('#icon').previousElementSibling;
+    if (iconSpan) {
+        iconSpan.innerHTML = `<i class="${iconClass || 'bi bi-folder'}"></i>`;
+    }
+}
+
+// Character counters
+document.getElementById('meta_title').addEventListener('input', function() {
+    document.getElementById('metaTitleCount').textContent = this.value.length + '/60';
+});
+
+document.getElementById('meta_description').addEventListener('input', function() {
+    document.getElementById('metaDescCount').textContent = this.value.length + '/160';
+});
+</script>
+@endpush

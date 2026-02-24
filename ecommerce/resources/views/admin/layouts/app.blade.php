@@ -537,7 +537,7 @@
                     </div>
                     <i class="bi bi-chevron-down arrow"></i>
                 </a>
-                <div class="collapse {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') ? 'show' : '' }}" id="menuProducts">
+                <div class="collapse {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') ? 'show' : '' }}" id="menuProducts">
                     <ul class="nav flex-column submenu">
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.products.create') ? 'active' : '' }}" href="{{ route('admin.products.create') }}">
@@ -545,8 +545,13 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.products.index') && !request()->routeIs('admin.products.create') ? 'active' : '' }}" href="{{ route('admin.products.index') }}">
+                            <a class="nav-link {{ request()->routeIs('admin.products.index') && !request()->routeIs('admin.products.create') && !request()->routeIs('admin.products.digital.*') ? 'active' : '' }}" href="{{ route('admin.products.index') }}">
                                 <i class="bi bi-list-ul"></i> All Products
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
+                                <i class="bi bi-folder"></i> Category
                             </a>
                         </li>
                         <li class="nav-item">
@@ -555,8 +560,13 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.products.digital') ? 'active' : '' }}" href="{{ route('admin.products.digital') }}">
+                            <a class="nav-link {{ request()->routeIs('admin.products.digital.*') ? 'active' : '' }}" href="{{ route('admin.products.digital.index') }}">
                                 <i class="bi bi-file-earmark-binary"></i> Digital Products
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.digital-categories.*') ? 'active' : '' }}" href="{{ route('admin.digital-categories.index') }}">
+                                <i class="bi bi-folder2-open"></i> Digital Categories
                             </a>
                         </li>
                         <li class="nav-item">
@@ -572,11 +582,6 @@
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.products.bulk-discount*') ? 'active' : '' }}" href="{{ route('admin.products.bulk-discount') }}">
                                 <i class="bi bi-percent"></i> Bulk Discount
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
-                                <i class="bi bi-folder"></i> Category
                             </a>
                         </li>
                         <li class="nav-item">

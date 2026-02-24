@@ -1,0 +1,114 @@
+@forelse($products ?? [] as $product)
+<tr data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-sku="{{ $product->sku }}" data-quantity="{{ $product->quantity }}" data-low-threshold="{{ $product->low_stock_threshold }}">
+    <td>
+        <input type="checkbox" class="form-check-input product-checkbox" value="{{ $product->id }}" onchange="updateBulkActions()">
+    </td>
+    <td>
+        @php
+            $imageUrl = $product->featured_image;
+            if($imageUrl && !str_starts_with($imageUrl, '/storage/') && !str_starts_with($imageUrl, 'http')) {
+                $imageUrl = '/storage/' . $imageUrl;
+            }
+        @endphp
+        @if($imageUrl)
+        <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
+        @else
+        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+            <i class="bi bi-image text-muted"></i>
+        </div>
+        @endif
+    </td>
+    <td>
+        <div class="fw-semibold">{{ $product->name }}</div>
+        @if($product->brand)
+            <small class="text-muted">{{ $product->brand }}</small>
+        @endif
+        @if($product->is_featured)
+            <span class="badge bg-info ms-1">Featured</span>
+        @endif
+    </td>
+    <td>
+        <div class="small">
+            <div><strong>SKU:</strong> {{ $product->sku }}</div>
+            @if($product->barcode)
+                <div class="text-muted"><strong>Bar:</strong> {{ $product->barcode }}</div>
+            @endif
+        </div>
+    </td>
+    <td>
+        <span class="badge bg-light text-dark">{{ $product->category->name ?? 'Uncategorized' }}</span>
+    </td>
+    <td>
+        @if($product->purchase_price || $product->cost_price)
+            <span class="text-muted">৳{{ number_format($product->purchase_price ?? $product->cost_price, 0) }}</span>
+        @else
+            <span class="text-muted">-</span>
+        @endif
+    </td>
+    <td>
+        <div>
+            @if($product->sale_price)
+                <span class="text-decoration-line-through text-muted small">৳{{ number_format($product->price, 0) }}</span>
+                <span class="text-danger fw-semibold">৳{{ number_format($product->sale_price, 0) }}</span>
+            @else
+                <span class="fw-semibold">৳{{ number_format($product->price, 0) }}</span>
+            @endif
+        </div>
+        @if($product->profit_margin > 0)
+            <small class="text-success">{{ $product->profit_margin }}% margin</small>
+        @endif
+    </td>
+    <td>
+        <div class="d-flex align-items-center gap-2">
+            @if($product->quantity <= 0)
+                <span class="badge bg-danger">{{ $product->quantity }}</span>
+                <i class="bi bi-exclamation-circle text-danger" title="Out of Stock"></i>
+            @elseif($product->quantity <= $product->low_stock_threshold)
+                <span class="badge bg-warning text-dark">{{ $product->quantity }}</span>
+                <i class="bi bi-exclamation-triangle text-warning" title="Low Stock (Threshold: {{ $product->low_stock_threshold }})"></i>
+            @else
+                <span class="badge bg-success">{{ $product->quantity }}</span>
+            @endif
+            <button type="button" class="btn btn-sm btn-outline-secondary stock-edit-btn" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-quantity="{{ $product->quantity }}" data-threshold="{{ $product->low_stock_threshold }}" title="Update Stock">
+                <i class="bi bi-pencil"></i>
+            </button>
+        </div>
+        <small class="text-muted">Min: {{ $product->low_stock_threshold }}</small>
+    </td>
+    <td>
+        <span class="fw-semibold">৳{{ number_format($product->stock_value, 0) }}</span>
+    </td>
+    <td>
+        <button type="button" class="btn btn-sm {{ $product->is_active ? 'btn-success' : 'btn-outline-secondary' }} status-toggle" data-id="{{ $product->id }}">
+            {{ $product->is_active ? 'Active' : 'Inactive' }}
+        </button>
+    </td>
+    <td>
+        <div class="btn-group">
+            <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{{ route('admin.products.show', $product->id) }}" class="btn btn-sm btn-outline-info" title="View">
+                <i class="bi bi-eye"></i>
+            </a>
+            <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this product?')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        </div>
+    </td>
+</tr>
+@empty
+<tr>
+    <td colspan="11" class="text-center py-5">
+        <div class="text-muted">
+            <i class="bi bi-box-seam display-4"></i>
+            <p class="mt-2 mb-1">No in-house products found.</p>
+            <p class="small">Try adjusting your filters or <a href="{{ route('admin.products.create') }}">add a new product</a>.</p>
+        </div>
+    </td>
+</tr>
+@endforelse

@@ -1,55 +1,55 @@
 @extends('admin.layouts.app')
 
-@section('title', 'All Products')
+@section('title', 'In-House Products')
 
 @section('content')
 <!-- Statistics Cards -->
 <div class="row mb-4">
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Total</div>
-                <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
+                <div class="h4 mb-0 text-primary" id="statTotal">{{ $stats['total'] ?? 0 }}</div>
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Active</div>
-                <div class="h4 mb-0 text-success">{{ $stats['active'] ?? 0 }}</div>
+                <div class="h4 mb-0 text-success" id="statActive">{{ $stats['active'] ?? 0 }}</div>
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Inactive</div>
-                <div class="h4 mb-0 text-secondary">{{ $stats['inactive'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Featured</div>
-                <div class="h4 mb-0 text-info">{{ $stats['featured'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
         <div class="card border-0 shadow-sm h-100 {{ ($stats['low_stock'] ?? 0) > 0 ? 'border-warning' : '' }}">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Low Stock</div>
-                <div class="h4 mb-0 text-warning">{{ $stats['low_stock'] ?? 0 }}</div>
+                <div class="h4 mb-0 text-warning" id="statLowStock">{{ $stats['low_stock'] ?? 0 }}</div>
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
         <div class="card border-0 shadow-sm h-100 {{ ($stats['out_of_stock'] ?? 0) > 0 ? 'border-danger' : '' }}">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Out of Stock</div>
-                <div class="h4 mb-0 text-danger">{{ $stats['out_of_stock'] ?? 0 }}</div>
+                <div class="h4 mb-0 text-danger" id="statOutOfStock">{{ $stats['out_of_stock'] ?? 0 }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">Stock Value</div>
+                <div class="h6 mb-0 text-info" id="statStockValue">৳{{ number_format($stats['total_stock_value'] ?? 0, 0) }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">Retail Value</div>
+                <div class="h6 mb-0 text-primary" id="statRetailValue">৳{{ number_format($stats['total_retail_value'] ?? 0, 0) }}</div>
             </div>
         </div>
     </div>
@@ -57,9 +57,16 @@
 
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">All Products</h4>
+    <div>
+        <h4 class="mb-0">In-House Products</h4>
+        <small class="text-muted">Products sold directly by your store (not by sellers)</small>
+    </div>
     <div class="d-flex gap-2">
-        <a href="{{ route('admin.products.export', request()->query()) }}" class="btn btn-outline-secondary">
+        <button type="button" class="btn btn-outline-warning" onclick="showLowStockAlerts()">
+            <i class="bi bi-exclamation-triangle me-1"></i> Stock Alerts
+            <span class="badge bg-warning text-dark" id="lowStockBadge">{{ ($stats['low_stock'] ?? 0) + ($stats['out_of_stock'] ?? 0) }}</span>
+        </button>
+        <a href="{{ route('admin.products.export-in-house', request()->query()) }}" class="btn btn-outline-secondary">
             <i class="bi bi-download me-1"></i> Export CSV
         </a>
         <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
@@ -78,7 +85,7 @@
                     <label class="form-label small text-muted">Search</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" name="search" id="liveSearch" class="form-control" placeholder="Name, SKU, Product Code..." value="{{ request('search') }}">
+                        <input type="text" name="search" id="liveSearch" class="form-control" placeholder="Name, SKU, Barcode..." value="{{ request('search') }}">
                         <span class="input-group-text" id="searchSpinner" style="display: none;">
                             <div class="spinner-border spinner-border-sm" role="status">
                                 <span class="visually-hidden">Loading...</span>
@@ -100,13 +107,16 @@
                     </select>
                 </div>
                 
-                <!-- Status -->
+                <!-- Brand -->
                 <div class="col-lg-2 col-md-3 col-sm-6">
-                    <label class="form-label small text-muted">Status</label>
-                    <select name="status" id="filterStatus" class="form-select form-select-sm">
-                        <option value="">All Status</option>
-                        <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
-                        <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                    <label class="form-label small text-muted">Brand</label>
+                    <select name="brand" id="filterBrand" class="form-select form-select-sm">
+                        <option value="">All Brands</option>
+                        @foreach($brands as $brand)
+                            <option value="{{ $brand }}" {{ request('brand') == $brand ? 'selected' : '' }}>
+                                {{ $brand }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
                 
@@ -121,20 +131,20 @@
                     </select>
                 </div>
                 
-                <!-- Featured -->
+                <!-- Status -->
                 <div class="col-lg-1 col-md-2 col-sm-4">
-                    <label class="form-label small text-muted">Featured</label>
-                    <select name="featured" id="filterFeatured" class="form-select form-select-sm">
+                    <label class="form-label small text-muted">Status</label>
+                    <select name="status" id="filterStatus" class="form-select form-select-sm">
                         <option value="">All</option>
-                        <option value="yes" {{ request('featured') === 'yes' ? 'selected' : '' }}>Yes</option>
-                        <option value="no" {{ request('featured') === 'no' ? 'selected' : '' }}>No</option>
+                        <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
+                        <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
                     </select>
                 </div>
                 
                 <!-- Buttons -->
                 <div class="col-lg-2 col-md-4 col-sm-8">
                     <div class="d-flex gap-1">
-                        <a href="{{ route('admin.products.index') }}" class="btn btn-sm btn-outline-secondary flex-grow-1" id="resetFilters">
+                        <a href="{{ route('admin.products.in-house') }}" class="btn btn-sm btn-outline-secondary flex-grow-1" id="resetFilters">
                             <i class="bi bi-x-lg me-1"></i> Reset
                         </a>
                     </div>
@@ -157,18 +167,15 @@
                     Clear Selection
                 </button>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
                 <button type="button" class="btn btn-sm btn-success" onclick="bulkAction('activate')">
                     <i class="bi bi-check-circle me-1"></i> Activate
                 </button>
                 <button type="button" class="btn btn-sm btn-warning" onclick="bulkAction('deactivate')">
                     <i class="bi bi-pause-circle me-1"></i> Deactivate
                 </button>
-                <button type="button" class="btn btn-sm btn-info" onclick="bulkAction('feature')">
-                    <i class="bi bi-star me-1"></i> Feature
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-info" onclick="bulkAction('unfeature')">
-                    <i class="bi bi-star-fill me-1"></i> Unfeature
+                <button type="button" class="btn btn-sm btn-info" onclick="showBulkStockModal()">
+                    <i class="bi bi-box-seam me-1"></i> Update Stock
                 </button>
                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkAction('duplicate')">
                     <i class="bi bi-copy me-1"></i> Duplicate
@@ -193,17 +200,25 @@
                         </th>
                         <th style="width: 60px;">Image</th>
                         <th>
-                            <a href="{{ route('admin.products.index', array_merge(request()->query(), ['sort' => 'name', 'direction' => request('sort') == 'name' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
-                                Name
+                            <a href="{{ route('admin.products.in-house', array_merge(request()->query(), ['sort' => 'name', 'direction' => request('sort') == 'name' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Product
                                 @if(request('sort') == 'name')
                                     <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
                                 @endif
                             </a>
                         </th>
-                        <th>Product Code</th>
+                        <th>SKU / Barcode</th>
                         <th>Category</th>
                         <th>
-                            <a href="{{ route('admin.products.index', array_merge(request()->query(), ['sort' => 'price', 'direction' => request('sort') == 'price' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                            <a href="{{ route('admin.products.in-house', array_merge(request()->query(), ['sort' => 'purchase_price', 'direction' => request('sort') == 'purchase_price' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Cost
+                                @if(request('sort') == 'purchase_price')
+                                    <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
+                                @endif
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ route('admin.products.in-house', array_merge(request()->query(), ['sort' => 'price', 'direction' => request('sort') == 'price' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
                                 Price
                                 @if(request('sort') == 'price')
                                     <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
@@ -211,27 +226,26 @@
                             </a>
                         </th>
                         <th>
-                            <a href="{{ route('admin.products.index', array_merge(request()->query(), ['sort' => 'quantity', 'direction' => request('sort') == 'quantity' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                            <a href="{{ route('admin.products.in-house', array_merge(request()->query(), ['sort' => 'quantity', 'direction' => request('sort') == 'quantity' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
                                 Stock
                                 @if(request('sort') == 'quantity')
                                     <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
                                 @endif
                             </a>
                         </th>
+                        <th>Stock Value</th>
                         <th>Status</th>
-                        <th>Featured</th>
-                        <th style="width: 140px;">Actions</th>
+                        <th style="width: 160px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="productTableBody">
-                    @include('admin.products.partials.product-rows')
+                    @include('admin.products.partials.in-house-product-rows')
                 </tbody>
             </table>
         </div>
         
         <!-- Pagination & Per Page -->
-        @if(isset($products) && method_exists($products, 'hasPages') && $products->hasPages())
-        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2" id="paginationFooter">
             <div class="d-flex align-items-center gap-2">
                 <span class="text-muted small">Show:</span>
                 <select class="form-select form-select-sm" style="width: auto;" onchange="changePerPage(this.value)">
@@ -242,84 +256,134 @@
                 </select>
                 <span class="text-muted small">per page</span>
             </div>
-            <div>
+            <div id="paginationLinks">
                 {{ $products->appends(request()->query())->links() }}
             </div>
-            <div class="text-muted small">
-                Showing {{ $products->firstItem() }} - {{ $products->lastItem() }} of {{ $products->total() }} products
+            <div class="text-muted small" id="paginationInfo">
+                Showing {{ $products->firstItem() ?? 0 }} - {{ $products->lastItem() ?? 0 }} of {{ $products->total() ?? 0 }} products
             </div>
         </div>
-        @endif
     </div>
 </div>
 
-<!-- Quick Edit Modal -->
-<div class="modal fade" id="quickEditModal" tabindex="-1">
+<!-- Stock Update Modal -->
+<div class="modal fade" id="stockModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Quick Edit Product</h5>
+                <h5 class="modal-title">Update Stock</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="quickEditForm">
+                <form id="stockForm">
                     @csrf
-                    <input type="hidden" name="product_id" id="quickEditProductId">
+                    <input type="hidden" id="stockProductId">
                     
                     <div class="mb-3">
-                        <label class="form-label">Product Name</label>
-                        <input type="text" name="name" id="quickEditName" class="form-control" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Short Description</label>
-                        <textarea name="short_description" id="quickEditShortDescription" class="form-control" rows="2" maxlength="500"></textarea>
+                        <label class="form-label">Product</label>
+                        <input type="text" id="stockProductName" class="form-control" readonly>
                     </div>
                     
                     <div class="row">
                         <div class="col-6 mb-3">
-                            <label class="form-label">Product Code</label>
-                            <input type="text" name="product_code" id="quickEditProductCode" class="form-control" placeholder="e.g., PRD-001">
+                            <label class="form-label">Current Stock</label>
+                            <input type="text" id="stockCurrentQuantity" class="form-control" readonly>
                         </div>
                         <div class="col-6 mb-3">
-                            <label class="form-label">Stock Quantity</label>
-                            <input type="number" name="quantity" id="quickEditQuantity" class="form-control" min="0" required>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Regular Price (৳)</label>
-                            <input type="number" name="price" id="quickEditPrice" class="form-control" step="0.01" min="0" required>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Sale Price (৳)</label>
-                            <input type="number" name="sale_price" id="quickEditSalePrice" class="form-control" step="0.01" min="0">
+                            <label class="form-label">Low Stock Threshold</label>
+                            <input type="number" id="stockLowThreshold" class="form-control" min="0">
                         </div>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label">Category</label>
-                        <select name="category_id" id="quickEditCategory" class="form-select" required>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}">{{ $category->name }}</option>
-                            @endforeach
+                        <label class="form-label">Operation</label>
+                        <select id="stockOperation" class="form-select">
+                            <option value="set">Set to specific value</option>
+                            <option value="add">Add to current stock</option>
+                            <option value="subtract">Subtract from current stock</option>
                         </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" id="stockQuantity" class="form-control" min="0" required>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveQuickEdit()">
-                    <i class="bi bi-check-lg me-1"></i> Save Changes
+                <button type="button" class="btn btn-primary" onclick="saveStock()">
+                    <i class="bi bi-check-lg me-1"></i> Update Stock
                 </button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Bulk Stock Update Modal -->
+<div class="modal fade" id="bulkStockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bulk Stock Update</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="bulkStockForm">
+                    @csrf
+                    <p class="text-muted">Update stock for <span id="bulkStockCount">0</span> selected products</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Operation</label>
+                        <select id="bulkStockOperation" class="form-select">
+                            <option value="set">Set all to specific value</option>
+                            <option value="add">Add to all stocks</option>
+                            <option value="subtract">Subtract from all stocks</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" id="bulkStockQuantity" class="form-control" min="0" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveBulkStock()">
+                    <i class="bi bi-check-lg me-1"></i> Update All
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Low Stock Alerts Modal -->
+<div class="modal fade" id="lowStockAlertsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Stock Alerts</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="lowStockAlertsContent">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Bulk Action Form -->
-<form id="bulkActionForm" method="POST" action="{{ route('admin.products.bulk-action') }}">
+<form id="bulkActionForm" method="POST" action="{{ route('admin.products.in-house.bulk-action') }}">
     @csrf
     <input type="hidden" name="action" id="bulkActionInput">
     <input type="hidden" name="ids" id="bulkIdsInput">
@@ -328,11 +392,11 @@
 
 @push('styles')
 <style>
-.status-toggle, .featured-toggle {
+.status-toggle {
     min-width: 70px;
     transition: all 0.2s;
 }
-.status-toggle:hover, .featured-toggle:hover {
+.status-toggle:hover {
     transform: scale(1.05);
 }
 .table > :not(caption) > * > * {
@@ -347,7 +411,7 @@
 @push('scripts')
 <script>
 let selectedProducts = new Set();
-let allProductsSelected = false;
+let stockModal, bulkStockModal, lowStockAlertsModal;
 
 // Toggle select all on current page
 function toggleSelectAll(checkbox) {
@@ -365,19 +429,18 @@ function toggleSelectAll(checkbox) {
 
 // Select all products (across all pages)
 function selectAllProducts() {
-    allProductsSelected = true;
     const checkboxes = document.querySelectorAll('.product-checkbox');
     checkboxes.forEach(cb => {
         cb.checked = true;
         selectedProducts.add(parseInt(cb.value));
     });
     updateBulkActions();
-    document.getElementById('selectedCount').textContent = '{{ $products->total() }} (all pages)';
+    const totalProducts = {{ $products->total() ?? 0 }};
+    document.getElementById('selectedCount').textContent = totalProducts + ' (all pages)';
 }
 
 // Clear selection
 function clearSelection() {
-    allProductsSelected = false;
     selectedProducts.clear();
     const checkboxes = document.querySelectorAll('.product-checkbox');
     checkboxes.forEach(cb => cb.checked = false);
@@ -415,139 +478,143 @@ function bulkAction(action) {
         case 'deactivate':
             confirmMsg = `Deactivate ${selectedProducts.size} product(s)?`;
             break;
-        case 'feature':
-            confirmMsg = `Mark ${selectedProducts.size} product(s) as featured?`;
-            break;
-        case 'unfeature':
-            confirmMsg = `Remove ${selectedProducts.size} product(s) from featured?`;
-            break;
         case 'duplicate':
             confirmMsg = `Duplicate ${selectedProducts.size} product(s)?`;
             break;
     }
     
-    if (!confirm(confirmMsg)) return;
+    if (confirmMsg && !confirm(confirmMsg)) return;
     
     document.getElementById('bulkActionInput').value = action;
     document.getElementById('bulkIdsInput').value = JSON.stringify(Array.from(selectedProducts));
     document.getElementById('bulkActionForm').submit();
 }
 
-// Toggle status via AJAX
-document.querySelectorAll('.status-toggle').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const id = this.dataset.id;
-        fetch(`{{ route('admin.products.toggle-status', ['product' => 'ID']) }}`.replace('ID', id), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                this.textContent = data.is_active ? 'Active' : 'Inactive';
-                this.classList.toggle('btn-success', data.is_active);
-                this.classList.toggle('btn-outline-secondary', !data.is_active);
-                showToast(data.message, 'success');
-            }
-        });
-    });
-});
-
-// Toggle featured via AJAX
-document.querySelectorAll('.featured-toggle').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const id = this.dataset.id;
-        fetch(`{{ route('admin.products.toggle-featured', ['product' => 'ID']) }}`.replace('ID', id), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                const icon = this.querySelector('i');
-                icon.classList.toggle('bi-star', !data.is_featured);
-                icon.classList.toggle('bi-star-fill', data.is_featured);
-                this.classList.toggle('btn-info', data.is_featured);
-                this.classList.toggle('btn-outline-secondary', !data.is_featured);
-                showToast(data.message, 'success');
-            }
-        });
-    });
-});
-
-// Quick Edit Modal
-let quickEditModal;
-document.querySelectorAll('.quick-edit-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const row = this.closest('tr');
-        const id = this.dataset.id;
-        
-        // Get current values from row data attributes
-        document.getElementById('quickEditProductId').value = id;
-        document.getElementById('quickEditName').value = row.dataset.name || '';
-        document.getElementById('quickEditProductCode').value = row.dataset.productCode || '';
-        document.getElementById('quickEditShortDescription').value = row.dataset.shortDescription || '';
-        document.getElementById('quickEditPrice').value = extractPrice(row.querySelector('td:nth-child(6)'));
-        document.getElementById('quickEditQuantity').value = row.querySelector('.badge').textContent.trim();
-        
-        // Show modal
-        quickEditModal = new bootstrap.Modal(document.getElementById('quickEditModal'));
-        quickEditModal.show();
-    });
-});
-
-function extractPrice(cell) {
-    const text = cell.textContent.replace(/[^\d.]/g, '');
-    const prices = text.match(/\d+\.?\d*/g);
-    return prices ? prices[prices.length - 1] : '0';
+// Show stock update modal
+function showStockModal(id, name, quantity, lowThreshold) {
+    document.getElementById('stockProductId').value = id;
+    document.getElementById('stockProductName').value = name;
+    document.getElementById('stockCurrentQuantity').value = quantity;
+    document.getElementById('stockLowThreshold').value = lowThreshold;
+    document.getElementById('stockQuantity').value = '';
+    document.getElementById('stockOperation').value = 'set';
+    
+    stockModal = new bootstrap.Modal(document.getElementById('stockModal'));
+    stockModal.show();
 }
 
-function saveQuickEdit() {
-    const id = document.getElementById('quickEditProductId').value;
-    const form = document.getElementById('quickEditForm');
-    const formData = new FormData(form);
+// Save stock update
+function saveStock() {
+    const id = document.getElementById('stockProductId').value;
+    const operation = document.getElementById('stockOperation').value;
+    const quantity = document.getElementById('stockQuantity').value;
+    const lowThreshold = document.getElementById('stockLowThreshold').value;
     
-    // Send quick update for each field
-    const updates = [
-        { field: 'name', value: formData.get('name') },
-        { field: 'price', value: formData.get('price') },
-        { field: 'quantity', value: formData.get('quantity') },
-        { field: 'category_id', value: formData.get('category_id') }
-    ];
-    
-    if (formData.get('product_code')) {
-        updates.push({ field: 'product_code', value: formData.get('product_code') });
-    }
-    
-    if (formData.get('short_description')) {
-        updates.push({ field: 'short_description', value: formData.get('short_description') });
-    }
-    
-    if (formData.get('sale_price')) {
-        updates.push({ field: 'sale_price', value: formData.get('sale_price') });
-    }
-    
-    Promise.all(updates.map(update => 
-        fetch(`{{ route('admin.products.quick-update', ['product' => 'ID']) }}`.replace('ID', id), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify(update)
-        })
-    ))
+    // Update stock
+    fetch(`{{ route('admin.products.update-stock', ['product' => 'ID']) }}`.replace('ID', id), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ operation, quantity })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Update low stock threshold if changed
+            return fetch(`{{ route('admin.products.update-low-stock-threshold', ['product' => 'ID']) }}`.replace('ID', id), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ threshold: lowThreshold })
+            });
+        }
+        return data;
+    })
     .then(() => {
-        quickEditModal.hide();
-        showToast('Product updated successfully', 'success');
+        stockModal.hide();
+        showToast('Stock updated successfully', 'success');
         setTimeout(() => location.reload(), 500);
     });
+}
+
+// Show bulk stock modal
+function showBulkStockModal() {
+    if (selectedProducts.size === 0) {
+        alert('Please select at least one product.');
+        return;
+    }
+    
+    document.getElementById('bulkStockCount').textContent = selectedProducts.size;
+    document.getElementById('bulkStockQuantity').value = '';
+    document.getElementById('bulkStockOperation').value = 'set';
+    
+    bulkStockModal = new bootstrap.Modal(document.getElementById('bulkStockModal'));
+    bulkStockModal.show();
+}
+
+// Save bulk stock update
+function saveBulkStock() {
+    const operation = document.getElementById('bulkStockOperation').value;
+    const quantity = document.getElementById('bulkStockQuantity').value;
+    
+    fetch(`{{ route('admin.products.bulk-stock-update') }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+            ids: Array.from(selectedProducts),
+            operation,
+            quantity
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            bulkStockModal.hide();
+            showToast(data.message, 'success');
+            setTimeout(() => location.reload(), 500);
+        }
+    });
+}
+
+// Show low stock alerts
+function showLowStockAlerts() {
+    lowStockAlertsModal = new bootstrap.Modal(document.getElementById('lowStockAlertsModal'));
+    lowStockAlertsModal.show();
+    
+    fetch(`{{ route('admin.products.low-stock-alerts') }}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                let html = '';
+                if (data.products.length === 0) {
+                    html = '<div class="text-center py-4"><i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i><p class="mt-3">All products are well stocked!</p></div>';
+                } else {
+                    html = '<div class="table-responsive"><table class="table table-sm"><thead><tr><th>Product</th><th>SKU</th><th>Current</th><th>Threshold</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+                    data.products.forEach(p => {
+                        const status = p.quantity <= 0 ? 
+                            '<span class="badge bg-danger">Out of Stock</span>' : 
+                            '<span class="badge bg-warning text-dark">Low Stock</span>';
+                        html += `<tr>
+                            <td>${p.name}</td>
+                            <td>${p.sku}</td>
+                            <td>${p.quantity}</td>
+                            <td>${p.low_stock_threshold}</td>
+                            <td>${status}</td>
+                            <td><button class="btn btn-sm btn-outline-primary" onclick="lowStockAlertsModal.hide(); showStockModal(${p.id}, '${p.name}', ${p.quantity}, ${p.low_stock_threshold})">Update</button></td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table></div>';
+                }
+                document.getElementById('lowStockAlertsContent').innerHTML = html;
+            }
+        });
 }
 
 // Change per page
@@ -599,7 +666,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Live filter for dropdowns
-    const filterSelects = ['filterCategory', 'filterStatus', 'filterStock', 'filterFeatured'];
+    const filterSelects = ['filterCategory', 'filterBrand', 'filterStatus', 'filterStock'];
     filterSelects.forEach(id => {
         const select = document.getElementById(id);
         if (select) {
@@ -608,6 +675,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+    
+    // Initialize stock edit buttons
+    reinitializeStockButtons();
 });
 
 // Live search function
@@ -624,14 +694,14 @@ function performLiveSearch(searchTerm) {
     const category = document.getElementById('filterCategory').value;
     if (category) params.set('category', category);
     
+    const brand = document.getElementById('filterBrand').value;
+    if (brand) params.set('brand', brand);
+    
     const status = document.getElementById('filterStatus').value;
     if (status) params.set('status', status);
     
     const stockStatus = document.getElementById('filterStock').value;
     if (stockStatus) params.set('stock_status', stockStatus);
-    
-    const featured = document.getElementById('filterFeatured').value;
-    if (featured) params.set('featured', featured);
     
     // Keep existing sort and per_page
     const urlParams = new URLSearchParams(window.location.search);
@@ -640,7 +710,7 @@ function performLiveSearch(searchTerm) {
     if (urlParams.get('per_page')) params.set('per_page', urlParams.get('per_page'));
     
     // Make AJAX request
-    fetch(`{{ route('admin.products.index') }}?${params.toString()}&ajax=1`, {
+    fetch(`{{ route('admin.products.in-house') }}?${params.toString()}&ajax=1`, {
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json'
@@ -656,13 +726,22 @@ function performLiveSearch(searchTerm) {
             tbody.innerHTML = data.html;
             
             // Update pagination
-            updatePagination(data.pagination);
+            if (data.pagination) {
+                document.getElementById('paginationLinks').innerHTML = data.pagination;
+            }
             
             // Update stats
             updateStats(data.stats);
             
+            // Update pagination info
+            if (data.total !== undefined) {
+                const info = `Showing 1 - ${Math.min(data.total, parseInt(params.get('per_page') || 25))} of ${data.total} products`;
+                document.getElementById('paginationInfo').textContent = info;
+            }
+            
             // Reinitialize event listeners
             reinitializeEventListeners();
+            reinitializeStockButtons();
             
             // Clear selection
             clearSelection();
@@ -678,31 +757,41 @@ function performLiveSearch(searchTerm) {
     });
 }
 
-// Update pagination
-function updatePagination(paginationHtml) {
-    const paginationContainer = document.querySelector('.card-footer .d-flex:last-child');
-    if (paginationContainer) {
-        paginationContainer.innerHTML = paginationHtml;
-    }
-}
-
 // Update stats cards
 function updateStats(stats) {
     if (!stats) return;
     
-    const statElements = {
-        'total': document.querySelector('.col-md-2:nth-child(1) .h4'),
-        'active': document.querySelector('.col-md-2:nth-child(2) .h4'),
-        'inactive': document.querySelector('.col-md-2:nth-child(3) .h4'),
-        'featured': document.querySelector('.col-md-2:nth-child(4) .h4'),
-        'low_stock': document.querySelector('.col-md-2:nth-child(5) .h4'),
-        'out_of_stock': document.querySelector('.col-md-2:nth-child(6) .h4')
+    const statMap = {
+        'total': 'statTotal',
+        'active': 'statActive',
+        'low_stock': 'statLowStock',
+        'out_of_stock': 'statOutOfStock'
     };
     
-    Object.keys(statElements).forEach(key => {
-        if (statElements[key] && stats[key] !== undefined) {
-            statElements[key].textContent = stats[key];
+    Object.keys(statMap).forEach(key => {
+        const el = document.getElementById(statMap[key]);
+        if (el && stats[key] !== undefined) {
+            el.textContent = stats[key];
         }
+    });
+    
+    // Update low stock badge
+    const lowStockBadge = document.getElementById('lowStockBadge');
+    if (lowStockBadge) {
+        lowStockBadge.textContent = (stats.low_stock || 0) + (stats.out_of_stock || 0);
+    }
+}
+
+// Reinitialize stock edit buttons
+function reinitializeStockButtons() {
+    document.querySelectorAll('.stock-edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const name = this.dataset.name;
+            const quantity = parseInt(this.dataset.quantity);
+            const threshold = parseInt(this.dataset.threshold);
+            showStockModal(id, name, quantity, threshold);
+        });
     });
 }
 
@@ -731,53 +820,16 @@ function reinitializeEventListeners() {
         });
     });
     
-    // Featured toggle
-    document.querySelectorAll('.featured-toggle').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const id = this.dataset.id;
-            fetch(`{{ route('admin.products.toggle-featured', ['product' => 'ID']) }}`.replace('ID', id), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const icon = this.querySelector('i');
-                    icon.classList.toggle('bi-star', !data.is_featured);
-                    icon.classList.toggle('bi-star-fill', data.is_featured);
-                    this.classList.toggle('btn-info', data.is_featured);
-                    this.classList.toggle('btn-outline-secondary', !data.is_featured);
-                    showToast(data.message, 'success');
-                }
-            });
-        });
-    });
-    
-    // Quick edit buttons
-    document.querySelectorAll('.quick-edit-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const row = this.closest('tr');
-            const id = this.dataset.id;
-            
-            // Get current values from row data attributes
-            document.getElementById('quickEditProductId').value = id;
-            document.getElementById('quickEditName').value = row.dataset.name || '';
-            document.getElementById('quickEditProductCode').value = row.dataset.productCode || '';
-            document.getElementById('quickEditShortDescription').value = row.dataset.shortDescription || '';
-            document.getElementById('quickEditPrice').value = extractPrice(row.querySelector('td:nth-child(6)'));
-            document.getElementById('quickEditQuantity').value = row.querySelector('.badge').textContent.trim();
-            
-            quickEditModal = new bootstrap.Modal(document.getElementById('quickEditModal'));
-            quickEditModal.show();
-        });
-    });
-    
     // Product checkboxes
     document.querySelectorAll('.product-checkbox').forEach(cb => {
-        cb.addEventListener('change', updateBulkActions);
+        cb.addEventListener('change', function() {
+            if (this.checked) {
+                selectedProducts.add(parseInt(this.value));
+            } else {
+                selectedProducts.delete(parseInt(this.value));
+            }
+            updateBulkActions();
+        });
     });
 }
 </script>

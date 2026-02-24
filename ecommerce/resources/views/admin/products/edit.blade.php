@@ -64,7 +64,7 @@
                     </div>
                     
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="sku" class="form-label">SKU *</label>
                                 <input type="text" class="form-control @error('sku') is-invalid @enderror" id="sku" name="sku" value="{{ old('sku', $product->sku) }}" required>
@@ -73,13 +73,103 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="product_code" class="form-label">Product Code</label>
+                                <input type="text" class="form-control @error('product_code') is-invalid @enderror" id="product_code" name="product_code" value="{{ old('product_code', $product->product_code) }}" placeholder="e.g., PRD-001">
+                                @error('product_code')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="barcode" class="form-label">Barcode</label>
+                                <input type="text" class="form-control @error('barcode') is-invalid @enderror" id="barcode" name="barcode" value="{{ old('barcode', $product->barcode) }}" placeholder="Product barcode">
+                                @error('barcode')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="brand" class="form-label">Brand</label>
+                                <input type="text" class="form-control @error('brand') is-invalid @enderror" id="brand" name="brand" value="{{ old('brand', $product->brand) }}" placeholder="Product brand">
+                                @error('brand')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="purchase_price" class="form-label">Purchase/Cost Price (৳)</label>
+                                <input type="number" step="0.01" min="0" class="form-control @error('purchase_price') is-invalid @enderror" id="purchase_price" name="purchase_price" value="{{ old('purchase_price', $product->purchase_price) }}" placeholder="Cost price">
+                                @error('purchase_price')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <div class="form-text">Used for profit calculation</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="stock" class="form-label">Stock Quantity *</label>
                                 <input type="number" min="0" class="form-control @error('stock') is-invalid @enderror" id="stock" name="stock" value="{{ old('stock', $product->quantity) }}" required>
                                 @error('stock')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="low_stock_threshold" class="form-label">Low Stock Alert</label>
+                                <input type="number" min="0" class="form-control @error('low_stock_threshold') is-invalid @enderror" id="low_stock_threshold" name="low_stock_threshold" value="{{ old('low_stock_threshold', $product->low_stock_threshold ?? 10) }}">
+                                @error('low_stock_threshold')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <div class="form-text">Alert when stock falls below this</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Stock Value</label>
+                                <div class="form-control-plaintext fw-semibold">
+                                    ৳{{ number_format($product->stock_value, 0) }}
+                                </div>
+                                <small class="text-muted">Quantity × Cost Price</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Product Source</label>
+                                <div class="form-control-plaintext">
+                                    @if($product->isInHouse())
+                                        <span class="badge bg-primary"><i class="bi bi-house-door me-1"></i> In-House Product</span>
+                                    @else
+                                        <span class="badge bg-info"><i class="bi bi-shop me-1"></i> Seller Product</span>
+                                        @if($product->seller)
+                                            <small class="text-muted ms-2">by {{ $product->seller->name }}</small>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Profit Margin</label>
+                                <div class="form-control-plaintext">
+                                    @if($product->profit_margin > 0)
+                                        <span class="text-success fw-semibold">{{ $product->profit_margin }}%</span>
+                                        <small class="text-muted">(৳{{ number_format($product->profit_amount, 0) }} per unit)</small>
+                                    @else
+                                        <span class="text-muted">Set purchase price to calculate</span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -90,9 +180,9 @@
                         <label for="category_id" class="form-label">Category *</label>
                         <select class="form-select @error('category_id') is-invalid @enderror" id="category_id" name="category_id" required>
                             <option value="">Select Category</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>
-                                    {{ $category->name }}
+                            @foreach($categories as $id => $name)
+                                <option value="{{ $id }}" {{ old('category_id', $product->category_id) == $id ? 'selected' : '' }}>
+                                    {{ $name }}
                                 </option>
                             @endforeach
                         </select>

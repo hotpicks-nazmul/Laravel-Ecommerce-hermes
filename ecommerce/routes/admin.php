@@ -34,17 +34,82 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/analytics', [DashboardController::class, 'analytics'])->name('analytics');
 Route::get('/sales-chart', [DashboardController::class, 'salesChart'])->name('sales-chart');
 
-// Products Management
-Route::resource('products', ProductController::class);
+// Products Management - Custom routes (must be before resource routes to avoid conflicts)
+Route::get('/products/in-house', [ProductController::class, 'inHouse'])->name('products.in-house');
+Route::get('/products/in-house/export', [ProductController::class, 'exportInHouse'])->name('products.export-in-house');
+Route::post('/products/in-house/bulk-action', [ProductController::class, 'inHouseBulkAction'])->name('products.in-house.bulk-action');
+Route::post('/products/bulk-stock-update', [ProductController::class, 'bulkStockUpdate'])->name('products.bulk-stock-update');
+Route::get('/products/low-stock-alerts', [ProductController::class, 'lowStockAlerts'])->name('products.low-stock-alerts');
 Route::post('/products/bulk-action', [ProductController::class, 'bulkAction'])->name('products.bulk-action');
+Route::get('/products-export', [ProductController::class, 'export'])->name('products.export');
 Route::get('/products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
 Route::post('/products/{product}/images', [ProductController::class, 'uploadImages'])->name('products.images.upload');
 Route::delete('/products/{product}/images/{image}', [ProductController::class, 'deleteImage'])->name('products.images.delete');
+Route::post('/products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
+Route::post('/products/{product}/toggle-featured', [ProductController::class, 'toggleFeatured'])->name('products.toggle-featured');
+Route::post('/products/{product}/quick-update', [ProductController::class, 'quickUpdate'])->name('products.quick-update');
+Route::post('/products/{product}/update-stock', [ProductController::class, 'updateStock'])->name('products.update-stock');
+Route::post('/products/{product}/update-low-stock-threshold', [ProductController::class, 'updateLowStockThreshold'])->name('products.update-low-stock-threshold');
+
+// Bulk Import, Export, Discount Routes (must be before resource routes)
+Route::get('/products/bulk-import', [ProductController::class, 'bulkImport'])->name('products.bulk-import');
+Route::post('/products/bulk-import', [ProductController::class, 'processBulkImport'])->name('products.bulk-import.process');
+Route::get('/products/bulk-export', [ProductController::class, 'bulkExport'])->name('products.bulk-export');
+Route::get('/products/bulk-export/download', [ProductController::class, 'exportProducts'])->name('products.bulk-export.download');
+Route::get('/products/bulk-discount', [ProductController::class, 'bulkDiscount'])->name('products.bulk-discount');
+Route::post('/products/bulk-discount', [ProductController::class, 'applyBulkDiscount'])->name('products.bulk-discount.apply');
+Route::post('/products/bulk-discount/remove', [ProductController::class, 'removeBulkDiscount'])->name('products.bulk-discount.remove');
+Route::get('/products/bulk-discount/products', [ProductController::class, 'getProductsForSelection'])->name('products.bulk-discount.products');
+
+// Digital Products Management (must be before resource routes)
+Route::prefix('products/digital')->name('products.digital.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\DigitalProductController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\Admin\DigitalProductController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Admin\DigitalProductController::class, 'store'])->name('store');
+    Route::get('/export', [\App\Http\Controllers\Admin\DigitalProductController::class, 'export'])->name('export');
+    Route::post('/bulk-action', [\App\Http\Controllers\Admin\DigitalProductController::class, 'bulkAction'])->name('bulk-action');
+    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\DigitalProductController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [\App\Http\Controllers\Admin\DigitalProductController::class, 'update'])->name('update');
+    Route::delete('/{id}', [\App\Http\Controllers\Admin\DigitalProductController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/toggle-status', [\App\Http\Controllers\Admin\DigitalProductController::class, 'toggleStatus'])->name('toggle-status');
+    Route::post('/{id}/toggle-featured', [\App\Http\Controllers\Admin\DigitalProductController::class, 'toggleFeatured'])->name('toggle-featured');
+    
+    // License Key Management
+    Route::post('/{id}/generate-license-keys', [\App\Http\Controllers\Admin\DigitalProductController::class, 'generateLicenseKeys'])->name('generate-license-keys');
+    Route::get('/{id}/license-keys', [\App\Http\Controllers\Admin\DigitalProductController::class, 'getLicenseKeys'])->name('license-keys');
+    Route::get('/{id}/license-keys/export', [\App\Http\Controllers\Admin\DigitalProductController::class, 'exportLicenseKeys'])->name('export-license-keys');
+    Route::delete('/{id}/license-keys/{keyId}', [\App\Http\Controllers\Admin\DigitalProductController::class, 'deleteLicenseKey'])->name('delete-license-key');
+    Route::post('/{id}/license-keys/{keyId}/disable', [\App\Http\Controllers\Admin\DigitalProductController::class, 'disableLicenseKey'])->name('disable-license-key');
+    
+    // Additional Files Management
+    Route::delete('/{id}/additional-files/{index}', [\App\Http\Controllers\Admin\DigitalProductController::class, 'deleteAdditionalFile'])->name('delete-additional-file');
+    
+    // Download Statistics
+    Route::get('/{id}/download-stats', [\App\Http\Controllers\Admin\DigitalProductController::class, 'downloadStats'])->name('download-stats');
+});
+
+// Digital Categories Management
+Route::resource('digital-categories', \App\Http\Controllers\Admin\DigitalCategoryController::class);
+Route::post('/digital-categories/{digitalCategory}/toggle-status', [\App\Http\Controllers\Admin\DigitalCategoryController::class, 'toggleStatus'])->name('digital-categories.toggle-status');
+Route::post('/digital-categories/update-order', [\App\Http\Controllers\Admin\DigitalCategoryController::class, 'updateOrder'])->name('digital-categories.update-order');
+Route::get('/digital-categories/api/categories', [\App\Http\Controllers\Admin\DigitalCategoryController::class, 'getCategories'])->name('digital-categories.api.categories');
+
+// Products Resource Routes
+Route::resource('products', ProductController::class);
 
 // Categories Management
 Route::resource('categories', CategoryController::class);
+Route::post('/categories/bulk-action', [CategoryController::class, 'bulkAction'])->name('categories.bulk-action');
 Route::post('/categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
 Route::get('/categories/tree', [CategoryController::class, 'tree'])->name('categories.tree');
+Route::get('/categories-export', [CategoryController::class, 'export'])->name('categories.export');
+Route::post('/categories/{category}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('categories.toggle-status');
+Route::post('/categories/{category}/toggle-featured', [CategoryController::class, 'toggleFeatured'])->name('categories.toggle-featured');
+Route::post('/categories/{category}/toggle-menu', [CategoryController::class, 'toggleMenu'])->name('categories.toggle-menu');
+Route::post('/categories/{category}/toggle-homepage', [CategoryController::class, 'toggleHomepage'])->name('categories.toggle-homepage');
+Route::get('/categories/{category}/products', [CategoryController::class, 'getProducts'])->name('categories.products');
+Route::post('/categories/{category}/move-products', [CategoryController::class, 'moveProducts'])->name('categories.move-products');
+Route::get('/categories-select-options', [CategoryController::class, 'getSelectOptions'])->name('categories.select-options');
 
 // Orders Management
 Route::resource('orders', OrderController::class)->only(['index', 'show', 'update']);
@@ -245,13 +310,6 @@ Route::post('/backup/restore', [SettingController::class, 'restoreBackup'])->nam
 */
 
 // Products - Additional Routes
-Route::get('/products/in-house', [ProductController::class, 'inHouse'])->name('products.in-house');
-Route::get('/products/digital', [ProductController::class, 'digital'])->name('products.digital');
-Route::get('/products/bulk-import', [ProductController::class, 'bulkImport'])->name('products.bulk-import');
-Route::post('/products/bulk-import', [ProductController::class, 'processBulkImport'])->name('products.bulk-import.process');
-Route::get('/products/bulk-export', [ProductController::class, 'bulkExport'])->name('products.bulk-export');
-Route::get('/products/bulk-discount', [ProductController::class, 'bulkDiscount'])->name('products.bulk-discount');
-Route::post('/products/bulk-discount', [ProductController::class, 'applyBulkDiscount'])->name('products.bulk-discount.apply');
 Route::get('/brands', [CategoryController::class, 'brands'])->name('brands.index');
 Route::get('/attributes', [ProductController::class, 'attributes'])->name('attributes.index');
 Route::get('/colors', [ProductController::class, 'colors'])->name('colors.index');
