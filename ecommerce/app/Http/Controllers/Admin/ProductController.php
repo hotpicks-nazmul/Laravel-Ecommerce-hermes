@@ -1251,7 +1251,43 @@ class ProductController extends Controller
         $categories = Category::where('status', 'active')->get();
         $totalProducts = Product::count();
         
-        return view('admin.products.bulk-discount', compact('categories', 'totalProducts'));
+        // Get products with discounts for the discount list
+        $productsWithDiscounts = Product::with('category')
+            ->whereNotNull('sale_price')
+            ->select(['id', 'name', 'sku', 'price', 'sale_price', 'category_id', 'quantity', 'discount_starts_at', 'discount_ends_at', 'is_active'])
+            ->orderBy('updated_at', 'desc')
+            ->paginate(20);
+        
+        // Calculate statistics
+        $activeDiscounts = Product::whereNotNull('sale_price')
+            ->where(function ($query) {
+                $query->whereNull('discount_starts_at')
+                    ->orWhere('discount_starts_at', '<=', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('discount_ends_at')
+                    ->orWhere('discount_ends_at', '>=', now());
+            })
+            ->count();
+        
+        $scheduledDiscounts = Product::whereNotNull('sale_price')
+            ->whereNotNull('discount_starts_at')
+            ->where('discount_starts_at', '>', now())
+            ->count();
+        
+        $expiredDiscounts = Product::whereNotNull('sale_price')
+            ->whereNotNull('discount_ends_at')
+            ->where('discount_ends_at', '<', now())
+            ->count();
+        
+        return view('admin.products.bulk-discount', compact(
+            'categories', 
+            'totalProducts', 
+            'productsWithDiscounts',
+            'activeDiscounts',
+            'scheduledDiscounts',
+            'expiredDiscounts'
+        ));
     }
 
     /**
@@ -1336,6 +1372,8 @@ class ProductController extends Controller
                 }
 
                 $product->sale_price = round($newSalePrice, 2);
+                $product->discount_starts_at = $startDate ?: null;
+                $product->discount_ends_at = $endDate ?: null;
                 $product->save();
                 $updatedCount++;
 
@@ -1377,9 +1415,62 @@ class ProductController extends Controller
                 break;
         }
 
-        $count = $query->update(['sale_price' => null]);
+        $count = $query->update([
+            'sale_price' => null,
+            'discount_starts_at' => null,
+            'discount_ends_at' => null,
+        ]);
 
         return back()->with('success', "Removed sale price from {$count} product(s).");
+    }
+
+    /**
+     * Update discount for a single product (AJAX).
+     */
+    public function updateProductDiscount(Request $request, Product $product)
+    {
+        $request->validate([
+            'sale_price' => 'required|numeric|min:0|lt:' . $product->price,
+            'discount_starts_at' => 'nullable|date',
+            'discount_ends_at' => 'nullable|date|after_or_equal:discount_starts_at',
+        ]);
+
+        $product->update([
+            'sale_price' => $request->sale_price,
+            'discount_starts_at' => $request->discount_starts_at ?: null,
+            'discount_ends_at' => $request->discount_ends_at ?: null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Discount updated successfully.',
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'price' => $product->price,
+                'sale_price' => $product->sale_price,
+                'discount_starts_at' => $product->discount_starts_at?->format('Y-m-d H:i:s'),
+                'discount_ends_at' => $product->discount_ends_at?->format('Y-m-d H:i:s'),
+                'is_on_sale' => $product->isOnSale(),
+            ],
+        ]);
+    }
+
+    /**
+     * Remove discount from a single product (AJAX).
+     */
+    public function removeProductDiscount(Product $product)
+    {
+        $product->update([
+            'sale_price' => null,
+            'discount_starts_at' => null,
+            'discount_ends_at' => null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Discount removed successfully.',
+        ]);
     }
 
     /**
@@ -1401,7 +1492,7 @@ class ProductController extends Controller
             $query->where('category_id', $request->category);
         }
 
-        $products = $query->select(['id', 'name', 'sku', 'price', 'sale_price', 'category_id', 'quantity'])
+        $products = $query->select(['id', 'name', 'sku', 'price', 'sale_price', 'category_id', 'quantity', 'discount_starts_at', 'discount_ends_at'])
             ->limit(50)
             ->get();
 
@@ -1415,6 +1506,266 @@ class ProductController extends Controller
                     'sale_price' => $product->sale_price,
                     'category' => $product->category->name ?? 'N/A',
                     'quantity' => $product->quantity,
+                    'discount_starts_at' => $product->discount_starts_at?->format('Y-m-d H:i:s'),
+                    'discount_ends_at' => $product->discount_ends_at?->format('Y-m-d H:i:s'),
+                    'is_on_sale' => $product->isOnSale(),
+                ];
+            }),
+        ]);
+    }
+
+    /**
+     * Display related products management page.
+     */
+    public function relatedProducts(Product $product)
+    {
+        $product->load(['relatedProducts.category']);
+        
+        // Get all products except current one for selection
+        $availableProducts = Product::with('category')
+            ->where('id', '!=', $product->id)
+            ->active()
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.products.related', compact('product', 'availableProducts'));
+    }
+
+    /**
+     * Search products for adding as related (AJAX).
+     */
+    public function searchRelatedProducts(Request $request, Product $product)
+    {
+        $query = Product::with('category')
+            ->where('id', '!=', $product->id);
+
+        // Exclude already related products
+        $relatedIds = $product->relatedProducts()->pluck('related_product_id')->toArray();
+        if (!empty($relatedIds)) {
+            $query->whereNotIn('id', $relatedIds);
+        }
+
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('sku', 'like', "%{$search}%")
+                    ->orWhere('product_code', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->category) {
+            $query->where('category_id', $request->category);
+        }
+
+        // Filter by status - default to active only
+        $status = $request->status ?? 'active';
+        if ($status === 'active') {
+            $query->where('is_active', true);
+        } elseif ($status === 'inactive') {
+            $query->where('is_active', false);
+        }
+
+        $products = $query->select(['id', 'name', 'sku', 'product_code', 'price', 'sale_price', 'category_id', 'quantity', 'featured_image', 'images', 'is_active'])
+            ->limit(30)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'products' => $products->map(function ($item) {
+                $images = is_string($item->images) ? json_decode($item->images, true) : $item->images;
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'sku' => $item->sku,
+                    'product_code' => $item->product_code,
+                    'price' => $item->price,
+                    'sale_price' => $item->sale_price,
+                    'final_price' => $item->final_price,
+                    'category' => $item->category->name ?? 'N/A',
+                    'quantity' => $item->quantity,
+                    'image' => $item->featured_image ?? ($images[0] ?? null),
+                    'is_active' => $item->is_active,
+                ];
+            }),
+        ]);
+    }
+
+    /**
+     * Add related products to a product.
+     */
+    public function addRelatedProducts(Request $request, Product $product)
+    {
+        $request->validate([
+            'product_ids' => 'required|array',
+            'product_ids.*' => 'exists:products,id|not_in:' . $product->id,
+        ]);
+
+        $addedCount = 0;
+        $existingIds = $product->relatedProducts()->pluck('related_product_id')->toArray();
+
+        foreach ($request->product_ids as $productId) {
+            // Skip if already related
+            if (in_array($productId, $existingIds)) {
+                continue;
+            }
+
+            // Get max sort order
+            $maxOrder = DB::table('related_products')
+                ->where('product_id', $product->id)
+                ->max('sort_order') ?? 0;
+
+            $product->relatedProducts()->attach($productId, [
+                'sort_order' => $maxOrder + 1,
+            ]);
+            $addedCount++;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $addedCount > 0 
+                ? "{$addedCount} related product(s) added successfully." 
+                : "No new products were added (may already exist).",
+            'added_count' => $addedCount,
+        ]);
+    }
+
+    /**
+     * Remove a related product.
+     */
+    public function removeRelatedProduct(Request $request, Product $product, $relatedId)
+    {
+        $product->relatedProducts()->detach($relatedId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Related product removed successfully.',
+        ]);
+    }
+
+    /**
+     * Update sort order of related products.
+     */
+    public function updateRelatedProductsOrder(Request $request, Product $product)
+    {
+        $request->validate([
+            'order' => 'required|array',
+            'order.*' => 'integer|exists:products,id',
+        ]);
+
+        foreach ($request->order as $index => $relatedId) {
+            DB::table('related_products')
+                ->where('product_id', $product->id)
+                ->where('related_product_id', $relatedId)
+                ->update(['sort_order' => $index + 1]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order updated successfully.',
+        ]);
+    }
+
+    /**
+     * Bulk remove related products.
+     */
+    public function bulkRemoveRelatedProducts(Request $request, Product $product)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:products,id',
+        ]);
+
+        $product->relatedProducts()->detach($request->ids);
+
+        return response()->json([
+            'success' => true,
+            'message' => count($request->ids) . ' related product(s) removed.',
+        ]);
+    }
+
+    /**
+     * Auto-suggest related products based on category and tags.
+     */
+    public function autoSuggestRelatedProducts(Product $product)
+    {
+        $suggestedProducts = collect();
+        
+        // Get already related product IDs
+        $relatedIds = $product->relatedProducts()->pluck('related_product_id')->toArray();
+
+        // Get products from same category
+        if ($product->category_id) {
+            $query = Product::with('category')
+                ->where('category_id', $product->category_id)
+                ->where('id', '!=', $product->id)
+                ->active();
+            
+            if (!empty($relatedIds)) {
+                $query->whereNotIn('id', $relatedIds);
+            }
+            
+            $sameCategory = $query->limit(10)->get();
+            $suggestedProducts = $suggestedProducts->merge($sameCategory);
+        }
+
+        // Get products with similar tags
+        if ($product->tags && is_array($product->tags) && count($product->tags) > 0) {
+            $query = Product::with('category')
+                ->where(function ($q) use ($product) {
+                    foreach ($product->tags as $tag) {
+                        $q->orWhereJsonContains('tags', $tag);
+                    }
+                })
+                ->where('id', '!=', $product->id)
+                ->active();
+            
+            if (!empty($relatedIds)) {
+                $query->whereNotIn('id', $relatedIds);
+            }
+            
+            if ($suggestedProducts->count() > 0) {
+                $query->whereNotIn('id', $suggestedProducts->pluck('id'));
+            }
+            
+            $tagProducts = $query->limit(10)->get();
+            $suggestedProducts = $suggestedProducts->merge($tagProducts);
+        }
+
+        // If still not enough, get featured products
+        if ($suggestedProducts->count() < 5) {
+            $query = Product::with('category')
+                ->where('id', '!=', $product->id)
+                ->active()
+                ->featured();
+            
+            if (!empty($relatedIds)) {
+                $query->whereNotIn('id', $relatedIds);
+            }
+            
+            if ($suggestedProducts->count() > 0) {
+                $query->whereNotIn('id', $suggestedProducts->pluck('id'));
+            }
+            
+            $featured = $query->limit(10 - $suggestedProducts->count())->get();
+            $suggestedProducts = $suggestedProducts->merge($featured);
+        }
+
+        return response()->json([
+            'success' => true,
+            'products' => $suggestedProducts->unique('id')->take(10)->map(function ($item) {
+                $images = is_string($item->images) ? json_decode($item->images, true) : $item->images;
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'sku' => $item->sku,
+                    'price' => $item->price,
+                    'sale_price' => $item->sale_price,
+                    'final_price' => $item->final_price,
+                    'category' => $item->category->name ?? 'N/A',
+                    'quantity' => $item->quantity,
+                    'image' => $item->featured_image ?? ($images[0] ?? null),
+                    'is_active' => $item->is_active,
                 ];
             }),
         ]);

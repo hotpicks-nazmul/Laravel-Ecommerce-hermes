@@ -59,19 +59,44 @@ class ProductController extends Controller
     {
         $product = Product::where('slug', $slug)
             ->where('is_active', true)
-            ->with(['category', 'reviews.user'])
+            ->with(['category', 'reviews.user', 'attributeValues.attribute', 'colors', 'relatedProducts'])
             ->firstOrFail();
 
-        $relatedProducts = Product::where('category_id', $product->category_id)
-            ->where('id', '!=', $product->id)
+        // Get manually configured related products first
+        $relatedProducts = $product->relatedProducts()
             ->where('is_active', true)
-            ->take(4)
+            ->limit(8)
             ->get();
+
+        // If not enough related products, supplement with products from same category
+        if ($relatedProducts->count() < 4) {
+            $categoryProducts = Product::where('category_id', $product->category_id)
+                ->where('id', '!=', $product->id)
+                ->where('is_active', true)
+                ->whereNotIn('id', $relatedProducts->pluck('id'))
+                ->limit(8 - $relatedProducts->count())
+                ->get();
+            
+            $relatedProducts = $relatedProducts->merge($categoryProducts);
+        }
 
         // Get approved reviews with pagination
         $reviews = $product->approvedReviews()->latest()->paginate(5);
 
-        return view('themes.general.products.show', compact('product', 'relatedProducts', 'reviews'));
+        // Get product attributes grouped by attribute name
+        $attributes = [];
+        if ($product->attributeValues->count() > 0) {
+            foreach ($product->attributeValues as $value) {
+                if ($value->attribute) {
+                    $attributes[$value->attribute->name][] = $value;
+                }
+            }
+        }
+
+        // Get product colors
+        $colors = $product->colors()->where('is_active', true)->orderBy('display_order')->get();
+
+        return view('themes.general.products.show', compact('product', 'relatedProducts', 'reviews', 'attributes', 'colors'));
     }
 
     /**

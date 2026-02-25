@@ -7,47 +7,66 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h4 class="mb-1"><i class="bi bi-percent me-2"></i>Bulk Discount</h4>
-        <p class="text-muted mb-0">Apply discounts to multiple products at once</p>
+        <p class="text-muted mb-0">Apply and manage product discounts</p>
     </div>
     <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left me-1"></i> Back to Products
     </a>
 </div>
 
-<div class="row">
-    <div class="col-lg-8">
-        <!-- Discount Settings Card -->
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white">
-                <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Discount Settings</h6>
-            </div>
-            <div class="card-body">
-                <form id="discountForm" method="POST" action="{{ route('admin.products.bulk-discount.apply') }}">
-                    @csrf
-                    
-                    <!-- Discount Type & Value -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label">Discount Type <span class="text-danger">*</span></label>
-                            <select name="discount_type" id="discountType" class="form-select" required>
-                                <option value="percentage">Percentage (%)</option>
-                                <option value="fixed">Fixed Amount</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Discount Value <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <input type="number" name="discount_value" id="discountValue" class="form-control" 
-                                       placeholder="Enter value" step="0.01" min="0" required>
-                                <span class="input-group-text" id="discountTypeLabel">%</span>
-                            </div>
-                            <small class="text-muted" id="discountHelp">Enter a percentage value (e.g., 10 for 10% off)</small>
-                        </div>
-                    </div>
+<!-- Tabs Navigation -->
+<ul class="nav nav-tabs mb-4" id="discountTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="apply-tab" data-bs-toggle="tab" data-bs-target="#applyDiscount" type="button" role="tab">
+            <i class="bi bi-plus-circle me-1"></i> Apply Discount
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="manage-tab" data-bs-toggle="tab" data-bs-target="#manageDiscounts" type="button" role="tab">
+            <i class="bi bi-list-ul me-1"></i> Manage Discounts
+            <span class="badge bg-primary ms-1">{{ $productsWithDiscounts->total() }}</span>
+        </button>
+    </li>
+</ul>
 
-                    <!-- Apply To Selection -->
-                    <div class="mb-4">
-                        <label class="form-label">Apply To <span class="text-danger">*</span></label>
+<!-- Tab Content -->
+<div class="tab-content" id="discountTabsContent">
+    <!-- Apply Discount Tab -->
+    <div class="tab-pane fade show active" id="applyDiscount" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Discount Settings Card -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Discount Settings</h6>
+                    </div>
+                    <div class="card-body">
+                        <form id="discountForm" method="POST" action="{{ route('admin.products.bulk-discount.apply') }}">
+                            @csrf
+                            
+                            <!-- Discount Type & Value -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Discount Type <span class="text-danger">*</span></label>
+                                    <select name="discount_type" id="discountType" class="form-select" required>
+                                        <option value="percentage">Percentage (%)</option>
+                                        <option value="fixed">Fixed Amount</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Discount Value <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="number" name="discount_value" id="discountValue" class="form-control" 
+                                               placeholder="Enter value" step="0.01" min="0" required>
+                                        <span class="input-group-text" id="discountTypeLabel">%</span>
+                                    </div>
+                                    <small class="text-muted" id="discountHelp">Enter a percentage value (e.g., 10 for 10% off)</small>
+                                </div>
+                            </div>
+
+                            <!-- Apply To Selection -->
+                            <div class="mb-4">
+                                <label class="form-label">Apply To <span class="text-danger">*</span></label>
                         <div class="row g-2">
                             <div class="col-md-4">
                                 <div class="form-check card p-3 border">
@@ -146,6 +165,20 @@
                         
                         <!-- Hidden input for selected product IDs -->
                         <div id="selectedProductIds"></div>
+                    </div>
+
+                    <!-- Discount Date Range -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Discount Start Date</label>
+                            <input type="datetime-local" name="start_date" id="startDate" class="form-control">
+                            <small class="text-muted">When the discount becomes active (optional)</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Discount End Date</label>
+                            <input type="datetime-local" name="end_date" id="endDate" class="form-control">
+                            <small class="text-muted">When the discount expires (optional)</small>
+                        </div>
                     </div>
 
                     <!-- Additional Options -->
@@ -283,8 +316,147 @@
                     <li class="mb-2">Fixed amounts are subtracted from the regular price</li>
                     <li class="mb-2">Sale prices must be less than regular prices</li>
                     <li class="mb-2">Use "Clear existing sale prices" to reset before applying new discounts</li>
+                    <li class="mb-2">Set date range to schedule discounts for specific periods</li>
+                    <li class="mb-2">Discounts without dates are always active until removed</li>
                     <li>Products with existing sale prices will be updated</li>
                 </ul>
+            </div>
+        </div>
+    </div>
+</div>
+    </div>
+    
+    <!-- Manage Discounts Tab -->
+    <div class="tab-pane fade" id="manageDiscounts" role="tabpanel">
+        <!-- Discount Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="display-6 text-success">{{ $activeDiscounts }}</div>
+                        <div class="text-muted">Active Discounts</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="display-6 text-warning">{{ $scheduledDiscounts }}</div>
+                        <div class="text-muted">Scheduled</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="display-6 text-secondary">{{ $expiredDiscounts }}</div>
+                        <div class="text-muted">Expired</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Discount List -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>Products with Discounts</h6>
+                <div class="d-flex gap-2">
+                    <select id="discountStatusFilter" class="form-select form-select-sm" style="width: auto;" onchange="filterDiscounts()">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="scheduled">Scheduled</option>
+                        <option value="expired">Expired</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th>SKU</th>
+                                <th>Regular Price</th>
+                                <th>Sale Price</th>
+                                <th>Discount</th>
+                                <th>Validity Period</th>
+                                <th>Status</th>
+                                <th width="120">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="discountListBody">
+                            @forelse($productsWithDiscounts as $product)
+                            <tr data-id="{{ $product->id }}" data-status="{{ $product->isOnSale() ? 'active' : ($product->isDiscountScheduled() ? 'scheduled' : 'expired') }}">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        @if($product->featured_image)
+                                        <img src="{{ asset('storage/' . $product->featured_image) }}" alt="{{ $product->name }}" 
+                                             class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                        @endif
+                                        <div>
+                                            <div class="fw-medium">{{ $product->name }}</div>
+                                            <small class="text-muted">{{ $product->category->name ?? 'N/A' }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><code>{{ $product->sku }}</code></td>
+                                <td>৳{{ number_format($product->price, 2) }}</td>
+                                <td class="text-success">৳{{ number_format($product->sale_price, 2) }}</td>
+                                <td>
+                                    @if($product->price > 0)
+                                    <span class="badge bg-danger">{{ round((($product->price - $product->sale_price) / $product->price) * 100) }}%</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($product->discount_starts_at || $product->discount_ends_at)
+                                        <small>
+                                            @if($product->discount_starts_at)
+                                                <span title="Starts"><i class="bi bi-play-circle text-success"></i> {{ $product->discount_starts_at->format('M d, Y H:i') }}</span><br>
+                                            @endif
+                                            @if($product->discount_ends_at)
+                                                <span title="Ends"><i class="bi bi-stop-circle text-danger"></i> {{ $product->discount_ends_at->format('M d, Y H:i') }}</span>
+                                            @endif
+                                        </small>
+                                    @else
+                                        <span class="text-muted">No limit</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($product->isOnSale())
+                                        <span class="badge bg-success">Active</span>
+                                    @elseif($product->isDiscountScheduled())
+                                        <span class="badge bg-warning text-dark">Scheduled</span>
+                                    @else
+                                        <span class="badge bg-secondary">Expired</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="editDiscount({{ $product->id }})" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSingleDiscount({{ $product->id }})" title="Remove">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                                    No products with discounts found
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                @if($productsWithDiscounts->hasPages())
+                <div class="card-footer bg-white">
+                    {{ $productsWithDiscounts->links() }}
+                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -325,6 +497,58 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-danger">Remove Discounts</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Discount Modal -->
+<div class="modal fade" id="editDiscountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit Discount</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editDiscountForm">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <input type="hidden" id="editProductId" name="product_id">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Product</label>
+                        <input type="text" id="editProductName" class="form-control" readonly>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Regular Price</label>
+                            <input type="text" id="editRegularPrice" class="form-control" readonly>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Sale Price <span class="text-danger">*</span></label>
+                            <input type="number" id="editSalePrice" name="sale_price" class="form-control" 
+                                   step="0.01" min="0" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Discount Start Date</label>
+                        <input type="datetime-local" id="editStartDate" name="discount_starts_at" class="form-control">
+                        <small class="text-muted">Leave empty for immediate effect</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Discount End Date</label>
+                        <input type="datetime-local" id="editEndDate" name="discount_ends_at" class="form-control">
+                        <small class="text-muted">Leave empty for no expiration</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -441,7 +665,10 @@
                 </td>
                 <td><code>${p.sku}</code></td>
                 <td>$${parseFloat(p.price).toFixed(2)}</td>
-                <td>${p.sale_price ? '<span class="text-success">$' + parseFloat(p.sale_price).toFixed(2) + '</span>' : '<span class="text-muted">-</span>'}</td>
+                <td>
+                    ${p.sale_price ? '<span class="text-success">$' + parseFloat(p.sale_price).toFixed(2) + '</span>' : '<span class="text-muted">-</span>'}
+                    ${p.discount_starts_at || p.discount_ends_at ? '<br><small class="text-info">' + formatDiscountDates(p.discount_starts_at, p.discount_ends_at, p.is_on_sale) + '</small>' : ''}
+                </td>
             </tr>
         `).join('');
     }
@@ -512,6 +739,173 @@
     document.querySelector('#removeDiscountModal select[name="apply_to"]').addEventListener('change', function() {
         document.getElementById('removeCategorySelect').style.display = this.value === 'category' ? 'block' : 'none';
     });
+
+    // Format discount dates for display
+    function formatDiscountDates(startsAt, endsAt, isOnSale) {
+        if (!startsAt && !endsAt) return '';
+        
+        const startDate = startsAt ? new Date(startsAt) : null;
+        const endDate = endsAt ? new Date(endsAt) : null;
+        
+        let status = '';
+        if (!isOnSale && startDate && new Date() < startDate) {
+            status = '<span class="badge bg-warning text-dark">Scheduled</span> ';
+        } else if (!isOnSale && endDate && new Date() > endDate) {
+            status = '<span class="badge bg-secondary">Expired</span> ';
+        } else if (isOnSale) {
+            status = '<span class="badge bg-success">Active</span> ';
+        }
+        
+        if (startDate && endDate) {
+            return status + formatDate(startDate) + ' - ' + formatDate(endDate);
+        } else if (startDate) {
+            return status + 'From ' + formatDate(startDate);
+        } else if (endDate) {
+            return status + 'Until ' + formatDate(endDate);
+        }
+        return status;
+    }
+    
+    function formatDate(date) {
+        return date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    // Filter discounts by status
+    function filterDiscounts() {
+        const filter = document.getElementById('discountStatusFilter').value;
+        const rows = document.querySelectorAll('#discountListBody tr[data-status]');
+        
+        rows.forEach(row => {
+            if (filter === 'all' || row.dataset.status === filter) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // Edit discount
+    function editDiscount(productId) {
+        // Find product data from the table
+        const row = document.querySelector(`tr[data-id="${productId}"]`) || 
+                    document.querySelector(`button[onclick="editDiscount(${productId})"]`).closest('tr');
+        
+        if (!row) {
+            // Fetch product data via AJAX if not found in table
+            fetch(`{{ route('admin.products.bulk-discount.products') }}?search=${productId}`)
+                .then(res => res.json())
+                .then(data => {
+                    const product = data.products.find(p => p.id === productId);
+                    if (product) {
+                        populateEditModal(product);
+                    }
+                });
+        } else {
+            // Get data from row
+            const cells = row.cells;
+            document.getElementById('editProductId').value = productId;
+            document.getElementById('editProductName').value = cells[0].querySelector('.fw-medium')?.textContent || '';
+            document.getElementById('editRegularPrice').value = cells[2].textContent.replace(/[^\d.]/g, '');
+            document.getElementById('editSalePrice').value = cells[3].textContent.replace(/[^\d.]/g, '');
+            
+            // Parse dates from the validity period column
+            const validityCell = cells[5];
+            const startDateInput = document.getElementById('editStartDate');
+            const endDateInput = document.getElementById('editEndDate');
+            
+            // Reset dates
+            startDateInput.value = '';
+            endDateInput.value = '';
+        }
+        
+        new bootstrap.Modal(document.getElementById('editDiscountModal')).show();
+    }
+
+    function populateEditModal(product) {
+        document.getElementById('editProductId').value = product.id;
+        document.getElementById('editProductName').value = product.name;
+        document.getElementById('editRegularPrice').value = product.price;
+        document.getElementById('editSalePrice').value = product.sale_price || '';
+        
+        // Format dates for datetime-local input
+        if (product.discount_starts_at) {
+            document.getElementById('editStartDate').value = product.discount_starts_at.slice(0, 16);
+        }
+        if (product.discount_ends_at) {
+            document.getElementById('editEndDate').value = product.discount_ends_at.slice(0, 16);
+        }
+        
+        new bootstrap.Modal(document.getElementById('editDiscountModal')).show();
+    }
+
+    // Handle edit discount form submission
+    document.getElementById('editDiscountForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const productId = document.getElementById('editProductId').value;
+        const salePrice = document.getElementById('editSalePrice').value;
+        const startDate = document.getElementById('editStartDate').value;
+        const endDate = document.getElementById('editEndDate').value;
+        
+        fetch(`{{ url('admin/products') }}/${productId}/discount`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                sale_price: salePrice,
+                discount_starts_at: startDate || null,
+                discount_ends_at: endDate || null
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('editDiscountModal')).hide();
+                location.reload(); // Reload to show updated data
+            } else {
+                alert('Error: ' + (data.message || 'Failed to update discount'));
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('An error occurred while updating the discount');
+        });
+    });
+
+    // Remove single product discount
+    function removeSingleDiscount(productId) {
+        if (!confirm('Are you sure you want to remove the discount from this product?')) {
+            return;
+        }
+        
+        fetch(`{{ url('admin/products') }}/${productId}/discount`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // Reload to show updated data
+            } else {
+                alert('Error: ' + (data.message || 'Failed to remove discount'));
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('An error occurred while removing the discount');
+        });
+    }
 
     // Load initial statistics
     fetch('{{ route('admin.products.bulk-discount.products') }}')

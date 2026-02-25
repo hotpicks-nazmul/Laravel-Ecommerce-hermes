@@ -14,6 +14,9 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 6. **Search & Filter Functionality** - Live search, filters, AJAX updates
 7. **Bulk Actions** - Selection management and bulk operations
 8. **Statistics Cards** - Summary statistics display for listing pages
+9. **Important Implementation Rule** - Admin Panel + Frontend Integration Rule
+10. **Route Conflict Prevention** - Avoid placeholder routes conflicting with actual implementations
+11. **Sidebar Navigation State** - Keep menu expanded when child item is active
 
 ---
 
@@ -573,3 +576,130 @@ Display summary statistics at the top of listing pages:
 ---
 
 *Last updated: February 2026*
+
+---
+
+## Important Implementation Rule
+
+**Admin Panel + Frontend Integration Rule:**
+
+When implementing any admin panel functionality that affects the frontend display or user experience, ALWAYS implement the corresponding frontend adjustments as well. This includes but is not limited to:
+
+1. **Product-related features** (attributes, colors, variants) - Must be displayed on product detail page and work with cart/checkout
+2. **Category/Brand management** - Must be reflected in frontend filters and navigation
+3. **Banner/Slider management** - Must display correctly on homepage
+4. **Settings changes** - Must reflect in frontend layout, colors, logos, etc.
+5. **SEO/Meta settings** - Must be applied to frontend pages
+6. **Payment/Shipping settings** - Must work with frontend checkout process
+
+**Rule:** `Admin Panel Functionality = Backend + Frontend Implementation`
+
+Always ask: "Does this admin feature need frontend display or interaction?" If yes, implement both sides.
+
+---
+
+## Route Conflict Prevention
+
+### Problem: Placeholder Routes vs Actual Implementation
+
+When implementing new features, there may be placeholder routes in `routes/admin.php` that show "under development" messages. These placeholder routes can conflict with actual implementations.
+
+**Example Issue:**
+- Placeholder route: `admin/related-products` → Shows "under development" message
+- Actual implementation: `admin/products/{product}/related` → Full functionality
+
+**What Happens:**
+- User clicks a menu item linking to the placeholder route
+- User sees "This feature is currently under development" instead of the actual implementation
+- Confusion ensues because the actual feature exists at a different URL
+
+### Solution
+
+1. **Check for placeholder routes** before implementing new features:
+   ```bash
+   php artisan route:list --name=feature-name
+   ```
+
+2. **Remove or update placeholder routes** when implementing the actual feature:
+   - Delete placeholder routes from `routes/admin.php`
+   - Ensure menu links point to the correct implementation URLs
+
+3. **Use consistent route naming**:
+   - Good: `admin.products.related` (nested under products)
+   - Avoid: `admin.related-products` (separate top-level route)
+
+4. **Clear route cache after changes**:
+   ```bash
+   php artisan route:clear
+   ```
+
+### Prevention Checklist
+
+When implementing a new feature:
+- [ ] Search for existing placeholder routes with similar names
+- [ ] Remove any conflicting placeholder routes
+- [ ] Update sidebar menu links to point to correct URLs
+- [ ] Clear route cache after deployment
+
+---
+
+## Sidebar Navigation State
+
+### Problem: Menu Collapses When Clicking Child Items
+
+When a user clicks on a submenu item, the parent menu category collapses, causing the user to lose track of where they are in the navigation hierarchy.
+
+**Why This Happens:**
+- The menu uses Bootstrap collapse which toggles on click
+- The `aria-expanded` state is not properly maintained across page navigation
+- The page reloads and the menu state resets
+
+### Solution: Keep Parent Menu Expanded for Active Routes
+
+The sidebar menu should automatically expand and highlight the parent category when a child route is active.
+
+**Implementation in `layouts/app.blade.php`:**
+
+```html
+<!-- Menu Category with proper active state detection -->
+<div class="menu-category">
+    <a class="menu-category-header {{ request()->routeIs('admin.products.*') ? 'active' : '' }}" 
+       data-bs-toggle="collapse" 
+       href="#menuProducts" 
+       role="button" 
+       aria-expanded="{{ request()->routeIs('admin.products.*') ? 'true' : 'false' }}">
+        <div>
+            <i class="bi bi-box menu-icon"></i>
+            <span class="menu-category-title">Products</span>
+        </div>
+        <i class="bi bi-chevron-down arrow"></i>
+    </a>
+    <div class="collapse {{ request()->routeIs('admin.products.*') ? 'show' : '' }}" id="menuProducts">
+        <!-- Submenu items -->
+    </div>
+</div>
+```
+
+### Key Points
+
+1. **`aria-expanded`**: Set to `'true'` when any child route is active
+2. **`.show` class**: Add to collapse div to keep it expanded
+3. **`.active` class**: Add to header for visual feedback
+4. **`request()->routeIs('admin.products.*')`**: Matches all routes starting with `admin.products.`
+
+### Route Naming Convention for Menu State
+
+Use consistent route naming to make menu state detection easier:
+
+| Feature | Route Name Pattern | Menu Detection |
+|---------|-------------------|----------------|
+| Products | `admin.products.*` | `routeIs('admin.products.*')` |
+| Orders | `admin.orders.*` | `routeIs('admin.orders.*')` |
+| Categories | `admin.categories.*` | `routeIs('admin.categories.*')` |
+| Settings | `admin.settings.*` | `routeIs('admin.settings.*')` |
+
+### Common Issues
+
+1. **Menu collapses after clicking**: Ensure `aria-expanded` and `.show` class are set based on active route
+2. **Wrong menu highlighted**: Check route naming matches the pattern in `routeIs()`
+3. **Multiple menus expanded**: Each menu should have unique detection logic

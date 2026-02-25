@@ -60,6 +60,17 @@ Route::get('/products/bulk-discount', [ProductController::class, 'bulkDiscount']
 Route::post('/products/bulk-discount', [ProductController::class, 'applyBulkDiscount'])->name('products.bulk-discount.apply');
 Route::post('/products/bulk-discount/remove', [ProductController::class, 'removeBulkDiscount'])->name('products.bulk-discount.remove');
 Route::get('/products/bulk-discount/products', [ProductController::class, 'getProductsForSelection'])->name('products.bulk-discount.products');
+Route::put('/products/{product}/discount', [ProductController::class, 'updateProductDiscount'])->name('products.discount.update');
+Route::delete('/products/{product}/discount', [ProductController::class, 'removeProductDiscount'])->name('products.discount.remove');
+
+// Related Products Management
+Route::get('/products/{product}/related', [ProductController::class, 'relatedProducts'])->name('products.related');
+Route::get('/products/{product}/related/search', [ProductController::class, 'searchRelatedProducts'])->name('products.related.search');
+Route::post('/products/{product}/related', [ProductController::class, 'addRelatedProducts'])->name('products.related.add');
+Route::delete('/products/{product}/related/{relatedId}', [ProductController::class, 'removeRelatedProduct'])->name('products.related.remove');
+Route::post('/products/{product}/related/order', [ProductController::class, 'updateRelatedProductsOrder'])->name('products.related.order');
+Route::post('/products/{product}/related/bulk-remove', [ProductController::class, 'bulkRemoveRelatedProducts'])->name('products.related.bulk-remove');
+Route::get('/products/{product}/related/auto-suggest', [ProductController::class, 'autoSuggestRelatedProducts'])->name('products.related.auto-suggest');
 
 // Digital Products Management (must be before resource routes)
 Route::prefix('products/digital')->name('products.digital.')->group(function () {
@@ -309,39 +320,47 @@ Route::post('/backup/restore', [SettingController::class, 'restoreBackup'])->nam
 | when implementing each feature.
 */
 
-// Products - Additional Routes
-Route::get('/brands', [CategoryController::class, 'brands'])->name('brands.index');
-Route::get('/attributes', [ProductController::class, 'attributes'])->name('attributes.index');
-Route::get('/colors', [ProductController::class, 'colors'])->name('colors.index');
+// Attributes Management
+Route::resource('attributes', \App\Http\Controllers\Admin\AttributeController::class);
+Route::post('/attributes/{attribute}/toggle-status', [\App\Http\Controllers\Admin\AttributeController::class, 'toggleStatus'])->name('attributes.toggle-status');
+Route::post('/attributes/{attribute}/toggle-filterable', [\App\Http\Controllers\Admin\AttributeController::class, 'toggleFilterable'])->name('attributes.toggle-filterable');
+Route::post('/attributes/bulk-action', [\App\Http\Controllers\Admin\AttributeController::class, 'bulkAction'])->name('attributes.bulk-action');
+Route::get('/attributes-export', [\App\Http\Controllers\Admin\AttributeController::class, 'export'])->name('attributes.export');
+Route::post('/attributes/{attribute}/values', [\App\Http\Controllers\Admin\AttributeController::class, 'storeValue'])->name('attributes.values.store');
+Route::put('/attributes/{attribute}/values/{value}', [\App\Http\Controllers\Admin\AttributeController::class, 'updateValue'])->name('attributes.values.update');
+Route::delete('/attributes/{attribute}/values/{value}', [\App\Http\Controllers\Admin\AttributeController::class, 'destroyValue'])->name('attributes.values.destroy');
+Route::post('/attributes/{attribute}/values/{value}/toggle-status', [\App\Http\Controllers\Admin\AttributeController::class, 'toggleValueStatus'])->name('attributes.values.toggle-status');
+Route::get('/attributes/{attribute}/values', [\App\Http\Controllers\Admin\AttributeController::class, 'getValues'])->name('attributes.values.list');
+
+// Colors Management
+Route::resource('colors', \App\Http\Controllers\Admin\ColorController::class);
+Route::post('/colors/{color}/toggle-status', [\App\Http\Controllers\Admin\ColorController::class, 'toggleStatus'])->name('colors.toggle-status');
+Route::post('/colors/bulk-action', [\App\Http\Controllers\Admin\ColorController::class, 'bulkAction'])->name('colors.bulk-action');
+Route::get('/colors-export', [\App\Http\Controllers\Admin\ColorController::class, 'export'])->name('colors.export');
+Route::get('/colors/api/list', [\App\Http\Controllers\Admin\ColorController::class, 'getColors'])->name('colors.api.list');
+
+// Brands Management
+Route::resource('brands', \App\Http\Controllers\Admin\BrandController::class);
+Route::post('/brands/{brand}/toggle-status', [\App\Http\Controllers\Admin\BrandController::class, 'toggleStatus'])->name('brands.toggle-status');
+Route::post('/brands/{brand}/toggle-featured', [\App\Http\Controllers\Admin\BrandController::class, 'toggleFeatured'])->name('brands.toggle-featured');
+Route::post('/brands/bulk-action', [\App\Http\Controllers\Admin\BrandController::class, 'bulkAction'])->name('brands.bulk-action');
+Route::get('/brands-export', [\App\Http\Controllers\Admin\BrandController::class, 'export'])->name('brands.export');
+Route::get('/brands/api/list', [\App\Http\Controllers\Admin\BrandController::class, 'getBrands'])->name('brands.api.list');
 
 // Product Bundles
-Route::prefix('product-bundles')->name('product-bundles.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'productBundles'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\PlaceholderController::class, 'createProductBundle'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeProductBundle'])->name('store');
-    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\PlaceholderController::class, 'editProductBundle'])->name('edit');
-    Route::put('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateProductBundle'])->name('update');
-    Route::delete('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyProductBundle'])->name('destroy');
-});
-
-// Related Products Management
-Route::prefix('related-products')->name('related-products.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'relatedProducts'])->name('index');
-    Route::get('/cross-sells', [\App\Http\Controllers\Admin\PlaceholderController::class, 'crossSells'])->name('cross-sells');
-    Route::get('/up-sells', [\App\Http\Controllers\Admin\PlaceholderController::class, 'upSells'])->name('up-sells');
-    Route::post('/save-rules', [\App\Http\Controllers\Admin\PlaceholderController::class, 'saveRelatedProductsRules'])->name('save-rules');
-});
+Route::resource('product-bundles', \App\Http\Controllers\Admin\ProductBundleController::class);
+Route::post('/product-bundles/{productBundle}/toggle-status', [\App\Http\Controllers\Admin\ProductBundleController::class, 'toggleStatus'])->name('product-bundles.toggle-status');
+Route::post('/product-bundles/{productBundle}/toggle-featured', [\App\Http\Controllers\Admin\ProductBundleController::class, 'toggleFeatured'])->name('product-bundles.toggle-featured');
+Route::post('/product-bundles/bulk-action', [\App\Http\Controllers\Admin\ProductBundleController::class, 'bulkAction'])->name('product-bundles.bulk-action');
+Route::get('/product-bundles-export', [\App\Http\Controllers\Admin\ProductBundleController::class, 'export'])->name('product-bundles.export');
+Route::get('/product-bundles/api/products', [\App\Http\Controllers\Admin\ProductBundleController::class, 'getProducts'])->name('product-bundles.api.products');
 
 // Product Q&A
-Route::prefix('product-qa')->name('product-qa.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'productQA'])->name('index');
-    Route::get('/approved', [\App\Http\Controllers\Admin\PlaceholderController::class, 'approvedQuestions'])->name('approved');
-    Route::get('/pending', [\App\Http\Controllers\Admin\PlaceholderController::class, 'pendingQuestions'])->name('pending');
-    Route::post('/{id}/approve', [\App\Http\Controllers\Admin\PlaceholderController::class, 'approveQuestion'])->name('approve');
-    Route::post('/{id}/answer', [\App\Http\Controllers\Admin\PlaceholderController::class, 'answerQuestion'])->name('answer');
-    Route::delete('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'deleteQuestion'])->name('destroy');
-    Route::get('/templates', [\App\Http\Controllers\Admin\PlaceholderController::class, 'questionTemplates'])->name('templates');
-});
+Route::resource('product-qa', \App\Http\Controllers\Admin\ProductQAController::class);
+Route::post('/product-qa/bulk-action', [\App\Http\Controllers\Admin\ProductQAController::class, 'bulkAction'])->name('product-qa.bulk-action');
+Route::post('/product-qa/{product_qa}/toggle-featured', [\App\Http\Controllers\Admin\ProductQAController::class, 'toggleFeatured'])->name('product-qa.toggle-featured');
+Route::post('/product-qa/{product_qa}/quick-answer', [\App\Http\Controllers\Admin\ProductQAController::class, 'quickAnswer'])->name('product-qa.quick-answer');
+Route::post('/product-qa/{product_qa}/update-status', [\App\Http\Controllers\Admin\ProductQAController::class, 'updateStatus'])->name('product-qa.update-status');
 
 // Wishlist Management
 Route::prefix('wishlist-management')->name('wishlist-management.')->group(function () {

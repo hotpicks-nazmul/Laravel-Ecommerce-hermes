@@ -24,13 +24,18 @@ class Cart extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function addItem($product, $quantity = 1)
+    public function addItem($product, $quantity = 1, $variantData = [])
     {
         $items = $this->items ?? [];
         
+        // Create a unique key for this product variant
+        $variantKey = $this->generateVariantKey($product->id, $variantData);
+        
         $found = false;
         foreach ($items as &$item) {
-            if ($item['product_id'] == $product->id) {
+            // Check if same product with same variant exists
+            $itemVariantKey = $this->generateVariantKey($item['product_id'], $item['variant_data'] ?? []);
+            if ($itemVariantKey === $variantKey) {
                 $item['quantity'] += $quantity;
                 $found = true;
                 break;
@@ -38,17 +43,62 @@ class Cart extends Model
         }
 
         if (!$found) {
-            $items[] = [
+            $newItem = [
                 'product_id' => $product->id,
                 'name' => $product->name,
                 'price' => $product->final_price,
                 'quantity' => $quantity,
                 'image' => $product->featured_image ?? $product->image,
+                'variant_data' => $variantData,
             ];
+            
+            // Add color info to item root for easy access
+            if (isset($variantData['color_id'])) {
+                $newItem['color_id'] = $variantData['color_id'];
+                $newItem['color_name'] = $variantData['color_name'] ?? '';
+                $newItem['color_hex'] = $variantData['color_hex'] ?? '';
+            }
+            
+            // Add price adjustment if exists
+            if (isset($variantData['price_adjustment'])) {
+                $newItem['price_adjustment'] = $variantData['price_adjustment'];
+            }
+            
+            // Add color-specific image if exists
+            if (isset($variantData['image'])) {
+                $newItem['image'] = $variantData['image'];
+            }
+            
+            // Add attributes info
+            if (isset($variantData['attributes'])) {
+                $newItem['attributes'] = $variantData['attributes'];
+            }
+            
+            $items[] = $newItem;
         }
 
         $this->items = $items;
         $this->save();
+    }
+    
+    /**
+     * Generate a unique key for a product variant.
+     */
+    protected function generateVariantKey($productId, $variantData)
+    {
+        $key = 'product_' . $productId;
+        
+        if (isset($variantData['color_id'])) {
+            $key .= '_color_' . $variantData['color_id'];
+        }
+        
+        if (isset($variantData['attributes']) && is_array($variantData['attributes'])) {
+            $attrIds = array_column($variantData['attributes'], 'value_id');
+            sort($attrIds);
+            $key .= '_attrs_' . implode('_', $attrIds);
+        }
+        
+        return $key;
     }
 
     public function updateItem($productId, $quantity)
@@ -88,7 +138,12 @@ class Cart extends Model
     {
         $items = $this->items ?? [];
         return array_sum(array_map(function ($item) {
-            return $item['price'] * $item['quantity'];
+            $price = $item['price'];
+            // Add price adjustment if exists
+            if (isset($item['price_adjustment'])) {
+                $price += $item['price_adjustment'];
+            }
+            return $price * $item['quantity'];
         }, $items));
     }
 

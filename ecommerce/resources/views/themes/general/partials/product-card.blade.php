@@ -102,8 +102,8 @@
         <!-- Price -->
         <div class="mt-3 flex items-center justify-between">
             <div>
-                @if(($product->discount_percent ?? 0) > 0)
-                    <span class="text-lg font-bold text-halal-green">৳{{ number_format($product->sale_price ?? $product->price) }}</span>
+                @if($product->isOnSale())
+                    <span class="text-lg font-bold text-halal-green">৳{{ number_format($product->sale_price) }}</span>
                     <span class="text-sm text-gray-400 line-through ml-1">৳{{ number_format($product->price) }}</span>
                 @else
                     <span class="text-lg font-bold text-halal-green">৳{{ number_format($product->price) }}</span>

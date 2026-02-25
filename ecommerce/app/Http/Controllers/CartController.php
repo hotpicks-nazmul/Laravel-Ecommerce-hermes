@@ -26,20 +26,71 @@ class CartController extends Controller
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'integer|min:1|max:10',
+            'color_id' => 'nullable|exists:colors,id',
+            'attributes' => 'nullable|array',
         ]);
 
         $product = Product::findOrFail($request->product_id);
         $quantity = $request->quantity ?? 1;
 
-        if ($product->stock < $quantity) {
+        // Check stock - consider color-specific stock if applicable
+        $availableStock = $product->quantity;
+        if ($request->color_id) {
+            $colorPivot = $product->colors()->where('color_id', $request->color_id)->first();
+            if ($colorPivot && $colorPivot->pivot->quantity !== null) {
+                $availableStock = $colorPivot->pivot->quantity;
+            }
+        }
+
+        if ($availableStock < $quantity) {
             return response()->json([
                 'success' => false,
                 'message' => 'Insufficient stock available.'
             ], 400);
         }
 
+        // Prepare variant data
+        $variantData = [];
+        
+        // Add color info
+        if ($request->color_id) {
+            $color = \App\Models\Color::find($request->color_id);
+            if ($color) {
+                $variantData['color_id'] = $color->id;
+                $variantData['color_name'] = $color->name;
+                $variantData['color_hex'] = $color->hex_code;
+                
+                // Check for color-specific price adjustment
+                $colorPivot = $product->colors()->where('color_id', $request->color_id)->first();
+                if ($colorPivot && $colorPivot->pivot->price_adjustment) {
+                    $variantData['price_adjustment'] = $colorPivot->pivot->price_adjustment;
+                }
+                
+                // Check for color-specific image
+                if ($colorPivot && $colorPivot->pivot->image) {
+                    $variantData['image'] = $colorPivot->pivot->image;
+                }
+            }
+        }
+        
+        // Add attribute info
+        if ($request->attributes && is_array($request->attributes)) {
+            $variantData['attributes'] = [];
+            foreach ($request->attributes as $key => $valueId) {
+                $attributeValue = \App\Models\AttributeValue::with('attribute')->find($valueId);
+                if ($attributeValue) {
+                    $variantData['attributes'][] = [
+                        'attribute_id' => $attributeValue->attribute_id,
+                        'attribute_name' => $attributeValue->attribute->name ?? '',
+                        'value_id' => $attributeValue->id,
+                        'value' => $attributeValue->value,
+                    ];
+                }
+            }
+        }
+
         $cart = $this->getCart();
-        $cart->addItem($product, $quantity);
+        $cart->addItem($product, $quantity, $variantData);
         
         // Save session to ensure cart_id is persisted
         session()->save();
@@ -52,6 +103,12 @@ class CartController extends Controller
                 $productItem = Product::find($productId);
                 if ($productItem) {
                     $price = $item['price'] ?? ($productItem->sale_price ?? $productItem->price);
+                    
+                    // Apply price adjustment if exists
+                    if (isset($item['price_adjustment'])) {
+                        $price += $item['price_adjustment'];
+                    }
+                    
                     $imagePath = $item['image'] ?? $productItem->featured_image ?? $productItem->image;
                     
                     // Build proper image URL
@@ -68,6 +125,17 @@ class CartController extends Controller
                         }
                     }
                     
+                    // Build variant description
+                    $variantDesc = [];
+                    if (isset($item['color_name'])) {
+                        $variantDesc[] = 'Color: ' . $item['color_name'];
+                    }
+                    if (isset($item['attributes']) && is_array($item['attributes'])) {
+                        foreach ($item['attributes'] as $attr) {
+                            $variantDesc[] = $attr['attribute_name'] . ': ' . $attr['value'];
+                        }
+                    }
+                    
                     $items[] = [
                         'id' => $index,
                         'product_id' => $productId,
@@ -75,6 +143,8 @@ class CartController extends Controller
                         'price' => $price,
                         'image' => $imageUrl,
                         'quantity' => $item['quantity'] ?? 1,
+                        'variant' => implode(', ', $variantDesc),
+                        'variant_data' => $item['variant_data'] ?? null,
                     ];
                 }
             }

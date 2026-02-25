@@ -260,6 +260,48 @@
                             </label>
                         </div>
                     </div>
+                    
+                    <!-- Related Products Quick Access -->
+                    <div class="mb-3">
+                        <label class="form-label">Related Products</label>
+                        <div class="card border">
+                            <div class="card-body py-2">
+                                @php
+                                    $relatedProducts = $product->relatedProducts()->limit(5)->get();
+                                    $relatedCount = $product->relatedProducts()->count();
+                                @endphp
+                                @if($relatedCount > 0)
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge bg-primary me-2">{{ $relatedCount }}</span>
+                                        <span class="small text-muted">related product(s)</span>
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-1 mb-2">
+                                        @foreach($relatedProducts as $rel)
+                                            @php
+                                                $relImages = is_string($rel->images) ? json_decode($rel->images, true) : $rel->images;
+                                                $relImage = $rel->featured_image ?? ($relImages[0] ?? null);
+                                            @endphp
+                                            <img src="{{ $relImage ?? asset('images/placeholder.png') }}" 
+                                                 alt="{{ $rel->name }}" 
+                                                 class="rounded" 
+                                                 style="width: 40px; height: 40px; object-fit: cover;"
+                                                 title="{{ $rel->name }}">
+                                        @endforeach
+                                        @if($relatedCount > 5)
+                                            <span class="badge bg-light text-dark" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                                +{{ $relatedCount - 5 }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                @else
+                                    <p class="text-muted small mb-2">No related products added yet.</p>
+                                @endif
+                                <a href="{{ route('admin.products.related', $product->id) }}" class="btn btn-sm btn-outline-primary w-100">
+                                    <i class="bi bi-diagram-3 me-1"></i> Manage Related Products
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </form>

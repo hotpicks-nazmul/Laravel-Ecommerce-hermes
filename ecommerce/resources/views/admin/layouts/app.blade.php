@@ -530,14 +530,14 @@
             
             <!-- PRODUCTS -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuProducts" role="button" aria-expanded="{{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlist-management.*') || request()->routeIs('admin.inventory.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuProducts" role="button" aria-expanded="{{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlist-management.*') || request()->routeIs('admin.inventory.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-box-seam menu-icon"></i>
                         <span class="menu-category-title">Products</span>
                     </div>
                     <i class="bi bi-chevron-down arrow"></i>
                 </a>
-                <div class="collapse {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') ? 'show' : '' }}" id="menuProducts">
+                <div class="collapse {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlist-management.*') || request()->routeIs('admin.inventory.*') ? 'show' : '' }}" id="menuProducts">
                     <ul class="nav flex-column submenu">
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.products.create') ? 'active' : '' }}" href="{{ route('admin.products.create') }}">
@@ -605,16 +605,6 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.product-bundles.*') ? 'active' : '' }}" href="{{ route('admin.product-bundles.index') }}">
-                                <i class="bi bi-boxes"></i> Product Bundles
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.related-products.*') ? 'active' : '' }}" href="{{ route('admin.related-products.index') }}">
-                                <i class="bi bi-diagram-3"></i> Related Products
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.product-qa.*') ? 'active' : '' }}" href="{{ route('admin.product-qa.index') }}">
                                 <i class="bi bi-question-circle"></i> Product Q&A
                             </a>
@@ -635,14 +625,14 @@
             
             <!-- SALES -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuSales" role="button" aria-expanded="{{ request()->routeIs('admin.orders.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.quotations.*') || request()->routeIs('admin.subscriptions.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuSales" role="button" aria-expanded="{{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.quotations.*') || request()->routeIs('admin.subscriptions.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-cart-check menu-icon"></i>
                         <span class="menu-category-title">Sales</span>
                     </div>
                     <i class="bi bi-chevron-down arrow"></i>
                 </a>
-                <div class="collapse {{ request()->routeIs('admin.orders.*') ? 'show' : '' }}" id="menuSales">
+                <div class="collapse {{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.quotations.*') || request()->routeIs('admin.subscriptions.*') ? 'show' : '' }}" id="menuSales">
                     <ul class="nav flex-column submenu">
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.orders.index') ? 'active' : '' }}" href="{{ route('admin.orders.index') }}">
@@ -680,7 +670,7 @@
             
             <!-- DELIVERY -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuDelivery" role="button" aria-expanded="{{ request()->routeIs('admin.delivery.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.delivery.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuDelivery" role="button" aria-expanded="{{ request()->routeIs('admin.delivery.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-truck menu-icon"></i>
                         <span class="menu-category-title">Delivery</span>
@@ -745,7 +735,7 @@
             
             <!-- REFUND -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuRefund" role="button" aria-expanded="{{ request()->routeIs('admin.refunds.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.refunds.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuRefund" role="button" aria-expanded="{{ request()->routeIs('admin.refunds.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-arrow-return-left menu-icon"></i>
                         <span class="menu-category-title">Refund</span>
@@ -780,14 +770,14 @@
             
             <!-- CUSTOMERS -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuCustomers" role="button" aria-expanded="{{ request()->routeIs('admin.customers.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.customers.*') || request()->routeIs('admin.customers.groups.*') || request()->routeIs('admin.customers.segmentation.*') || request()->routeIs('admin.customers.loyalty.*') || request()->routeIs('admin.customers.membership.*') || request()->routeIs('admin.customers.wallet.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuCustomers" role="button" aria-expanded="{{ request()->routeIs('admin.customers.*') || request()->routeIs('admin.customers.groups.*') || request()->routeIs('admin.customers.segmentation.*') || request()->routeIs('admin.customers.loyalty.*') || request()->routeIs('admin.customers.membership.*') || request()->routeIs('admin.customers.wallet.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-people menu-icon"></i>
                         <span class="menu-category-title">Customers</span>
                     </div>
                     <i class="bi bi-chevron-down arrow"></i>
                 </a>
-                <div class="collapse {{ request()->routeIs('admin.customers.*') ? 'show' : '' }}" id="menuCustomers">
+                <div class="collapse {{ request()->routeIs('admin.customers.*') || request()->routeIs('admin.customers.groups.*') || request()->routeIs('admin.customers.segmentation.*') || request()->routeIs('admin.customers.loyalty.*') || request()->routeIs('admin.customers.membership.*') || request()->routeIs('admin.customers.wallet.*') ? 'show' : '' }}" id="menuCustomers">
                     <ul class="nav flex-column submenu">
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.customers.index') ? 'active' : '' }}" href="{{ route('admin.customers.index') }}">
@@ -825,7 +815,7 @@
             
             <!-- SELLERS (B2B) -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuSellers" role="button" aria-expanded="{{ request()->routeIs('admin.sellers.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.sellers.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuSellers" role="button" aria-expanded="{{ request()->routeIs('admin.sellers.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-shop-window menu-icon"></i>
                         <span class="menu-category-title">Sellers (B2B)</span>
@@ -865,7 +855,7 @@
             
             <!-- AFFILIATE -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuAffiliate" role="button" aria-expanded="{{ request()->routeIs('admin.affiliate.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.affiliate.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuAffiliate" role="button" aria-expanded="{{ request()->routeIs('admin.affiliate.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-link-45deg menu-icon"></i>
                         <span class="menu-category-title">Affiliate</span>
@@ -941,7 +931,7 @@
             
             <!-- REPORTS -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuReports" role="button" aria-expanded="{{ request()->routeIs('admin.reports.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuReports" role="button" aria-expanded="{{ request()->routeIs('admin.reports.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-graph-up menu-icon"></i>
                         <span class="menu-category-title">Reports</span>
@@ -991,7 +981,7 @@
             
             <!-- MARKETING -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuMarketing" role="button" aria-expanded="{{ request()->routeIs('admin.marketing.*') || request()->routeIs('admin.coupons.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.marketing.*') || request()->routeIs('admin.coupons.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuMarketing" role="button" aria-expanded="{{ request()->routeIs('admin.marketing.*') || request()->routeIs('admin.coupons.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-megaphone menu-icon"></i>
                         <span class="menu-category-title">Marketing</span>
@@ -1051,7 +1041,7 @@
             
             <!-- SUPPORT -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuSupport" role="button" aria-expanded="{{ request()->routeIs('admin.support.*') || request()->routeIs('admin.chat.*') || request()->routeIs('admin.settings.whatsapp') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.support.*') || request()->routeIs('admin.chat.*') || request()->routeIs('admin.settings.whatsapp') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuSupport" role="button" aria-expanded="{{ request()->routeIs('admin.support.*') || request()->routeIs('admin.chat.*') || request()->routeIs('admin.settings.whatsapp') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-headset menu-icon"></i>
                         <span class="menu-category-title">Support</span>
@@ -1086,7 +1076,7 @@
             
             <!-- OTP SYSTEM -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuOtp" role="button" aria-expanded="{{ request()->routeIs('admin.otp.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.otp.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuOtp" role="button" aria-expanded="{{ request()->routeIs('admin.otp.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-shield-lock menu-icon"></i>
                         <span class="menu-category-title">OTP System</span>
@@ -1116,14 +1106,14 @@
             
             <!-- CONTENT -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuContent" role="button" aria-expanded="{{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.form-builder.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuContent" role="button" aria-expanded="{{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-file-earmark-text menu-icon"></i>
                         <span class="menu-category-title">Content</span>
                     </div>
                     <i class="bi bi-chevron-down arrow"></i>
                 </a>
-                <div class="collapse {{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.form-builder.*') ? 'show' : '' }}" id="menuContent">
+                <div class="collapse {{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') ? 'show' : '' }}" id="menuContent">
                     <ul class="nav flex-column submenu">
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}" href="{{ route('admin.pages.index') }}">
@@ -1161,7 +1151,7 @@
             
             <!-- APPEARANCE -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuAppearance" role="button" aria-expanded="{{ request()->routeIs('admin.themes.*') || request()->routeIs('admin.hero.*') || request()->routeIs('admin.homepage.*') || request()->routeIs('admin.sliders.*') || request()->routeIs('admin.banners.*') || request()->routeIs('admin.menus.*') || request()->routeIs('admin.widgets.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.themes.*') || request()->routeIs('admin.hero.*') || request()->routeIs('admin.homepage.*') || request()->routeIs('admin.sliders.*') || request()->routeIs('admin.banners.*') || request()->routeIs('admin.menus.*') || request()->routeIs('admin.widgets.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuAppearance" role="button" aria-expanded="{{ request()->routeIs('admin.themes.*') || request()->routeIs('admin.hero.*') || request()->routeIs('admin.homepage.*') || request()->routeIs('admin.sliders.*') || request()->routeIs('admin.banners.*') || request()->routeIs('admin.menus.*') || request()->routeIs('admin.widgets.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-palette2 menu-icon"></i>
                         <span class="menu-category-title">Appearance</span>
@@ -1211,7 +1201,7 @@
             
             <!-- SETTINGS -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuSettings" role="button" aria-expanded="{{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.payment.*') || request()->routeIs('admin.payment-gateways.*') || request()->routeIs('admin.seo.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.payment.*') || request()->routeIs('admin.payment-gateways.*') || request()->routeIs('admin.seo.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuSettings" role="button" aria-expanded="{{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.payment.*') || request()->routeIs('admin.payment-gateways.*') || request()->routeIs('admin.seo.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-gear-fill menu-icon"></i>
                         <span class="menu-category-title">Settings</span>
@@ -1326,7 +1316,7 @@
             
             <!-- WAREHOUSE -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuWarehouse" role="button" aria-expanded="{{ request()->routeIs('admin.warehouses.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuWarehouse" role="button" aria-expanded="{{ request()->routeIs('admin.warehouses.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-building menu-icon"></i>
                         <span class="menu-category-title">Warehouse</span>
@@ -1351,7 +1341,7 @@
             
             <!-- STAFFS -->
             <div class="menu-category">
-                <a class="menu-category-header" data-bs-toggle="collapse" href="#menuStaffs" role="button" aria-expanded="{{ request()->routeIs('admin.staffs.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.staffs.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuStaffs" role="button" aria-expanded="{{ request()->routeIs('admin.staffs.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-person-badge menu-icon"></i>
                         <span class="menu-category-title">Staffs</span>
@@ -1603,17 +1593,19 @@
             const sidebarMenu = document.querySelector('.sidebar-menu');
             const savedPosition = sessionStorage.getItem('sidebarScrollPosition');
             
+            // Restore saved scroll position if available
             if (sidebarMenu && savedPosition) {
                 sidebarMenu.scrollTop = parseInt(savedPosition);
-            }
-            
-            // Scroll active menu item into view
-            const activeLink = document.querySelector('.submenu .nav-link.active, .menu-category-header.active');
-            if (activeLink) {
-                // Small delay to ensure DOM is ready
-                setTimeout(function() {
-                    activeLink.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 100);
+            } else {
+                // Only scroll to active link if no saved position exists
+                // This preserves the user's clicked position
+                const activeLink = document.querySelector('.submenu .nav-link.active, .menu-category-header.active');
+                if (activeLink) {
+                    // Small delay to ensure DOM is ready
+                    setTimeout(function() {
+                        activeLink.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                }
             }
         });
         

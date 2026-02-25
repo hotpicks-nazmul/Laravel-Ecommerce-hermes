@@ -33,6 +33,23 @@ class Review extends Model
         return $this->status === 'approved';
     }
 
+    /**
+     * Check if this is a verified purchase.
+     */
+    public function getVerifiedPurchaseAttribute()
+    {
+        if (!$this->user_id) {
+            return false;
+        }
+
+        return \App\Models\Order::where('user_id', $this->user_id)
+            ->whereHas('items', function ($q) {
+                $q->where('product_id', $this->product_id);
+            })
+            ->where('status', 'delivered')
+            ->exists();
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -64,6 +64,13 @@ Route::prefix('products')->name('products.')->group(function () {
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/categories/{slug}', [CategoryController::class, 'show'])->name('categories.show');
 
+// Bundle Routes
+Route::prefix('bundles')->name('bundles.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Frontend\BundleController::class, 'index'])->name('index');
+    Route::get('/{slug}', [\App\Http\Controllers\Frontend\BundleController::class, 'show'])->name('show');
+    Route::post('/add-to-cart/{id}', [\App\Http\Controllers\Frontend\BundleController::class, 'addToCart'])->name('add-to-cart');
+});
+
 // Cart Routes
 Route::prefix('cart')->name('cart.')->group(function () {
     Route::get('/', [CartController::class, 'index'])->name('index');
@@ -108,6 +115,12 @@ Route::prefix('reviews')->name('reviews.')->middleware('auth')->group(function (
     Route::put('/{review}', [ReviewController::class, 'update'])->name('update');
     Route::delete('/{review}', [ReviewController::class, 'destroy'])->name('destroy');
     Route::post('/{review}/vote', [ReviewController::class, 'vote'])->name('vote');
+});
+
+// Product Q&A Routes
+Route::prefix('product-qa')->name('product-qa.')->group(function () {
+    Route::post('/', [\App\Http\Controllers\Frontend\ProductQAController::class, 'store'])->name('store');
+    Route::post('/{product_qa}/vote', [\App\Http\Controllers\Frontend\ProductQAController::class, 'vote'])->name('vote');
 });
 
 // Chat Routes

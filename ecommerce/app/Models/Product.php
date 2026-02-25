@@ -12,6 +12,7 @@ class Product extends Model
 
     protected $fillable = [
         'category_id',
+        'brand_id',
         'name',
         'slug',
         'sku',
@@ -22,6 +23,8 @@ class Product extends Model
         'long_description',
         'price',
         'sale_price',
+        'discount_starts_at',
+        'discount_ends_at',
         'cost_price',
         'purchase_price',
         'quantity',
@@ -84,6 +87,8 @@ class Product extends Model
         'weight' => 'decimal:2',
         'stock_update_date' => 'date',
         'approved_at' => 'datetime',
+        'discount_starts_at' => 'datetime',
+        'discount_ends_at' => 'datetime',
     ];
 
     /**
@@ -92,6 +97,14 @@ class Product extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Get the brand of the product.
+     */
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class);
     }
 
     /**
@@ -158,14 +171,50 @@ class Product extends Model
         return $this->licenseKeys()->available();
     }
 
+    /**
+     * Get attribute values for this product.
+     */
+    public function attributeValues()
+    {
+        return $this->belongsToMany(AttributeValue::class, 'product_attribute_values')
+            ->withPivot('attribute_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get colors for this product.
+     */
+    public function colors()
+    {
+        return $this->belongsToMany(Color::class, 'product_colors')
+            ->withPivot(['image', 'quantity', 'price_adjustment', 'sku'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get Q&A entries for this product.
+     */
+    public function qa()
+    {
+        return $this->hasMany(ProductQA::class, 'product_id');
+    }
+
+    /**
+     * Get published Q&A entries for this product.
+     */
+    public function publishedQA()
+    {
+        return $this->qa()->where('status', 'published');
+    }
+
     public function getFinalPriceAttribute()
     {
-        return $this->sale_price ?? $this->price;
+        return $this->isOnSale() ? $this->sale_price : $this->price;
     }
 
     public function getDiscountPercentageAttribute()
     {
-        if ($this->sale_price && $this->price > 0) {
+        if ($this->isOnSale() && $this->price > 0) {
             return round((($this->price - $this->sale_price) / $this->price) * 100);
         }
         return 0;
@@ -423,7 +472,7 @@ class Product extends Model
      */
     public function getDiscountPercentAttribute()
     {
-        if ($this->sale_price && $this->price > 0) {
+        if ($this->isOnSale() && $this->price > 0) {
             return round((($this->price - $this->sale_price) / $this->price) * 100);
         }
         return 0;
@@ -442,7 +491,57 @@ class Product extends Model
      */
     public function isOnSale()
     {
-        return $this->sale_price && $this->sale_price < $this->price;
+        // First check if there's a sale price
+        if (!$this->sale_price || $this->sale_price >= $this->price) {
+            return false;
+        }
+        
+        // If no date restrictions, sale is active
+        if (!$this->discount_starts_at && !$this->discount_ends_at) {
+            return true;
+        }
+        
+        $now = now();
+        
+        // Check if sale has started
+        if ($this->discount_starts_at && $now->lt($this->discount_starts_at)) {
+            return false;
+        }
+        
+        // Check if sale has ended
+        if ($this->discount_ends_at && $now->gt($this->discount_ends_at)) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Check if discount is scheduled (not yet active).
+     */
+    public function isDiscountScheduled()
+    {
+        return $this->sale_price 
+            && $this->discount_starts_at 
+            && now()->lt($this->discount_starts_at);
+    }
+    
+    /**
+     * Check if discount has expired.
+     */
+    public function isDiscountExpired()
+    {
+        return $this->sale_price 
+            && $this->discount_ends_at 
+            && now()->gt($this->discount_ends_at);
+    }
+    
+    /**
+     * Check if discount is currently active (within date range).
+     */
+    public function isDiscountActive()
+    {
+        return $this->isOnSale();
     }
 
     /**
@@ -450,7 +549,15 @@ class Product extends Model
      */
     public function getCurrentPriceAttribute()
     {
-        return $this->sale_price ?? $this->price;
+        return $this->isOnSale() ? $this->sale_price : $this->price;
+    }
+    
+    /**
+     * Get the effective sale price (only if discount is currently active).
+     */
+    public function getEffectiveSalePriceAttribute()
+    {
+        return $this->isOnSale() ? $this->sale_price : null;
     }
 
     /**
@@ -459,5 +566,34 @@ class Product extends Model
     public function getReviewCountAttribute()
     {
         return $this->reviews()->count();
+    }
+
+    /**
+     * Get related products for this product.
+     */
+    public function relatedProducts()
+    {
+        return $this->belongsToMany(Product::class, 'related_products', 'product_id', 'related_product_id')
+            ->withPivot('sort_order')
+            ->withTimestamps()
+            ->orderByPivot('sort_order');
+    }
+
+    /**
+     * Get products that have this product as related.
+     */
+    public function parentProducts()
+    {
+        return $this->belongsToMany(Product::class, 'related_products', 'related_product_id', 'product_id')
+            ->withPivot('sort_order')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get related products with product details.
+     */
+    public function getRelatedProductsAttribute()
+    {
+        return $this->relatedProducts()->where('is_active', true)->get();
     }
 }
