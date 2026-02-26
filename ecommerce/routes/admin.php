@@ -122,8 +122,15 @@ Route::get('/categories/{category}/products', [CategoryController::class, 'getPr
 Route::post('/categories/{category}/move-products', [CategoryController::class, 'moveProducts'])->name('categories.move-products');
 Route::get('/categories-select-options', [CategoryController::class, 'getSelectOptions'])->name('categories.select-options');
 
+ // Inhouse Orders - MUST be before any wildcard routes
+Route::get('/orders/in-house', [OrderController::class, 'inHouse'])->name('orders.in-house');
+Route::get('/orders/in-house/create', [OrderController::class, 'create'])->name('orders.in-house.create');
+Route::post('/orders/in-house', [OrderController::class, 'store'])->name('orders.in-house.store');
+Route::get('/orders/in-house/{order}', [OrderController::class, 'inHouseShow'])->name('orders.in-house.show');
+
 // Orders Management
 Route::resource('orders', OrderController::class)->only(['index', 'show', 'update']);
+
 Route::post('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
 Route::post('/orders/{order}/payment-status', [OrderController::class, 'updatePaymentStatus'])->name('orders.payment-status');
 Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice'])->name('orders.invoice');
@@ -183,6 +190,17 @@ Route::post('/coupons/{coupon}/toggle', [CouponController::class, 'toggle'])->na
 // Reviews Management
 Route::resource('reviews', ReviewController::class)->only(['index', 'update', 'destroy']);
 Route::post('/reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
+
+// Wishlist Management
+Route::prefix('wishlists')->name('wishlists.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\WishlistController::class, 'index'])->name('index');
+    Route::delete('/delete', [\App\Http\Controllers\Admin\WishlistController::class, 'destroy'])->name('destroy');
+    Route::delete('/{id}', [\App\Http\Controllers\Admin\WishlistController::class, 'destroySingle'])->name('destroy-single');
+    Route::post('/bulk-action', [\App\Http\Controllers\Admin\WishlistController::class, 'bulkAction'])->name('bulk-action');
+    Route::get('/export', [\App\Http\Controllers\Admin\WishlistController::class, 'export'])->name('export');
+    Route::get('/product/{productId}', [\App\Http\Controllers\Admin\WishlistController::class, 'productWishlist'])->name('product');
+    Route::get('/user/{userId}', [\App\Http\Controllers\Admin\WishlistController::class, 'userWishlist'])->name('user');
+});
 Route::post('/reviews/bulk-action', [ReviewController::class, 'bulkAction'])->name('reviews.bulk-action');
 
 // Pages Management
@@ -371,17 +389,16 @@ Route::prefix('wishlist-management')->name('wishlist-management.')->group(functi
 
 // Inventory Management
 Route::prefix('inventory')->name('inventory.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'inventoryManagement'])->name('index');
-    Route::get('/stock-alerts', [\App\Http\Controllers\Admin\PlaceholderController::class, 'stockAlerts'])->name('stock-alerts');
-    Route::get('/low-stock', [\App\Http\Controllers\Admin\PlaceholderController::class, 'lowStockReports'])->name('low-stock');
-    Route::get('/stock-history', [\App\Http\Controllers\Admin\PlaceholderController::class, 'stockHistory'])->name('stock-history');
-    Route::get('/audits', [\App\Http\Controllers\Admin\PlaceholderController::class, 'inventoryAudits'])->name('audits');
-    Route::get('/transfers', [\App\Http\Controllers\Admin\PlaceholderController::class, 'stockTransfers'])->name('transfers');
-    Route::post('/adjust', [\App\Http\Controllers\Admin\PlaceholderController::class, 'adjustStock'])->name('adjust');
+    Route::get('/', [\App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('index');
+    Route::get('/stock-alerts', [\App\Http\Controllers\Admin\InventoryController::class, 'stockAlerts'])->name('stock-alerts');
+    Route::get('/stock-history', [\App\Http\Controllers\Admin\InventoryController::class, 'stockHistory'])->name('stock-history');
+    Route::post('/adjust', [\App\Http\Controllers\Admin\InventoryController::class, 'adjustStock'])->name('adjust');
+    Route::post('/bulk-adjust', [\App\Http\Controllers\Admin\InventoryController::class, 'bulkAdjust'])->name('bulk-adjust');
+    Route::get('/product/{id}', [\App\Http\Controllers\Admin\InventoryController::class, 'getProduct'])->name('product');
+    Route::post('/threshold', [\App\Http\Controllers\Admin\InventoryController::class, 'updateThreshold'])->name('threshold');
 });
 
 // Sales - Additional Routes
-Route::get('/orders/in-house', [OrderController::class, 'inHouse'])->name('orders.in-house');
 Route::get('/orders/seller', [OrderController::class, 'seller'])->name('orders.seller');
 Route::get('/orders/pickup-point', [OrderController::class, 'pickupPoint'])->name('orders.pickup-point');
 

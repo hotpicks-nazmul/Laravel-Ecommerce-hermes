@@ -17,6 +17,8 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 9. **Important Implementation Rule** - Admin Panel + Frontend Integration Rule
 10. **Route Conflict Prevention** - Avoid placeholder routes conflicting with actual implementations
 11. **Sidebar Navigation State** - Keep menu expanded when child item is active
+12. **Product Images** - Proper image path handling for admin tables
+13. **404 Errors Due to Route Ordering** - Fix for routes not matching correctly
 
 ---
 
@@ -703,3 +705,128 @@ Use consistent route naming to make menu state detection easier:
 1. **Menu collapses after clicking**: Ensure `aria-expanded` and `.show` class are set based on active route
 2. **Wrong menu highlighted**: Check route naming matches the pattern in `routeIs()`
 3. **Multiple menus expanded**: Each menu should have unique detection logic
+
+---
+
+## Product Images
+
+### Problem: Images Not Displaying in Admin Tables
+
+When displaying product images in admin listing tables, the images may not appear if the `featured_image` path doesn't include the `/storage/` prefix. This is a common issue because the database may store just the filename or a relative path.
+
+### Solution: Proper Image Path Handling
+
+Use this pattern in your Blade templates to properly handle product images:
+
+```php
+@php
+    $imageUrl = $product->featured_image;
+    if($imageUrl && !str_starts_with($imageUrl, '/storage/') && !str_starts_with($imageUrl, 'http')) {
+        $imageUrl = '/storage/' . $imageUrl;
+    }
+@endphp
+
+@if($imageUrl)
+<img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
+@else
+<div class="bg-secondary rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+    <i class="bi bi-image text-white"></i>
+</div>
+@endif
+```
+
+### Why This Works
+
+| Scenario | Original Value | Processed Value |
+|----------|---------------|----------------|
+| Filename only | `products/image.jpg` | `/storage/products/image.jpg` |
+| Already has prefix | `/storage/products/image.jpg` | `/storage/products/image.jpg` |
+| External URL | `https://cdn.example.com/img.jpg` | `https://cdn.example.com/img.jpg` |
+| Empty/Null | `null` | `null` (shows placeholder) |
+
+### Key Points
+
+1. **Check for `/storage/` prefix** - Don't add if already present
+2. **Check for `http` prefix** - Don't modify external URLs
+3. **Always provide fallback** - Show placeholder icon when no image
+4. **Use consistent styling** - Match the image size with other table columns
+
+### Example in Table Rows
+
+```html
+<td>
+    @php
+        $imageUrl = $product->featured_image;
+        if($imageUrl && !str_starts_with($imageUrl, '/storage/') && !str_starts_with($imageUrl, 'http')) {
+            $imageUrl = '/storage/' . $imageUrl;
+        }
+    @endphp
+    @if($imageUrl)
+    <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+    @else
+    <div class="bg-secondary rounded d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+        <i class="bi bi-image text-white"></i>
+    </div>
+    @endif
+    <div class="d-inline-block">
+        <div class="fw-medium">{{ $product->name }}</div>
+    </div>
+</td>
+```
+
+---
+
+## 404 Errors Due to Route Ordering
+
+### Problem
+
+When creating custom routes for specific order types (like `/admin/orders/in-house`), you may encounter 404 errors or unexpected behavior if the routes are defined in the wrong order.
+
+**Example Issue:**
+- `/admin/orders` works correctly
+- `/admin/orders/in-house` returns 404 error
+
+### Root Cause
+
+This happens because the **resource route** (which includes a wildcard pattern `/{order}`) is defined before the specific route. Laravel matches routes in the order they are defined, so the wildcard route matches `/in-house` as an order ID instead of recognizing it as a separate route.
+
+### Incorrect Route Order
+
+```php
+// ❌ INCORRECT - Resource route first
+Route::resource('orders', OrderController::class)->only(['index', 'show', 'update']);
+
+// This route will never be matched because the resource route's wildcard pattern matches first
+Route::get('/orders/in-house', [OrderController::class, 'inHouse'])->name('orders.in-house');
+Route::get('/orders/in-house/create', [OrderController::class, 'create'])->name('orders.in-house.create');
+Route::post('/orders/in-house', [OrderController::class, 'store'])->name('orders.in-house.store');
+Route::get('/orders/in-house/{order}', [OrderController::class, 'inHouseShow'])->name('orders.in-house.show');
+```
+
+### Solution
+
+**Always define specific routes before resource routes.** This ensures that Laravel matches the specific route patterns first.
+
+```php
+// ✅ CORRECT - Specific routes first
+Route::get('/orders/in-house', [OrderController::class, 'inHouse'])->name('orders.in-house');
+Route::get('/orders/in-house/create', [OrderController::class, 'create'])->name('orders.in-house.create');
+Route::post('/orders/in-house', [OrderController::class, 'store'])->name('orders.in-house.store');
+Route::get('/orders/in-house/{order}', [OrderController::class, 'inHouseShow'])->name('orders.in-house.show');
+
+// Resource route comes after specific routes
+Route::resource('orders', OrderController::class)->only(['index', 'show', 'update']);
+```
+
+### Best Practice
+
+1. **Specific Routes First:** Define all custom routes with specific patterns before any resource or wildcard routes
+2. **Resource Routes Last:** Always place resource routes at the end of the route group
+3. **Order Matters:** Remember that Laravel matches routes in the order they are defined
+4. **Test Routes:** Verify all routes are working after making changes to the route definitions
+
+This pattern applies to all resource controllers, not just the orders controller.
+
+---
+
+*Last updated: February 2026*

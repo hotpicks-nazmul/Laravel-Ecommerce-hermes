@@ -91,6 +91,7 @@ class CheckoutController extends Controller
             // Create order
             $order = Order::create([
                 'user_id' => Auth::id(),
+                'order_type' => 'inhouse',
                 'status' => 'pending',
                 'payment_status' => 'pending',
                 'payment_method' => $request->payment_method,

@@ -530,14 +530,14 @@
             
             <!-- PRODUCTS -->
             <div class="menu-category">
-                <a class="menu-category-header {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlist-management.*') || request()->routeIs('admin.inventory.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuProducts" role="button" aria-expanded="{{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlist-management.*') || request()->routeIs('admin.inventory.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlists.*') || request()->routeIs('admin.inventory.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuProducts" role="button" aria-expanded="{{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlist-management.*') || request()->routeIs('admin.inventory.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-box-seam menu-icon"></i>
                         <span class="menu-category-title">Products</span>
                     </div>
                     <i class="bi bi-chevron-down arrow"></i>
                 </a>
-                <div class="collapse {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlist-management.*') || request()->routeIs('admin.inventory.*') ? 'show' : '' }}" id="menuProducts">
+                <div class="collapse {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlists.*') || request()->routeIs('admin.inventory.*') ? 'show' : '' }}" id="menuProducts">
                     <ul class="nav flex-column submenu">
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.products.create') ? 'active' : '' }}" href="{{ route('admin.products.create') }}">
@@ -610,7 +610,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.wishlist-management.*') ? 'active' : '' }}" href="{{ route('admin.wishlist-management.index') }}">
+                            <a class="nav-link {{ request()->routeIs('admin.wishlists.*') ? 'active' : '' }}" href="{{ route('admin.wishlists.index') }}">
                                 <i class="bi bi-heart"></i> Wishlist Management
                             </a>
                         </li>
@@ -640,7 +640,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.orders.in-house') ? 'active' : '' }}" href="{{ route('admin.orders.in-house') }}">
+                            <a class="nav-link {{ request()->routeIs('admin.orders.in-house*') ? 'active' : '' }}" href="{{ route('admin.orders.in-house') }}">
                                 <i class="bi bi-house-door"></i> Inhouse Orders
                             </a>
                         </li>

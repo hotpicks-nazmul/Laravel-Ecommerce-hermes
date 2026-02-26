@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'All Orders')
+@section('title', 'Inhouse Orders')
 
 @section('content')
 <!-- Statistics Cards -->
@@ -57,9 +57,12 @@
 
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">All Orders</h4>
+    <h4 class="mb-0"><i class="bi bi-house-door me-2"></i>Inhouse Orders</h4>
     <div class="d-flex gap-2">
-        <a href="{{ route('admin.orders.index') }}?{{ http_build_query(array_merge(request()->query(), ['export' => 'csv'])) }}" class="btn btn-outline-secondary">
+        <a href="{{ route('admin.orders.in-house.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Create Order
+        </a>
+        <a href="{{ route('admin.orders.in-house') }}?{{ http_build_query(array_merge(request()->query(), ['export' => 'csv'])) }}" class="btn btn-outline-secondary">
             <i class="bi bi-download me-1"></i> Export CSV
         </a>
     </div>
@@ -125,7 +128,7 @@
                 
                 <!-- Reset Button -->
                 <div class="col-lg-1 col-md-2 col-sm-4">
-                    <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-outline-secondary w-100" id="resetFilters">
+                    <a href="{{ route('admin.orders.in-house') }}" class="btn btn-sm btn-outline-secondary w-100" id="resetFilters">
                         <i class="bi bi-x-lg me-1"></i> Reset
                     </a>
                 </div>
@@ -142,7 +145,7 @@
                 <thead class="table-light">
                     <tr>
                         <th>
-                            <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['sort' => 'order_number', 'direction' => request('sort') == 'order_number' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                            <a href="{{ route('admin.orders.in-house', array_merge(request()->query(), ['sort' => 'order_number', 'direction' => request('sort') == 'order_number' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
                                 Order #
                                 @if(request('sort') == 'order_number')
                                     <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
@@ -151,7 +154,7 @@
                         </th>
                         <th>Customer</th>
                         <th>
-                            <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['sort' => 'total', 'direction' => request('sort') == 'total' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                            <a href="{{ route('admin.orders.in-house', array_merge(request()->query(), ['sort' => 'total', 'direction' => request('sort') == 'total' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
                                 Total
                                 @if(request('sort') == 'total')
                                     <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
@@ -160,7 +163,7 @@
                         </th>
                         <th>Payment</th>
                         <th>
-                            <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['sort' => 'status', 'direction' => request('sort') == 'status' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                            <a href="{{ route('admin.orders.in-house', array_merge(request()->query(), ['sort' => 'status', 'direction' => request('sort') == 'status' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
                                 Status
                                 @if(request('sort') == 'status')
                                     <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
@@ -168,7 +171,7 @@
                             </a>
                         </th>
                         <th>
-                            <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['sort' => 'created_at', 'direction' => request('sort') == 'created_at' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                            <a href="{{ route('admin.orders.in-house', array_merge(request()->query(), ['sort' => 'created_at', 'direction' => request('sort') == 'created_at' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
                                 Date
                                 @if(request('sort') == 'created_at' || !request('sort'))
                                     <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
@@ -179,7 +182,7 @@
                     </tr>
                 </thead>
                 <tbody id="orderTableBody">
-                    @include('admin.orders.partials.order-rows', ['orders' => $orders])
+                    @include('admin.orders.partials.inhouse-order-rows', ['orders' => $orders])
                 </tbody>
             </table>
         </div>
@@ -187,8 +190,8 @@
         <!-- Pagination & Per Page -->
         @if(isset($orders) && method_exists($orders, 'hasPages') && $orders->hasPages())
         <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div class="d-flex align2">
-                <span class="text-items-center gap--muted small">Show:</span>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">Show:</span>
                 <select class="form-select form-select-sm" style="width: auto;" onchange="changePerPage(this.value)">
                     <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
                     <option value="25" {{ request('per_page') == 25 || !request('per_page') ? 'selected' : '' }}>25</option>
@@ -269,7 +272,7 @@ function performLiveSearch(searchTerm) {
     if (urlParams.get('per_page')) params.set('per_page', urlParams.get('per_page'));
     
     // AJAX request
-    fetch(`{{ route('admin.orders.index') }}?${params.toString()}`, {
+    fetch(`{{ route('admin.orders.in-house') }}?${params.toString()}`, {
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json'
@@ -371,7 +374,7 @@ function changePerPage(perPage) {
     
     // Check if we're in AJAX mode
     if (document.querySelector('#orderTableBody')) {
-        fetch(`{{ route('admin.orders.index') }}?${params.toString()}`, {
+        fetch(`{{ route('admin.orders.in-house') }}?${params.toString()}`, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'

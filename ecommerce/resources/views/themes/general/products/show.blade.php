@@ -9,6 +9,232 @@
     position: relative;
 }
 
+/* Popup Modal Styles */
+.popup-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.popup-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.popup-content {
+    position: relative;
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.3s ease;
+}
+
+.popup-header {
+    background: linear-gradient(135deg, #2D5A27, #1a3d17);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 16px 16px 0 0;
+}
+
+.popup-header-review {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.popup-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.popup-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.popup-body {
+    padding: 24px;
+}
+
+.popup-footer {
+    background: #f9fafb;
+    padding: 16px 24px;
+    border-radius: 0 0 16px 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.popup-btn-cancel {
+    padding: 12px 20px;
+    border: 2px solid #d1d5db;
+    border-radius: 12px;
+    background: white;
+    color: #4b5563;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.popup-btn-cancel:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.popup-btn-submit {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #2D5A27, #1a3d17);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.popup-btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -10px rgba(45, 90, 39, 0.5);
+}
+
+.popup-btn-review {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.popup-btn-review:hover {
+    box-shadow: 0 10px 20px -10px rgba(245, 158, 11, 0.5);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { 
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Enhanced Reviews and Q&A Section Styles */
+.reviews-section, .qa-section {
+    scroll-margin-top: 100px;
+}
+
+.reviews-section h2, .qa-section h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #2D5A27;
+    margin-bottom: 20px;
+}
+
+.reviews-section h2 i, .qa-section h2 i {
+    font-size: 1.5rem;
+}
+
+/* Rating Summary Cards */
+.rating-summary-card {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid #bbf7d0;
+}
+
+.rating-summary-card .rating-number {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #2D5A27;
+    line-height: 1;
+}
+
+/* Review Card Enhanced */
+.reviews-section .border.rounded-xl {
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+.reviews-section .border.rounded-xl:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Q&A Card Enhanced */
+.qa-section .border.rounded-xl {
+    transition: all 0.3s ease;
+}
+
+.qa-section .border.rounded-xl:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Verified Badge */
+.verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: #dcfce7;
+    color: #166534;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Featured Q&A */
+.featured-qa {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border: 2px solid #2D5A27 !important;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+    border-radius: 16px;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: #d1d5db;
+}
+
 /* Main Image Container with Hover Zoom */
 .image-zoom-container {
     position: relative;
@@ -201,6 +427,8 @@
         transform: scale(2.5);
     }
 }
+
+
 </style>
 @endpush
 
@@ -433,375 +661,342 @@
     </div>
     @endif
 
-    <!-- Ask a Question & Write a Review Section -->
-    <div class="mt-12 bg-white rounded-xl shadow-md p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Ask a Question Card -->
-            <div class="group relative overflow-hidden rounded-xl border-2 border-gray-100 hover:border-halal-green/30 transition-all duration-300">
-                <div class="absolute inset-0 bg-gradient-to-br from-halal-green/5 to-emerald-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div class="relative p-6">
-                    <div class="flex items-start gap-4">
-                        <div class="w-14 h-14 bg-gradient-to-br from-halal-green to-halal-dark rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-halal-green/20">
-                            <i class="bi bi-question-circle text-white text-2xl"></i>
-                        </div>
-                        <div class="flex-grow">
-                            <h3 class="text-lg font-bold text-gray-800 mb-2">Have a Question?</h3>
-                            <p class="text-gray-500 text-sm mb-4">Get answers from our community and help other customers make informed decisions.</p>
-                            <button type="button" 
-                                class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-halal-green to-halal-dark text-white rounded-lg hover:shadow-lg hover:shadow-halal-green/30 hover:-translate-y-0.5 transition-all duration-300 font-medium text-sm" 
-                                data-bs-toggle="modal" data-bs-target="#askQuestionModal">
-                                <i class="bi bi-plus-lg me-2"></i>Ask a Question
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Write a Review Card -->
-            <div class="group relative overflow-hidden rounded-xl border-2 border-gray-100 hover:border-amber-300 transition-all duration-300">
-                <div class="absolute inset-0 bg-gradient-to-br from-amber-50 to-yellow-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div class="relative p-6">
-                    <div class="flex items-start gap-4">
-                        <div class="w-14 h-14 bg-gradient-to-br from-amber-500 via-halal-gold to-yellow-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-amber-300/30">
-                            <i class="bi bi-pencil-square text-white text-2xl"></i>
-                        </div>
-                        <div class="flex-grow">
-                            <h3 class="text-lg font-bold text-gray-800 mb-2">Share Your Experience</h3>
-                            <p class="text-gray-500 text-sm mb-4">Help others by sharing your honest review and rating for this product.</p>
-                            @auth
-                                @php
-                                    $hasPurchased = auth()->user()->orders()
-                                        ->whereHas('items', function ($q) use ($product) {
-                                            $q->where('product_id', $product->id);
-                                        })
-                                        ->where('status', 'delivered')
-                                        ->exists();
-                                    $hasReviewed = \App\Models\Review::where('user_id', auth()->id())
-                                        ->where('product_id', $product->id)
-                                        ->exists();
-                                @endphp
-                                @if($hasPurchased && !$hasReviewed)
-                                    <button type="button" 
-                                        class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-amber-500 via-halal-gold to-yellow-500 text-white rounded-lg hover:shadow-lg hover:shadow-amber-300/30 hover:-translate-y-0.5 transition-all duration-300 font-medium text-sm" 
-                                        data-bs-toggle="modal" data-bs-target="#reviewModal">
-                                        <i class="bi bi-star me-2"></i>Write a Review
-                                    </button>
-                                @elseif($hasReviewed)
-                                    <span class="inline-flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
-                                        <i class="bi bi-check-circle me-2"></i>Already Reviewed
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm">
-                                        <i class="bi bi-info-circle me-2"></i>Purchase required
-                                    </span>
-                                @endif
+
+    <!-- Reviews and Q&A Section - Side by Side -->
+    <div class="mt-12 bg-white rounded-xl shadow-md p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Reviews Section -->
+            <div class="reviews-section">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">
+                        <i class="bi bi-chat-quote text-halal-green me-2"></i>
+                        Customer Reviews
+                    </h2>
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm text-gray-500">{{ $product->approved_reviews_count }} reviews</span>
+                        @auth
+                            @php
+                                $hasPurchased = auth()->user()->orders()
+                                    ->whereHas('items', function ($q) use ($product) {
+                                        $q->where('product_id', $product->id);
+                                    })
+                                    ->where('status', 'delivered')
+                                    ->exists();
+                            @endphp
+                            @if(!$hasPurchased)
+                                <button type="button" class="bg-halal-green text-white px-4 py-2 rounded-lg hover:bg-halal-dark transition-colors font-medium flex items-center gap-2 text-sm" onclick="showPurchaseRequiredMessage()">
+                                    <i class="bi bi-pencil-square"></i>
+                                    Write Review
+                                </button>
                             @else
-                                <a href="{{ route('login') }}" 
-                                    class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-amber-500 via-halal-gold to-yellow-500 text-white rounded-lg hover:shadow-lg hover:shadow-amber-300/30 hover:-translate-y-0.5 transition-all duration-300 font-medium text-sm">
-                                    <i class="bi bi-box-arrow-in-right me-2"></i>Login to Review
-                                </a>
-                            @endauth
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Reviews Section -->
-    <div class="mt-12 bg-white rounded-xl shadow-md p-6">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">
-                <i class="bi bi-chat-quote text-halal-green me-2"></i>
-                Customer Reviews
-            </h2>
-            <span class="text-sm text-gray-500">{{ $product->approved_reviews_count }} reviews</span>
-        </div>
-        
-        <!-- Rating Summary -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 pb-8 border-b">
-            <!-- Overall Rating -->
-            <div class="text-center p-4 bg-gray-50 rounded-xl">
-                <div class="text-5xl font-bold text-halal-green">{{ number_format($product->average_rating, 1) }}</div>
-                <div class="flex justify-center mt-2">
-                    @php $avgRating = $product->average_rating; @endphp
-                    @for($i = 1; $i <= 5; $i++)
-                        @if($avgRating >= $i)
-                            <i class="bi bi-star-fill text-halal-gold text-xl"></i>
-                        @elseif($avgRating >= $i - 0.5)
-                            <i class="bi bi-star-half text-halal-gold text-xl"></i>
-                        @else
-                            <i class="bi bi-star text-halal-gold text-xl"></i>
-                        @endif
-                    @endfor
-                </div>
-                <p class="text-gray-500 mt-2">{{ $product->approved_reviews_count }} reviews</p>
-            </div>
-            
-            <!-- Rating Distribution -->
-            <div class="col-span-2">
-                @php $distribution = $product->rating_distribution; $total = $product->approved_reviews_count; @endphp
-                @for($i = 5; $i >= 1; $i--)
-                    @php $percentage = $total > 0 ? ($distribution[$i] / $total) * 100 : 0; @endphp
-                    <div class="flex items-center mb-2">
-                        <span class="w-12 text-sm text-gray-600">{{ $i }} star</span>
-                        <div class="flex-1 h-3 bg-gray-200 rounded-full mx-3">
-                            <div class="h-3 bg-halal-gold rounded-full transition-all duration-300" style="width: {{ $percentage }}%"></div>
-                        </div>
-                        <span class="w-10 text-sm text-gray-500">{{ $distribution[$i] }}</span>
-                    </div>
-                @endfor
-            </div>
-        </div>
-
-        <!-- Review Status Messages -->
-        @auth
-            @if($hasReviewed)
-                <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6 flex items-center">
-                    <i class="bi bi-check-circle me-2 text-xl"></i>
-                    <span>You have already reviewed this product.</span>
-                </div>
-            @elseif(!$hasPurchased)
-                <div class="bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg mb-6 flex items-center">
-                    <i class="bi bi-info-circle me-2 text-xl"></i>
-                    <span>You can only review products you have purchased and received.</span>
-                </div>
-            @endif
-        @endauth
-
-        <!-- Reviews List -->
-        @if(isset($reviews) && $reviews->count() > 0)
-            <div class="space-y-4">
-                @foreach($reviews as $review)
-                    <div class="border rounded-xl p-5 border-gray-200 hover:border-gray-300 transition-colors">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start gap-3">
-                                <div class="w-12 h-12 bg-gradient-to-br from-halal-green to-halal-dark rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                                    {{ strtoupper(substr($review->user->name ?? 'U', 0, 1)) }}
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">{{ $review->user->name ?? 'Anonymous' }}</h4>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        <div class="flex text-halal-gold">
-                                            @for($i = 1; $i <= 5; $i++)
-                                                <i class="bi bi-star{{ $i <= $review->rating ? '-fill' : '' }} text-sm"></i>
-                                            @endfor
-                                        </div>
-                                        <span class="text-gray-400 text-sm">{{ $review->created_at->diffForHumans() }}</span>
-                                        @if($review->verified_purchase)
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                <i class="bi bi-patch-check-fill me-1"></i>Verified Purchase
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                            @if($review->user_id === auth()->id())
-                                <form action="{{ route('reviews.destroy', $review->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this review?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                                <button type="button" class="bg-halal-green text-white px-4 py-2 rounded-lg hover:bg-halal-dark transition-colors font-medium flex items-center gap-2 text-sm" onclick="openReviewModal()">
+                                    <i class="bi bi-pencil-square"></i>
+                                    Write Review
+                                </button>
                             @endif
-                        </div>
-                        @if($review->title)
-                            <h5 class="font-semibold text-gray-800 mt-4">{{ $review->title }}</h5>
-                        @endif
-                        <p class="text-gray-600 mt-2 leading-relaxed">{{ $review->comment }}</p>
-                        
-                        <!-- Review Images -->
-                        @if($review->images && count($review->images) > 0)
-                            <div class="flex gap-2 mt-4 flex-wrap">
-                                @foreach($review->images as $image)
-                                    <a href="{{ asset($image) }}" target="_blank" class="block">
-                                        <img src="{{ asset($image) }}" alt="Review image" class="w-20 h-20 object-cover rounded-lg border hover:opacity-80 transition-opacity">
-                                    </a>
-                                @endforeach
-                            </div>
-                        @endif
-                        
-                        <!-- Helpful Voting -->
-                        <div class="mt-4 pt-4 border-t border-gray-100 flex items-center gap-3">
-                            <span class="text-gray-500 text-sm">Was this review helpful?</span>
-                            @auth
-                                @php
-                                    $userVote = $review->getUserVote(auth()->id());
-                                @endphp
-                                <button type="button" 
-                                        class="inline-flex items-center px-3 py-1 rounded-full text-sm border {{ $userVote && $userVote->is_helpful ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-300 hover:bg-gray-100' }} transition-colors vote-btn" 
-                                        data-review-id="{{ $review->id }}" 
-                                        data-is-helpful="1">
-                                    <i class="bi bi-hand-thumbs-up{{ $userVote && $userVote->is_helpful ? '-fill' : '' }} me-1"></i>
-                                    <span class="helpful-count">{{ $review->helpful_count }}</span>
-                                </button>
-                                <button type="button" 
-                                        class="inline-flex items-center px-3 py-1 rounded-full text-sm border {{ $userVote && !$userVote->is_helpful ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-300 hover:bg-gray-100' }} transition-colors vote-btn" 
-                                        data-review-id="{{ $review->id }}" 
-                                        data-is-helpful="0">
-                                    <i class="bi bi-hand-thumbs-down{{ $userVote && !$userVote->is_helpful ? '-fill' : '' }} me-1"></i>
-                                    <span class="not-helpful-count">{{ $review->not_helpful_count }}</span>
-                                </button>
-                            @else
-                                <button type="button" class="inline-flex items-center px-3 py-1 rounded-full text-sm border border-gray-200 text-gray-400 cursor-not-allowed" disabled title="Login to vote">
-                                    <i class="bi bi-hand-thumbs-up me-1"></i>{{ $review->helpful_count }}
-                                </button>
-                                <button type="button" class="inline-flex items-center px-3 py-1 rounded-full text-sm border border-gray-200 text-gray-400 cursor-not-allowed" disabled title="Login to vote">
-                                    <i class="bi bi-hand-thumbs-down me-1"></i>{{ $review->not_helpful_count }}
-                                </button>
-                            @endauth
-                        </div>
+                        @else
+                            <button type="button" class="bg-halal-green text-white px-4 py-2 rounded-lg hover:bg-halal-dark transition-colors font-medium flex items-center gap-2 text-sm" onclick="window.location.href='{{ route('login') }}'">
+                                <i class="bi bi-pencil-square"></i>
+                                Write Review
+                            </button>
+                        @endauth
                     </div>
-                @endforeach
-            </div>
-
-            <!-- Pagination -->
-            @if(isset($reviews) && $reviews->hasPages())
-            <div class="mt-6">
-                {{ $reviews->links() }}
-            </div>
-            @endif
-        @else
-            <div class="text-center py-12 text-gray-500 bg-gray-50 rounded-xl">
-                <i class="bi bi-chat-square-text text-5xl text-gray-300"></i>
-                <p class="mt-3 text-lg">No reviews yet. Be the first to review this product!</p>
-            </div>
-        @endif
-    </div>
-
-    <!-- Product Q&A Section -->
-    <div class="mt-12 bg-white rounded-xl shadow-md p-6" id="qa-section">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">
-                <i class="bi bi-question-circle text-halal-green me-2"></i>
-                Questions & Answers
-            </h2>
-            @php
-                $qaCount = \App\Models\ProductQA::where('product_id', $product->id)
-                    ->where('status', 'published')
-                    ->count();
-            @endphp
-            <span class="text-sm text-gray-500">{{ $qaCount }} questions</span>
-        </div>
-        
-        <!-- Success Message -->
-        @if(session('success'))
-            <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 flex items-center justify-between">
-                <div class="flex items-center">
-                    <i class="bi bi-check-circle me-2 text-xl"></i>
-                    <span>{{ session('success') }}</span>
                 </div>
-                <button type="button" class="text-green-700 hover:text-green-900" onclick="this.parentElement.remove()">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-        @endif
-        
-        @php
-            $qaEntries = \App\Models\ProductQA::where('product_id', $product->id)
-                ->where('status', 'published')
-                ->with(['user', 'answerer'])
-                ->orderBy('is_featured', 'desc')
-                ->orderBy('helpful_count', 'desc')
-                ->orderBy('created_at', 'desc')
-                ->paginate(5);
-        @endphp
-        
-        @if($qaEntries->count() > 0)
-            <div class="space-y-4">
-                @foreach($qaEntries as $qa)
-                    <div class="border rounded-xl p-5 {{ $qa->is_featured ? 'border-halal-green bg-green-50' : 'border-gray-200' }}">
-                        <!-- Question -->
-                        <div class="flex items-start gap-3">
-                            <div class="w-10 h-10 bg-halal-green rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
-                                <i class="bi bi-question-lg"></i>
+                
+                <!-- Rating Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 pb-8 border-b">
+                    <!-- Overall Rating -->
+                    <div class="text-center p-4 bg-gray-50 rounded-xl">
+                        <div class="text-5xl font-bold text-halal-green">{{ number_format($product->average_rating, 1) }}</div>
+                        <div class="flex justify-center mt-2">
+                            @php $avgRating = $product->average_rating; @endphp
+                            @for($i = 1; $i <= 5; $i++)
+                                @if($avgRating >= $i)
+                                    <i class="bi bi-star-fill text-halal-gold text-xl"></i>
+                                @elseif($avgRating >= $i - 0.5)
+                                    <i class="bi bi-star-half text-halal-gold text-xl"></i>
+                                @else
+                                    <i class="bi bi-star text-halal-gold text-xl"></i>
+                                @endif
+                            @endfor
+                        </div>
+                        <p class="text-gray-500 mt-2">{{ $product->approved_reviews_count }} reviews</p>
+                    </div>
+                    
+                    <!-- Rating Distribution -->
+                    <div class="col-span-2">
+                        @php $distribution = $product->rating_distribution; $total = $product->approved_reviews_count; @endphp
+                        @for($i = 5; $i >= 1; $i--)
+                            @php $percentage = $total > 0 ? ($distribution[$i] / $total) * 100 : 0; @endphp
+                            <div class="flex items-center mb-2">
+                                <span class="w-12 text-sm text-gray-600">{{ $i }} star</span>
+                                <div class="flex-1 h-3 bg-gray-200 rounded-full mx-3">
+                                    <div class="h-3 bg-halal-gold rounded-full transition-all duration-300" style="width: {{ $percentage }}%"></div>
+                                </div>
+                                <span class="w-10 text-sm text-gray-500">{{ $distribution[$i] }}</span>
                             </div>
-                            <div class="flex-grow-1">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="font-semibold text-gray-800">{{ $qa->questioner_name }}</span>
-                                    @if($qa->is_featured)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-halal-green text-white">
-                                            <i class="bi bi-star-fill me-1"></i>Featured
-                                        </span>
+                        @endfor
+                    </div>
+                </div>
+
+                <!-- Review Status Messages and Write Review Button -->
+                @auth
+                    @php
+                        $hasReviewed = \App\Models\Review::where('user_id', auth()->id())
+                            ->where('product_id', $product->id)
+                            ->exists();
+                    @endphp
+                    @if($hasReviewed)
+                        <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6 flex items-center">
+                            <i class="bi bi-check-circle me-2 text-xl"></i>
+                            <span>You have already reviewed this product.</span>
+                        </div>
+                    @endif
+                @endauth
+
+                <!-- Reviews List -->
+                @if(isset($reviews) && $reviews->count() > 0)
+                    <div class="space-y-4">
+                        @foreach($reviews as $review)
+                            <div class="border rounded-xl p-5 border-gray-200 hover:border-gray-300 transition-colors">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-halal-green to-halal-dark rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                                            {{ strtoupper(substr($review->user->name ?? 'U', 0, 1)) }}
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-gray-800">{{ $review->user->name ?? 'Anonymous' }}</h4>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <div class="flex text-halal-gold">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <i class="bi bi-star{{ $i <= $review->rating ? '-fill' : '' }} text-sm"></i>
+                                                    @endfor
+                                                </div>
+                                                <span class="text-gray-400 text-sm">{{ $review->created_at->diffForHumans() }}</span>
+                                                @if($review->verified_purchase)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        <i class="bi bi-patch-check-fill me-1"></i>Verified Purchase
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @if($review->user_id === auth()->id())
+                                        <form action="{{ route('reviews.destroy', $review->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this review?')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
                                     @endif
-                                    <span class="text-gray-400 text-sm ml-auto">{{ $qa->created_at->diffForHumans() }}</span>
                                 </div>
-                                <p class="text-gray-700">{{ $qa->question }}</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Answer -->
-                        @if($qa->answer)
-                            <div class="flex items-start gap-3 mt-4 ml-4 pl-4 border-l-4 border-halal-green">
-                                <div class="w-10 h-10 bg-halal-dark rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
-                                    <i class="bi bi-check-lg"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="font-semibold text-gray-800">{{ $qa->answerer?->name ?? 'Store Admin' }}</span>
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Answered
-                                        </span>
-                                        <span class="text-gray-400 text-sm ml-auto">{{ $qa->answered_at?->diffForHumans() }}</span>
+                                @if($review->title)
+                                    <h5 class="font-semibold text-gray-800 mt-4">{{ $review->title }}</h5>
+                                @endif
+                                <p class="text-gray-600 mt-2 leading-relaxed">{{ $review->comment }}</p>
+                                
+                                <!-- Review Images -->
+                                @if($review->images && count($review->images) > 0)
+                                    <div class="flex gap-2 mt-4 flex-wrap">
+                                        @foreach($review->images as $image)
+                                            <a href="{{ asset($image) }}" target="_blank" class="block">
+                                                <img src="{{ asset($image) }}" alt="Review image" class="w-20 h-20 object-cover rounded-lg border hover:opacity-80 transition-opacity">
+                                            </a>
+                                        @endforeach
                                     </div>
-                                    <p class="text-gray-600 mb-3">{{ $qa->answer }}</p>
-                                    
-                                    <!-- Helpful Voting -->
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-gray-500 text-sm">Was this helpful?</span>
-                                        <button type="button" class="inline-flex items-center px-3 py-1 rounded-full text-sm border border-gray-300 hover:bg-gray-100 transition-colors qa-vote-btn" data-qa-id="{{ $qa->id }}" data-is-helpful="1">
-                                            <i class="bi bi-hand-thumbs-up me-1"></i>{{ $qa->helpful_count }}
+                                @endif
+                                
+                                <!-- Helpful Voting -->
+                                <div class="mt-4 pt-4 border-t border-gray-100 flex items-center gap-3">
+                                    <span class="text-gray-500 text-sm">Was this review helpful?</span>
+                                    @auth
+                                        @php
+                                            $userVote = $review->getUserVote(auth()->id());
+                                        @endphp
+                                        <button type="button" 
+                                                class="inline-flex items-center px-3 py-1 rounded-full text-sm border {{ $userVote && $userVote->is_helpful ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-300 hover:bg-gray-100' }} transition-colors vote-btn" 
+                                                data-review-id="{{ $review->id }}" 
+                                                data-is-helpful="1">
+                                            <i class="bi bi-hand-thumbs-up{{ $userVote && $userVote->is_helpful ? '-fill' : '' }} me-1"></i>
+                                            <span class="helpful-count">{{ $review->helpful_count }}</span>
                                         </button>
-                                        <button type="button" class="inline-flex items-center px-3 py-1 rounded-full text-sm border border-gray-300 hover:bg-gray-100 transition-colors qa-vote-btn" data-qa-id="{{ $qa->id }}" data-is-helpful="0">
-                                            <i class="bi bi-hand-thumbs-down me-1"></i>{{ $qa->not_helpful_count }}
+                                        <button type="button" 
+                                                class="inline-flex items-center px-3 py-1 rounded-full text-sm border {{ $userVote && !$userVote->is_helpful ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-300 hover:bg-gray-100' }} transition-colors vote-btn" 
+                                                data-review-id="{{ $review->id }}" 
+                                                data-is-helpful="0">
+                                            <i class="bi bi-hand-thumbs-down{{ $userVote && !$userVote->is_helpful ? '-fill' : '' }} me-1"></i>
+                                            <span class="not-helpful-count">{{ $review->not_helpful_count }}</span>
                                         </button>
-                                    </div>
+                                    @else
+                                        <button type="button" class="inline-flex items-center px-3 py-1 rounded-full text-sm border border-gray-200 text-gray-400 cursor-not-allowed" disabled title="Login to vote">
+                                            <i class="bi bi-hand-thumbs-up me-1"></i>{{ $review->helpful_count }}
+                                        </button>
+                                        <button type="button" class="inline-flex items-center px-3 py-1 rounded-full text-sm border border-gray-200 text-gray-400 cursor-not-allowed" disabled title="Login to vote">
+                                            <i class="bi bi-hand-thumbs-down me-1"></i>{{ $review->not_helpful_count }}
+                                        </button>
+                                    @endauth
                                 </div>
                             </div>
-                        @endif
+                        @endforeach
                     </div>
-                @endforeach
-            </div>
-            
-            <!-- Pagination -->
-            @if($qaEntries->hasPages())
-            <div class="mt-6">
-                {{ $qaEntries->links() }}
-            </div>
-            @endif
-        @else
-            <div class="text-center py-12 text-gray-500 bg-gray-50 rounded-xl">
-                <i class="bi bi-chat-dots text-5xl text-gray-300"></i>
-                <p class="mt-3 text-lg">No questions yet. Be the first to ask!</p>
-            </div>
-        @endif
-    </div>
-</div>
 
-<!-- Ask Question Modal - Modern Design -->
-<div class="modal fade" id="askQuestionModal" tabindex="-1" aria-labelledby="askQuestionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-2xl border-0 shadow-2xl overflow-hidden" style="max-width: 480px; margin: 1.75rem auto;">
-            <!-- Header with gradient -->
-            <div class="modal-header border-0 bg-gradient-to-r from-halal-green to-halal-dark px-5 py-4">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                        <i class="bi bi-question-circle text-white text-xl"></i>
+                    <!-- Pagination -->
+                    @if(isset($reviews) && $reviews->hasPages())
+                    <div class="mt-6">
+                        {{ $reviews->links() }}
                     </div>
-                    <div>
-                        <h5 class="modal-title text-white font-bold text-lg mb-0" id="askQuestionModalLabel">
-                            Ask a Question
-                        </h5>
-                        <p class="text-white/70 text-sm mb-0">Get answers from our community</p>
+                    @endif
+                @else
+                    <div class="text-center py-12 text-gray-500 bg-gray-50 rounded-xl">
+                        <i class="bi bi-chat-square-text text-5xl text-gray-300"></i>
+                        <p class="mt-3 text-lg">No reviews yet. Be the first to review this product!</p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Product Q&A Section -->
+            <div id="qa-section" class="qa-section">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">
+                        <i class="bi bi-question-circle text-halal-green me-2"></i>
+                        Questions & Answers
+                    </h2>
+                    @php
+                        $qaCount = \App\Models\ProductQA::where('product_id', $product->id)
+                            ->where('status', 'published')
+                            ->count();
+                    @endphp
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm text-gray-500">{{ $qaCount }} questions</span>
+                        <button type="button" class="bg-halal-green text-white px-4 py-2 rounded-lg hover:bg-halal-dark transition-colors font-medium flex items-center gap-2 text-sm" onclick="openQuestionModal()">
+                            <i class="bi bi-question-circle"></i>
+                            Ask Question
+                        </button>
                     </div>
                 </div>
-                <button type="button" class="btn-close btn-close-white opacity-75 hover:opacity-100" data-bs-dismiss="modal" aria-label="Close"></button>
+                
+                <!-- Success Message -->
+                @if(session('success'))
+                    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i class="bi bi-check-circle me-2 text-xl"></i>
+                            <span>{{ session('success') }}</span>
+                        </div>
+                        <button type="button" class="text-green-700 hover:text-green-900" onclick="this.parentElement.remove()">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                @endif
+                
+                @php
+                    $qaEntries = \App\Models\ProductQA::where('product_id', $product->id)
+                        ->where('status', 'published')
+                        ->with(['user', 'answerer'])
+                        ->orderBy('is_featured', 'desc')
+                        ->orderBy('helpful_count', 'desc')
+                        ->orderBy('created_at', 'desc')
+                        ->paginate(5);
+                @endphp
+                
+                @if($qaEntries->count() > 0)
+                    <div class="space-y-4">
+                        @foreach($qaEntries as $qa)
+                            <div class="border rounded-xl p-5 {{ $qa->is_featured ? 'border-halal-green bg-green-50' : 'border-gray-200' }}">
+                                <!-- Question -->
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 bg-halal-green rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                                        <i class="bi bi-question-lg"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="font-semibold text-gray-800">{{ $qa->questioner_name }}</span>
+                                            @if($qa->is_featured)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-halal-green text-white">
+                                                    <i class="bi bi-star-fill me-1"></i>Featured
+                                                </span>
+                                            @endif
+                                            <span class="text-gray-400 text-sm ml-auto">{{ $qa->created_at->diffForHumans() }}</span>
+                                        </div>
+                                        <p class="text-gray-700">{{ $qa->question }}</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Answer -->
+                                @if($qa->answer)
+                                    <div class="flex items-start gap-3 mt-4 ml-4 pl-4 border-l-4 border-halal-green">
+                                        <div class="w-10 h-10 bg-halal-dark rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                                            <i class="bi bi-check-lg"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="font-semibold text-gray-800">{{ $qa->answerer?->name ?? 'Store Admin' }}</span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    Answered
+                                                </span>
+                                                <span class="text-gray-400 text-sm ml-auto">{{ $qa->answered_at?->diffForHumans() }}</span>
+                                            </div>
+                                            <p class="text-gray-600 mb-3">{{ $qa->answer }}</p>
+                                            
+                                            <!-- Helpful Voting -->
+                                            <div class="flex items-center gap-3">
+                                                <span class="text-gray-500 text-sm">Was this helpful?</span>
+                                                <button type="button" class="inline-flex items-center px-3 py-1 rounded-full text-sm border border-gray-300 hover:bg-gray-100 transition-colors qa-vote-btn" data-qa-id="{{ $qa->id }}" data-is-helpful="1">
+                                                    <i class="bi bi-hand-thumbs-up me-1"></i>{{ $qa->helpful_count }}
+                                                </button>
+                                                <button type="button" class="inline-flex items-center px-3 py-1 rounded-full text-sm border border-gray-300 hover:bg-gray-100 transition-colors qa-vote-btn" data-qa-id="{{ $qa->id }}" data-is-helpful="0">
+                                                    <i class="bi bi-hand-thumbs-down me-1"></i>{{ $qa->not_helpful_count }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                    
+                    <!-- Pagination -->
+                    @if($qaEntries->hasPages())
+                    <div class="mt-6">
+                        {{ $qaEntries->links() }}
+                    </div>
+                    @endif
+                @else
+                    <div class="text-center py-12 text-gray-500 bg-gray-50 rounded-xl">
+                        <i class="bi bi-chat-dots text-5xl text-gray-300"></i>
+                        <p class="mt-3 text-lg">No questions yet. Be the first to ask!</p>
+                    </div>
+                @endif
             </div>
+        </div>
+    </div>
+
+<!-- Ask Question Popup Modal - Custom Design -->
+<div class="popup-modal" id="askQuestionModal" style="display: none;">
+    <div class="popup-overlay" onclick="closeQuestionModal()"></div>
+    <div class="popup-content">
+        <!-- Header with gradient -->
+        <div class="popup-header">
+            <div class="d-flex align-items-center gap-3">
+                <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <i class="bi bi-question-circle text-white text-xl"></i>
+                </div>
+                <div>
+                    <h5 class="modal-title text-white font-bold text-lg mb-0">
+                        Submit Question
+                    </h5>
+                    <p class="text-white/70 text-sm mb-0">Get answers from our community</p>
+                </div>
+            </div>
+            <button type="button" class="popup-close" onclick="closeQuestionModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
             
-            <form action="{{ route('product-qa.store') }}" method="POST">
+            <form action="{{ route('product-qa.store') }}" method="POST" id="questionForm">
                 @csrf
                 <input type="hidden" name="product_id" value="{{ $product->id }}">
-                <div class="modal-body p-5">
+                <div class="popup-body">
                     <!-- Product Preview -->
                     <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl mb-4">
                         <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
@@ -880,12 +1075,12 @@
                 </div>
                 
                 <!-- Footer -->
-                <div class="modal-footer border-0 bg-gray-50 px-5 py-4">
+                <div class="popup-footer">
                     <div class="flex items-center justify-end gap-3 w-full">
-                        <button type="button" class="px-5 py-2.5 border-2 border-gray-300 text-gray-600 rounded-xl hover:bg-gray-100 transition-all duration-300 font-medium text-sm" data-bs-dismiss="modal">
+                        <button type="button" class="popup-btn-cancel" onclick="closeQuestionModal()">
                             Cancel
                         </button>
-                        <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-halal-green to-halal-dark text-white rounded-xl hover:shadow-lg hover:shadow-halal-green/20 transition-all duration-300 font-semibold text-sm flex items-center gap-2">
+                        <button type="submit" class="popup-btn-submit">
                             <i class="bi bi-send"></i>
                             Submit Question
                         </button>
@@ -896,31 +1091,33 @@
     </div>
 </div>
 
-<!-- Review Modal - Modern Design -->
+<!-- Review Popup Modal - Custom Design -->
 @auth
-<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-2xl border-0 shadow-2xl overflow-hidden" style="max-width: 480px; margin: 1.75rem auto;">
-            <!-- Header with gradient -->
-            <div class="modal-header border-0 bg-gradient-to-r from-amber-500 via-halal-gold to-yellow-500 px-5 py-4">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                        <i class="bi bi-pencil-square text-white text-xl"></i>
-                    </div>
-                    <div>
-                        <h5 class="modal-title text-white font-bold text-lg mb-0" id="reviewModalLabel">
-                            Write a Review
-                        </h5>
-                        <p class="text-white/70 text-sm mb-0">Share your experience with others</p>
-                    </div>
+<div class="popup-modal" id="reviewModal" style="display: none;">
+    <div class="popup-overlay" onclick="closeReviewModal()"></div>
+    <div class="popup-content">
+        <!-- Header with gradient -->
+        <div class="popup-header popup-header-review">
+            <div class="d-flex align-items-center gap-3">
+                <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <i class="bi bi-pencil-square text-white text-xl"></i>
                 </div>
-                <button type="button" class="btn-close btn-close-white opacity-75 hover:opacity-100" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div>
+                    <h5 class="modal-title text-white font-bold text-lg mb-0">
+                        Submit Review
+                    </h5>
+                    <p class="text-white/70 text-sm mb-0">Share your experience with others</p>
+                </div>
             </div>
+            <button type="button" class="popup-close" onclick="closeReviewModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
             
-            <form action="{{ route('reviews.store') }}" method="POST">
+            <form action="{{ route('reviews.store') }}" method="POST" id="reviewForm">
                 @csrf
                 <input type="hidden" name="product_id" value="{{ $product->id }}">
-                <div class="modal-body p-5">
+                <div class="popup-body">
                     <!-- Product Preview -->
                     <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl mb-4">
                         <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
@@ -1010,12 +1207,12 @@
                 </div>
                 
                 <!-- Footer -->
-                <div class="modal-footer border-0 bg-gray-50 px-5 py-4">
+                <div class="popup-footer">
                     <div class="flex items-center justify-end gap-3 w-full">
-                        <button type="button" class="px-5 py-2.5 border-2 border-gray-300 text-gray-600 rounded-xl hover:bg-gray-100 transition-all duration-300 font-medium text-sm" data-bs-dismiss="modal">
+                        <button type="button" class="popup-btn-cancel" onclick="closeReviewModal()">
                             Cancel
                         </button>
-                        <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-amber-500 via-halal-gold to-yellow-500 text-white rounded-xl hover:shadow-lg hover:shadow-amber-300/20 transition-all duration-300 font-semibold text-sm flex items-center gap-2">
+                        <button type="submit" class="popup-btn-submit popup-btn-review">
                             <i class="bi bi-send"></i>
                             Submit Review
                         </button>
@@ -1029,6 +1226,92 @@
 
 @push('scripts')
 <script>
+function showPurchaseRequiredMessage() {
+    const message = `
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 60px; margin-bottom: 20px;">🛒</div>
+            <h3 style="color: #dc2626; margin-bottom: 10px;">Purchase Required</h3>
+            <p style="color: #6b7280; margin-bottom: 20px;">
+                You need to purchase this product before you can write a review.<br>
+                Please buy the product first!
+            </p>
+            <button onclick="closePopupMessage()" style="background: #2D5A27; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                OK
+            </button>
+        </div>
+    `;
+    showPopupMessage(message);
+}
+
+function showPopupMessage(content) {
+    // Remove existing popup if any
+    let existingPopup = document.getElementById('customPopup');
+    if (existingPopup) {
+        existingPopup.remove();
+    }
+    
+    const popup = document.createElement('div');
+    popup.id = 'customPopup';
+    popup.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;" onclick="closePopupMessage()">
+            <div style="background: white; border-radius: 16px; padding: 30px; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);" onclick="event.stopPropagation()">
+                ${content}
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+    document.body.style.overflow = 'hidden';
+}
+
+function closePopupMessage() {
+    const popup = document.getElementById('customPopup');
+    if (popup) {
+        popup.remove();
+    }
+    document.body.style.overflow = 'auto';
+}
+
+// Popup Modal Functions
+function openQuestionModal() {
+    const modal = document.getElementById('askQuestionModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeQuestionModal() {
+    const modal = document.getElementById('askQuestionModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function openReviewModal() {
+    const modal = document.getElementById('reviewModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeReviewModal() {
+    const modal = document.getElementById('reviewModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Close modals on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeQuestionModal();
+        closeReviewModal();
+    }
+});
+
 // Star Rating Functionality - Enhanced
 document.addEventListener('DOMContentLoaded', function() {
     const starButtons = document.querySelectorAll('.star-btn');

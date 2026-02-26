@@ -8,14 +8,15 @@
         <h4 class="mb-0">Order #{{ $order->order_number }}</h4>
         <small class="text-muted">
             <i class="bi bi-calendar3 me-1"></i>Created: {{ $order->created_at->format('d M, Y H:i') }}
+            <span class="badge bg-info ms-2">Inhouse Order</span>
         </small>
     </div>
     <div class="d-flex gap-2">
         <a href="{{ route('admin.orders.invoice', $order->id) }}" class="btn btn-outline-secondary" target="_blank">
             <i class="bi bi-receipt me-1"></i> Invoice
         </a>
-        <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Back to Orders
+        <a href="{{ route('admin.orders.in-house') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Inhouse Orders
         </a>
     </div>
 </div>
@@ -158,7 +159,7 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         @php
-                                            $imageUrl = $item->product && $item->product->featured_image ? $item->product->featured_image : null;
+                                            $imageUrl = $item->product ? $item->product->featured_image : null;
                                             if($imageUrl && !str_starts_with($imageUrl, '/storage/') && !str_starts_with($imageUrl, 'http')) {
                                                 $imageUrl = '/storage/' . $imageUrl;
                                             }
@@ -256,7 +257,7 @@
                     </div>
                     <div>
                         <h6 class="mb-0">{{ $order->billing_full_name }}</h6>
-                        <small class="text-muted">Guest Customer</small>
+                        <small class="text-muted">Manual Order</small>
                     </div>
                 </div>
                 @endif
@@ -344,7 +345,7 @@
         <!-- Order Timeline -->
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3">
-                <h5 class="mb-0"><i bi-clock-history me-2"></i>Order Timeline</h5>
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Order Timeline</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2">

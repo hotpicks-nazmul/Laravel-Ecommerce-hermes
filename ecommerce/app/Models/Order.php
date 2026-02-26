@@ -12,6 +12,8 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'order_number',
+        'order_type',
+        'seller_id',
         'billing_first_name',
         'billing_last_name',
         'billing_email',
@@ -133,5 +135,29 @@ class Order extends Model
     public function getPaymentStatusBadgeAttribute()
     {
         return $this->payment_status_badge_class;
+    }
+
+    /**
+     * Scope for inhouse orders
+     */
+    public function scopeInhouse($query)
+    {
+        return $query->where('order_type', 'inhouse');
+    }
+
+    /**
+     * Scope for seller orders
+     */
+    public function scopeSeller($query)
+    {
+        return $query->where('order_type', 'seller');
+    }
+
+    /**
+     * Scope for pickup point orders
+     */
+    public function scopePickupPoint($query)
+    {
+        return $query->where('order_type', 'pickup_point');
     }
 }

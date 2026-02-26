@@ -1,0 +1,22 @@
+Read Preference.md and Follow the style and functionality Preference to implement
+
+on admin panel
+implement PRODUCT > Related Product Q&A
+
+make all features logical and easy to use functionality
+
+do you understand? let me know
+
+
+
+
+
+Add this hints to Preference.md on your own language, that you will understand it to take necessary steps in future:
+hint 1:
+hint 2:
+also update the Table of contents of Preference.md
+
+
+Tomorrow work:
+-------------
+need to edit Ask a Question and  Write a Review on product frontend page
