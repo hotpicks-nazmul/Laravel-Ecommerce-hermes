@@ -177,8 +177,8 @@ class OrderController extends Controller
      */
     public function create()
     {
-        $products = Product::where('status', 'active')
-            ->select('id', 'name', 'sku', 'price', 'featured_image', 'current_stock')
+        $products = Product::where('is_active', true)
+            ->select('id', 'name', 'sku', 'price', 'featured_image', 'quantity')
             ->orderBy('name')
             ->get();
         
@@ -236,7 +236,7 @@ class OrderController extends Controller
             ];
 
             // Update stock
-            $product->decrement('current_stock', $quantity);
+            $product->decrement('quantity', $quantity);
         }
 
         // Shipping cost (free for now, can be configured)
@@ -434,18 +434,243 @@ class OrderController extends Controller
     }
 
     /**
-     * Placeholder for seller orders.
+     * Get statistics for seller orders
      */
-    public function seller()
+    protected function getSellerStats()
     {
-        return view('admin.orders.seller.index');
+        return [
+            'total' => Order::seller()->count(),
+            'pending' => Order::seller()->where('status', 'pending')->count(),
+            'processing' => Order::seller()->where('status', 'processing')->count(),
+            'confirmed' => Order::seller()->where('status', 'confirmed')->count(),
+            'shipped' => Order::seller()->where('status', 'shipped')->count(),
+            'delivered' => Order::seller()->where('status', 'delivered')->count(),
+            'cancelled' => Order::seller()->where('status', 'cancelled')->count(),
+            'refunded' => Order::seller()->where('status', 'refunded')->count(),
+        ];
     }
 
     /**
-     * Placeholder for pickup point orders.
+     * Display seller orders listing.
      */
-    public function pickupPoint()
+    public function seller(Request $request)
     {
-        return view('admin.orders.pickup-point.index');
+        $query = Order::seller()->with(['user', 'items.product']);
+
+        // Search by order number, customer name, email, phone
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhere('billing_first_name', 'like', "%{$search}%")
+                  ->orWhere('billing_last_name', 'like', "%{$search}%")
+                  ->orWhere('billing_email', 'like', "%{$search}%")
+                  ->orWhere('billing_phone', 'like', "%{$search}%")
+                  ->orWhere('shipping_first_name', 'like', "%{$search}%")
+                  ->orWhere('shipping_last_name', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by status
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by payment status
+        if ($request->payment_status) {
+            $query->where('payment_status', $request->payment_status);
+        }
+
+        // Filter by seller
+        if ($request->seller_id) {
+            $query->whereHas('items.product', function($q) use ($request) {
+                $q->where('seller_id', $request->seller_id);
+            });
+        }
+
+        // Filter by date range
+        if ($request->date_from) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->date_to) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Sorting
+        $sort = $request->sort ?? 'created_at';
+        $direction = $request->direction ?? 'desc';
+        $query->orderBy($sort, $direction);
+
+        // Pagination
+        $perPage = $request->per_page ?? 25;
+        $orders = $query->paginate($perPage);
+
+        // Get stats
+        $stats = $this->getSellerStats();
+
+        // Get sellers for filter dropdown
+        $sellers = User::whereHas('products', function($q) {
+            $q->whereNotNull('seller_id');
+        })->select('id', 'name', 'email')->get();
+
+        // AJAX response
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('admin.orders.partials.seller-order-rows', compact('orders'))->render(),
+                'pagination' => $orders->links()->toHtml(),
+                'stats' => $stats
+            ]);
+        }
+
+        return view('admin.orders.seller.index', compact('orders', 'stats', 'sellers'));
+    }
+
+    /**
+     * Display seller order details.
+     */
+    public function sellerShow(Order $order)
+    {
+        // Ensure this is a seller order
+        if ($order->order_type !== 'seller') {
+            return redirect()->route('admin.orders.seller')
+                ->with('error', 'This order is not a seller order.');
+        }
+
+        $order->load(['user', 'items.product.seller']);
+        return view('admin.orders.seller.show', compact('order'));
+    }
+
+    /**
+     * Get statistics for pickup point orders
+     */
+    protected function getPickupPointStats()
+    {
+        return [
+            'total' => Order::pickupPoint()->count(),
+            'pending' => Order::pickupPoint()->where('status', 'pending')->count(),
+            'processing' => Order::pickupPoint()->where('status', 'processing')->count(),
+            'confirmed' => Order::pickupPoint()->where('status', 'confirmed')->count(),
+            'ready' => Order::pickupPoint()->where('status', 'confirmed')->whereNull('picked_up_at')->count(),
+            'picked_up' => Order::pickupPoint()->whereNotNull('picked_up_at')->count(),
+            'cancelled' => Order::pickupPoint()->where('status', 'cancelled')->count(),
+        ];
+    }
+
+    /**
+     * Display pickup point orders listing.
+     */
+    public function pickupPoint(Request $request)
+    {
+        $query = Order::pickupPoint()->with(['user', 'pickupPointLocation']);
+
+        // Search by order number, customer name, email, phone
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhere('billing_first_name', 'like', "%{$search}%")
+                  ->orWhere('billing_last_name', 'like', "%{$search}%")
+                  ->orWhere('billing_email', 'like', "%{$search}%")
+                  ->orWhere('billing_phone', 'like', "%{$search}%")
+                  ->orWhere('picked_up_by', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by status
+        if ($request->status) {
+            if ($request->status === 'picked_up') {
+                $query->whereNotNull('picked_up_at');
+            } elseif ($request->status === 'ready') {
+                $query->where('status', 'confirmed')->whereNull('picked_up_at');
+            } else {
+                $query->where('status', $request->status);
+            }
+        }
+
+        // Filter by payment status
+        if ($request->payment_status) {
+            $query->where('payment_status', $request->payment_status);
+        }
+
+        // Filter by pickup point
+        if ($request->pickup_point_id) {
+            $query->where('pickup_point_id', $request->pickup_point_id);
+        }
+
+        // Filter by date range
+        if ($request->date_from) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->date_to) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Sorting
+        $sort = $request->sort ?? 'created_at';
+        $direction = $request->direction ?? 'desc';
+        $query->orderBy($sort, $direction);
+
+        // Pagination
+        $perPage = $request->per_page ?? 25;
+        $orders = $query->paginate($perPage);
+
+        // Get stats
+        $stats = $this->getPickupPointStats();
+
+        // Get pickup points for filter dropdown
+        $pickupPoints = \App\Models\PickupPoint::active()->orderBy('name')->get();
+
+        // AJAX response
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('admin.orders.partials.pickup-point-order-rows', compact('orders'))->render(),
+                'pagination' => $orders->links()->toHtml(),
+                'stats' => $stats
+            ]);
+        }
+
+        return view('admin.orders.pickup-point.index', compact('orders', 'stats', 'pickupPoints'));
+    }
+
+    /**
+     * Display pickup point order details.
+     */
+    public function pickupPointShow(Order $order)
+    {
+        // Ensure this is a pickup point order
+        if ($order->order_type !== 'pickup_point') {
+            return redirect()->route('admin.orders.pickup-point')
+                ->with('error', 'This order is not a pickup point order.');
+        }
+
+        $order->load(['user', 'items.product', 'pickupPointLocation']);
+        return view('admin.orders.pickup-point.show', compact('order'));
+    }
+
+    /**
+     * Mark order as picked up.
+     */
+    public function markAsPickedUp(Request $request, Order $order)
+    {
+        $request->validate([
+            'picked_up_by' => 'required|string|max:255',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $order->update([
+            'picked_up_at' => now(),
+            'picked_up_by' => $request->picked_up_by,
+            'status' => 'delivered',
+        ]);
+
+        // Append notes if provided
+        if ($request->notes) {
+            $existingNotes = $order->notes ? $order->notes . "\n\n" : '';
+            $order->update([
+                'notes' => $existingNotes . 'Pickup Notes (' . now()->format('d M Y, H:i') . '): ' . $request->notes
+            ]);
+        }
+
+        return back()->with('success', 'Order marked as picked up successfully.');
     }
 }

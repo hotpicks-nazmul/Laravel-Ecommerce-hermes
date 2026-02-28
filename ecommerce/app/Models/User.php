@@ -143,4 +143,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(Chat::class);
     }
+
+    /**
+     * Get products created by this user
+     */
+    public function createdProducts()
+    {
+        return $this->hasMany(Product::class, 'created_by');
+    }
+
+    /**
+     * Get products where this user is the seller
+     */
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'seller_id');
+    }
 }

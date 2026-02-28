@@ -14,6 +14,9 @@ class Order extends Model
         'order_number',
         'order_type',
         'seller_id',
+        'pickup_point_id',
+        'picked_up_at',
+        'picked_up_by',
         'billing_first_name',
         'billing_last_name',
         'billing_email',
@@ -48,6 +51,10 @@ class Order extends Model
         'coupon_code',
     ];
 
+    protected $dates = [
+        'picked_up_at',
+    ];
+
     protected $casts = [
         'subtotal' => 'decimal:2',
         'shipping_cost' => 'decimal:2',
@@ -69,6 +76,44 @@ class Order extends Model
     public function coupon()
     {
         return $this->belongsTo(Coupon::class);
+    }
+
+    /**
+     * Get the pickup point for this order.
+     */
+    public function pickupPointLocation()
+    {
+        return $this->belongsTo(PickupPoint::class, 'pickup_point_id');
+    }
+
+    /**
+     * Check if this is a pickup point order.
+     */
+    public function getIsPickupOrderAttribute()
+    {
+        return $this->order_type === 'pickup_point';
+    }
+
+    /**
+     * Get pickup status badge class.
+     */
+    public function getPickupStatusBadgeClassAttribute()
+    {
+        if ($this->picked_up_at) {
+            return 'bg-success';
+        }
+        return $this->status_badge_class;
+    }
+
+    /**
+     * Get pickup status text.
+     */
+    public function getPickupStatusTextAttribute()
+    {
+        if ($this->picked_up_at) {
+            return 'Picked Up';
+        }
+        return ucfirst($this->status);
     }
 
     /**
@@ -159,5 +204,23 @@ class Order extends Model
     public function scopePickupPoint($query)
     {
         return $query->where('order_type', 'pickup_point');
+    }
+
+    /**
+     * Generate a unique order number.
+     */
+    public static function generateOrderNumber(): string
+    {
+        $prefix = 'ORD';
+        $date = now()->format('Ymd');
+        $lastOrder = self::withTrashed()
+            ->whereDate('created_at', today())
+            ->orderBy('id', 'desc')
+            ->first();
+        
+        $sequence = $lastOrder ? (int) substr($lastOrder->order_number, -4) + 1 : 1;
+        $sequence = str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        
+        return "{$prefix}-{$date}-{$sequence}";
     }
 }

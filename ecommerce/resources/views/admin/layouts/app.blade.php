@@ -645,7 +645,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.orders.seller') ? 'active' : '' }}" href="{{ route('admin.orders.seller') }}">
+                            <a class="nav-link {{ request()->routeIs('admin.orders.seller*') ? 'active' : '' }}" href="{{ route('admin.orders.seller') }}">
                                 <i class="bi bi-people"></i> Seller Orders
                             </a>
                         </li>
@@ -685,12 +685,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.delivery.partners') ? 'active' : '' }}" href="{{ route('admin.delivery.partners') }}">
+                            <a class="nav-link {{ request()->routeIs('admin.delivery.partners.index') ? 'active' : '' }}" href="{{ route('admin.delivery.partners.index') }}">
                                 <i class="bi bi-building"></i> Delivery Partners
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.delivery.carriers') ? 'active' : '' }}" href="{{ route('admin.delivery.carriers') }}">
+                            <a class="nav-link {{ request()->routeIs('admin.delivery.carriers.*') ? 'active' : '' }}" href="{{ route('admin.delivery.carriers.index') }}">
                                 <i class="bi bi-truck"></i> Carriers
                             </a>
                         </li>
@@ -715,8 +715,18 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.delivery.pickup-points*') ? 'active' : '' }}" href="{{ route('admin.delivery.pickup-points') }}">
-                                <i class="bi bi-pin-map"></i> Pickup Points
+                            <a class="nav-link {{ request()->routeIs('admin.pickup-points*') ? 'active' : '' }}" href="{{ route('admin.pickup-points.index') }}">
+                                <i class="bi bi-shop"></i> Pick-up Points
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.delivery.schedules*') ? 'active' : '' }}" href="{{ route('admin.delivery.schedules') }}">
+                                <i class="bi bi-calendar-week"></i> Delivery Schedules
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.delivery.reports*') ? 'active' : '' }}" href="{{ route('admin.delivery.reports') }}">
+                                <i class="bi bi-bar-chart"></i> Delivery Reports
                             </a>
                         </li>
                         <li class="nav-item">

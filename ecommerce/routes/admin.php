@@ -128,7 +128,21 @@ Route::get('/orders/in-house/create', [OrderController::class, 'create'])->name(
 Route::post('/orders/in-house', [OrderController::class, 'store'])->name('orders.in-house.store');
 Route::get('/orders/in-house/{order}', [OrderController::class, 'inHouseShow'])->name('orders.in-house.show');
 
-// Orders Management
+// Seller Orders - MUST be before resource routes
+Route::get('/orders/seller', [OrderController::class, 'seller'])->name('orders.seller');
+Route::get('/orders/seller/{order}', [OrderController::class, 'sellerShow'])->name('orders.seller.show');
+
+// Pickup Point Orders - MUST be before resource routes
+Route::get('/orders/pickup-point', [OrderController::class, 'pickupPoint'])->name('orders.pickup-point');
+Route::get('/orders/pickup-point/{order}', [OrderController::class, 'pickupPointShow'])->name('orders.pickup-point.show');
+Route::post('/orders/pickup-point/{order}/picked-up', [OrderController::class, 'markAsPickedUp'])->name('orders.pickup-point.picked-up');
+
+// Pickup Points Management (Delivery Section)
+Route::resource('pickup-points', \App\Http\Controllers\Admin\PickupPointController::class);
+Route::post('/pickup-points/{pickupPoint}/toggle-status', [\App\Http\Controllers\Admin\PickupPointController::class, 'toggleStatus'])->name('pickup-points.toggle-status');
+Route::get('/api/pickup-points', [\App\Http\Controllers\Admin\PickupPointController::class, 'getPickupPoints'])->name('api.pickup-points');
+
+// Orders Management - Resource route MUST be LAST
 Route::resource('orders', OrderController::class)->only(['index', 'show', 'update']);
 
 Route::post('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
@@ -398,37 +412,82 @@ Route::prefix('inventory')->name('inventory.')->group(function () {
     Route::post('/threshold', [\App\Http\Controllers\Admin\InventoryController::class, 'updateThreshold'])->name('threshold');
 });
 
-// Sales - Additional Routes
-Route::get('/orders/seller', [OrderController::class, 'seller'])->name('orders.seller');
-Route::get('/orders/pickup-point', [OrderController::class, 'pickupPoint'])->name('orders.pickup-point');
-
 // Delivery Management
 Route::prefix('delivery')->name('delivery.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'deliveryManagement'])->name('index');
-    Route::get('/partners', [\App\Http\Controllers\Admin\PlaceholderController::class, 'deliveryPartners'])->name('partners');
-    Route::get('/carriers', [\App\Http\Controllers\Admin\PlaceholderController::class, 'deliveryCarriers'])->name('carriers');
-    Route::get('/tracking', [\App\Http\Controllers\Admin\PlaceholderController::class, 'shipmentTracking'])->name('tracking');
-    Route::get('/zones', [\App\Http\Controllers\Admin\PlaceholderController::class, 'deliveryZones'])->name('zones');
-    Route::get('/courier-integration', [\App\Http\Controllers\Admin\PlaceholderController::class, 'courierIntegration'])->name('courier-integration');
-    Route::get('/delivery-boys', [\App\Http\Controllers\Admin\PlaceholderController::class, 'deliveryBoys'])->name('delivery-boys');
+    Route::get('/', [\App\Http\Controllers\Admin\DeliveryController::class, 'index'])->name('index');
+    Route::post('/quick-ship', [\App\Http\Controllers\Admin\DeliveryController::class, 'quickShip'])->name('quick-ship');
+    Route::post('/mark-delivered', [\App\Http\Controllers\Admin\DeliveryController::class, 'markDelivered'])->name('mark-delivered');
+    Route::get('/orders', [\App\Http\Controllers\Admin\DeliveryController::class, 'getOrders'])->name('orders');
+    Route::get('/partners', [\App\Http\Controllers\Admin\DeliveryController::class, 'partners'])->name('partners.index');
+    Route::get('/partners/create', [\App\Http\Controllers\Admin\DeliveryController::class, 'createPartner'])->name('partners.create');
+    Route::post('/partners', [\App\Http\Controllers\Admin\DeliveryController::class, 'storePartner'])->name('partners.store');
+    Route::get('/partners/{partner}/edit', [\App\Http\Controllers\Admin\DeliveryController::class, 'editPartner'])->name('partners.edit');
+    Route::put('/partners/{partner}', [\App\Http\Controllers\Admin\DeliveryController::class, 'updatePartner'])->name('partners.update');
+    Route::delete('/partners/{partner}', [\App\Http\Controllers\Admin\DeliveryController::class, 'destroyPartner'])->name('partners.destroy');
+    Route::post('/partners/{partner}/toggle-status', [\App\Http\Controllers\Admin\DeliveryController::class, 'togglePartnerStatus'])->name('partners.toggle-status');
+    Route::post('/partners/{partner}/toggle-featured', [\App\Http\Controllers\Admin\DeliveryController::class, 'togglePartnerFeatured'])->name('partners.toggle-featured');
+    Route::post('/partners/bulk-action', [\App\Http\Controllers\Admin\DeliveryController::class, 'bulkPartnerAction'])->name('partners.bulk-action');
+    Route::get('/carriers', [\App\Http\Controllers\Admin\DeliveryController::class, 'carriers'])->name('carriers.index');
+    Route::get('/carriers/create', [\App\Http\Controllers\Admin\DeliveryController::class, 'createCarrier'])->name('carriers.create');
+    Route::post('/carriers', [\App\Http\Controllers\Admin\DeliveryController::class, 'storeCarrier'])->name('carriers.store');
+    Route::get('/carriers/{carrier}/edit', [\App\Http\Controllers\Admin\DeliveryController::class, 'editCarrier'])->name('carriers.edit');
+    Route::put('/carriers/{carrier}', [\App\Http\Controllers\Admin\DeliveryController::class, 'updateCarrier'])->name('carriers.update');
+    Route::delete('/carriers/{carrier}', [\App\Http\Controllers\Admin\DeliveryController::class, 'destroyCarrier'])->name('carriers.destroy');
+    Route::post('/carriers/{carrier}/toggle-status', [\App\Http\Controllers\Admin\DeliveryController::class, 'toggleCarrierStatus'])->name('carriers.toggle-status');
+    Route::post('/carriers/{carrier}/toggle-featured', [\App\Http\Controllers\Admin\DeliveryController::class, 'toggleCarrierFeatured'])->name('carriers.toggle-featured');
+    Route::post('/carriers/bulk-action', [\App\Http\Controllers\Admin\DeliveryController::class, 'bulkCarrierAction'])->name('carriers.bulk-action');
+    Route::get('/tracking', [\App\Http\Controllers\Admin\DeliveryController::class, 'tracking'])->name('tracking');
+    Route::post('/tracking/{order}/update-status', [\App\Http\Controllers\Admin\DeliveryController::class, 'updateTrackingStatus'])->name('tracking.update-status');
+    Route::post('/tracking/{order}/generate-number', [\App\Http\Controllers\Admin\DeliveryController::class, 'generateTrackingNumber'])->name('tracking.generate-number');
+    Route::post('/tracking/bulk-action', [\App\Http\Controllers\Admin\DeliveryController::class, 'bulkTrackingAction'])->name('bulk-tracking-action');
+    Route::get('/zones', [\App\Http\Controllers\Admin\DeliveryController::class, 'zones'])->name('zones');
+    Route::get('/courier-integration', [\App\Http\Controllers\Admin\DeliveryController::class, 'courierIntegration'])->name('courier-integration');
+    Route::get('/delivery-boys', [\App\Http\Controllers\Admin\DeliveryController::class, 'deliveryBoys'])->name('delivery-boys');
+    Route::get('/schedules', [\App\Http\Controllers\Admin\DeliveryController::class, 'schedules'])->name('schedules');
+    Route::get('/reports', [\App\Http\Controllers\Admin\DeliveryController::class, 'reports'])->name('reports');
 });
 
 // Quotations
 Route::prefix('quotations')->name('quotations.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'quotations'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\PlaceholderController::class, 'createQuotation'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeQuotation'])->name('store');
-    Route::get('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'showQuotation'])->name('show');
-    Route::post('/{id}/convert-to-order', [\App\Http\Controllers\Admin\PlaceholderController::class, 'convertQuotationToOrder'])->name('convert-to-order');
+    Route::get('/', [\App\Http\Controllers\Admin\QuotationController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\Admin\QuotationController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Admin\QuotationController::class, 'store'])->name('store');
+    Route::get('/{quotation}', [\App\Http\Controllers\Admin\QuotationController::class, 'show'])->name('show');
+    Route::get('/{quotation}/edit', [\App\Http\Controllers\Admin\QuotationController::class, 'edit'])->name('edit');
+    Route::put('/{quotation}', [\App\Http\Controllers\Admin\QuotationController::class, 'update'])->name('update');
+    Route::delete('/{quotation}', [\App\Http\Controllers\Admin\QuotationController::class, 'destroy'])->name('destroy');
+    Route::post('/{quotation}/send', [\App\Http\Controllers\Admin\QuotationController::class, 'send'])->name('send');
+    Route::post('/{quotation}/convert-to-order', [\App\Http\Controllers\Admin\QuotationController::class, 'convertToOrder'])->name('convert-to-order');
+    Route::post('/{quotation}/status', [\App\Http\Controllers\Admin\QuotationController::class, 'updateStatus'])->name('status');
+    Route::get('/{quotation}/print', [\App\Http\Controllers\Admin\QuotationController::class, 'print'])->name('print');
+    Route::get('/{quotation}/download', [\App\Http\Controllers\Admin\QuotationController::class, 'download'])->name('download');
+    Route::post('/bulk-action', [\App\Http\Controllers\Admin\QuotationController::class, 'bulkAction'])->name('bulk-action');
+    Route::get('/api/products/search', [\App\Http\Controllers\Admin\QuotationController::class, 'searchProducts'])->name('api.products.search');
+    Route::get('/api/product', [\App\Http\Controllers\Admin\QuotationController::class, 'getProduct'])->name('api.product');
 });
 
 // Subscriptions
 Route::prefix('subscriptions')->name('subscriptions.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'subscriptions'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\PlaceholderController::class, 'createSubscription'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeSubscription'])->name('store');
-    Route::get('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'showSubscription'])->name('show');
-    Route::post('/{id}/cancel', [\App\Http\Controllers\Admin\PlaceholderController::class, 'cancelSubscription'])->name('cancel');
+    Route::get('/', [\App\Http\Controllers\Admin\SubscriptionController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\Admin\SubscriptionController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Admin\SubscriptionController::class, 'store'])->name('store');
+    Route::get('/{subscription}', [\App\Http\Controllers\Admin\SubscriptionController::class, 'show'])->name('show');
+    Route::get('/{subscription}/edit', [\App\Http\Controllers\Admin\SubscriptionController::class, 'edit'])->name('edit');
+    Route::put('/{subscription}', [\App\Http\Controllers\Admin\SubscriptionController::class, 'update'])->name('update');
+    Route::delete('/{subscription}', [\App\Http\Controllers\Admin\SubscriptionController::class, 'destroy'])->name('destroy');
+    
+    // Actions
+    Route::post('/{subscription}/activate', [\App\Http\Controllers\Admin\SubscriptionController::class, 'activate'])->name('activate');
+    Route::post('/{subscription}/pause', [\App\Http\Controllers\Admin\SubscriptionController::class, 'pause'])->name('pause');
+    Route::post('/{subscription}/cancel', [\App\Http\Controllers\Admin\SubscriptionController::class, 'cancel'])->name('cancel');
+    Route::post('/{subscription}/process-billing', [\App\Http\Controllers\Admin\SubscriptionController::class, 'processBilling'])->name('process-billing');
+    
+    // Bulk Actions
+    Route::post('/bulk-action', [\App\Http\Controllers\Admin\SubscriptionController::class, 'bulkAction'])->name('bulk-action');
+    
+    // API Routes
+    Route::get('/api/customer/{user}', [\App\Http\Controllers\Admin\SubscriptionController::class, 'getCustomerDetails'])->name('customer-details');
+    Route::get('/api/product/{product}', [\App\Http\Controllers\Admin\SubscriptionController::class, 'getProductDetails'])->name('product-details');
 });
 
 // Refund Management
@@ -827,11 +886,11 @@ Route::prefix('delivery')->name('delivery.')->group(function () {
     Route::post('/pickup-points', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storePickupPoint'])->name('pickup-points.store');
     Route::put('/pickup-points/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updatePickupPoint'])->name('pickup-points.update');
     Route::delete('/pickup-points/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyPickupPoint'])->name('pickup-points.destroy');
-    Route::get('/schedules', [\App\Http\Controllers\Admin\PlaceholderController::class, 'deliverySchedules'])->name('schedules');
+    Route::get('/schedules', [\App\Http\Controllers\Admin\DeliveryController::class, 'schedules'])->name('schedules');
     Route::post('/schedules', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeDeliverySchedule'])->name('schedules.store');
     Route::put('/schedules/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateDeliverySchedule'])->name('schedules.update');
     Route::delete('/schedules/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyDeliverySchedule'])->name('schedules.destroy');
-    Route::get('/reports', [\App\Http\Controllers\Admin\PlaceholderController::class, 'deliveryReports'])->name('reports');
+    Route::get('/reports', [\App\Http\Controllers\Admin\DeliveryController::class, 'reports'])->name('reports');
 });
 
 // Settings - Additional Routes

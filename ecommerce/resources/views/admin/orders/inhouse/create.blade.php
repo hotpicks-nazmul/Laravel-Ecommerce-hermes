@@ -87,7 +87,7 @@
                     <div class="row g-2 mb-3" id="productList" style="max-height: 400px; overflow-y: auto;">
                         @forelse($products as $product)
                         <div class="col-md-6 col-sm-6">
-                            <div class="card border product-select-card p-2" onclick="addProductToOrder({{ $product->id }}, '{{ $product->name }}', {{ $product->price }}, {{ $product->current_stock }})">
+                            <div class="card border product-select-card p-2" onclick="addProductToOrder({{ $product->id }}, '{{ $product->name }}', {{ $product->price }}, {{ $product->quantity }})">
                                 <div class="d-flex align-items-center">
                                     @php
                                         $imageUrl = $product->featured_image;
@@ -106,7 +106,7 @@
                                         <div class="fw-medium text-truncate">{{ $product->name }}</div>
                                         <div class="d-flex justify-content-between">
                                             <small class="text-success">৳{{ number_format($product->price, 2) }}</small>
-                                            <small class="text-muted">Stock: {{ $product->current_stock }}</small>
+                                            <small class="text-muted">Stock: {{ $product->quantity }}</small>
                                         </div>
                                     </div>
                                 </div>
