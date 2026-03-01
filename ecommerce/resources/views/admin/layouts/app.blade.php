@@ -670,14 +670,14 @@
             
             <!-- DELIVERY -->
             <div class="menu-category">
-                <a class="menu-category-header {{ request()->routeIs('admin.delivery.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuDelivery" role="button" aria-expanded="{{ request()->routeIs('admin.delivery.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.delivery.*') || request()->routeIs('admin.pickup-points*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuDelivery" role="button" aria-expanded="{{ request()->routeIs('admin.delivery.*') || request()->routeIs('admin.pickup-points*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-truck menu-icon"></i>
                         <span class="menu-category-title">Delivery</span>
                     </div>
                     <i class="bi bi-chevron-down arrow"></i>
                 </a>
-                <div class="collapse {{ request()->routeIs('admin.delivery.*') ? 'show' : '' }}" id="menuDelivery">
+                <div class="collapse {{ request()->routeIs('admin.delivery.*') || request()->routeIs('admin.pickup-points*') ? 'show' : '' }}" id="menuDelivery">
                     <ul class="nav flex-column submenu">
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.delivery.index') ? 'active' : '' }}" href="{{ route('admin.delivery.index') }}">
@@ -700,7 +700,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.delivery.zones') ? 'active' : '' }}" href="{{ route('admin.delivery.zones') }}">
+                            <a class="nav-link {{ request()->routeIs('admin.delivery.zones.index') ? 'active' : '' }}" href="{{ route('admin.delivery.zones.index') }}">
                                 <i class="bi bi-map"></i> Delivery Zones
                             </a>
                         </li>
@@ -710,7 +710,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.delivery.delivery-boys') ? 'active' : '' }}" href="{{ route('admin.delivery.delivery-boys') }}">
+                            <a class="nav-link {{ request()->routeIs('admin.delivery.delivery-boys.*') ? 'active' : '' }}" href="{{ route('admin.delivery.delivery-boys.index') }}">
                                 <i class="bi bi-person-badge"></i> Delivery Boys
                             </a>
                         </li>
@@ -720,17 +720,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.delivery.schedules*') ? 'active' : '' }}" href="{{ route('admin.delivery.schedules') }}">
-                                <i class="bi bi-calendar-week"></i> Delivery Schedules
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.delivery.reports*') ? 'active' : '' }}" href="{{ route('admin.delivery.reports') }}">
-                                <i class="bi bi-bar-chart"></i> Delivery Reports
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.delivery.schedules*') ? 'active' : '' }}" href="{{ route('admin.delivery.schedules') }}">
+                            <a class="nav-link {{ request()->routeIs('admin.delivery.schedules*') ? 'active' : '' }}" href="{{ route('admin.delivery.schedules.index') }}">
                                 <i class="bi bi-calendar-week"></i> Delivery Schedules
                             </a>
                         </li>

@@ -19,12 +19,228 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 11. **Sidebar Navigation State** - Keep menu expanded when child item is active
 12. **Product Images** - Proper image path handling for admin tables
 13. **404 Errors Due to Route Ordering** - Fix for routes not matching correctly
+14. **Create/Edit Form Layout** - Proper form structure for multi-card forms
+15. **Table Listing Pages** - Proper table structure and styling
+
+---
+
+## Create/Edit Form Layout
+
+### Standard Two-Column Layout with Sidebar Cards
+
+When creating forms that span multiple cards (e.g., Basic Info, Location, Settings), use a single form with the `id` attribute and connect fields from sidebar cards using the `form` attribute.
+
+#### HTML Structure
+
+```html
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Card 1: Basic Info -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-icon me-2"></i>Card Title</h6>
+            </div>
+            <div class="card-body">
+                <form id="itemForm" method="POST" action="...">
+                    @csrf
+                    <!-- Form fields -->
+                </form>
+            </div>
+        </div>
+        
+        <!-- Card 2: Additional Info -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-icon me-2"></i>Card Title</h6>
+            </div>
+            <div class="card-body">
+                <!-- Fields with form attribute -->
+                <div class="mb-3">
+                    <label for="field_name" class="form-label">Field Label</label>
+                    <input type="text" id="field_name" name="field_name" form="itemForm" class="form-control">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Sidebar Card with form attribute -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">Status</h6>
+            </div>
+            <div class="card-body">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="is_active" form="itemForm">
+                    <label class="form-check-label" for="is_active">
+                        <i class="bi bi-check-circle text-success me-1"></i> Active
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Buttons -->
+<div class="floating-save-container">
+    <a href="{{ route('admin.items.index') }}" class="btn btn-secondary floating-reset-btn">
+        <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
+    <button type="submit" form="itemForm" class="btn btn-primary floating-save-btn">
+        <i class="bi bi-check-lg me-1"></i> Create Item
+    </button>
+</div>
+```
+
+### Key Points
+
+| Pattern | Usage |
+|---------|-------|
+| `id="itemForm"` | Add to main form element |
+| `form="itemForm"` | Add to all input fields outside the main form |
+| `id="field_name"` | Add to all inputs for label connection |
+| `for="field_name"` | Add to labels to connect with inputs |
+| `<div class="form-text">` | Use for help text instead of `<small>` |
+
+### Form Controls Best Practices
+
+```html
+<!-- Required Field -->
+<label for="name" class="form-label">Field Name <span class="text-danger">*</span></label>
+<input type="text" id="name" name="name" class="form-control @error('name') is-invalid @enderror" required>
+@error('name')
+    <div class="invalid-feedback">{{ $message }}</div>
+@enderror
+
+<!-- Help Text -->
+<div class="form-text">Help text goes here</div>
+
+<!-- Input with Icon -->
+<div class="input-group">
+    <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+    <input type="text" class="form-control" id="slug" name="slug" placeholder="auto-generated">
+</div>
+
+<!-- Form Switch with Icon -->
+<div class="form-check form-switch mb-3">
+    <input class="form-check-input" type="checkbox" id="is_active" form="itemForm">
+    <label class="form-check-label" for="is_active">
+        <i class="bi bi-check-circle text-success me-1"></i> Active
+    </label>
+    <div class="form-text">Help text</div>
+</div>
+```
+
+### Header with Back Button
+
+```html
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Page Title</h4>
+    <a href="{{ route('admin.items.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to Items
+    </a>
+</div>
+```
+
+---
+
+## Table Listing Pages
+
+### Standard Table Structure
+
+For index/listing pages, use the following structure:
+
+```html
+<!-- Header with Title and Add Button -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Page Title</h4>
+    <a href="{{ route('admin.items.create') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Add New Item
+    </a>
+</div>
+
+<!-- Filters Card -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-3">
+        <form method="GET" id="filterForm">
+            <div class="row g-2 align-items-end">
+                <!-- Search Input -->
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <label class="form-label small text-muted">Search</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" id="liveSearch" class="form-control" placeholder="Search...">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table Card -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
+                        </th>
+                        <th>Column Header</th>
+                        <th style="width: 120px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Table rows -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination inside card-body -->
+        @if($items->hasPages())
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="text-muted small">
+                Showing {{ $items->firstItem() }} - {{ $items->lastItem() }} of {{ $items->total() }} items
+            </div>
+            <div>
+                {{ $items->appends(request()->query())->links() }}
+            </div>
+        </div>
+        @endif
+    </div>
+</div>
+```
+
+### Key Points
+
+| Element | Class/Attribute |
+|---------|----------------|
+| Table wrapper | `<div class="table-responsive">` |
+| Table | `<table class="table table-hover align-middle mb-0">` |
+| Checkbox column | `style="width: 40px;"` |
+| Actions column | `style="width: 120px;"` |
+| Card body | `<div class="card-body p-0">` |
+| Pagination | Inside `card-body`, wrapped in `card-footer` |
+| Empty state | Use `<tr><td colspan="X" class="text-center py-5">` |
+
+### Empty State
+
+```html
+<tr>
+    <td colspan="8" class="text-center py-5">
+        <i class="bi bi-folder text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mb-2 mt-2">No items found</p>
+        <a href="{{ route('admin.items.create') }}" class="btn btn-sm btn-primary mt-1">
+            <i class="bi bi-plus-lg me-1"></i> Add First Item
+        </a>
+    </td>
+</tr>
+```
 
 ---
 
 ## Floating Action Buttons
-
-### Standard Style (Used in Create/Edit Pages)
 
 All create and edit pages should use the **floating-save-container** style for action buttons. This style is already defined in `ecommerce/resources/views/admin/layouts/app.blade.php`.
 

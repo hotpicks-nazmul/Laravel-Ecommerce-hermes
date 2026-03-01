@@ -440,11 +440,36 @@ Route::prefix('delivery')->name('delivery.')->group(function () {
     Route::post('/tracking/{order}/update-status', [\App\Http\Controllers\Admin\DeliveryController::class, 'updateTrackingStatus'])->name('tracking.update-status');
     Route::post('/tracking/{order}/generate-number', [\App\Http\Controllers\Admin\DeliveryController::class, 'generateTrackingNumber'])->name('tracking.generate-number');
     Route::post('/tracking/bulk-action', [\App\Http\Controllers\Admin\DeliveryController::class, 'bulkTrackingAction'])->name('bulk-tracking-action');
-    Route::get('/zones', [\App\Http\Controllers\Admin\DeliveryController::class, 'zones'])->name('zones');
+    Route::get('/zones', [\App\Http\Controllers\Admin\DeliveryController::class, 'zones'])->name('zones.index');
+    Route::get('/zones/create', [\App\Http\Controllers\Admin\DeliveryController::class, 'createZone'])->name('zones.create');
+    Route::post('/zones', [\App\Http\Controllers\Admin\DeliveryController::class, 'storeZone'])->name('zones.store');
+    Route::get('/zones/{zone}/edit', [\App\Http\Controllers\Admin\DeliveryController::class, 'editZone'])->name('zones.edit');
+    Route::put('/zones/{zone}', [\App\Http\Controllers\Admin\DeliveryController::class, 'updateZone'])->name('zones.update');
+    Route::delete('/zones/{zone}', [\App\Http\Controllers\Admin\DeliveryController::class, 'destroyZone'])->name('zones.destroy');
+    Route::post('/zones/{zone}/toggle-status', [\App\Http\Controllers\Admin\DeliveryController::class, 'toggleZoneStatus'])->name('zones.toggle-status');
+    Route::post('/zones/{zone}/toggle-default', [\App\Http\Controllers\Admin\DeliveryController::class, 'toggleZoneDefault'])->name('zones.toggle-default');
+    Route::post('/zones/bulk-action', [\App\Http\Controllers\Admin\DeliveryController::class, 'bulkZoneAction'])->name('zones.bulk-action');
     Route::get('/courier-integration', [\App\Http\Controllers\Admin\DeliveryController::class, 'courierIntegration'])->name('courier-integration');
-    Route::get('/delivery-boys', [\App\Http\Controllers\Admin\DeliveryController::class, 'deliveryBoys'])->name('delivery-boys');
-    Route::get('/schedules', [\App\Http\Controllers\Admin\DeliveryController::class, 'schedules'])->name('schedules');
+    Route::post('/courier-integration/add', [\App\Http\Controllers\Admin\DeliveryController::class, 'addCourierFromTemplate'])->name('courier-integration.add');
+    Route::get('/delivery-boys', [\App\Http\Controllers\Admin\DeliveryController::class, 'deliveryBoys'])->name('delivery-boys.index');
+    Route::get('/delivery-boys/create', [\App\Http\Controllers\Admin\DeliveryController::class, 'createDeliveryBoy'])->name('delivery-boys.create');
+    Route::post('/delivery-boys', [\App\Http\Controllers\Admin\DeliveryController::class, 'storeDeliveryBoy'])->name('delivery-boys.store');
+    Route::get('/delivery-boys/{deliveryBoy}/edit', [\App\Http\Controllers\Admin\DeliveryController::class, 'editDeliveryBoy'])->name('delivery-boys.edit');
+    Route::put('/delivery-boys/{deliveryBoy}', [\App\Http\Controllers\Admin\DeliveryController::class, 'updateDeliveryBoy'])->name('delivery-boys.update');
+    Route::delete('/delivery-boys/{deliveryBoy}', [\App\Http\Controllers\Admin\DeliveryController::class, 'destroyDeliveryBoy'])->name('delivery-boys.destroy');
+    Route::post('/delivery-boys/{deliveryBoy}/toggle-status', [\App\Http\Controllers\Admin\DeliveryController::class, 'toggleDeliveryBoyStatus'])->name('delivery-boys.toggle-status');
+    Route::post('/delivery-boys/{deliveryBoy}/toggle-availability', [\App\Http\Controllers\Admin\DeliveryController::class, 'toggleDeliveryBoyAvailability'])->name('delivery-boys.toggle-availability');
+    Route::post('/delivery-boys/bulk-action', [\App\Http\Controllers\Admin\DeliveryController::class, 'bulkDeliveryBoyAction'])->name('delivery-boys.bulk-action');
+    Route::get('/schedules', [\App\Http\Controllers\Admin\DeliveryController::class, 'schedules'])->name('schedules.index');
+    Route::get('/schedules/create', [\App\Http\Controllers\Admin\DeliveryController::class, 'createSchedule'])->name('schedules.create');
+    Route::post('/schedules', [\App\Http\Controllers\Admin\DeliveryController::class, 'storeSchedule'])->name('schedules.store');
+    Route::get('/schedules/{id}/edit', [\App\Http\Controllers\Admin\DeliveryController::class, 'editSchedule'])->name('schedules.edit');
+    Route::put('/schedules/{id}', [\App\Http\Controllers\Admin\DeliveryController::class, 'updateSchedule'])->name('schedules.update');
+    Route::delete('/schedules/{id}', [\App\Http\Controllers\Admin\DeliveryController::class, 'destroySchedule'])->name('schedules.destroy');
+    Route::post('/schedules/{id}/toggle', [\App\Http\Controllers\Admin\DeliveryController::class, 'toggleScheduleStatus'])->name('schedules.toggle');
+    Route::post('/schedules/bulk-action', [\App\Http\Controllers\Admin\DeliveryController::class, 'bulkScheduleAction'])->name('schedules.bulk-action');
     Route::get('/reports', [\App\Http\Controllers\Admin\DeliveryController::class, 'reports'])->name('reports');
+    Route::get('/reports/export', [\App\Http\Controllers\Admin\DeliveryController::class, 'exportReports'])->name('reports.export');
 });
 
 // Quotations
@@ -878,19 +903,6 @@ Route::prefix('api-keys')->name('api-keys.')->group(function () {
     Route::get('/webhooks', [\App\Http\Controllers\Admin\PlaceholderController::class, 'webhooks'])->name('webhooks');
     Route::post('/webhooks', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeWebhook'])->name('webhooks.store');
     Route::delete('/webhooks/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyWebhook'])->name('webhooks.destroy');
-});
-
-// Delivery - Additional Routes for robust delivery management
-Route::prefix('delivery')->name('delivery.')->group(function () {
-    Route::get('/pickup-points', [\App\Http\Controllers\Admin\PlaceholderController::class, 'pickupPoints'])->name('pickup-points');
-    Route::post('/pickup-points', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storePickupPoint'])->name('pickup-points.store');
-    Route::put('/pickup-points/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updatePickupPoint'])->name('pickup-points.update');
-    Route::delete('/pickup-points/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyPickupPoint'])->name('pickup-points.destroy');
-    Route::get('/schedules', [\App\Http\Controllers\Admin\DeliveryController::class, 'schedules'])->name('schedules');
-    Route::post('/schedules', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeDeliverySchedule'])->name('schedules.store');
-    Route::put('/schedules/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateDeliverySchedule'])->name('schedules.update');
-    Route::delete('/schedules/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyDeliverySchedule'])->name('schedules.destroy');
-    Route::get('/reports', [\App\Http\Controllers\Admin\DeliveryController::class, 'reports'])->name('reports');
 });
 
 // Settings - Additional Routes

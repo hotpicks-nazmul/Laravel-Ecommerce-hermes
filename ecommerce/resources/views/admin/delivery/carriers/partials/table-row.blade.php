@@ -28,7 +28,7 @@
         <span class="badge bg-secondary">{{ $carrier->service_type_label }}</span>
     </td>
     <td>
-        {{ formatPrice($carrier->base_rate) }}
+        ৳{{ number_format($carrier->base_rate, 2) }}
     </td>
     <td>
         @if($carrier->supports_tracking)

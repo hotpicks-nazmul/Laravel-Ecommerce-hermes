@@ -4,146 +4,583 @@
 
 @push('styles')
 <style>
-    .report-card {
+    .stat-card {
         border: none;
         border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        transition: transform 0.3s ease;
-        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .report-card:hover {
-        transform: translateY(-5px);
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
-    .report-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
+        font-size: 1.25rem;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+    .table-card {
+        border: none;
+        border-radius: 12px;
+    }
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .progress-thin {
+        height: 8px;
+        border-radius: 4px;
+    }
+    .content-area {
+        padding-bottom: 100px !important;
     }
 </style>
 @endpush
 
 @section('content')
 <div class="content-area">
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="mb-1"><i class="bi bi-bar-chart me-2"></i>Delivery Reports</h4>
-            <p class="text-muted mb-0">View comprehensive delivery analytics and reports</p>
+            <p class="text-muted mb-0">Comprehensive delivery analytics and performance insights</p>
         </div>
         
-        <!-- Date Filter -->
-        <form method="GET" class="d-flex align-items-center gap-2">
-            <select name="date_range" class="form-select form-select-sm" style="width: 150px;">
-                <option value="this_week">This Week</option>
-                <option value="this_month" selected>This Month</option>
-                <option value="last_30_days">Last 30 Days</option>
-                <option value="this_year">This Year</option>
-            </select>
-            <button type="submit" class="btn btn-sm btn-primary">
-                <i class="bi bi-filter me-1"></i> Apply
-            </button>
-        </form>
-    </div>
-
-    <!-- Report Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card report-card bg-white h-100">
-                <div class="card-body text-center">
-                    <div class="report-icon bg-primary bg-opacity-10 text-primary mx-auto mb-3">
-                        <i class="bi bi-graph-up"></i>
-                    </div>
-                    <h6>Delivery Performance</h6>
-                    <p class="text-muted small mb-0">Success rate, average time, and efficiency metrics</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card report-card bg-white h-100">
-                <div class="card-body text-center">
-                    <div class="report-icon bg-success bg-opacity-10 text-success mx-auto mb-3">
-                        <i class="bi bi-currency-dollar"></i>
-                    </div>
-                    <h6>Revenue Reports</h6>
-                    <p class="text-muted small mb-0">Shipping revenue and cost analysis</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card report-card bg-white h-100">
-                <div class="card-body text-center">
-                    <div class="report-icon bg-warning bg-opacity-10 text-warning mx-auto mb-3">
-                        <i class="bi bi-person-badge"></i>
-                    </div>
-                    <h6>Delivery Boy Performance</h6>
-                    <p class="text-muted small mb-0">Individual delivery personnel statistics</p>
-                </div>
-            </div>
+        <!-- Export Button -->
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.delivery.reports.export', ['date_range' => $dateRange]) }}" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel me-1"></i> Export CSV
+            </a>
         </div>
     </div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card report-card bg-white h-100">
-                <div class="card-body text-center">
-                    <div class="report-icon bg-info bg-opacity-10 text-info mx-auto mb-3">
-                        <i class="bi bi-geo-alt"></i>
+    <!-- Date Filter -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body py-3">
+            <form method="GET" class="d-flex align-items-center gap-3 flex-wrap">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-calendar3 text-muted"></i>
+                    <span class="text-muted">Date Range:</span>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="date_range" id="today" value="today" {{ $dateRange == 'today' ? 'checked' : '' }}>
+                        <label class="btn btn-sm btn-outline-secondary" for="today">Today</label>
+                        
+                        <input type="radio" class="btn-check" name="date_range" id="yesterday" value="yesterday" {{ $dateRange == 'yesterday' ? 'checked' : '' }}>
+                        <label class="btn btn-sm btn-outline-secondary" for="yesterday">Yesterday</label>
+                        
+                        <input type="radio" class="btn-check" name="date_range" id="this_week" value="this_week" {{ $dateRange == 'this_week' ? 'checked' : '' }}>
+                        <label class="btn btn-sm btn-outline-secondary" for="this_week">This Week</label>
+                        
+                        <input type="radio" class="btn-check" name="date_range" id="this_month" value="this_month" {{ $dateRange == 'this_month' ? 'checked' : '' }}>
+                        <label class="btn btn-sm btn-outline-secondary" for="this_month">This Month</label>
+                        
+                        <input type="radio" class="btn-check" name="date_range" id="last_30_days" value="last_30_days" {{ $dateRange == 'last_30_days' ? 'checked' : '' }}>
+                        <label class="btn btn-sm btn-outline-secondary" for="last_30_days">Last 30 Days</label>
+                        
+                        <input type="radio" class="btn-check" name="date_range" id="this_year" value="this_year" {{ $dateRange == 'this_year' ? 'checked' : '' }}>
+                        <label class="btn btn-sm btn-outline-secondary" for="this_year">This Year</label>
                     </div>
-                    <h6>Zone Analysis</h6>
-                    <p class="text-muted small mb-0">Performance breakdown by delivery zones</p>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-filter me-1"></i> Apply Filter
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card stat-card bg-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small text-uppercase">Total Orders</div>
+                            <div class="h3 mb-0">{{ number_format($stats['total_orders']) }}</div>
+                        </div>
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-4">
-            <div class="card report-card bg-white h-100">
-                <div class="card-body text-center">
-                    <div class="report-icon bg-danger bg-opacity-10 text-danger mx-auto mb-3">
-                        <i class="bi bi-exclamation-triangle"></i>
+        <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card stat-card bg-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small text-uppercase">Delivered</div>
+                            <div class="h3 mb-0 text-success">{{ number_format($stats['delivered']) }}</div>
+                        </div>
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
                     </div>
-                    <h6>Failed Deliveries</h6>
-                    <p class="text-muted small mb-0">Failed and returned shipments analysis</p>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-4">
-            <div class="card report-card bg-white h-100">
-                <div class="card-body text-center">
-                    <div class="report-icon bg-secondary bg-opacity-10 text-secondary mx-auto mb-3">
-                        <i class="bi bi-clock-history"></i>
+        <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card stat-card bg-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small text-uppercase">In Transit</div>
+                            <div class="h3 mb-0 text-info">{{ number_format($stats['in_transit']) }}</div>
+                        </div>
+                        <div class="stat-icon bg-info bg-opacity-10 text-info">
+                            <i class="bi bi-truck"></i>
+                        </div>
                     </div>
-                    <h6>Delivery Time Analysis</h6>
-                    <p class="text-muted small mb-0">Average delivery times and trends</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card stat-card bg-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small text-uppercase">Pending</div>
+                            <div class="h3 mb-0 text-warning">{{ number_format($stats['pending']) }}</div>
+                        </div>
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card stat-card bg-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small text-uppercase">Success Rate</div>
+                            <div class="h3 mb-0 {{ $stats['success_rate'] >= 80 ? 'text-success' : ($stats['success_rate'] >= 50 ? 'text-warning' : 'text-danger') }}">{{ $stats['success_rate'] }}%</div>
+                        </div>
+                        <div class="stat-icon {{ $stats['success_rate'] >= 80 ? 'bg-success' : ($stats['success_rate'] >= 50 ? 'bg-warning' : 'bg-danger') }} bg-opacity-10 text-{{ $stats['success_rate'] >= 80 ? 'success' : ($stats['success_rate'] >= 50 ? 'warning' : 'danger') }}">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <div class="progress progress-thin">
+                            <div class="progress-bar bg-success" style="width: {{ $stats['success_rate'] }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <div class="card stat-card bg-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small text-uppercase">Shipping Revenue</div>
+                            <div class="h3 mb-0">${{ number_format($stats['total_shipping_revenue'], 2) }}</div>
+                        </div>
+                        <div class="stat-icon bg-secondary bg-opacity-10 text-secondary">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Placeholder Message -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-body">
-            <div class="text-center py-5">
-                <i class="bi bi-bar-chart text-primary" style="font-size: 4rem;"></i>
-                <h5 class="mt-3">Detailed Reports Coming Soon</h5>
-                <p class="text-muted">The detailed reporting system is under development. Check back soon for:</p>
-                <ul class="text-start d-inline-block">
-                    <li>Comprehensive delivery performance analytics</li>
-                    <li>Exportable reports (PDF, Excel, CSV)</li>
-                    <li>Custom date range analysis</li>
-                    <li>Comparison with previous periods</li>
-                    <li>Automated scheduled reports</li>
-                </ul>
-                <div class="mt-4">
-                    <span class="badge bg-primary">Coming Soon</span>
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Delivery Trends Chart -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>Delivery Trends</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="deliveryTrendsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Breakdown -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Status Breakdown</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Zone Performance & Delivery Boy Performance -->
+    <div class="row mb-4">
+        <!-- Zone Performance -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Zone Performance</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Zone</th>
+                                    <th class="text-center">Orders</th>
+                                    <th class="text-center">Success</th>
+                                    <th class="text-center">Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($zonePerformance as $zone)
+                                <tr>
+                                    <td>
+                                        <div class="fw-medium">{{ $zone['name'] }}</div>
+                                    </td>
+                                    <td class="text-center">{{ number_format($zone['total_orders']) }}</td>
+                                    <td class="text-center">
+                                        <span class="badge {{ $zone['success_rate'] >= 80 ? 'bg-success' : ($zone['success_rate'] >= 50 ? 'bg-warning' : 'bg-danger') }}">
+                                            {{ $zone['success_rate'] }}%
+                                        </span>
+                                    </td>
+                                    <td class="text-center">${{ number_format($zone['revenue'], 2) }}</td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        <i class="bi bi-geo-alt d-block mb-2" style="font-size: 2rem;"></i>
+                                        No zone data available
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Delivery Boy Performance -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-person-badge me-2"></i>Top Delivery Boys</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th class="text-center">Deliveries</th>
+                                    <th class="text-center">Success Rate</th>
+                                    <th class="text-center">Avg Hours</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($deliveryBoyPerformance as $boy)
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                                <i class="bi bi-person text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ $boy['name'] }}</div>
+                                                <small class="text-muted">{{ $boy['phone'] }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">{{ number_format($boy['total_deliveries']) }}</td>
+                                    <td class="text-center">
+                                        <span class="badge {{ $boy['success_rate'] >= 80 ? 'bg-success' : ($boy['success_rate'] >= 50 ? 'bg-warning' : 'bg-danger') }}">
+                                            {{ $boy['success_rate'] }}%
+                                        </span>
+                                    </td>
+                                    <td class="text-center">{{ $boy['avg_delivery_hours'] }}h</td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        <i class="bi bi-person-badge d-block mb-2" style="font-size: 2rem;"></i>
+                                        No delivery boy data available
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Time Analysis & Failed Deliveries -->
+    <div class="row mb-4">
+        <!-- Delivery Time Analysis -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Delivery Time Analysis</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="h4 text-success mb-1">{{ $deliveryTimeAnalysis['avg_hours'] }}h</div>
+                            <small class="text-muted">Average Delivery Time</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="h4 mb-1">{{ number_format($deliveryTimeAnalysis['total_delivered']) }}</div>
+                            <small class="text-muted">Total Delivered</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>< 24 hours</span>
+                            <span class="text-success">{{ $deliveryTimeAnalysis['within_24h_percent'] }}%</span>
+                        </div>
+                        <div class="progress progress-thin mb-3">
+                            <div class="progress-bar bg-success" style="width: {{ $deliveryTimeAnalysis['within_24h_percent'] }}%"></div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>24-48 hours</span>
+                            <span class="text-info">{{ $deliveryTimeAnalysis['within_48h_percent'] }}%</span>
+                        </div>
+                        <div class="progress progress-thin mb-3">
+                            <div class="progress-bar bg-info" style="width: {{ $deliveryTimeAnalysis['within_48h_percent'] }}%"></div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>48-72 hours</span>
+                            <span class="text-warning">{{ $deliveryTimeAnalysis['within_72h_percent'] }}%</span>
+                        </div>
+                        <div class="progress progress-thin mb-3">
+                            <div class="progress-bar bg-warning" style="width: {{ $deliveryTimeAnalysis['within_72h_percent'] }}%"></div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>> 72 hours</span>
+                            <span class="text-danger">{{ $deliveryTimeAnalysis['over_72h_percent'] }}%</span>
+                        </div>
+                        <div class="progress progress-thin">
+                            <div class="progress-bar bg-danger" style="width: {{ $deliveryTimeAnalysis['over_72h_percent'] }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Failed Deliveries -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Failed/Cancelled Deliveries</h6>
+                    <span class="badge bg-danger">{{ $failedDeliveries->count() }}</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Status</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($failedDeliveries as $order)
+                                <tr>
+                                    <td>
+                                        <a href="{{ route('admin.orders.show', $order->id) }}" class="text-decoration-none">
+                                            {{ $order->order_number }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">{{ ucfirst($order->status) }}</span>
+                                    </td>
+                                    <td>${{ number_format($order->total, 2) }}</td>
+                                    <td>{{ $order->created_at->format('M d, Y') }}</td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        <i class="bi bi-check-circle d-block mb-2 text-success" style="font-size: 2rem;"></i>
+                                        No failed deliveries
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carrier Revenue -->
+    @if($carrierRevenue->isNotEmpty())
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-truck me-2"></i>Carrier Performance</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Carrier</th>
+                                    <th class="text-center">Total Orders</th>
+                                    <th class="text-center">Shipping Revenue</th>
+                                    <th class="text-center">Total Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($carrierRevenue as $carrier)
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if($carrier['logo'])
+                                            <img src="{{ $carrier['logo'] }}" alt="{{ $carrier['name'] }}" class="me-2" style="width: 30px; height: 30px; object-fit: contain;">
+                                            @else
+                                            <div class="bg-secondary bg-opacity-10 rounded p-1 me-2">
+                                                <i class="bi bi-truck text-secondary"></i>
+                                            </div>
+                                            @endif
+                                            <span class="fw-medium">{{ $carrier['name'] }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">{{ number_format($carrier['total_orders']) }}</td>
+                                    <td class="text-center">${{ number_format($carrier['shipping_revenue'], 2) }}</td>
+                                    <td class="text-center">${{ number_format($carrier['total_revenue'], 2) }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Delivery Trends Chart
+    const trendsData = @json($trends);
+    const trendLabels = trendsData.map(t => t.date);
+    const trendTotal = trendsData.map(t => t.total);
+    const trendDelivered = trendsData.map(t => t.delivered);
+    const trendFailed = trendsData.map(t => t.failed);
+
+    const trendsCtx = document.getElementById('deliveryTrendsChart').getContext('2d');
+    new Chart(trendsCtx, {
+        type: 'line',
+        data: {
+            labels: trendLabels,
+            datasets: [
+                {
+                    label: 'Total Orders',
+                    data: trendTotal,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Delivered',
+                    data: trendDelivered,
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Failed',
+                    data: trendFailed,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Status Breakdown Chart
+    const statusData = @json($statusBreakdown);
+    const statusLabels = statusData.map(s => s.status.charAt(0).toUpperCase() + s.status.slice(1));
+    const statusCounts = statusData.map(s => s.count);
+
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: statusLabels,
+            datasets: [{
+                data: statusCounts,
+                backgroundColor: [
+                    '#22c55e', // delivered - green
+                    '#3b82f6', // shipped - blue
+                    '#f59e0b', // pending - yellow
+                    '#ef4444', // cancelled - red
+                    '#8b5cf6', // refunded - purple
+                    '#6b7280'  // other - gray
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+@endpush
 @endsection
