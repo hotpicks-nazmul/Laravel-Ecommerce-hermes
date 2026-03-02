@@ -159,4 +159,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Product::class, 'seller_id');
     }
+
+    /**
+     * Get the customer group this user belongs to
+     */
+    public function customerGroup()
+    {
+        return $this->belongsTo(CustomerGroup::class, 'customer_group_id');
+    }
 }

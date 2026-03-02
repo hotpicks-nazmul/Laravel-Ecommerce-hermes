@@ -265,7 +265,7 @@
                         <a href="{{ route('admin.delivery.tracking') }}" class="btn btn-outline-info quick-action-btn">
                             <i class="bi bi-geo-alt me-1"></i> Track Shipments
                         </a>
-                        <a href="{{ route('admin.delivery.delivery-boys') }}" class="btn btn-outline-primary quick-action-btn">
+                        <a href="{{ route('admin.delivery.delivery-boys.index') }}" class="btn btn-outline-primary quick-action-btn">
                             <i class="bi bi-person-badge me-1"></i> Manage Delivery Boys
                         </a>
                         <a href="{{ route('admin.pickup-points.index') }}" class="btn btn-outline-success quick-action-btn">

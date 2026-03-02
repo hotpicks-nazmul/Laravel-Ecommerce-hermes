@@ -745,6 +745,11 @@
                 <div class="collapse {{ request()->routeIs('admin.refunds.*') ? 'show' : '' }}" id="menuRefund">
                     <ul class="nav flex-column submenu">
                         <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.refunds.index') ? 'active' : '' }}" href="{{ route('admin.refunds.index') }}">
+                                <i class="bi bi-list-ul"></i> All Refunds
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.refunds.requests') ? 'active' : '' }}" href="{{ route('admin.refunds.requests') }}">
                                 <i class="bi bi-inbox"></i> Refund Requests
                             </a>

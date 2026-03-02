@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\SliderController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\HeroController;
 use App\Http\Controllers\Admin\HomePageController;
+use App\Http\Controllers\Admin\CustomerGroupController;
 
 /*
 |--------------------------------------------------------------------------
@@ -150,52 +151,74 @@ Route::post('/orders/{order}/payment-status', [OrderController::class, 'updatePa
 Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice'])->name('orders.invoice');
 Route::post('/orders/{order}/ship', [OrderController::class, 'ship'])->name('orders.ship');
 
+// Customer Groups - Must be defined BEFORE the customers resource route
+Route::prefix('customers/groups')->name('customers.groups.')->group(function () {
+    Route::get('/', [CustomerGroupController::class, 'index'])->name('index');
+    Route::get('/create', [CustomerGroupController::class, 'create'])->name('create');
+    Route::post('/', [CustomerGroupController::class, 'store'])->name('store');
+    Route::get('/{customerGroup}/edit', [CustomerGroupController::class, 'edit'])->name('edit');
+    Route::put('/{customerGroup}', [CustomerGroupController::class, 'update'])->name('update');
+    Route::delete('/{customerGroup}', [CustomerGroupController::class, 'destroy'])->name('destroy');
+    Route::post('/{customerGroup}/toggle-status', [CustomerGroupController::class, 'toggleStatus'])->name('toggle-status');
+});
+
+// Customer Segmentation - MUST be defined BEFORE customers resource route
+Route::prefix('customers/segmentation')->name('customers.segmentation.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'store'])->name('store');
+    Route::get('/preview', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'preview'])->name('preview');
+    Route::get('/{segment}/edit', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'edit'])->name('edit');
+    Route::put('/{segment}', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'update'])->name('update');
+    Route::delete('/{segment}', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'destroy'])->name('destroy');
+    Route::post('/{segment}/toggle-status', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'toggleStatus'])->name('toggle-status');
+    Route::get('/{segment}/preview', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'preview'])->name('preview.single');
+    Route::get('/{segment}/export', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'export'])->name('export');
+    Route::get('/{segment}', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'show'])->name('show');
+});
+
+// Loyalty Points routes - MUST be defined BEFORE the resource route to avoid 404 errors
+Route::prefix('customers/loyalty')->name('customers.loyalty.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\LoyaltyPointsController::class, 'index'])->name('index');
+    Route::get('/settings', [\App\Http\Controllers\Admin\LoyaltyPointsController::class, 'settings'])->name('settings');
+    Route::post('/settings', [\App\Http\Controllers\Admin\LoyaltyPointsController::class, 'updateSettings'])->name('settings.update');
+    Route::get('/export', [\App\Http\Controllers\Admin\LoyaltyPointsController::class, 'export'])->name('export');
+    Route::get('/{customerId}', [\App\Http\Controllers\Admin\LoyaltyPointsController::class, 'show'])->name('show');
+    Route::get('/{customerId}/transactions', [\App\Http\Controllers\Admin\LoyaltyPointsController::class, 'transactions'])->name('transactions');
+    Route::post('/add-points', [\App\Http\Controllers\Admin\LoyaltyPointsController::class, 'addPoints'])->name('addPoints');
+    Route::post('/deduct-points', [\App\Http\Controllers\Admin\LoyaltyPointsController::class, 'deductPoints'])->name('deductPoints');
+    Route::post('/rewards', [\App\Http\Controllers\Admin\LoyaltyPointsController::class, 'createReward'])->name('createReward');
+    Route::put('/rewards/{rewardId}', [\App\Http\Controllers\Admin\LoyaltyPointsController::class, 'updateReward'])->name('updateReward');
+    Route::delete('/rewards/{rewardId}', [\App\Http\Controllers\Admin\LoyaltyPointsController::class, 'deleteReward'])->name('deleteReward');
+    Route::post('/rewards/{rewardId}/toggle', [\App\Http\Controllers\Admin\LoyaltyPointsController::class, 'toggleReward'])->name('toggleReward');
+});
+
+// Customer Membership Plans - MUST be defined BEFORE the customers resource route to avoid 404 errors
+Route::prefix('customers/membership')->name('customers.membership.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\MembershipPlanController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\Admin\MembershipPlanController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Admin\MembershipPlanController::class, 'store'])->name('store');
+    Route::get('/{membershipPlan}/edit', [\App\Http\Controllers\Admin\MembershipPlanController::class, 'edit'])->name('edit');
+    Route::put('/{membershipPlan}', [\App\Http\Controllers\Admin\MembershipPlanController::class, 'update'])->name('update');
+    Route::delete('/{membershipPlan}', [\App\Http\Controllers\Admin\MembershipPlanController::class, 'destroy'])->name('destroy');
+    Route::post('/{membershipPlan}/toggle-status', [\App\Http\Controllers\Admin\MembershipPlanController::class, 'toggleStatus'])->name('toggle-status');
+    Route::post('/{membershipPlan}/toggle-featured', [\App\Http\Controllers\Admin\MembershipPlanController::class, 'toggleFeatured'])->name('toggle-featured');
+});
+
+// Customer Wallet - MUST be defined BEFORE customers resource route to avoid 404 errors
+Route::prefix('customers/wallet')->name('customers.wallet.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\CustomerWalletController::class, 'index'])->name('index');
+    Route::get('/transactions', [\App\Http\Controllers\Admin\CustomerWalletController::class, 'transactions'])->name('transactions');
+    Route::get('/{customerId}', [\App\Http\Controllers\Admin\CustomerWalletController::class, 'show'])->name('show');
+    Route::post('/add-balance', [\App\Http\Controllers\Admin\CustomerWalletController::class, 'addBalance'])->name('add-balance');
+    Route::post('/deduct-balance', [\App\Http\Controllers\Admin\CustomerWalletController::class, 'deductBalance'])->name('deduct-balance');
+    Route::get('/search-customers', [\App\Http\Controllers\Admin\CustomerWalletController::class, 'searchCustomers'])->name('search-customers');
+});
+
 // Customers Management
 Route::resource('customers', CustomerController::class)->only(['index', 'show', 'update', 'destroy']);
 Route::get('/customers/{customer}/orders', [CustomerController::class, 'orders'])->name('customers.orders');
 Route::post('/customers/{customer}/login-as', [CustomerController::class, 'loginAs'])->name('customers.login-as');
-
-// Customer Groups
-Route::prefix('customers/groups')->name('customers.groups.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'customerGroups'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\PlaceholderController::class, 'createCustomerGroup'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeCustomerGroup'])->name('store');
-    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\PlaceholderController::class, 'editCustomerGroup'])->name('edit');
-    Route::put('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateCustomerGroup'])->name('update');
-    Route::delete('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyCustomerGroup'])->name('destroy');
-});
-
-// Customer Segmentation
-Route::prefix('customers/segmentation')->name('customers.segmentation.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'customerSegmentation'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\PlaceholderController::class, 'createSegment'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeSegment'])->name('store');
-    Route::delete('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroySegment'])->name('destroy');
-});
-
-// Customer Loyalty Points
-Route::prefix('customers/loyalty')->name('customers.loyalty.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'loyaltyPoints'])->name('index');
-    Route::get('/settings', [\App\Http\Controllers\Admin\PlaceholderController::class, 'loyaltySettings'])->name('settings');
-    Route::post('/settings', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateLoyaltySettings'])->name('settings.update');
-});
-
-// Customer Membership Plans
-Route::prefix('customers/membership')->name('customers.membership.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'membershipPlans'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\PlaceholderController::class, 'createMembershipPlan'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeMembershipPlan'])->name('store');
-    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\PlaceholderController::class, 'editMembershipPlan'])->name('edit');
-    Route::put('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateMembershipPlan'])->name('update');
-    Route::delete('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyMembershipPlan'])->name('destroy');
-});
-
-// Customer Wallet
-Route::prefix('customers/wallet')->name('customers.wallet.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'customerWallet'])->name('index');
-    Route::get('/transactions', [\App\Http\Controllers\Admin\PlaceholderController::class, 'walletTransactions'])->name('transactions');
-    Route::post('/add-balance', [\App\Http\Controllers\Admin\PlaceholderController::class, 'addWalletBalance'])->name('add-balance');
-});
 
 // Coupons Management
 Route::resource('coupons', CouponController::class);
@@ -523,8 +546,10 @@ Route::prefix('refunds')->name('refunds.')->group(function () {
     Route::get('/rejected', [\App\Http\Controllers\Admin\RefundController::class, 'rejected'])->name('rejected');
     Route::get('/configuration', [\App\Http\Controllers\Admin\RefundController::class, 'configuration'])->name('configuration');
     Route::post('/configuration', [\App\Http\Controllers\Admin\RefundController::class, 'updateConfiguration'])->name('configuration.update');
+    Route::get('/{id}', [\App\Http\Controllers\Admin\RefundController::class, 'show'])->name('show');
     Route::post('/{id}/approve', [\App\Http\Controllers\Admin\RefundController::class, 'approve'])->name('approve');
     Route::post('/{id}/reject', [\App\Http\Controllers\Admin\RefundController::class, 'reject'])->name('reject');
+    Route::post('/{id}/process', [\App\Http\Controllers\Admin\RefundController::class, 'process'])->name('process');
 });
 
 // Sellers (B2B) Management

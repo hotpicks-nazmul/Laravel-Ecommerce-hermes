@@ -1,11 +1,15 @@
-Read Preference.md and Follow the style and functionality Preference to implement
+Read Preference.md and Follow the style and functionality Preference to implement.
 
-on admin panel
-implement PRODUCT > Related Product Q&A
+On admin panel
+implement CUSTOMERS > Loyalty Points
 
-make all features logical and easy to use functionality
+Make all features logical and easy to use functionality.
 
-do you understand? let me know
+Read Preference.md carefully, there you will find 404 error solution. so apply that solution.
+
+Do you understand? let me know.
+
+
 
 
 
