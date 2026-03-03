@@ -3,19 +3,86 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Product;
+use App\Models\SellerPayout;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\File;
+use Illuminate\Validation\Rule;
 
-/**
- * Seller Controller for managing sellers (B2B).
- */
 class SellerController extends Controller
 {
     /**
-     * Display a listing of sellers.
+     * Display a listing of sellers (B2B).
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('admin.sellers.index');
+        // Get statistics
+        $stats = $this->getStats();
+
+        // Build query for sellers (role = vendor)
+        $query = User::sellers()->withCount('products');
+
+        // Search
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('shop_name', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by status
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by verification status
+        if ($request->verification_status) {
+            $query->where('verification_status', $request->verification_status);
+        }
+
+        // Sort
+        $sortBy = $request->sort_by ?? 'created_at';
+        $sortOrder = $request->sort_order ?? 'desc';
+        $query->orderBy($sortBy, $sortOrder);
+
+        // Paginate
+        $perPage = $request->per_page ?? 10;
+        $sellers = $query->paginate($perPage);
+
+        // If AJAX request, return JSON
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('admin.sellers.partials.table-rows', compact('sellers'))->render(),
+                'stats' => $stats,
+                'pagination' => $sellers->links()->toHtml(),
+            ]);
+        }
+
+        return view('admin.sellers.index', compact('sellers', 'stats'));
+    }
+
+    /**
+     * Get statistics for sellers
+     */
+    protected function getStats()
+    {
+        $sellers = User::sellers();
+
+        return [
+            'total' => (clone $sellers)->count(),
+            'active' => (clone $sellers)->where('status', 'active')->count(),
+            'inactive' => (clone $sellers)->where('status', 'inactive')->count(),
+            'verified' => (clone $sellers)->where('verification_status', 'verified')->count(),
+            'pending' => (clone $sellers)->where('verification_status', 'pending')->count(),
+            'rejected' => (clone $sellers)->where('verification_status', 'rejected')->count(),
+        ];
     }
 
     /**
@@ -31,6 +98,74 @@ class SellerController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email',
+            'phone' => 'nullable|string|max:20',
+            'password' => 'required|string|min:8|confirmed',
+            'shop_name' => 'nullable|string|max:255',
+            'shop_description' => 'nullable|string',
+            'seller_type' => 'required|in:individual,company',
+            'company_name' => 'nullable|string|max:255',
+            'business_registration_number' => 'nullable|string|max:100',
+            'tax_id' => 'nullable|string|max:100',
+            'contact_person_name' => 'nullable|string|max:255',
+            'contact_person_phone' => 'nullable|string|max:20',
+            'contact_person_email' => 'nullable|email|max:255',
+            'bank_name' => 'nullable|string|max:255',
+            'bank_account_number' => 'nullable|string|max:50',
+            'bank_account_name' => 'nullable|string|max:255',
+            'bank_routing_code' => 'nullable|string|max:50',
+            'commission_rate' => 'nullable|numeric|min:0|max:100',
+            'status' => 'required|in:active,inactive',
+            'verification_status' => 'required|in:pending,verified,rejected',
+        ]);
+
+        $seller = new User();
+        $seller->name = $request->name;
+        $seller->email = $request->email;
+        $seller->phone = $request->phone;
+        $seller->password = Hash::make($request->password);
+        $seller->role = 'vendor';
+        $seller->shop_name = $request->shop_name;
+        $seller->shop_description = $request->shop_description;
+        $seller->seller_type = $request->seller_type;
+        $seller->company_name = $request->company_name;
+        $seller->business_registration_number = $request->business_registration_number;
+        $seller->tax_id = $request->tax_id;
+        $seller->contact_person_name = $request->contact_person_name;
+        $seller->contact_person_phone = $request->contact_person_phone;
+        $seller->contact_person_email = $request->contact_person_email;
+        $seller->bank_name = $request->bank_name;
+        $seller->bank_account_number = $request->bank_account_number;
+        $seller->bank_account_name = $request->bank_account_name;
+        $seller->bank_routing_code = $request->bank_routing_code;
+        $seller->commission_rate = $request->commission_rate ?? 10.00;
+        $seller->status = $request->status;
+        $seller->verification_status = $request->verification_status;
+
+        if ($request->verification_status === 'verified') {
+            $seller->verified_at = now();
+        }
+
+        // Handle shop logo upload
+        if ($request->hasFile('shop_logo')) {
+            $logo = $request->file('shop_logo');
+            $logoName = time() . '_' . $logo->getClientOriginalName();
+            $logo->move(public_path('uploads/shop_logos'), $logoName);
+            $seller->shop_logo = $logoName;
+        }
+
+        // Handle shop banner upload
+        if ($request->hasFile('shop_banner')) {
+            $banner = $request->file('shop_banner');
+            $bannerName = time() . '_' . $banner->getClientOriginalName();
+            $banner->move(public_path('uploads/shop_banners'), $bannerName);
+            $seller->shop_banner = $bannerName;
+        }
+
+        $seller->save();
+
         return redirect()->route('admin.sellers.index')
             ->with('success', 'Seller created successfully.');
     }
@@ -38,9 +173,34 @@ class SellerController extends Controller
     /**
      * Display the specified seller.
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        return view('admin.sellers.show', compact('id'));
+        $seller = User::sellers()->withCount('products')->findOrFail($id);
+
+        // Get seller orders with products from this seller
+        $orderIds = OrderItem::whereHas('product', function ($q) use ($id) {
+            $q->where('seller_id', $id);
+        })->distinct()->pluck('order_id');
+
+        $orders = Order::whereIn('id', $orderIds)
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Calculate stats
+        $totalSales = Order::whereIn('id', $orderIds)
+            ->where('payment_status', 'paid')
+            ->whereIn('status', ['delivered', 'shipped', 'confirmed'])
+            ->sum('grand_total');
+
+        $totalOrders = Order::whereIn('id', $orderIds)->count();
+
+        $pendingOrders = Order::whereIn('id', $orderIds)
+            ->whereIn('status', ['pending', 'processing', 'confirmed'])
+            ->count();
+
+        return view('admin.sellers.show', compact('seller', 'orders', 'totalSales', 'totalOrders', 'pendingOrders'));
     }
 
     /**
@@ -48,7 +208,8 @@ class SellerController extends Controller
      */
     public function edit($id)
     {
-        return view('admin.sellers.edit', compact('id'));
+        $seller = User::sellers()->findOrFail($id);
+        return view('admin.sellers.edit', compact('seller'));
     }
 
     /**
@@ -56,6 +217,103 @@ class SellerController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $seller = User::sellers()->findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($seller->id)],
+            'phone' => 'nullable|string|max:20',
+            'password' => 'nullable|string|min:8|confirmed',
+            'shop_name' => 'nullable|string|max:255',
+            'shop_description' => 'nullable|string',
+            'seller_type' => 'required|in:individual,company',
+            'company_name' => 'nullable|string|max:255',
+            'business_registration_number' => 'nullable|string|max:100',
+            'tax_id' => 'nullable|string|max:100',
+            'contact_person_name' => 'nullable|string|max:255',
+            'contact_person_phone' => 'nullable|string|max:20',
+            'contact_person_email' => 'nullable|email|max:255',
+            'return_address' => 'nullable|string',
+            'bank_name' => 'nullable|string|max:255',
+            'bank_account_number' => 'nullable|string|max:50',
+            'bank_account_name' => 'nullable|string|max:255',
+            'bank_routing_code' => 'nullable|string|max:50',
+            'commission_rate' => 'nullable|numeric|min:0|max:100',
+            'wallet_balance' => 'nullable|numeric|min:0',
+            'status' => 'required|in:active,inactive',
+            'verification_status' => 'required|in:pending,verified,rejected',
+            'verification_notes' => 'nullable|string',
+        ]);
+
+        $seller->name = $request->name;
+        $seller->email = $request->email;
+        $seller->phone = $request->phone;
+
+        if ($request->password) {
+            $seller->password = Hash::make($request->password);
+        }
+
+        $seller->shop_name = $request->shop_name;
+        $seller->shop_description = $request->shop_description;
+        $seller->seller_type = $request->seller_type;
+        $seller->company_name = $request->company_name;
+        $seller->business_registration_number = $request->business_registration_number;
+        $seller->tax_id = $request->tax_id;
+        $seller->contact_person_name = $request->contact_person_name;
+        $seller->contact_person_phone = $request->contact_person_phone;
+        $seller->contact_person_email = $request->contact_person_email;
+        $seller->return_address = $request->return_address;
+        $seller->bank_name = $request->bank_name;
+        $seller->bank_account_number = $request->bank_account_number;
+        $seller->bank_account_name = $request->bank_account_name;
+        $seller->bank_routing_code = $request->bank_routing_code;
+        $seller->commission_rate = $request->commission_rate ?? 10.00;
+        
+        if ($request->has('wallet_balance')) {
+            $seller->wallet_balance = $request->wallet_balance;
+        }
+        
+        $seller->status = $request->status;
+        
+        // Handle verification status changes
+        $oldVerificationStatus = $seller->verification_status;
+        $newVerificationStatus = $request->verification_status;
+        
+        if ($newVerificationStatus === 'verified' && $oldVerificationStatus !== 'verified') {
+            $seller->verified_at = now();
+        } elseif ($newVerificationStatus !== 'verified') {
+            $seller->verified_at = null;
+        }
+        
+        $seller->verification_status = $newVerificationStatus;
+        $seller->verification_notes = $request->verification_notes;
+
+        // Handle shop logo upload
+        if ($request->hasFile('shop_logo')) {
+            // Delete old logo
+            if ($seller->shop_logo && File::exists(public_path('uploads/shop_logos/' . $seller->shop_logo))) {
+                File::delete(public_path('uploads/shop_logos/' . $seller->shop_logo));
+            }
+            $logo = $request->file('shop_logo');
+            $logoName = time() . '_' . $logo->getClientOriginalName();
+            $logo->move(public_path('uploads/shop_logos'), $logoName);
+            $seller->shop_logo = $logoName;
+        }
+
+        // Handle shop banner upload
+        if ($request->hasFile('shop_banner')) {
+            // Delete old banner
+            if ($seller->shop_banner && File::exists(public_path('uploads/shop_banners/' . $seller->shop_banner))) {
+                File::delete(public_path('uploads/shop_banners/' . $seller->shop_banner));
+            }
+            $banner = $request->file('shop_banner');
+            $bannerName = time() . '_' . $banner->getClientOriginalName();
+            $banner->move(public_path('uploads/shop_banners'), $bannerName);
+            $seller->shop_banner = $bannerName;
+        }
+
+        $seller->save();
+
         return redirect()->route('admin.sellers.index')
             ->with('success', 'Seller updated successfully.');
     }
@@ -65,6 +323,24 @@ class SellerController extends Controller
      */
     public function destroy($id)
     {
+        $seller = User::sellers()->findOrFail($id);
+
+        // Delete associated files
+        if ($seller->shop_logo && File::exists(public_path('uploads/shop_logos/' . $seller->shop_logo))) {
+            File::delete(public_path('uploads/shop_logos/' . $seller->shop_logo));
+        }
+        if ($seller->shop_banner && File::exists(public_path('uploads/shop_banners/' . $seller->shop_banner))) {
+            File::delete(public_path('uploads/shop_banners/' . $seller->shop_banner));
+        }
+
+        // Update products to remove seller association
+        Product::where('seller_id', $seller->id)->update([
+            'seller_id' => null,
+            'product_source' => 'in_house'
+        ]);
+
+        $seller->delete();
+
         return redirect()->route('admin.sellers.index')
             ->with('success', 'Seller deleted successfully.');
     }
@@ -72,52 +348,362 @@ class SellerController extends Controller
     /**
      * Approve a seller.
      */
-    public function approve($id)
+    public function approve(Request $request, $id)
     {
+        $seller = User::sellers()->findOrFail($id);
+        
+        $seller->verification_status = 'verified';
+        $seller->verified_at = now();
+        $seller->status = 'active';
+        $seller->save();
+
         return redirect()->back()
             ->with('success', 'Seller approved successfully.');
     }
 
     /**
+     * Reject a seller verification.
+     */
+    public function reject(Request $request, $id)
+    {
+        $request->validate([
+            'verification_notes' => 'required|string',
+        ]);
+
+        $seller = User::sellers()->findOrFail($id);
+        
+        $seller->verification_status = 'rejected';
+        $seller->verification_notes = $request->verification_notes;
+        $seller->save();
+
+        return redirect()->back()
+            ->with('success', 'Seller verification rejected.');
+    }
+
+    /**
      * Suspend a seller.
      */
-    public function suspend($id)
+    public function suspend(Request $request, $id)
     {
+        $seller = User::sellers()->findOrFail($id);
+        
+        $seller->status = 'inactive';
+        $seller->save();
+
         return redirect()->back()
             ->with('success', 'Seller suspended successfully.');
     }
 
     /**
-     * Display seller payouts.
+     * Activate a seller.
      */
-    public function payouts()
+    public function activate($id)
     {
-        return view('admin.sellers.payouts');
+        $seller = User::sellers()->findOrFail($id);
+        
+        $seller->status = 'active';
+        $seller->save();
+
+        return redirect()->back()
+            ->with('success', 'Seller activated successfully.');
     }
 
     /**
-     * Display seller payout requests.
+     * Display seller payouts (completed payouts history).
      */
-    public function payoutRequests()
+    public function payouts(Request $request)
     {
-        return view('admin.sellers.payout-requests');
+        $stats = $this->getPayoutStats();
+        
+        $query = SellerPayout::with('seller')
+            ->select('seller_payouts.*');
+        
+        // Search
+        if ($request->search) {
+            $search = $request->search;
+            $query->whereHas('seller', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('shop_name', 'like', "%{$search}%");
+            });
+        }
+        
+        // Filter by status
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+        
+        // Filter by payment method
+        if ($request->payment_method) {
+            $query->where('payment_method', $request->payment_method);
+        }
+        
+        // Date range filter
+        if ($request->date_from) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->date_to) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+        
+        // Sort
+        $sortBy = $request->sort_by ?? 'created_at';
+        $sortOrder = $request->sort_order ?? 'desc';
+        $query->orderBy($sortBy, $sortOrder);
+        
+        // Paginate
+        $perPage = $request->per_page ?? 25;
+        $payouts = $query->paginate($perPage);
+        
+        // AJAX response
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('admin.sellers.payouts.partials.table-rows', compact('payouts'))->render(),
+                'stats' => $stats,
+                'pagination' => $payouts->links()->toHtml(),
+            ]);
+        }
+        
+        return view('admin.sellers.payouts.index', compact('payouts', 'stats'));
     }
-
+    
+    /**
+     * Get payout statistics.
+     */
+    protected function getPayoutStats()
+    {
+        return [
+            'total_payouts' => SellerPayout::count(),
+            'total_amount' => SellerPayout::where('status', 'completed')->sum('amount'),
+            'pending' => SellerPayout::where('status', 'pending')->count(),
+            'pending_amount' => SellerPayout::where('status', 'pending')->sum('amount'),
+            'completed' => SellerPayout::where('status', 'completed')->count(),
+            'rejected' => SellerPayout::where('status', 'rejected')->count(),
+        ];
+    }
+    
+    /**
+     * Display seller payout requests (pending payouts).
+     */
+    public function payoutRequests(Request $request)
+    {
+        $stats = $this->getPayoutStats();
+        
+        $query = SellerPayout::with('seller')
+            ->select('seller_payouts.*');
+        
+        // Filter by status - default to pending
+        if ($request->status) {
+            $query->where('status', $request->status);
+        } else {
+            $query->whereIn('status', ['pending', 'approved']);
+        }
+        
+        // Search
+        if ($request->search) {
+            $search = $request->search;
+            $query->whereHas('seller', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('shop_name', 'like', "%{$search}%");
+            });
+        }
+        
+        // Sort
+        $sortBy = $request->sort_by ?? 'created_at';
+        $sortOrder = $request->sort_order ?? 'desc';
+        $query->orderBy($sortBy, $sortOrder);
+        
+        // Paginate
+        $perPage = $request->per_page ?? 25;
+        $payouts = $query->paginate($perPage);
+        
+        // AJAX response
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('admin.sellers.payouts.partials.request-rows', compact('payouts'))->render(),
+                'stats' => $stats,
+                'pagination' => $payouts->links()->toHtml(),
+            ]);
+        }
+        
+        return view('admin.sellers.payout-requests', compact('payouts', 'stats'));
+    }
+    
+    /**
+     * Show create payout form for a seller.
+     */
+    public function createPayout(Request $request, $id)
+    {
+        $seller = User::sellers()->findOrFail($id);
+        
+        return view('admin.sellers.payouts.create', compact('seller'));
+    }
+    
+    /**
+     * Store a new payout for a seller.
+     */
+    public function storePayout(Request $request, $id)
+    {
+        $seller = User::sellers()->findOrFail($id);
+        
+        $request->validate([
+            'amount' => 'required|numeric|min:1|max:' . ($seller->wallet_balance + $seller->pending_balance),
+            'payment_method' => 'required|in:bank_transfer,cash,mobile_banking,cheque,other',
+            'transaction_id' => 'nullable|string|max:100',
+            'bank_name' => 'nullable|string|max:255',
+            'account_number' => 'nullable|string|max:50',
+            'account_name' => 'nullable|string|max:255',
+            'notes' => 'nullable|string',
+        ]);
+        
+        // Calculate commission
+        $commissionRate = $seller->commission_rate ?? 10;
+        $amount = $request->amount;
+        $commission = ($amount * $commissionRate) / 100;
+        $netAmount = $amount - $commission;
+        
+        // Create payout record
+        $payout = new SellerPayout();
+        $payout->seller_id = $seller->id;
+        $payout->amount = $amount;
+        $payout->commission = $commission;
+        $payout->net_amount = $netAmount;
+        $payout->status = 'completed'; // Direct completion for admin-initiated payouts
+        $payout->payment_method = $request->payment_method;
+        $payout->transaction_id = $request->transaction_id;
+        $payout->bank_name = $request->bank_name;
+        $payout->account_number = $request->account_number;
+        $payout->account_name = $request->account_name;
+        $payout->notes = $request->notes;
+        $payout->processed_by = auth()->id();
+        $payout->processed_at = now();
+        $payout->approved_at = now();
+        $payout->save();
+        
+        // Deduct from seller's wallet
+        if ($request->from_wallet) {
+            $seller->wallet_balance = max(0, $seller->wallet_balance - $amount);
+        } else {
+            $seller->pending_balance = max(0, $seller->pending_balance - $amount);
+        }
+        $seller->save();
+        
+        return redirect()->route('admin.sellers.payouts')
+            ->with('success', 'Payout of BDT ' . number_format($amount, 2) . ' processed successfully for ' . ($seller->shop_name ?? $seller->name));
+    }
+    
     /**
      * Approve a payout request.
      */
-    public function approvePayout($id)
+    public function approvePayout(Request $request, $id)
     {
+        $request->validate([
+            'admin_notes' => 'nullable|string',
+            'transaction_id' => 'nullable|string|max:100',
+        ]);
+        
+        $payout = SellerPayout::findOrFail($id);
+        $seller = $payout->seller;
+        
+        // Update payout status
+        $payout->status = 'completed';
+        $payout->admin_notes = $request->admin_notes;
+        $payout->transaction_id = $request->transaction_id;
+        $payout->processed_by = auth()->id();
+        $payout->processed_at = now();
+        $payout->approved_at = now();
+        $payout->save();
+        
         return redirect()->back()
-            ->with('success', 'Payout approved successfully.');
+            ->with('success', 'Payout approved and completed successfully.');
+    }
+    
+    /**
+     * Reject a payout request.
+     */
+    public function rejectPayout(Request $request, $id)
+    {
+        $request->validate([
+            'admin_notes' => 'required|string',
+        ]);
+        
+        $payout = SellerPayout::findOrFail($id);
+        $seller = $payout->seller;
+        
+        // Update payout status
+        $payout->status = 'rejected';
+        $payout->admin_notes = $request->admin_notes;
+        $payout->processed_by = auth()->id();
+        $payout->rejected_at = now();
+        $payout->save();
+        
+        // Restore seller's balance
+        $seller->pending_balance = $seller->pending_balance + $payout->amount;
+        $seller->save();
+        
+        return redirect()->back()
+            ->with('success', 'Payout rejected. Seller balance has been restored.');
+    }
+    
+    /**
+     * Show payout details.
+     */
+    public function showPayout($id)
+    {
+        $payout = SellerPayout::with('seller', 'processedBy')->findOrFail($id);
+        
+        return view('admin.sellers.payouts.show', compact('payout'));
     }
 
     /**
      * Display seller commission settings.
      */
-    public function commission()
+    public function commission(Request $request)
     {
-        return view('admin.sellers.commission');
+        // Get default commission rate (from first seller or default)
+        $defaultCommission = User::sellers()->avg('commission_rate') ?? 10.00;
+        
+        // Build query
+        $query = User::sellers()
+            ->select('id', 'name', 'shop_name', 'email', 'commission_rate', 'wallet_balance', 'pending_balance', 'status');
+        
+        // Search filter
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('shop_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+        
+        // Commission range filter
+        if ($request->commission_range) {
+            $range = $request->commission_range;
+            if ($range === '20+') {
+                $query->where('commission_rate', '>=', 20);
+            } elseif (strpos($range, '-') !== false) {
+                [$min, $max] = explode('-', $range);
+                $query->whereBetween('commission_rate', [(float)$min, (float)$max]);
+            }
+        }
+        
+        // Status filter
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+        
+        $sellers = $query->orderBy('shop_name')->paginate(20);
+        
+        // Calculate stats
+        $stats = [
+            'total_sellers' => User::sellers()->count(),
+            'avg_commission' => number_format(User::sellers()->avg('commission_rate') ?? 0, 2),
+            'total_revenue' => User::sellers()->sum('wallet_balance'),
+        ];
+
+        return view('admin.sellers.commission', compact('sellers', 'defaultCommission', 'stats'));
     }
 
     /**
@@ -125,24 +711,165 @@ class SellerController extends Controller
      */
     public function updateCommission(Request $request)
     {
+        $request->validate([
+            'commission_rate' => 'required|numeric|min:0|max:100',
+        ]);
+
+        // Update individual seller if ID provided
+        if ($request->seller_id) {
+            $seller = User::sellers()->findOrFail($request->seller_id);
+            $seller->commission_rate = $request->commission_rate;
+            $seller->save();
+            
+            return redirect()->route('admin.sellers.commission')
+                ->with('success', 'Commission rate updated for ' . ($seller->shop_name ?? $seller->name));
+        }
+
+        // Update all sellers (bulk)
+        User::sellers()->update(['commission_rate' => $request->commission_rate]);
+
         return redirect()->route('admin.sellers.commission')
-            ->with('success', 'Commission settings updated successfully.');
+            ->with('success', 'Default commission rate updated for all sellers.');
     }
 
     /**
      * Display seller verification requests.
      */
-    public function verification()
+    public function verification(Request $request)
     {
-        return view('admin.sellers.verification');
+        // Get statistics
+        $stats = $this->getVerificationStats();
+        
+        $query = User::sellers()->whereIn('verification_status', ['pending', 'rejected']);
+
+        if ($request->verification_status) {
+            $query->where('verification_status', $request->verification_status);
+        }
+        
+        // Filter by seller type
+        if ($request->seller_type) {
+            $query->where('seller_type', $request->seller_type);
+        }
+
+        // Search
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('shop_name', 'like', "%{$search}%")
+                    ->orWhere('company_name', 'like', "%{$search}%");
+            });
+        }
+
+        $sellers = $query->orderBy('created_at', 'desc')->paginate(20);
+
+        return view('admin.sellers.verification', compact('sellers', 'stats'));
+    }
+    
+    /**
+     * Get verification statistics.
+     */
+    protected function getVerificationStats()
+    {
+        $sellers = User::sellers();
+        
+        return [
+            'pending' => (clone $sellers)->where('verification_status', 'pending')->count(),
+            'rejected' => (clone $sellers)->where('verification_status', 'rejected')->count(),
+            'verified' => (clone $sellers)->where('verification_status', 'verified')->count(),
+            'total' => (clone $sellers)->count(),
+        ];
     }
 
     /**
      * Process seller verification.
      */
-    public function processVerification($id)
+    public function processVerification(Request $request, $id)
     {
-        return redirect()->back()
-            ->with('success', 'Verification processed successfully.');
+        $request->validate([
+            'action' => 'required|in:approve,reject',
+            'verification_notes' => 'nullable|string',
+        ]);
+
+        $seller = User::sellers()->findOrFail($id);
+
+        if ($request->action === 'approve') {
+            $seller->verification_status = 'verified';
+            $seller->verified_at = now();
+            $seller->verification_notes = $request->verification_notes;
+            $seller->status = 'active';
+            $seller->save();
+
+            return redirect()->back()
+                ->with('success', 'Seller verification approved.');
+        } else {
+            $seller->verification_status = 'rejected';
+            $seller->verification_notes = $request->verification_notes;
+            $seller->save();
+
+            return redirect()->back()
+                ->with('success', 'Seller verification rejected.');
+        }
+    }
+
+    /**
+     * Bulk update seller status
+     */
+    public function bulkUpdateStatus(Request $request)
+    {
+        $request->validate([
+            'seller_ids' => 'required|array',
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        User::sellers()->whereIn('id', $request->seller_ids)->update([
+            'status' => $request->status
+        ]);
+
+        $count = count($request->seller_ids);
+        
+        return response()->json([
+            'success' => true,
+            'message' => "{$count} seller(s) status updated to {$request->status}"
+        ]);
+    }
+
+    /**
+     * Bulk delete sellers
+     */
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'seller_ids' => 'required|array',
+        ]);
+
+        $sellers = User::sellers()->whereIn('id', $request->seller_ids)->get();
+
+        foreach ($sellers as $seller) {
+            // Delete associated files
+            if ($seller->shop_logo && File::exists(public_path('uploads/shop_logos/' . $seller->shop_logo))) {
+                File::delete(public_path('uploads/shop_logos/' . $seller->shop_logo));
+            }
+            if ($seller->shop_banner && File::exists(public_path('uploads/shop_banners/' . $seller->shop_banner))) {
+                File::delete(public_path('uploads/shop_banners/' . $seller->shop_banner));
+            }
+
+            // Update products
+            Product::where('seller_id', $seller->id)->update([
+                'seller_id' => null,
+                'product_source' => 'in_house'
+            ]);
+
+            $seller->delete();
+        }
+
+        $count = count($request->seller_ids);
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$count} seller(s) deleted successfully"
+        ]);
     }
 }

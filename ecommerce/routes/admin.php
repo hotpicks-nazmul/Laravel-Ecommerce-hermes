@@ -554,6 +554,28 @@ Route::prefix('refunds')->name('refunds.')->group(function () {
 
 // Sellers (B2B) Management
 Route::prefix('sellers')->name('sellers.')->group(function () {
+    // Specific routes MUST come before resource routes to avoid 404 errors
+    
+    // Payout Routes - must come before /{id} route
+    Route::get('/payouts', [\App\Http\Controllers\Admin\SellerController::class, 'payouts'])->name('payouts');
+    Route::get('/payouts/create/{id}', [\App\Http\Controllers\Admin\SellerController::class, 'createPayout'])->name('payouts.create');
+    Route::post('/payouts/create/{id}', [\App\Http\Controllers\Admin\SellerController::class, 'storePayout'])->name('payouts.store');
+    Route::get('/payouts/{id}', [\App\Http\Controllers\Admin\SellerController::class, 'showPayout'])->name('payouts.show');
+    
+    // Payout Requests Routes
+    Route::get('/payout-requests', [\App\Http\Controllers\Admin\SellerController::class, 'payoutRequests'])->name('payout-requests');
+    Route::post('/payout-requests/{id}/approve', [\App\Http\Controllers\Admin\SellerController::class, 'approvePayout'])->name('payout-requests.approve');
+    Route::post('/payout-requests/{id}/reject', [\App\Http\Controllers\Admin\SellerController::class, 'rejectPayout'])->name('payout-requests.reject');
+    
+    // Commission Routes
+    Route::get('/commission', [\App\Http\Controllers\Admin\SellerController::class, 'commission'])->name('commission');
+    Route::post('/commission', [\App\Http\Controllers\Admin\SellerController::class, 'updateCommission'])->name('commission.update');
+    
+    // Verification Routes
+    Route::get('/verification', [\App\Http\Controllers\Admin\SellerController::class, 'verification'])->name('verification');
+    Route::post('/verification/{id}', [\App\Http\Controllers\Admin\SellerController::class, 'processVerification'])->name('verification.process');
+    
+    // Seller CRUD Routes - these use {id} so must come after specific routes
     Route::get('/', [\App\Http\Controllers\Admin\SellerController::class, 'index'])->name('index');
     Route::get('/create', [\App\Http\Controllers\Admin\SellerController::class, 'create'])->name('create');
     Route::post('/', [\App\Http\Controllers\Admin\SellerController::class, 'store'])->name('store');
@@ -561,15 +583,16 @@ Route::prefix('sellers')->name('sellers.')->group(function () {
     Route::get('/{id}/edit', [\App\Http\Controllers\Admin\SellerController::class, 'edit'])->name('edit');
     Route::put('/{id}', [\App\Http\Controllers\Admin\SellerController::class, 'update'])->name('update');
     Route::delete('/{id}', [\App\Http\Controllers\Admin\SellerController::class, 'destroy'])->name('destroy');
+    
+    // Status management
     Route::post('/{id}/approve', [\App\Http\Controllers\Admin\SellerController::class, 'approve'])->name('approve');
+    Route::post('/{id}/reject', [\App\Http\Controllers\Admin\SellerController::class, 'reject'])->name('reject');
     Route::post('/{id}/suspend', [\App\Http\Controllers\Admin\SellerController::class, 'suspend'])->name('suspend');
-    Route::get('/payouts', [\App\Http\Controllers\Admin\SellerController::class, 'payouts'])->name('payouts');
-    Route::get('/payout-requests', [\App\Http\Controllers\Admin\SellerController::class, 'payoutRequests'])->name('payout-requests');
-    Route::post('/payout-requests/{id}/approve', [\App\Http\Controllers\Admin\SellerController::class, 'approvePayout'])->name('payout-requests.approve');
-    Route::get('/commission', [\App\Http\Controllers\Admin\SellerController::class, 'commission'])->name('commission');
-    Route::post('/commission', [\App\Http\Controllers\Admin\SellerController::class, 'updateCommission'])->name('commission.update');
-    Route::get('/verification', [\App\Http\Controllers\Admin\SellerController::class, 'verification'])->name('verification');
-    Route::post('/verification/{id}', [\App\Http\Controllers\Admin\SellerController::class, 'processVerification'])->name('verification.process');
+    Route::post('/{id}/activate', [\App\Http\Controllers\Admin\SellerController::class, 'activate'])->name('activate');
+    
+    // Bulk actions
+    Route::post('/bulk-update', [\App\Http\Controllers\Admin\SellerController::class, 'bulkUpdateStatus'])->name('bulk-update');
+    Route::post('/bulk-delete', [\App\Http\Controllers\Admin\SellerController::class, 'bulkDelete'])->name('bulk-delete');
 });
 
 // Reports - Additional Routes

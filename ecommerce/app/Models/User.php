@@ -26,6 +26,30 @@ class User extends Authenticatable
         'status',
         'provider',
         'provider_id',
+        // Seller specific fields
+        'shop_name',
+        'shop_description',
+        'shop_logo',
+        'shop_banner',
+        'business_registration_number',
+        'tax_id',
+        'bank_name',
+        'bank_account_number',
+        'bank_account_name',
+        'bank_routing_code',
+        'commission_rate',
+        'wallet_balance',
+        'pending_balance',
+        'verification_status',
+        'verified_at',
+        'verification_notes',
+        'contact_person_name',
+        'contact_person_phone',
+        'contact_person_email',
+        'return_address',
+        'seller_type',
+        'company_name',
+        'company_address',
     ];
 
     /**
@@ -166,5 +190,137 @@ class User extends Authenticatable
     public function customerGroup()
     {
         return $this->belongsTo(CustomerGroup::class, 'customer_group_id');
+    }
+
+    // ==================== Seller Methods ====================
+
+    /**
+     * Check if user is a seller (vendor)
+     */
+    public function isSeller(): bool
+    {
+        return $this->role === 'vendor';
+    }
+
+    /**
+     * Get the seller's shop name
+     */
+    public function getShopNameAttribute(): string
+    {
+        return $this->shop_name ?? $this->name;
+    }
+
+    /**
+     * Get shop logo URL
+     */
+    public function getShopLogoUrlAttribute(): ?string
+    {
+        return $this->shop_logo ? asset('uploads/shop_logos/' . $this->shop_logo) : null;
+    }
+
+    /**
+     * Get shop banner URL
+     */
+    public function getShopBannerUrlAttribute(): ?string
+    {
+        return $this->shop_banner ? asset('uploads/shop_banners/' . $this->shop_banner) : null;
+    }
+
+    /**
+     * Check if seller is verified
+     */
+    public function isVerified(): bool
+    {
+        return $this->verification_status === 'verified';
+    }
+
+    /**
+     * Check if seller verification is pending
+     */
+    public function isVerificationPending(): bool
+    {
+        return $this->verification_status === 'pending';
+    }
+
+    /**
+     * Check if seller verification is rejected
+     */
+    public function isVerificationRejected(): bool
+    {
+        return $this->verification_status === 'rejected';
+    }
+
+    /**
+     * Get seller status (active/inactive)
+     */
+    public function isActiveSeller(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    /**
+     * Get total products count
+     */
+    public function getProductsCountAttribute(): int
+    {
+        return $this->products()->count();
+    }
+
+    /**
+     * Get total orders count
+     */
+    public function getOrdersCountAttribute(): int
+    {
+        return Order::whereHas('items', function ($query) {
+            $query->whereHas('product', function ($q) {
+                $q->where('seller_id', $this->id);
+            });
+        })->count();
+    }
+
+    /**
+     * Get total sales amount
+     */
+    public function getTotalSalesAttribute(): float
+    {
+        return Order::whereHas('items', function ($query) {
+            $query->whereHas('product', function ($q) {
+                $q->where('seller_id', $this->id);
+            });
+        })->where('payment_status', 'paid')
+          ->whereIn('status', ['delivered', 'shipped', 'confirmed'])
+          ->sum('grand_total');
+    }
+
+    /**
+     * Scope to get only sellers
+     */
+    public function scopeSellers($query)
+    {
+        return $query->where('role', 'vendor');
+    }
+
+    /**
+     * Scope to get verified sellers
+     */
+    public function scopeVerifiedSellers($query)
+    {
+        return $query->where('role', 'vendor')->where('verification_status', 'verified');
+    }
+
+    /**
+     * Scope to get sellers by status
+     */
+    public function scopeByStatus($query, $status)
+    {
+        return $query->where('role', 'vendor')->where('status', $status);
+    }
+
+    /**
+     * Scope to get sellers by verification status
+     */
+    public function scopeByVerificationStatus($query, $verificationStatus)
+    {
+        return $query->where('role', 'vendor')->where('verification_status', $verificationStatus);
     }
 }
