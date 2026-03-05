@@ -281,7 +281,12 @@ Route::get('/themes', [ThemeController::class, 'index'])->name('themes.index');
 // Media Management
 Route::get('/media', [\App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media.index');
 Route::post('/media/upload', [\App\Http\Controllers\Admin\MediaController::class, 'upload'])->name('media.upload');
-Route::delete('/media/{id}', [\App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('media.destroy');
+Route::delete('/media', [\App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('media.destroy');
+Route::post('/media/bulk-delete', [\App\Http\Controllers\Admin\MediaController::class, 'bulkDelete'])->name('media.bulk-delete');
+Route::get('/media/show', [\App\Http\Controllers\Admin\MediaController::class, 'show'])->name('media.show');
+Route::post('/media/folder', [\App\Http\Controllers\Admin\MediaController::class, 'createFolder'])->name('media.folder.create');
+Route::delete('/media/folder', [\App\Http\Controllers\Admin\MediaController::class, 'deleteFolder'])->name('media.folder.delete');
+Route::get('/media/stats', [\App\Http\Controllers\Admin\MediaController::class, 'stats'])->name('media.stats');
 
 // Blog Management
 Route::resource('blogs', \App\Http\Controllers\Admin\BlogController::class);
@@ -349,6 +354,14 @@ Route::prefix('chat')->name('chat.')->group(function () {
 
 // Reports
 Route::prefix('reports')->name('reports.')->group(function () {
+    // Products Wishlist - MUST be before resource routes to avoid 404
+    Route::get('/wishlist', [ReportController::class, 'productsWishlist'])->name('wishlist');
+    Route::get('/wishlist/export', [ReportController::class, 'productsWishlistExport'])->name('wishlist.export');
+    
+    // In-House Product Sale - MUST be before resource routes to avoid 404
+    Route::get('/in-house-product-sale', [ReportController::class, 'inHouseProductSale'])->name('in-house-product-sale');
+    Route::get('/in-house-product-sale/export', [ReportController::class, 'inHouseProductSaleExport'])->name('in-house-product-sale.export');
+    
     Route::get('/sales', [ReportController::class, 'sales'])->name('sales');
     Route::get('/products', [ReportController::class, 'products'])->name('products');
     Route::get('/customers', [ReportController::class, 'customers'])->name('customers');
@@ -598,20 +611,30 @@ Route::prefix('sellers')->name('sellers.')->group(function () {
 // Reports - Additional Routes
 Route::prefix('reports')->name('reports.')->group(function () {
     Route::get('/seller-sales', [ReportController::class, 'sellerSales'])->name('seller-sales');
-    Route::get('/wishlist', [ReportController::class, 'wishlist'])->name('wishlist');
+    Route::get('/seller-sales/export', [ReportController::class, 'sellerSalesExport'])->name('seller-sales.export');
     Route::get('/user-searches', [ReportController::class, 'userSearches'])->name('user-searches');
+    Route::get('/user-searches/export', [ReportController::class, 'userSearchesExport'])->name('user-searches.export');
     Route::get('/commission-history', [ReportController::class, 'commissionHistory'])->name('commission-history');
+    Route::get('/commission-history/export', [ReportController::class, 'commissionHistoryExport'])->name('commission-history.export');
     Route::get('/wallet-history', [ReportController::class, 'walletHistory'])->name('wallet-history');
+    Route::get('/wallet-history/export', [ReportController::class, 'walletHistoryExport'])->name('wallet-history.export');
 });
 
 // Marketing
 Route::prefix('marketing')->name('marketing.')->group(function () {
-    Route::get('/flash-deals', [\App\Http\Controllers\Admin\FlashDealController::class, 'index'])->name('flash-deals.index');
+    // Flash Deals - must be before wildcard routes
     Route::get('/flash-deals/create', [\App\Http\Controllers\Admin\FlashDealController::class, 'create'])->name('flash-deals.create');
     Route::post('/flash-deals', [\App\Http\Controllers\Admin\FlashDealController::class, 'store'])->name('flash-deals.store');
     Route::get('/flash-deals/{id}/edit', [\App\Http\Controllers\Admin\FlashDealController::class, 'edit'])->name('flash-deals.edit');
     Route::put('/flash-deals/{id}', [\App\Http\Controllers\Admin\FlashDealController::class, 'update'])->name('flash-deals.update');
     Route::delete('/flash-deals/{id}', [\App\Http\Controllers\Admin\FlashDealController::class, 'destroy'])->name('flash-deals.destroy');
+    Route::post('/flash-deals/{id}/toggle-status', [\App\Http\Controllers\Admin\FlashDealController::class, 'toggleStatus'])->name('flash-deals.toggle-status');
+    Route::get('/flash-deals/{id}/products', [\App\Http\Controllers\Admin\FlashDealController::class, 'products'])->name('flash-deals.products');
+    Route::put('/flash-deals/{id}/products', [\App\Http\Controllers\Admin\FlashDealController::class, 'updateProducts'])->name('flash-deals.products.update');
+    Route::post('/flash-deals/{id}/products', [\App\Http\Controllers\Admin\FlashDealController::class, 'addProducts'])->name('flash-deals.add-products');
+    Route::delete('/flash-deals/{id}/products/{productId}', [\App\Http\Controllers\Admin\FlashDealController::class, 'removeProduct'])->name('flash-deals.remove-product');
+    Route::put('/flash-deals/{id}/products/{productId}', [\App\Http\Controllers\Admin\FlashDealController::class, 'updateProduct'])->name('flash-deals.update-product');
+    Route::get('/flash-deals', [\App\Http\Controllers\Admin\FlashDealController::class, 'index'])->name('flash-deals.index');
     
     Route::get('/newsletters', [\App\Http\Controllers\Admin\NewsletterController::class, 'index'])->name('newsletters.index');
     Route::post('/newsletters/send', [\App\Http\Controllers\Admin\NewsletterController::class, 'send'])->name('newsletters.send');

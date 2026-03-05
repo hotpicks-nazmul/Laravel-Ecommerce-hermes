@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\UserSearch;
 
 class SearchController extends Controller
 {
@@ -19,17 +20,22 @@ class SearchController extends Controller
         $categories = collect();
 
         if (strlen($query) >= 2) {
-            $products = Product::where('is_active', true)
+            $productsQuery = Product::where('is_active', true)
                 ->where(function ($q) use ($query) {
                     $q->where('name', 'like', "%{$query}%")
                       ->orWhere('description', 'like', "%{$query}%")
                       ->orWhere('sku', 'like', "%{$query}%");
-                })
-                ->paginate(12);
+                });
+            
+            $resultsCount = $productsQuery->count();
+            $products = $productsQuery->paginate(12);
 
             $categories = Category::where('status', 'active')
                 ->where('name', 'like', "%{$query}%")
                 ->get();
+            
+            // Save user search
+            $this->saveSearch($query, $resultsCount, false);
         }
 
         return view('themes.general.search.index', compact('products', 'categories', 'query'));
@@ -89,10 +95,33 @@ class SearchController extends Controller
             ->take(3)
             ->get(['id', 'name', 'slug', 'image']);
 
+        // Save autocomplete search
+        $resultsCount = $products->count() + $categories->count();
+        $this->saveSearch($query, $resultsCount, true);
+
         return response()->json([
             'products' => $products,
             'categories' => $categories,
             'query' => $query,
         ]);
+    }
+    
+    /**
+     * Save user search to database.
+     */
+    private function saveSearch(string $query, int $resultsCount, bool $isAutocomplete): void
+    {
+        try {
+            UserSearch::create([
+                'query' => trim($query),
+                'user_id' => auth()->check() ? auth()->id() : null,
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'results_count' => $resultsCount,
+                'is_autocomplete' => $isAutocomplete,
+            ]);
+        } catch (\Exception $e) {
+            // Silently fail - don't break the search experience
+        }
     }
 }

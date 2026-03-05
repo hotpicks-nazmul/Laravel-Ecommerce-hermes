@@ -21,6 +21,7 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 13. **404 Errors Due to Route Ordering** - Fix for routes not matching correctly
 14. **Create/Edit Form Layout** - Proper form structure for multi-card forms
 15. **Table Listing Pages** - Proper table structure and styling
+16. **@push Directive Placement** - CSS/JS not loading when @push is before @section
 
 ---
 
@@ -1045,4 +1046,71 @@ This pattern applies to all resource controllers, not just the orders controller
 
 ---
 
-*Last updated: February 2026*
+## @push Directive Placement
+
+### Problem
+
+When creating admin panel pages (create/edit forms), CSS and JavaScript may not load correctly, causing layout issues where:
+- Header appears at the bottom of the page
+- Sidebar overlaps the main content
+- Form elements appear displaced
+
+### Root Cause
+
+In Laravel Blade, the `@push` directive must be placed AFTER the `@section` declaration where the content will be injected. If `@push` is placed BEFORE `@section('content')`, the stacked content may not be properly rendered in the layout's `@stack` directive.
+
+### Incorrect Code
+
+```php
+@extends('admin.layouts.app')
+
+@section('title', 'Page Title')
+
+@push('styles')  // ❌ WRONG - This is before @section('content')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
+@section('content')
+<!-- Page content here -->
+@endsection
+```
+
+### Correct Code
+
+```php
+@extends('admin.layouts.app')
+
+@section('title', 'Page Title')
+
+@section('content')
+<!-- Page content here -->
+@endsection
+
+@push('styles')  // ✅ CORRECT - After @section('content')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+    // JavaScript code here
+</script>
+@endpush
+```
+
+### Best Practice
+
+1. **Always place @push after @section:** Put `@push('styles')` and `@push('scripts')` AFTER your `@section('content')` ends
+2. **Follow working examples:** Check how existing working pages like `brands/create.blade.php` are structured
+3. **Keep styles and scripts together:** Group all `@push` directives at the end of the file, after all content sections
+
+---
+
+*Last updated: March 2026*

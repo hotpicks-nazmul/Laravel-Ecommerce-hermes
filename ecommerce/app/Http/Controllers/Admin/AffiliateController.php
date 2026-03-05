@@ -308,11 +308,39 @@ class AffiliateController extends Controller
     /**
      * Export affiliate reports
      * 
-     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
      */
-    public function exportReports()
+    public function exportReports(Request $request)
     {
-        // TODO: Implement CSV/Excel export
-        return redirect()->back()->with('success', 'Reports export feature coming soon.');
+        $affiliates = Affiliate::with('user')
+            ->withCount(['clicks', 'sales'])
+            ->withSum('sales as total_sales', 'sale_amount')
+            ->withSum('sales as total_commission', 'commission_amount')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $csvData = "ID,User Name,User Email,Affiliate Code,Status,Commission Rate,Balance,Total Earnings,Total Clicks,Total Sales,Total Commission,Joined Date\n";
+        
+        foreach ($affiliates as $affiliate) {
+            $csvData .= "{$affiliate->id},";
+            $csvData .= "\"{$affiliate->user->name}\",";
+            $csvData .= "\"{$affiliate->user->email}\",";
+            $csvData .= "\"{$affiliate->affiliate_code}\",";
+            $csvData .= "\"{$affiliate->status}\",";
+            $csvData .= "{$affiliate->commission_rate},";
+            $csvData .= "{$affiliate->balance},";
+            $csvData .= "{$affiliate->total_earnings},";
+            $csvData .= "{$affiliate->clicks_count},";
+            $csvData .= "{$affiliate->total_sales},";
+            $csvData .= "{$affiliate->total_commission},";
+            $csvData .= "{$affiliate->created_at}\n";
+        }
+        
+        return response()->stream(function() use ($csvData) {
+            echo $csvData;
+        }, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="affiliate-reports-' . date('Y-m-d') . '.csv"'
+        ]);
     }
 }

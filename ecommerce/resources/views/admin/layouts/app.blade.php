@@ -946,7 +946,7 @@
                 <div class="collapse {{ request()->routeIs('admin.reports.*') ? 'show' : '' }}" id="menuReports">
                     <ul class="nav flex-column submenu">
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.reports.sales') ? 'active' : '' }}" href="{{ route('admin.reports.sales') }}">
+                            <a class="nav-link {{ request()->routeIs('admin.reports.in-house-product-sale') ? 'active' : '' }}" href="{{ route('admin.reports.in-house-product-sale') }}">
                                 <i class="bi bi-house-door"></i> In-House Product Sale
                             </a>
                         </li>
@@ -1686,6 +1686,11 @@
             @if(session('warning'))
                 adminToast('warning', 'Warning!', '{{ session('warning') }}');
             @endif
+            
+            // Auto-add has-floating-save class to content-area when floating-save-container exists
+            if (document.querySelector('.floating-save-container')) {
+                document.querySelector('.content-area').classList.add('has-floating-save');
+            }
         });
     </script>
     
