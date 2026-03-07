@@ -8,10 +8,44 @@ use App\Models\Coupon;
 
 class CouponController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $coupons = Coupon::latest()->paginate(15);
-        return view('admin.coupons.index', compact('coupons'));
+        $query = Coupon::query();
+        
+        // Search by code
+        if ($request->search) {
+            $query->where('code', 'like', "%{$request->search}%");
+        }
+        
+        // Filter by type
+        if ($request->type) {
+            $query->where('type', $request->type);
+        }
+        
+        // Filter by status
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+        
+        // Sort
+        $sort = $request->sort ?? 'created_at';
+        $direction = $request->direction ?? 'desc';
+        $query->orderBy($sort, $direction);
+        
+        $coupons = $query->paginate(15);
+        
+        // Get stats
+        $stats = [
+            'total' => Coupon::count(),
+            'active' => Coupon::where('status', 'active')->count(),
+            'inactive' => Coupon::where('status', 'inactive')->count(),
+            'expired' => Coupon::where('status', 'active')
+                ->whereNotNull('end_date')
+                ->where('end_date', '<', now())
+                ->count(),
+        ];
+        
+        return view('admin.coupons.index', compact('coupons', 'stats'));
     }
 
     public function create()

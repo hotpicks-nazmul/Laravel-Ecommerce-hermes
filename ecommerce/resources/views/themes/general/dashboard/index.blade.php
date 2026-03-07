@@ -44,6 +44,9 @@
                     <a href="{{ route('account.addresses') }}" class="flex items-center p-3 rounded-lg text-gray-600 hover:bg-gray-50 mb-1">
                         <i class="bi bi-geo-alt mr-3"></i> Addresses
                     </a>
+                    <a href="{{ route('tickets.index') }}" class="flex items-center p-3 rounded-lg text-gray-600 hover:bg-gray-50 mb-1">
+                        <i class="bi bi-ticket-detailed mr-3"></i> Support Tickets
+                    </a>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
                         <button type="submit" class="w-full flex items-center p-3 rounded-lg text-red-500 hover:bg-red-50">

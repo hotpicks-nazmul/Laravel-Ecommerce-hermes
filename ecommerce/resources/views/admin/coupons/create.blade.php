@@ -14,7 +14,7 @@
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm">
             <div class="card-body">
-                <form action="{{ route('admin.coupons.store') }}" method="POST">
+                <form id="couponForm" action="{{ route('admin.coupons.store') }}" method="POST">
                     @csrf
                     
                     <!-- Coupon Code -->
@@ -144,15 +144,6 @@
                     </div>
                     
                     <hr>
-                    
-                    <div class="row">
-                        <div class="col-sm-9 offset-sm-3">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-check-lg me-1"></i> Create Coupon
-                            </button>
-                            <a href="{{ route('admin.coupons.index') }}" class="btn btn-outline-secondary btn-lg ms-2">Cancel</a>
-                        </div>
-                    </div>
                 </form>
             </div>
         </div>
@@ -189,6 +180,16 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Floating Save Buttons -->
+<div class="floating-save-container">
+    <a href="{{ route('admin.coupons.index') }}" class="btn btn-secondary floating-reset-btn">
+        <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
+    <button type="submit" form="couponForm" class="btn btn-primary floating-save-btn">
+        <i class="bi bi-check-lg me-1"></i> Create Coupon
+    </button>
 </div>
 @endsection
 

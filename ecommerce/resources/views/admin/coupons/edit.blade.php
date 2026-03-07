@@ -14,7 +14,7 @@
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm">
             <div class="card-body">
-                <form action="{{ route('admin.coupons.update', $coupon->id) }}" method="POST">
+                <form id="couponForm" action="{{ route('admin.coupons.update', $coupon->id) }}" method="POST">
                     @csrf
                     @method('PUT')
                     
@@ -208,6 +208,25 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Delete Form -->
+<form id="deleteForm" action="{{ route('admin.coupons.destroy', $coupon->id) }}" method="POST" class="d-none">
+    @csrf
+    @method('DELETE')
+</form>
+
+<!-- Floating Save Buttons -->
+<div class="floating-save-container">
+    <a href="{{ route('admin.coupons.index') }}" class="btn btn-secondary floating-reset-btn">
+        <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
+    <a href="#" class="btn btn-outline-danger floating-reset-btn" onclick="event.preventDefault(); if(confirm('Are you sure you want to delete this coupon?')) { document.getElementById('deleteForm').submit(); }">
+        <i class="bi bi-trash me-1"></i> Delete
+    </a>
+    <button type="submit" form="couponForm" class="btn btn-primary floating-save-btn">
+        <i class="bi bi-check-lg me-1"></i> Update Coupon
+    </button>
 </div>
 @endsection
 

@@ -89,7 +89,7 @@ Route::prefix('api')->name('api.')->group(function () {
     Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
     Route::get('/wishlist/items', [WishlistController::class, 'items'])->name('wishlist.items');
-    Route::post('/chat/send', [ChatController::class, 'aiChat'])->name('chat.send');
+    Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
     Route::get('/products/quick-view/{id}', [ProductController::class, 'quickView'])->name('products.quick-view');
 });
 
@@ -150,7 +150,17 @@ Route::get('/login/{provider}/callback', [UserController::class, 'handleProvider
 // Authenticated User Routes
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');
-    
+
+    // Support Ticket Routes
+    Route::prefix('tickets')->name('tickets.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Frontend\TicketController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Frontend\TicketController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Frontend\TicketController::class, 'store'])->name('store');
+        Route::get('/{id}', [\App\Http\Controllers\Frontend\TicketController::class, 'show'])->name('show');
+        Route::post('/{id}/reply', [\App\Http\Controllers\Frontend\TicketController::class, 'reply'])->name('reply');
+        Route::get('/{id}/close', [\App\Http\Controllers\Frontend\TicketController::class, 'close'])->name('close');
+    });
+
     // Account Routes
     Route::prefix('account')->name('account.')->group(function () {
         Route::get('/', [UserController::class, 'dashboard'])->name('dashboard');

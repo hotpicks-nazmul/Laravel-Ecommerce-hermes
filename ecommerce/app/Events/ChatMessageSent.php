@@ -16,6 +16,7 @@ class ChatMessageSent implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $message;
+    public $conversation;
 
     /**
      * Create a new event instance.
@@ -23,6 +24,7 @@ class ChatMessageSent implements ShouldBroadcast
     public function __construct(ChatMessage $message)
     {
         $this->message = $message;
+        $this->conversation = $message->conversation;
     }
 
     /**
@@ -30,7 +32,8 @@ class ChatMessageSent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('chat.' . $this->message->conversation_id);
+        // Use a public channel for simplicity - in production use PrivateChannel for security
+        return new Channel('chat.' . $this->message->chat_id);
     }
 
     /**
@@ -48,10 +51,17 @@ class ChatMessageSent implements ShouldBroadcast
     {
         return [
             'id' => $this->message->id,
-            'conversation_id' => $this->message->conversation_id,
+            'chat_id' => $this->message->chat_id,
             'sender_type' => $this->message->sender_type,
+            'sender_id' => $this->message->sender_id,
             'message' => $this->message->message,
+            'attachments' => $this->message->attachments,
             'created_at' => $this->message->created_at->toISOString(),
+            'conversation' => [
+                'id' => $this->conversation->id,
+                'status' => $this->conversation->status,
+                'user_id' => $this->conversation->user_id,
+            ]
         ];
     }
 }

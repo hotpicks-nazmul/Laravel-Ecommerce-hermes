@@ -221,8 +221,8 @@ Route::get('/customers/{customer}/orders', [CustomerController::class, 'orders']
 Route::post('/customers/{customer}/login-as', [CustomerController::class, 'loginAs'])->name('customers.login-as');
 
 // Coupons Management
-Route::resource('coupons', CouponController::class);
 Route::post('/coupons/{coupon}/toggle', [CouponController::class, 'toggle'])->name('coupons.toggle');
+Route::resource('coupons', CouponController::class);
 
 // Reviews Management
 Route::resource('reviews', ReviewController::class)->only(['index', 'update', 'destroy']);
@@ -346,10 +346,31 @@ Route::prefix('seo')->name('seo.')->group(function () {
 // Chat Management
 Route::prefix('chat')->name('chat.')->group(function () {
     Route::get('/', [ChatController::class, 'index'])->name('index');
+    
+    // AJAX Routes - specific routes before parameterized routes to avoid 404
     Route::get('/conversations', [ChatController::class, 'conversations'])->name('conversations');
     Route::get('/conversation/{id}', [ChatController::class, 'conversation'])->name('conversation');
     Route::post('/send', [ChatController::class, 'send'])->name('send');
+    Route::post('/conversation/{id}/status', [ChatController::class, 'updateStatus'])->name('update-status');
+    Route::post('/conversation/{id}/close', [ChatController::class, 'close'])->name('close');
+    Route::delete('/conversation/{id}', [ChatController::class, 'destroy'])->name('destroy');
+    Route::get('/online-users', [ChatController::class, 'getOnlineUsers'])->name('online-users');
+    
+    // AI Settings
     Route::post('/ai-settings', [ChatController::class, 'aiSettings'])->name('ai-settings');
+    
+    // Predefined Messages - CRUD
+    Route::get('/predefined', [ChatController::class, 'predefinedMessages'])->name('predefined.index');
+    Route::get('/predefined/messages', [ChatController::class, 'getPredefinedMessages'])->name('predefined.messages');
+    Route::post('/predefined', [ChatController::class, 'storePredefinedMessage'])->name('predefined.store');
+    Route::get('/predefined/{id}/edit', [ChatController::class, 'editPredefinedMessage'])->name('predefined.edit');
+    Route::put('/predefined/{id}', [ChatController::class, 'updatePredefinedMessage'])->name('predefined.update');
+    Route::delete('/predefined/{id}', [ChatController::class, 'destroyPredefinedMessage'])->name('predefined.destroy');
+    Route::post('/predefined/toggle/{id}', [ChatController::class, 'togglePredefinedMessage'])->name('predefined.toggle');
+    Route::post('/predefined/reorder', [ChatController::class, 'reorderPredefinedMessages'])->name('predefined.reorder');
+    
+    // Delete conversation
+    Route::delete('/{id}', [ChatController::class, 'destroy'])->name('destroy');
 });
 
 // Reports
@@ -637,67 +658,118 @@ Route::prefix('marketing')->name('marketing.')->group(function () {
     Route::get('/flash-deals', [\App\Http\Controllers\Admin\FlashDealController::class, 'index'])->name('flash-deals.index');
     
     Route::get('/newsletters', [\App\Http\Controllers\Admin\NewsletterController::class, 'index'])->name('newsletters.index');
-    Route::post('/newsletters/send', [\App\Http\Controllers\Admin\NewsletterController::class, 'send'])->name('newsletters.send');
+    Route::get('/newsletters/create', [\App\Http\Controllers\Admin\NewsletterController::class, 'create'])->name('newsletters.create');
+    Route::post('/newsletters', [\App\Http\Controllers\Admin\NewsletterController::class, 'store'])->name('newsletters.store');
+    Route::get('/newsletters/{newsletter}/edit', [\App\Http\Controllers\Admin\NewsletterController::class, 'edit'])->name('newsletters.edit');
+    Route::put('/newsletters/{newsletter}', [\App\Http\Controllers\Admin\NewsletterController::class, 'update'])->name('newsletters.update');
+    Route::delete('/newsletters/{newsletter}', [\App\Http\Controllers\Admin\NewsletterController::class, 'destroy'])->name('newsletters.destroy');
+    Route::post('/newsletters/{newsletter}/send', [\App\Http\Controllers\Admin\NewsletterController::class, 'send'])->name('newsletters.send');
+    Route::get('/newsletters/{newsletter}/preview', [\App\Http\Controllers\Admin\NewsletterController::class, 'preview'])->name('newsletters.preview');
+    Route::post('/newsletters/{newsletter}/duplicate', [\App\Http\Controllers\Admin\NewsletterController::class, 'duplicate'])->name('newsletters.duplicate');
+    Route::get('/newsletters/recipient-count', [\App\Http\Controllers\Admin\NewsletterController::class, 'getRecipientCount'])->name('newsletters.recipient-count');
     
-    Route::get('/bulk-sms', [\App\Http\Controllers\Admin\SmsController::class, 'bulkSms'])->name('bulk-sms.index');
-    Route::post('/bulk-sms/send', [\App\Http\Controllers\Admin\SmsController::class, 'sendBulkSms'])->name('bulk-sms.send');
+    Route::get('/bulk-sms', [\App\Http\Controllers\Admin\SmsController::class, 'index'])->name('bulk-sms.index');
+    Route::post('/bulk-sms/send', [\App\Http\Controllers\Admin\SmsController::class, 'send'])->name('bulk-sms.send');
+    Route::get('/bulk-sms/recipient-count', [\App\Http\Controllers\Admin\SmsController::class, 'getRecipientCount'])->name('bulk-sms.recipient-count');
+    Route::delete('/bulk-sms/{id}', [\App\Http\Controllers\Admin\SmsController::class, 'destroy'])->name('bulk-sms.destroy');
     
     Route::get('/subscribers', [\App\Http\Controllers\Admin\SubscriberController::class, 'index'])->name('subscribers.index');
-    Route::delete('/subscribers/{id}', [\App\Http\Controllers\Admin\SubscriberController::class, 'destroy'])->name('subscribers.destroy');
+    Route::post('/subscribers', [\App\Http\Controllers\Admin\SubscriberController::class, 'store'])->name('subscribers.store');
     Route::post('/subscribers/export', [\App\Http\Controllers\Admin\SubscriberController::class, 'export'])->name('subscribers.export');
+    Route::get('/subscribers/count', [\App\Http\Controllers\Admin\SubscriberController::class, 'getCount'])->name('subscribers.count');
+    Route::delete('/subscribers/{subscriber}', [\App\Http\Controllers\Admin\SubscriberController::class, 'destroy'])->name('subscribers.destroy');
+    Route::post('/subscribers/{subscriber}/unsubscribe', [\App\Http\Controllers\Admin\SubscriberController::class, 'unsubscribe'])->name('subscribers.unsubscribe');
+    Route::post('/subscribers/{subscriber}/resubscribe', [\App\Http\Controllers\Admin\SubscriberController::class, 'resubscribe'])->name('subscribers.resubscribe');
     
     // Abandoned Cart Recovery
     Route::prefix('abandoned-cart')->name('abandoned-cart.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'abandonedCart'])->name('index');
-        Route::get('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'abandonedCartDetail'])->name('show');
-        Route::post('/{id}/send-reminder', [\App\Http\Controllers\Admin\PlaceholderController::class, 'sendCartReminder'])->name('send-reminder');
-        Route::get('/email-templates', [\App\Http\Controllers\Admin\PlaceholderController::class, 'recoveryEmailTemplates'])->name('email-templates');
-        Route::get('/settings', [\App\Http\Controllers\Admin\PlaceholderController::class, 'recoverySettings'])->name('settings');
-        Route::post('/settings', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateRecoverySettings'])->name('settings.update');
-        Route::get('/conversion-tracking', [\App\Http\Controllers\Admin\PlaceholderController::class, 'conversionTracking'])->name('conversion-tracking');
+        // Index - must be first
+        Route::get('/', [\App\Http\Controllers\Admin\AbandonedCartController::class, 'index'])->name('index');
+        // Specific routes BEFORE wildcard
+        Route::get('/settings', [\App\Http\Controllers\Admin\AbandonedCartController::class, 'settings'])->name('settings');
+        Route::post('/settings', [\App\Http\Controllers\Admin\AbandonedCartController::class, 'updateSettings'])->name('settings.update');
+        Route::get('/conversion-tracking', [\App\Http\Controllers\Admin\AbandonedCartController::class, 'conversionTracking'])->name('conversion-tracking');
+        // Wildcard routes AFTER specific routes
+        Route::get('/{id}', [\App\Http\Controllers\Admin\AbandonedCartController::class, 'show'])->name('show');
+        Route::post('/{id}/send-reminder', [\App\Http\Controllers\Admin\AbandonedCartController::class, 'sendReminder'])->name('send-reminder');
+        Route::post('/{id}/mark-recovered', [\App\Http\Controllers\Admin\AbandonedCartController::class, 'markRecovered'])->name('mark-recovered');
+        Route::delete('/{id}', [\App\Http\Controllers\Admin\AbandonedCartController::class, 'destroy'])->name('destroy');
     });
     
-    // Gift Cards
+    // Gift Cards - Specific routes before wildcard routes (404 solution)
     Route::prefix('gift-cards')->name('gift-cards.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'giftCards'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\Admin\PlaceholderController::class, 'createGiftCard'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeGiftCard'])->name('store');
-        Route::get('/{id}/edit', [\App\Http\Controllers\Admin\PlaceholderController::class, 'editGiftCard'])->name('edit');
-        Route::put('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateGiftCard'])->name('update');
-        Route::delete('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyGiftCard'])->name('destroy');
-        Route::get('/templates', [\App\Http\Controllers\Admin\PlaceholderController::class, 'giftCardTemplates'])->name('templates');
-        Route::get('/balance-tracking', [\App\Http\Controllers\Admin\PlaceholderController::class, 'giftCardBalanceTracking'])->name('balance-tracking');
-        Route::get('/redemption-history', [\App\Http\Controllers\Admin\PlaceholderController::class, 'giftCardRedemptionHistory'])->name('redemption-history');
+        // Index - must be first
+        Route::get('/', [\App\Http\Controllers\Admin\GiftCardController::class, 'index'])->name('index');
+        // Specific routes BEFORE wildcard
+        Route::get('/create', [\App\Http\Controllers\Admin\GiftCardController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\GiftCardController::class, 'store'])->name('store');
+        Route::get('/generate-code', [\App\Http\Controllers\Admin\GiftCardController::class, 'generateCode'])->name('generate-code');
+        // Wildcard routes AFTER specific routes
+        Route::get('/{id}/edit', [\App\Http\Controllers\Admin\GiftCardController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\Admin\GiftCardController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Admin\GiftCardController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/toggle-status', [\App\Http\Controllers\Admin\GiftCardController::class, 'toggleStatus'])->name('toggle-status');
     });
     
-    // Push Notifications
+    // Push Notifications - Specific routes before wildcard routes (404 solution)
     Route::prefix('push-notifications')->name('push-notifications.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'pushNotifications'])->name('index');
-        Route::post('/send', [\App\Http\Controllers\Admin\PlaceholderController::class, 'sendPushNotification'])->name('send');
-        Route::get('/campaigns', [\App\Http\Controllers\Admin\PlaceholderController::class, 'pushCampaigns'])->name('campaigns');
-        Route::get('/browser-settings', [\App\Http\Controllers\Admin\PlaceholderController::class, 'browserPushSettings'])->name('browser-settings');
-        Route::get('/mobile-integration', [\App\Http\Controllers\Admin\PlaceholderController::class, 'mobilePushIntegration'])->name('mobile-integration');
+        // Index - must be first
+        Route::get('/', [\App\Http\Controllers\Admin\PushNotificationController::class, 'index'])->name('index');
+        // Specific routes BEFORE wildcard
+        Route::get('/create', [\App\Http\Controllers\Admin\PushNotificationController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\PushNotificationController::class, 'store'])->name('store');
+        Route::get('/recipient-count', [\App\Http\Controllers\Admin\PushNotificationController::class, 'getRecipientCount'])->name('recipient-count');
+        // Wildcard routes AFTER specific routes
+        Route::get('/{pushNotification}/edit', [\App\Http\Controllers\Admin\PushNotificationController::class, 'edit'])->name('edit');
+        Route::put('/{pushNotification}', [\App\Http\Controllers\Admin\PushNotificationController::class, 'update'])->name('update');
+        Route::delete('/{pushNotification}', [\App\Http\Controllers\Admin\PushNotificationController::class, 'destroy'])->name('destroy');
+        Route::post('/{pushNotification}/send', [\App\Http\Controllers\Admin\PushNotificationController::class, 'send'])->name('send');
+        Route::post('/{pushNotification}/duplicate', [\App\Http\Controllers\Admin\PushNotificationController::class, 'duplicate'])->name('duplicate');
     });
     
-    // Price Rules
+    // Price Rules - Specific routes before wildcard routes (404 solution)
     Route::prefix('price-rules')->name('price-rules.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'priceRules'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\Admin\PlaceholderController::class, 'createPriceRule'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storePriceRule'])->name('store');
-        Route::get('/{id}/edit', [\App\Http\Controllers\Admin\PlaceholderController::class, 'editPriceRule'])->name('edit');
-        Route::put('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updatePriceRule'])->name('update');
-        Route::delete('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyPriceRule'])->name('destroy');
+        // Index - must be first
+        Route::get('/', [\App\Http\Controllers\Admin\PriceRuleController::class, 'index'])->name('index');
+        // Specific routes BEFORE wildcard
+        Route::get('/create', [\App\Http\Controllers\Admin\PriceRuleController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\PriceRuleController::class, 'store'])->name('store');
+        Route::get('/products/{id}', [\App\Http\Controllers\Admin\PriceRuleController::class, 'products'])->name('products');
+        Route::put('/products/{id}', [\App\Http\Controllers\Admin\PriceRuleController::class, 'updateProducts'])->name('products.update');
+        Route::post('/products/{id}', [\App\Http\Controllers\Admin\PriceRuleController::class, 'addProducts'])->name('products.add');
+        Route::delete('/products/{id}/products/{productId}', [\App\Http\Controllers\Admin\PriceRuleController::class, 'removeProduct'])->name('products.remove');
+        Route::post('/{id}/toggle-status', [\App\Http\Controllers\Admin\PriceRuleController::class, 'toggleStatus'])->name('toggle-status');
+        Route::get('/get-products', [\App\Http\Controllers\Admin\PriceRuleController::class, 'getProducts'])->name('get-products');
+        // Wildcard routes AFTER specific routes
+        Route::get('/{id}/edit', [\App\Http\Controllers\Admin\PriceRuleController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\Admin\PriceRuleController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Admin\PriceRuleController::class, 'destroy'])->name('destroy');
     });
 });
 
 // Support - Additional Routes
+// IMPORTANT: Specific routes must come before parameterized routes to avoid 404 errors
 Route::prefix('support')->name('support.')->group(function () {
-    Route::get('/tickets', [\App\Http\Controllers\Admin\SupportController::class, 'tickets'])->name('tickets.index');
-    Route::get('/tickets/{id}', [\App\Http\Controllers\Admin\SupportController::class, 'showTicket'])->name('tickets.show');
-    Route::post('/tickets/{id}/reply', [\App\Http\Controllers\Admin\SupportController::class, 'replyTicket'])->name('tickets.reply');
-    Route::post('/tickets/{id}/close', [\App\Http\Controllers\Admin\SupportController::class, 'closeTicket'])->name('tickets.close');
+    // Product Queries (must come before /tickets/{id})
     Route::get('/product-queries', [\App\Http\Controllers\Admin\SupportController::class, 'productQueries'])->name('product-queries.index');
     Route::post('/product-queries/{id}/reply', [\App\Http\Controllers\Admin\SupportController::class, 'replyQuery'])->name('product-queries.reply');
+    
+    // Tickets - List
+    Route::get('/tickets', [\App\Http\Controllers\Admin\SupportController::class, 'tickets'])->name('tickets.index');
+    
+    // Tickets - Bulk Actions (before parameterized routes)
+    Route::post('/tickets/bulk-action', [\App\Http\Controllers\Admin\SupportController::class, 'bulkAction'])->name('tickets.bulk-action');
+    
+    // Tickets - Specific routes (before wildcard {id})
+    Route::post('/tickets/{id}/reply', [\App\Http\Controllers\Admin\SupportController::class, 'replyTicket'])->name('tickets.reply');
+    Route::post('/tickets/{id}/close', [\App\Http\Controllers\Admin\SupportController::class, 'closeTicket'])->name('tickets.close');
+    Route::get('/tickets/{id}/reopen', [\App\Http\Controllers\Admin\SupportController::class, 'reopenTicket'])->name('tickets.reopen');
+    Route::post('/tickets/{id}/update-status', [\App\Http\Controllers\Admin\SupportController::class, 'updateTicketStatus'])->name('tickets.update-status');
+    Route::post('/tickets/{id}/assign', [\App\Http\Controllers\Admin\SupportController::class, 'assignTicket'])->name('tickets.assign');
+    
+    // Tickets - Show and Delete (wildcard {id} at the end)
+    Route::get('/tickets/{id}', [\App\Http\Controllers\Admin\SupportController::class, 'showTicket'])->name('tickets.show');
+    Route::delete('/tickets/{id}', [\App\Http\Controllers\Admin\SupportController::class, 'destroyTicket'])->name('tickets.destroy');
 });
 
 // OTP System

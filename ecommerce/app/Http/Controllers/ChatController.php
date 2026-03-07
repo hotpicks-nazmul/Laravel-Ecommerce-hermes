@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Chat;
 use App\Models\ChatMessage;
-use App\Models\ChatConversation;
+use App\Models\Setting;
+use App\Events\ChatMessageSent;
+use App\Events\UserStatusChanged;
 use Illuminate\Support\Facades\Http;
 
 class ChatController extends Controller
@@ -15,7 +18,7 @@ class ChatController extends Controller
     public function index()
     {
         if (auth()->check()) {
-            $conversations = ChatConversation::where('user_id', auth()->id())
+            $conversations = Chat::where('user_id', auth()->id())
                 ->latest()
                 ->get();
         } else {
@@ -32,29 +35,53 @@ class ChatController extends Controller
     {
         $request->validate([
             'message' => 'required|string|max:1000',
-            'conversation_id' => 'nullable|exists:chat_conversations,id',
         ]);
 
         // Get or create conversation
         if ($request->conversation_id) {
-            $conversation = ChatConversation::findOrFail($request->conversation_id);
+            // Verify conversation exists, if not create new one
+            $conversation = Chat::find($request->conversation_id);
+            if (!$conversation) {
+                $conversation = Chat::create([
+                    'user_id' => auth()->id() ?? null,
+                    'session_id' => session()->getId(),
+                    'status' => 'open',
+                ]);
+            }
         } else {
-            $conversation = ChatConversation::create([
-                'user_id' => auth()->id(),
+            $conversation = Chat::create([
+                'user_id' => auth()->id() ?? null,
                 'session_id' => session()->getId(),
                 'status' => 'open',
             ]);
         }
 
+        // Handle attachments
+        $attachments = null;
+        if ($request->hasFile('attachment')) {
+            $attachment = $request->file('attachment');
+            $path = $attachment->store('chat-attachments', 'public');
+            $attachments = json_encode([
+                'filename' => $attachment->getClientOriginalName(),
+                'path' => $path,
+                'type' => $attachment->getMimeType(),
+            ]);
+        }
+
         // Store user message
-        $userMessage = ChatMessage::create([
-            'conversation_id' => $conversation->id,
+        $userMessage = $conversation->messages()->create([
             'sender_type' => 'user',
+            'sender_id' => auth()->id() ?? null,
             'message' => $request->message,
+            'attachments' => $attachments,
         ]);
 
         // Broadcast message for live chat
-        broadcast(new \App\Events\ChatMessageSent($userMessage));
+        try {
+            broadcast(new ChatMessageSent($userMessage))->toOthers();
+        } catch (\Exception $e) {
+            // Broadcasting failed, continue without broadcasting
+        }
 
         return response()->json([
             'success' => true,
@@ -68,15 +95,43 @@ class ChatController extends Controller
      */
     public function messages(Request $request)
     {
-        $request->validate([
-            'conversation_id' => 'required|exists:chat_conversations,id',
-        ]);
+        // Allow both with and without conversation_id for flexibility
+        if (!$request->conversation_id) {
+            return response()->json([]);
+        }
+        
+        // Verify conversation exists
+        $chat = Chat::find($request->conversation_id);
+        if (!$chat) {
+            return response()->json([]);
+        }
 
-        $messages = ChatMessage::where('conversation_id', $request->conversation_id)
+        $messages = ChatMessage::where('chat_id', $request->conversation_id)
             ->orderBy('created_at', 'asc')
             ->get();
 
         return response()->json($messages);
+    }
+
+    /**
+     * Update user online status.
+     */
+    public function updateStatus(Request $request)
+    {
+        $request->validate([
+            'is_online' => 'required|boolean',
+        ]);
+
+        $userId = auth()->id() ?? $request->session_id;
+        $userName = auth()->user()->name ?? 'Guest';
+
+        try {
+            broadcast(new UserStatusChanged($userId, $request->is_online, $userName))->toOthers();
+        } catch (\Exception $e) {
+            // Broadcasting failed
+        }
+
+        return response()->json(['success' => true]);
     }
 
     /**
@@ -88,7 +143,7 @@ class ChatController extends Controller
             'message' => 'required|string|max:1000',
         ]);
 
-        $apiKey = config('services.openai.api_key');
+        $apiKey = Setting::where('key', 'openai_api_key')->value('value');
 
         if (!$apiKey) {
             // Return a default response if OpenAI is not configured

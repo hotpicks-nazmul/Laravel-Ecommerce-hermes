@@ -1066,6 +1066,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.chat.predefined.*') ? 'active' : '' }}" href="{{ route('admin.chat.predefined.index') }}">
+                                <i class="bi bi-chat-text"></i> Quick Replies
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.settings.whatsapp') ? 'active' : '' }}" href="{{ route('admin.settings.whatsapp') }}">
                                 <i class="bi bi-whatsapp"></i> WhatsApp Chat
                             </a>
