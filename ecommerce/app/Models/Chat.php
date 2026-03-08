@@ -14,6 +14,11 @@ class Chat extends Model
         'session_id',
         'status',
         'assigned_to',
+        'guest_name',
+        'guest_phone',
+        'user_is_typing',
+        'admin_is_typing',
+        'typing_expires_at',
     ];
 
     /**

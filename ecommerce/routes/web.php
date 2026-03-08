@@ -90,6 +90,11 @@ Route::prefix('api')->name('api.')->group(function () {
     Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
     Route::get('/wishlist/items', [WishlistController::class, 'items'])->name('wishlist.items');
     Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
+    Route::post('/chat/typing', [ChatController::class, 'typing'])->name('chat.typing');
+    Route::get('/chat/check-typing', [ChatController::class, 'checkTyping'])->name('chat.check-typing');
+    Route::post('/chat/register-guest', [ChatController::class, 'registerGuest'])->name('chat.register-guest');
+    Route::get('/chat/check-guest', [ChatController::class, 'checkGuest'])->name('chat.check-guest');
+    Route::post('/chat/register-logged-in', [ChatController::class, 'registerLoggedIn'])->name('chat.register-logged-in');
     Route::get('/products/quick-view/{id}', [ProductController::class, 'quickView'])->name('products.quick-view');
 });
 

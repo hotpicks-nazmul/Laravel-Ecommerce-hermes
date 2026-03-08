@@ -1061,7 +1061,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.chat.*') ? 'active' : '' }}" href="{{ route('admin.chat.index') }}">
+                            <a class="nav-link {{ request()->routeIs('admin.chat.index') ? 'active' : '' }}" href="{{ route('admin.chat.index') }}">
                                 <i class="bi bi-chat-dots"></i> Live Chat
                             </a>
                         </li>

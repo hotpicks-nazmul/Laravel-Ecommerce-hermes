@@ -14,7 +14,7 @@
 
 <!-- Statistics Cards -->
 <div class="row mb-4">
-    <div class="col-md-3 col-sm-6 mb-3">
+    <div class="col-md-2 col-sm-6 mb-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Total Chats</div>
@@ -22,15 +22,15 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
+    <div class="col-md-2 col-sm-6 mb-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Open</div>
-                <div class="h4 mb-0 text-success" id="statOpen">0</div>
+                <div class="text-muted small text-uppercase">New</div>
+                <div class="h4 mb-0 text-info" id="statNew">0</div>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
+    <div class="col-md-2 col-sm-6 mb-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Pending</div>
@@ -38,7 +38,15 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
+    <div class="col-md-2 col-sm-6 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">Replied</div>
+                <div class="h4 mb-0 text-success" id="statReplied">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-6 mb-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Closed</div>
@@ -62,10 +70,21 @@
                 <!-- Filters -->
                 <div class="border-bottom p-2">
                     <div class="btn-group w-100">
-                        <button class="btn btn-sm btn-outline-secondary filter-btn active" data-filter="all">All</button>
-                        <button class="btn btn-sm btn-outline-secondary filter-btn" data-filter="open">Open</button>
-                        <button class="btn btn-sm btn-outline-secondary filter-btn" data-filter="pending">Pending</button>
-                        <button class="btn btn-sm btn-outline-secondary filter-btn" data-filter="closed">Closed</button>
+                        <button class="btn btn-sm btn-outline-secondary filter-btn active position-relative" data-filter="all">
+                            All <span class="badge rounded-pill bg-secondary" id="badgeAll">0</span>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary filter-btn position-relative" data-filter="new">
+                            New <span class="badge rounded-pill bg-info" id="badgeNew">0</span>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary filter-btn position-relative" data-filter="pending">
+                            Pending <span class="badge rounded-pill bg-warning" id="badgePending">0</span>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary filter-btn position-relative" data-filter="replied">
+                            Replied <span class="badge rounded-pill bg-success" id="badgeReplied">0</span>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary filter-btn position-relative" data-filter="closed">
+                            Closed <span class="badge rounded-pill bg-dark" id="badgeClosed">0</span>
+                        </button>
                     </div>
                 </div>
                 <!-- Search -->
@@ -101,9 +120,16 @@
                     </div>
                 </div>
                 <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" id="markUnreadBtn" onclick="markAsUnread()" title="Mark as Unread" style="display: none;">
+                        <i class="bi bi-envelope"></i> Mark as Unread
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" id="markReadBtn" onclick="markAsRead()" title="Mark as Read">
+                        <i class="bi bi-envelope-check"></i> Mark as Read
+                    </button>
                     <select class="form-select form-select-sm" id="chatStatusSelect" style="width: auto;" onchange="updateChatStatus()">
-                        <option value="open">Open</option>
+                        <option value="new">New</option>
                         <option value="pending">Pending</option>
+                        <option value="replied">Replied</option>
                         <option value="closed">Closed</option>
                     </select>
                     <button class="btn btn-sm btn-outline-danger" onclick="deleteChat()" title="Delete Chat">
@@ -124,11 +150,35 @@
                 <div id="messagesList"></div>
             </div>
             
+            <!-- Typing Indicator -->
+            <div class="px-3 py-2" id="typingIndicator" style="display: none;">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-circle bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <div class="bg-light rounded p-2">
+                        <div class="d-flex gap-1">
+                            <span class="typing-dot" style="width: 8px; height: 8px; background: #0d6efd; border-radius: 50%; animation: typing 1.4s infinite both;"></span>
+                            <span class="typing-dot" style="width: 8px; height: 8px; background: #0d6efd; border-radius: 50%; animation: typing 1.4s infinite both; animation-delay: 0.2s;"></span>
+                            <span class="typing-dot" style="width: 8px; height: 8px; background: #0d6efd; border-radius: 50%; animation: typing 1.4s infinite both; animation-delay: 0.4s;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Message Input -->
             <div class="card-footer bg-white">
                 <!-- Quick Replies -->
-                <div class="mb-2" id="quickRepliesContainer">
-                    <span class="text-muted small">Loading quick replies...</span>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted small fw-medium">Quick Replies</span>
+                        <div class="btn-group btn-group-sm" id="quickReplyCategoryTabs">
+                            <button type="button" class="btn btn-outline-secondary active" data-category="all">All</button>
+                        </div>
+                    </div>
+                    <div id="quickRepliesContainer">
+                        <span class="text-muted small">Loading quick replies...</span>
+                    </div>
                 </div>
                 <form id="sendMessageForm" onsubmit="sendMessage(event)">
                     @csrf
@@ -190,10 +240,74 @@
             </div>
         </div>
         
+        <!-- Chat Widget Settings Card -->
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Chat Widget Settings</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('admin.chat.widget-settings') }}" method="POST" id="widget-settings-form">
+                    @csrf
+                    <h6 class="fw-bold mb-3">Welcome Messages</h6>
+                    <div class="mb-3">
+                        <label class="form-label">Welcome Message (Customer Chat)</label>
+                        <input type="text" name="chat_welcome_message" class="form-control" 
+                            value="{{ \App\Models\Setting::get('chat_welcome_message', 'Hello! How can I help you today?') }}">
+                        <div class="form-text">Message shown when customer opens chat widget</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Welcome Subtitle</label>
+                        <input type="text" name="chat_welcome_subtitle" class="form-control" 
+                            value="{{ \App\Models\Setting::get('chat_welcome_subtitle', 'Our team typically replies within minutes') }}">
+                        <div class="form-text">Subtitle shown below the welcome message</div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h6 class="fw-bold mb-3">Auto-Reply Messages (Chatbot)</h6>
+                    <div class="mb-3">
+                        <label class="form-label">Greeting Reply (hello/hi/salam)</label>
+                        <input type="text" name="chat_reply_greeting" class="form-control" 
+                            value="{{ \App\Models\Setting::get('chat_reply_greeting', 'Wa Alaikum Assalam! Welcome to Halal Food Store. How can I assist you today?') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Delivery/Area Reply</label>
+                        <input type="text" name="chat_reply_delivery" class="form-control" 
+                            value="{{ \App\Models\Setting::get('chat_reply_delivery', 'We deliver across Bangladesh! Dhaka: Same day delivery. Other areas: 1-3 business days. Free delivery on orders over ৳500!') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payment Reply</label>
+                        <input type="text" name="chat_reply_payment" class="form-control" 
+                            value="{{ \App\Models\Setting::get('chat_reply_payment', 'We accept multiple payment methods: bKash, Nagad, Rocket, Credit/Debit Cards, and Cash on Delivery.') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Order/Track Reply</label>
+                        <input type="text" name="chat_reply_track_order" class="form-control" 
+                            value="{{ \App\Models\Setting::get('chat_reply_track_order', 'To track your order, please provide your order number. You can also check your order status in My Orders section.') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Return/Refund Reply</label>
+                        <input type="text" name="chat_reply_return" class="form-control" 
+                            value="{{ \App\Models\Setting::get('chat_reply_return', 'We have a hassle-free return policy! If not satisfied, contact us within 24 hours for refund or replacement.') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Halal/Quality Reply</label>
+                        <input type="text" name="chat_reply_halal" class="form-control" 
+                            value="{{ \App\Models\Setting::get('chat_reply_halal', 'All our products are 100% Halal certified! We source from trusted suppliers and maintain strict quality standards.') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Price Reply</label>
+                        <input type="text" name="chat_reply_price" class="form-control" 
+                            value="{{ \App\Models\Setting::get('chat_reply_price', 'Our prices are competitive and transparent. Check our Deals section for special discounts!') }}">
+                    </div>
+
+                </form>
+            </div>
+        </div>
+        
         <!-- Floating Save Button -->
         <div class="floating-save-container">
-            <button type="submit" form="ai-settings-form" class="btn btn-primary floating-save-btn">
-                <i class="bi bi-check-lg me-1"></i> Save AI Settings
+            <button type="button" class="btn btn-primary floating-save-btn" onclick="document.getElementById('ai-settings-form').requestSubmit(); document.getElementById('widget-settings-form').requestSubmit();">
+                <i class="bi bi-check-lg me-1"></i> Save Settings
             </button>
         </div>
     </div>
@@ -232,9 +346,13 @@
 .conversation-item:hover {
     background-color: #f8f9fa;
 }
-.conversation-item.active {
-    background-color: #e7f1ff;
+.list-group-item.active {
+    background-color: #0d6efd;
     border-left: 3px solid #0d6efd;
+}
+.list-group-item.active .text-muted,
+.list-group-item.active small {
+    color: #ffffff !important;
 }
 .message-bubble {
     max-width: 75%;
@@ -246,8 +364,24 @@
     margin-left: auto;
 }
 .user-message {
-    background-color: #f8f9fa;
+    background-color: #e9ecef;
     color: #212529;
+}
+.user-message .text-muted {
+    color: #6c757d !important;
+}
+/* Typing animation */
+@keyframes typing {
+    0%, 60%, 100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-4px);
+    }
+}
+.typing-indicator {
+    display: flex;
+    gap: 4px;
 }
 .unread-badge {
     position: absolute;
@@ -301,6 +435,47 @@
 /* Sound notification */
 .sound-toggle {
     cursor: pointer;
+}
+/* Toast notifications */
+.toast-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+.toast-notification.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.toast-success .toast-content {
+    border-left: 4px solid #28a745;
+}
+.toast-success .toast-content i {
+    color: #28a745;
+}
+.toast-error .toast-content {
+    border-left: 4px solid #dc3545;
+}
+.toast-error .toast-content i {
+    color: #dc3545;
+}
+.toast-warning .toast-content {
+    border-left: 4px solid #ffc107;
+}
+.toast-warning .toast-content i {
+    color: #ffc107;
 }
 </style>
 @endpush
@@ -433,8 +608,17 @@ function updateConversationsList(conversations) {
     let html = '';
     conversations.forEach(conv => {
         const isActive = currentConversationId == conv.id ? 'active' : '';
-        const userName = conv.user ? conv.user.name : 'Guest';
+        // Show user name if logged in, otherwise show guest name with (Guest) suffix
+        let userName = 'Guest';
+        if (conv.user && conv.user.name) {
+            userName = conv.user.name;
+        } else if (conv.guest_name) {
+            userName = conv.guest_name + ' (Guest)';
+        }
         const lastMessage = conv.last_message ? conv.last_message.message : 'No messages yet';
+        // Truncate to first 5 words
+        const words = lastMessage.split(' ');
+        const truncatedMessage = words.slice(0, 5).join(' ') + (words.length > 5 ? '...' : '');
         const timeAgo = conv.updated_at ? getTimeAgo(conv.updated_at) : '';
         const unread = conv.unread_count > 0 ? `<span class="badge bg-danger unread-badge">${conv.unread_count}</span>` : '';
         const statusBadge = getStatusBadge(conv.status);
@@ -447,7 +631,7 @@ function updateConversationsList(conversations) {
                             <strong>${userName}</strong>
                             ${unread}
                         </div>
-                        <small class="d-block text-muted text-truncate">${lastMessage}</small>
+                        <small class="d-block text-muted text-truncate">${truncatedMessage}</small>
                         <small class="text-muted">${timeAgo}</small>
                     </div>
                     <div class="ms-2">
@@ -463,8 +647,9 @@ function updateConversationsList(conversations) {
 
 function getStatusBadge(status) {
     const badges = {
-        'open': '<span class="badge bg-success">Open</span>',
+        'new': '<span class="badge bg-info">New</span>',
         'pending': '<span class="badge bg-warning">Pending</span>',
+        'replied': '<span class="badge bg-success">Replied</span>',
         'closed': '<span class="badge bg-secondary">Closed</span>'
     };
     return badges[status] || '';
@@ -490,9 +675,17 @@ function updateStats(data) {
     } else {
         document.getElementById('statTotal').textContent = data.total || 0;
     }
-    document.getElementById('statOpen').textContent = data.open || 0;
+    document.getElementById('statNew').textContent = data.new || 0;
     document.getElementById('statPending').textContent = data.pending || 0;
+    document.getElementById('statReplied').textContent = data.replied || 0;
     document.getElementById('statClosed').textContent = data.closed || 0;
+    
+    // Update filter badges
+    document.getElementById('badgeAll').textContent = data.total || 0;
+    document.getElementById('badgeNew').textContent = data.new || 0;
+    document.getElementById('badgePending').textContent = data.pending || 0;
+    document.getElementById('badgeReplied').textContent = data.replied || 0;
+    document.getElementById('badgeClosed').textContent = data.closed || 0;
 }
 
 // Select a conversation
@@ -506,7 +699,10 @@ function selectConversation(id, userName, status) {
     document.getElementById('currentConversationId').value = id;
     document.getElementById('chatStatusSelect').value = status;
     
-    // Highlight selected conversation immediately
+    // Show mark as unread button
+    document.getElementById('markUnreadBtn').style.display = 'inline-block';
+    
+    // Highlight selected conversation
     document.querySelectorAll('#conversationsList .list-group-item').forEach(el => {
         el.classList.remove('active');
     });
@@ -517,6 +713,9 @@ function selectConversation(id, userName, status) {
     
     // Load messages
     loadMessages(id);
+    
+    // Mark messages as read when conversation is clicked
+    markAsRead();
 }
 
 function loadMessages(conversationId) {
@@ -582,6 +781,9 @@ function sendMessage(e) {
     
     if (!message || !currentConversationId) return;
     
+    // Send typing status as false when message is sent
+    sendTypingStatus(false);
+    
     fetch(`{{ route('admin.chat.send') }}`, {
         method: 'POST',
         headers: {
@@ -606,6 +808,69 @@ function sendMessage(e) {
     });
 }
 
+// Typing indicator functions
+let typingTimeout = null;
+
+function showTypingIndicator() {
+    const typingIndicator = document.getElementById('typingIndicator');
+    if (typingIndicator) {
+        typingIndicator.style.display = 'block';
+        // Auto-hide after 5 seconds
+        if (typingTimeout) clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            hideTypingIndicator();
+        }, 5000);
+    }
+}
+
+function hideTypingIndicator() {
+    const typingIndicator = document.getElementById('typingIndicator');
+    if (typingIndicator) {
+        typingIndicator.style.display = 'none';
+    }
+}
+
+// Send typing status to server
+function sendTypingStatus(isTyping) {
+    if (!currentConversationId) return;
+    
+    fetch(`{{ route('admin.chat.typing') }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            conversation_id: currentConversationId,
+            is_typing: isTyping
+        })
+    }).catch(err => console.log('Error sending typing status:', err));
+}
+
+// Setup typing listener
+function setupTypingListener() {
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        let typingTimer = null;
+        messageInput.addEventListener('input', function() {
+            sendTypingStatus(true);
+            // Clear typing status after user stops typing for 1 second
+            if (typingTimer) clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                sendTypingStatus(false);
+            }, 1000);
+        });
+    }
+}
+
+// Initialize typing listener on page load
+document.addEventListener('DOMContentLoaded', function() {
+    setupTypingListener();
+    // Start polling for typing indicator
+    startTypingPolling();
+});
+
 function updateChatStatus() {
     if (!currentConversationId) return;
     
@@ -625,6 +890,63 @@ function updateChatStatus() {
         loadConversations();
     })
     .catch(err => console.error('Error updating status:', err));
+}
+
+function markAsUnread() {
+    if (!currentConversationId) return;
+    
+    fetch(`{{ route('admin.chat.mark-unread', ':id') }}`.replace(':id', currentConversationId), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Add unread badge back to conversation with actual count
+            const activeItem = document.querySelector(`#conversationsList .list-group-item[data-id="${currentConversationId}"]`);
+            if (activeItem) {
+                let badge = activeItem.querySelector('.unread-badge');
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'badge bg-danger unread-badge';
+                    activeItem.querySelector('.d-flex').appendChild(badge);
+                }
+                badge.textContent = data.unread_count;
+            }
+            loadConversations();
+        }
+    })
+    .catch(err => console.error('Error marking as unread:', err));
+}
+
+function markAsRead() {
+    if (!currentConversationId) return;
+    
+    fetch(`{{ route('admin.chat.mark-read', ':id') }}`.replace(':id', currentConversationId), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Remove unread badge from conversation
+            const activeItem = document.querySelector(`#conversationsList .list-group-item[data-id="${currentConversationId}"]`);
+            if (activeItem) {
+                const badge = activeItem.querySelector('.unread-badge');
+                if (badge) {
+                    badge.remove();
+                }
+            }
+            loadConversations();
+        }
+    })
+    .catch(err => console.error('Error marking as read:', err));
 }
 
 function closeChat() {
@@ -678,6 +1000,9 @@ function refreshConversations() {
 }
 
 // Load predefined messages for quick replies
+let predefinedMessages = [];
+let currentQuickReplyCategory = 'all';
+
 function loadPredefinedMessages() {
     fetch(`{{ route('admin.chat.predefined.messages') }}`, {
         headers: {
@@ -687,9 +1012,48 @@ function loadPredefinedMessages() {
     })
     .then(res => res.json())
     .then(data => {
+        predefinedMessages = data;
+        updateQuickReplyCategories(data);
         updateQuickReplies(data);
     })
     .catch(err => console.error('Error loading predefined messages:', err));
+}
+
+function updateQuickReplyCategories(messages) {
+    const tabsContainer = document.getElementById('quickReplyCategoryTabs');
+    if (!tabsContainer) return;
+    
+    // Extract unique categories
+    const categories = [...new Set(messages.map(m => m.category).filter(c => c))];
+    
+    if (categories.length === 0) {
+        tabsContainer.innerHTML = '<button type="button" class="btn btn-outline-secondary active" data-category="all">All</button>';
+    } else {
+        let html = '<button type="button" class="btn btn-outline-secondary active" data-category="all">All</button>';
+        categories.forEach(cat => {
+            html += `<button type="button" class="btn btn-outline-secondary" data-category="${cat}">${cat}</button>`;
+        });
+        tabsContainer.innerHTML = html;
+        
+        // Add click handlers
+        tabsContainer.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                tabsContainer.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentQuickReplyCategory = this.dataset.category;
+                filterQuickReplies();
+            });
+        });
+    }
+}
+
+function filterQuickReplies() {
+    if (currentQuickReplyCategory === 'all') {
+        updateQuickReplies(predefinedMessages);
+    } else {
+        const filtered = predefinedMessages.filter(m => m.category === currentQuickReplyCategory);
+        updateQuickReplies(filtered);
+    }
 }
 
 function updateQuickReplies(messages) {
@@ -702,11 +1066,13 @@ function updateQuickReplies(messages) {
     }
     
     let html = '';
-    messages.forEach(msg => {
-        html += `<button type="button" class="btn btn-sm btn-outline-secondary me-1 mb-1" 
-            onclick="useQuickReply('${msg.message.replace(/'/g, "\\'")}')" 
-            title="${msg.message.substring(0, 50)}...">
-            ${msg.title}
+    messages.forEach((msg, index) => {
+        // Add keyboard shortcut hint (1-9)
+        const shortcut = index < 9 ? `<span class="badge bg-secondary ms-1" style="font-size: 0.6rem;">${index + 1}</span>` : '';
+        html += `<button type="button" class="btn btn-sm btn-outline-primary me-1 mb-1" 
+            onclick="sendQuickReply(${msg.id}, '${msg.message.replace(/'/g, "\\'")}')" 
+            title="${msg.message.substring(0, 80)}${msg.message.length > 80 ? '...' : ''}\nClick to send directly | Hold Ctrl+${index + 1}">
+            ${msg.title} ${shortcut}
         </button>`;
     });
     container.innerHTML = html;
@@ -715,6 +1081,59 @@ function updateQuickReplies(messages) {
 function useQuickReply(message) {
     document.getElementById('messageInput').value = message;
     document.getElementById('messageInput').focus();
+}
+
+// Send quick reply directly without typing
+function sendQuickReply(id, message) {
+    const conversationId = document.getElementById('currentConversationId').value;
+    if (!conversationId) {
+        showToast('Please select a conversation first', 'warning');
+        return;
+    }
+    
+    fetch(`{{ route('admin.chat.send') }}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            conversation_id: conversationId,
+            message: message
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            loadMessages(conversationId);
+            showToast('Message sent!', 'success');
+        } else {
+            showToast(data.message || 'Failed to send message', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error sending quick reply:', err);
+        showToast('Failed to send message', 'error');
+    });
+}
+
+// Toast notification function
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class="bi bi-${type === 'success' ? 'check-circle-fill' : type === 'error' ? 'exclamation-circle-fill' : 'info-circle-fill'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
 // Cleanup on page unload
@@ -794,14 +1213,44 @@ function handleNewMessage(data) {
 
 // Subscribe to specific chat channel
 function subscribeToChat(chatId) {
-    if (!pusher) return;
+    if (pusher) {
+        const chatChannel = pusher.subscribe('chat.' + chatId);
+        chatChannel.bind('message.sent', function(data) {
+            if (currentConversationId == chatId) {
+                appendMessage(data.message || data);
+            }
+        });
+    }
     
-    const chatChannel = pusher.subscribe('chat.' + chatId);
-    chatChannel.bind('message.sent', function(data) {
-        if (currentConversationId == chatId) {
-            appendMessage(data.message || data);
-        }
-    });
+    // Start polling for user typing status (every 1 second) - always start regardless of Pusher
+    startTypingPolling();
+}
+
+// Polling for typing indicator (database-based)
+let typingPollInterval = null;
+
+function startTypingPolling() {
+    if (typingPollInterval) return;
+    
+    console.log('Starting typing polling');
+    typingPollInterval = setInterval(() => {
+        checkUserTypingStatus();
+    }, 1000); // Check every 1 second
+}
+
+function checkUserTypingStatus() {
+    if (!currentConversationId) return;
+    
+    fetch('{{ route("admin.chat.check-typing") }}?conversation_id=' + currentConversationId)
+        .then(res => res.json())
+        .then(data => {
+            if (data.user_is_typing) {
+                showTypingIndicator();
+            } else {
+                hideTypingIndicator();
+            }
+        })
+        .catch(err => console.log('Error checking typing status:', err));
 }
 
 // Append message to messages list
@@ -1018,6 +1467,31 @@ sendMessage = function(e) {
 document.addEventListener('DOMContentLoaded', function() {
     initPusher();
     addFileUpload();
+    
+    // Keyboard shortcuts for quick replies (Ctrl+1-9)
+    document.addEventListener('keydown', function(e) {
+        // Check if Ctrl or Cmd key is pressed with a number 1-9
+        if ((e.ctrlKey || e.metaKey) && e.key >= '1' && e.key <= '9') {
+            e.preventDefault();
+            const index = parseInt(e.key) - 1;
+            
+            // Get visible quick replies based on current category filter
+            let visibleMessages = predefinedMessages;
+            if (currentQuickReplyCategory !== 'all') {
+                visibleMessages = predefinedMessages.filter(m => m.category === currentQuickReplyCategory);
+            }
+            
+            if (visibleMessages[index]) {
+                sendQuickReply(visibleMessages[index].id, visibleMessages[index].message);
+            }
+        }
+        
+        // Ctrl+0 to open quick replies panel
+        if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+            e.preventDefault();
+            document.getElementById('messageInput').focus();
+        }
+    });
     
     // Show notification permission modal after 3 seconds
     if (Notification.permission === 'default') {

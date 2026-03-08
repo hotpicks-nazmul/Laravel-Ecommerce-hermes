@@ -351,13 +351,20 @@ Route::prefix('chat')->name('chat.')->group(function () {
     Route::get('/conversations', [ChatController::class, 'conversations'])->name('conversations');
     Route::get('/conversation/{id}', [ChatController::class, 'conversation'])->name('conversation');
     Route::post('/send', [ChatController::class, 'send'])->name('send');
+    Route::post('/typing', [ChatController::class, 'typing'])->name('typing');
+    Route::get('/check-typing', [ChatController::class, 'checkTyping'])->name('check-typing');
     Route::post('/conversation/{id}/status', [ChatController::class, 'updateStatus'])->name('update-status');
     Route::post('/conversation/{id}/close', [ChatController::class, 'close'])->name('close');
+    Route::post('/conversation/{id}/mark-unread', [ChatController::class, 'markAsUnread'])->name('mark-unread');
+    Route::post('/conversation/{id}/mark-read', [ChatController::class, 'markAsRead'])->name('mark-read');
     Route::delete('/conversation/{id}', [ChatController::class, 'destroy'])->name('destroy');
     Route::get('/online-users', [ChatController::class, 'getOnlineUsers'])->name('online-users');
     
     // AI Settings
     Route::post('/ai-settings', [ChatController::class, 'aiSettings'])->name('ai-settings');
+    
+    // Chat Widget Settings
+    Route::post('/widget-settings', [ChatController::class, 'widgetSettings'])->name('widget-settings');
     
     // Predefined Messages - CRUD
     Route::get('/predefined', [ChatController::class, 'predefinedMessages'])->name('predefined.index');

@@ -9,6 +9,7 @@ use App\Models\ChatMessage;
 use App\Models\PredefinedMessage;
 use App\Models\Setting;
 use App\Events\ChatMessageSent;
+use App\Events\UserTyping;
 use App\Events\UserStatusChanged;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -46,11 +47,18 @@ class ChatController extends Controller
             $query->where('status', $request->filter);
         }
         
-        // Apply search
+        // Apply search - search in both user table and guest fields
         if ($request->search) {
-            $query->whereHas('user', function($q) use ($request) {
-                $q->where('name', 'like', "%{$request->search}%")
-                  ->orWhere('email', 'like', "%{$request->search}%");
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                // Search in user table (for logged-in users)
+                $q->whereHas('user', function($uq) use ($searchTerm) {
+                    $uq->where('name', 'like', "%{$searchTerm}%")
+                      ->orWhere('email', 'like', "%{$searchTerm}%");
+                })
+                // OR search in guest fields
+                ->orWhere('guest_name', 'like', "%{$searchTerm}%")
+                ->orWhere('guest_phone', 'like', "%{$searchTerm}%");
             });
         }
         
@@ -58,10 +66,26 @@ class ChatController extends Controller
         
         // Add computed fields
         $conversations->getCollection()->transform(function($chat) {
-            $chat->unread_count = $chat->messages()
-                ->where('sender_type', 'user')
-                ->where('is_read', false)
-                ->count();
+            // Find the last admin message (replied message)
+            $lastAdminMessage = $chat->messages()
+                ->where('sender_type', 'admin')
+                ->orderBy('created_at', 'desc')
+                ->first();
+            
+            if ($lastAdminMessage) {
+                // Count only unread user messages that came after the last admin message
+                $chat->unread_count = $chat->messages()
+                    ->where('sender_type', 'user')
+                    ->where('is_read', false)
+                    ->where('created_at', '>', $lastAdminMessage->created_at)
+                    ->count();
+            } else {
+                // If no admin message, count all unread user messages
+                $chat->unread_count = $chat->messages()
+                    ->where('sender_type', 'user')
+                    ->where('is_read', false)
+                    ->count();
+            }
             $chat->last_message = $chat->messages()->latest()->first();
             return $chat;
         });
@@ -75,8 +99,10 @@ class ChatController extends Controller
         
         $stats = [
             'total' => Chat::count(),
-            'open' => Chat::where('status', 'open')->count(),
+            // Include all users (including guests) in status counts
+            'new' => Chat::where('status', 'new')->count(),
             'pending' => Chat::where('status', 'pending')->count(),
+            'replied' => Chat::where('status', 'replied')->count(),
             'closed' => Chat::where('status', 'closed')->count(),
             'filtered_total' => $filteredCount,
         ];
@@ -91,12 +117,8 @@ class ChatController extends Controller
     {
         $conversation = Chat::with(['messages', 'user'])->findOrFail($id);
         
-        // Mark messages as read
-        $conversation->messages()
-            ->where('sender_type', 'user')
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
-
+        // Don't mark messages as read automatically - let admin decide when to mark as read
+        
         return response()->json($conversation);
     }
 
@@ -132,9 +154,15 @@ class ChatController extends Controller
             'is_read' => true,
         ]);
 
-        // Update chat status to open if it was closed
-        if ($chat->status === 'closed') {
-            $chat->status = 'open';
+        // Update chat status when admin replies
+        if ($chat->status === 'new') {
+            $chat->status = 'pending'; // New conversation, needs admin attention
+            $chat->save();
+        } elseif ($chat->status === 'pending') {
+            $chat->status = 'replied'; // Admin replied to the customer
+            $chat->save();
+        } elseif ($chat->status === 'closed') {
+            $chat->status = 'replied'; // Reopen closed conversation
             $chat->save();
         }
 
@@ -149,6 +177,57 @@ class ChatController extends Controller
             'success' => true,
             'message' => 'Message sent successfully',
             'data' => $message
+        ]);
+    }
+
+    /**
+     * Handle typing indicator.
+     */
+    public function typing(Request $request)
+    {
+        $conversationId = $request->conversation_id;
+        $isTyping = filter_var($request->is_typing, FILTER_VALIDATE_BOOLEAN);
+        
+        $conversation = Chat::find($conversationId);
+        if ($conversation) {
+            // Set typing status with 5 second expiration
+            $conversation->update([
+                'admin_is_typing' => $isTyping,
+                'typing_expires_at' => $isTyping ? now()->addSeconds(5) : null,
+            ]);
+        }
+        
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Check typing status (for polling).
+     */
+    public function checkTyping(Request $request)
+    {
+        $conversationId = $request->conversation_id;
+        
+        $conversation = Chat::find($conversationId);
+        
+        if (!$conversation) {
+            return response()->json([
+                'user_is_typing' => false,
+            ]);
+        }
+        
+        // Check if typing has expired
+        $userTyping = $conversation->user_is_typing;
+        
+        if ($conversation->typing_expires_at && now()->greaterThan($conversation->typing_expires_at)) {
+            // Typing has expired, reset it
+            if ($conversation->user_is_typing) {
+                $conversation->update(['user_is_typing' => false, 'typing_expires_at' => null]);
+                $userTyping = false;
+            }
+        }
+        
+        return response()->json([
+            'user_is_typing' => $userTyping,
         ]);
     }
 
@@ -187,6 +266,61 @@ class ChatController extends Controller
     }
 
     /**
+     * Mark conversation as unread.
+     */
+    public function markAsUnread($id)
+    {
+        $chat = Chat::findOrFail($id);
+        
+        // Find the last admin message (replied message)
+        $lastAdminMessage = $chat->messages()
+            ->where('sender_type', 'admin')
+            ->orderBy('created_at', 'desc')
+            ->first();
+        
+        if ($lastAdminMessage) {
+            // Mark only messages that came after the last admin message as unread
+            $chat->messages()
+                ->where('created_at', '>', $lastAdminMessage->created_at)
+                ->update(['is_read' => false]);
+        } else {
+            // If no admin message, mark all messages as unread
+            $chat->messages()->update(['is_read' => false]);
+        }
+        
+        // Get the unread count (messages after last admin reply)
+        if ($lastAdminMessage) {
+            $unreadCount = $chat->messages()
+                ->where('created_at', '>', $lastAdminMessage->created_at)
+                ->where('is_read', false)
+                ->count();
+        } else {
+            $unreadCount = $chat->messages()->where('is_read', false)->count();
+        }
+
+        return response()->json([
+            'success' => true,
+            'unread_count' => $unreadCount,
+            'message' => 'Marked as unread'
+        ]);
+    }
+
+    /**
+     * Mark conversation as read.
+     */
+    public function markAsRead($id)
+    {
+        $chat = Chat::findOrFail($id);
+        // Mark all messages as read
+        $chat->messages()->update(['is_read' => true]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Marked as read'
+        ]);
+    }
+
+    /**
      * AI Settings management.
      */
     public function aiSettings(Request $request)
@@ -196,6 +330,27 @@ class ChatController extends Controller
         Setting::updateOrCreate(['key' => 'openai_api_key'], ['value' => $request->openai_api_key ?? '']);
 
         return back()->with('success', 'AI Chatbot settings updated successfully.');
+    }
+
+    /**
+     * Chat Widget Settings management.
+     */
+    public function widgetSettings(Request $request)
+    {
+        // Welcome messages
+        Setting::updateOrCreate(['key' => 'chat_welcome_message'], ['value' => $request->chat_welcome_message ?? 'Hello! How can I help you today?']);
+        Setting::updateOrCreate(['key' => 'chat_welcome_subtitle'], ['value' => $request->chat_welcome_subtitle ?? 'Our team typically replies within minutes']);
+        
+        // Auto-reply messages
+        Setting::updateOrCreate(['key' => 'chat_reply_greeting'], ['value' => $request->chat_reply_greeting ?? '']);
+        Setting::updateOrCreate(['key' => 'chat_reply_delivery'], ['value' => $request->chat_reply_delivery ?? '']);
+        Setting::updateOrCreate(['key' => 'chat_reply_payment'], ['value' => $request->chat_reply_payment ?? '']);
+        Setting::updateOrCreate(['key' => 'chat_reply_track_order'], ['value' => $request->chat_reply_track_order ?? '']);
+        Setting::updateOrCreate(['key' => 'chat_reply_return'], ['value' => $request->chat_reply_return ?? '']);
+        Setting::updateOrCreate(['key' => 'chat_reply_halal'], ['value' => $request->chat_reply_halal ?? '']);
+        Setting::updateOrCreate(['key' => 'chat_reply_price'], ['value' => $request->chat_reply_price ?? '']);
+
+        return back()->with('success', 'Chat Widget settings updated successfully.');
     }
 
     /**

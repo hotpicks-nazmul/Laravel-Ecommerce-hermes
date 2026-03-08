@@ -37,15 +37,45 @@
                     <i class="bi bi-headset text-white text-sm"></i>
                 </div>
                 <div class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-[80%]">
-                    <p class="text-sm text-gray-700">Assalamu Alaikum! 👋 Welcome to Halal Food Store. How can I help you today?</p>
-                    <p class="text-xs text-gray-400 mt-1">Our team typically replies within minutes</p>
+                    <p class="text-sm text-gray-700">{{ \App\Models\Setting::get('chat_welcome_message', 'Hello! How can I help you today?') }}</p>
+                    <p class="text-xs text-gray-400 mt-1">{{ \App\Models\Setting::get('chat_welcome_subtitle', 'Our team typically replies within minutes') }}</p>
                 </div>
             </div>
         </div>
         
+        <!-- Typing Indicator -->
+        <div id="typingIndicator" class="hidden px-4 py-2 bg-gray-50">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 bg-halal-green rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="bi bi-headset text-white text-sm"></i>
+                </div>
+                <div class="bg-white px-4 py-2 rounded-lg rounded-tl-none shadow-sm">
+                    <div class="flex space-x-1">
+                        <div class="w-2 h-2 bg-halal-green rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                        <div class="w-2 h-2 bg-halal-green rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+                        <div class="w-2 h-2 bg-halal-green rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Guest Registration Form -->
+        <div id="guestForm" class="p-4 border-t bg-white" style="display: none;">
+            <form onsubmit="registerGuest(event)" class="space-y-3">
+                <p class="text-sm text-gray-600">Please provide your details to start chatting:</p>
+                <input type="text" id="guestName" placeholder="Your Name" required
+                    class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-halal-green focus:outline-none text-sm">
+                <input type="tel" id="guestPhone" placeholder="Mobile Number (11 digits)" required maxlength="11"
+                    class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-halal-green focus:outline-none text-sm">
+                <button type="submit" class="w-full bg-halal-green text-white py-2 rounded-lg hover:bg-halal-dark transition-colors text-sm font-medium">
+                    Start Chat
+                </button>
+            </form>
+        </div>
+        
         <!-- Input -->
-        <div class="p-4 border-t bg-white">
-            <form id="chatForm" onsubmit="sendMessage(event)" class="flex items-center space-x-2">
+        <div class="p-4 border-t bg-white" id="chatInputContainer" style="display: none;">
+            <form id="chatForm" onsubmit="checkGuestAndSend(event)" class="flex items-center space-x-2">
                 <input type="hidden" id="conversationId" value="">
                 <input type="text" id="chatInput" placeholder="Type your message..." 
                     class="flex-1 px-4 py-2 border border-gray-200 rounded-full focus:border-halal-green focus:outline-none text-sm">
@@ -62,6 +92,10 @@
 // Pusher Configuration
 const PUSHER_APP_KEY = '{{ config("broadcasting.connections.pusher.key") }}';
 const PUSHER_CLUSTER = '{{ config("broadcasting.connections.pusher.options.cluster") }}';
+
+// Chat Welcome Messages (from settings)
+const welcomeMessage = '{{ \App\Models\Setting::get("chat_welcome_message", "Hello! How can I help you today?") }}';
+const welcomeSubtitle = '{{ \App\Models\Setting::get("chat_welcome_subtitle", "Our team typically replies within minutes") }}';
 
 // Initialize Pusher for real-time updates
 let pusher = null;
@@ -96,6 +130,36 @@ function initPusher(convId) {
     } catch (e) {
         console.log('Pusher initialization failed:', e);
     }
+    
+    // Always start polling for typing indicator (database-based, doesn't require Pusher)
+    startTypingPolling();
+}
+
+// Polling for typing indicator (database-based)
+let typingPollInterval = null;
+
+function startTypingPolling() {
+    if (typingPollInterval) return;
+    
+    console.log('Starting typing polling');
+    typingPollInterval = setInterval(() => {
+        checkAdminTypingStatus();
+    }, 1000); // Check every 1 second
+}
+
+function checkAdminTypingStatus() {
+    if (!conversationId) return;
+    
+    fetch('{{ route("api.chat.check-typing") }}?conversation_id=' + conversationId)
+        .then(res => res.json())
+        .then(data => {
+            if (data.admin_is_typing) {
+                showTypingIndicator();
+            } else {
+                hideTypingIndicator();
+            }
+        })
+        .catch(err => console.log('Error checking typing status:', err));
 }
 
 function showChatNotification() {
@@ -128,6 +192,247 @@ function showChatNotification() {
 let chatOpen = false;
 let conversationId = localStorage.getItem('chat_conversation_id') || '';
 let messagePollingInterval = null;
+
+// Check if guest already exists on page load
+function checkExistingGuest() {
+    fetch('/api/chat/check-guest', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log('Check guest response:', data);
+        
+        if (data.is_logged_in) {
+            // User is logged in
+            if (data.exists && data.conversation_id) {
+                // User has existing conversation - load it
+                conversationId = data.conversation_id;
+                document.getElementById('conversationId').value = conversationId;
+                localStorage.setItem('chat_conversation_id', conversationId);
+                
+                // Hide guest form, show input
+                document.getElementById('guestForm').style.display = 'none';
+                document.getElementById('chatInputContainer').style.display = 'flex';
+                
+                // Initialize Pusher
+                initPusher(conversationId);
+                startMessagePolling();
+                setupTypingListener();
+                
+                console.log('Logged in user with existing conversation:', data.user_name);
+            } else {
+                // Logged in user but no conversation - create one automatically
+                createLoggedInConversation();
+            }
+        } else if (data.exists && data.conversation_id) {
+            // Guest exists, set conversation ID
+            conversationId = data.conversation_id;
+            document.getElementById('conversationId').value = conversationId;
+            localStorage.setItem('chat_conversation_id', conversationId);
+            
+            // Show input, hide guest form
+            document.getElementById('guestForm').style.display = 'none';
+            document.getElementById('chatInputContainer').style.display = 'flex';
+            
+            // Initialize Pusher
+            initPusher(conversationId);
+            startMessagePolling();
+            setupTypingListener();
+            
+            console.log('Returning guest detected:', data.guest_name);
+        } else if (conversationId) {
+            // Has old conversation ID but no guest info - need to re-register
+            // Clear localStorage to force new registration
+            localStorage.removeItem('chat_conversation_id');
+            conversationId = '';
+        }
+    })
+    .catch(err => console.log('Error checking guest:', err));
+}
+
+// Create conversation for logged in user
+function createLoggedInConversation() {
+    fetch('/api/chat/register-logged-in', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log('Logged in conversation response:', data);
+        if (data.success) {
+            conversationId = data.conversation_id;
+            document.getElementById('conversationId').value = conversationId;
+            localStorage.setItem('chat_conversation_id', conversationId);
+            
+            // Hide guest form, show input
+            document.getElementById('guestForm').style.display = 'none';
+            document.getElementById('chatInputContainer').style.display = 'flex';
+            
+            // Initialize Pusher
+            initPusher(conversationId);
+            startMessagePolling();
+            setupTypingListener();
+            
+            // Show welcome message
+            addMessage('Welcome back! How can I help you today?', 'bot');
+        }
+    })
+    .catch(err => console.log('Error creating logged in conversation:', err));
+}
+
+// Run on page load
+checkExistingGuest();
+
+// Reset chat on logout - clear localStorage and stop polling
+function resetChatOnLogout() {
+    // Clear localStorage
+    localStorage.removeItem('chat_conversation_id');
+    
+    // Reset variables
+    conversationId = '';
+    document.getElementById('conversationId').value = '';
+    
+    // Stop polling
+    stopMessagePolling();
+    
+    // Unsubscribe from Pusher channel
+    if (channel && pusher) {
+        pusher.unsubscribe(channel);
+        channel = null;
+    }
+    
+    // Reset UI - show welcome message
+    const messagesContainer = document.getElementById('chatMessages');
+    if (messagesContainer) {
+        messagesContainer.innerHTML = `
+            <div class="flex items-start space-x-2">
+                <div class="w-8 h-8 bg-halal-green rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="bi bi-headset text-white text-sm"></i>
+                </div>
+                <div class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-[80%]">
+                    <p class="text-sm text-gray-700">${welcomeMessage || 'Hello! How can I help you today?'}</p>
+                    <p class="text-xs text-gray-400 mt-1">${welcomeSubtitle || 'Our team typically replies within minutes'}</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Close chat window if open
+    const chatWindow = document.getElementById('chatWindow');
+    if (chatWindow) {
+        chatWindow.classList.add('hidden');
+    }
+    
+    // Reset chat toggle button
+    const chatToggle = document.getElementById('chatToggle');
+    if (chatToggle) {
+        chatToggle.innerHTML = '<i class="bi bi-chat-dots-fill text-xl group-hover:scale-110 transition-transform"></i>';
+    }
+    
+    chatOpen = false;
+    
+    console.log('Chat reset on logout');
+}
+
+// Register guest user
+function registerGuest(event) {
+    event.preventDefault();
+    
+    const name = document.getElementById('guestName').value.trim();
+    const phone = document.getElementById('guestPhone').value.trim();
+    const existingConvId = document.getElementById('conversationId').value;
+    
+    if (!name || !phone) {
+        alert('Please enter your name and mobile number');
+        return;
+    }
+    
+    fetch('/api/chat/register-guest', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            name: name,
+            phone: phone,
+            conversation_id: existingConvId || null
+        })
+    })
+    .then(res => {
+        console.log('Response status:', res.status);
+        return res.json();
+    })
+    .then(data => {
+        console.log('Guest registration response:', data);
+        if (data.success) {
+            // Save conversation ID
+            conversationId = data.conversation_id;
+            document.getElementById('conversationId').value = conversationId;
+            localStorage.setItem('chat_conversation_id', conversationId);
+            
+            // Hide guest form, show input
+            document.getElementById('guestForm').style.display = 'none';
+            document.getElementById('chatInput').parentElement.style.display = 'flex';
+            
+            // Initialize Pusher
+            initPusher(conversationId);
+            startMessagePolling();
+            
+            // Show appropriate message
+            if (data.restored) {
+                addMessage('Welcome back, ' + data.guest_name + '! Your previous conversation has been restored.', 'bot');
+            } else {
+                addMessage('Thank you! Your information has been saved. You can now start chatting.', 'bot');
+            }
+        }
+    })
+    .catch(err => {
+        console.error('Error registering guest:', err);
+        alert('Failed to register. Please try again. Check console for details.');
+    });
+}
+
+// Check if guest registration is required before sending message
+function checkGuestAndSend(event) {
+    event.preventDefault();
+    
+    const message = document.getElementById('chatInput').value.trim();
+    const convId = document.getElementById('conversationId').value;
+    
+    // If no conversation, show guest form
+    if (!convId) {
+        document.getElementById('guestForm').style.display = 'block';
+        document.getElementById('chatInput').parentElement.style.display = 'none';
+        return;
+    }
+    
+    // Send the message
+    sendMessage(event);
+}
+
+// Listen for logout events
+document.addEventListener('click', function(e) {
+    // Check if logout link was clicked
+    const logoutLink = e.target.closest('[href*="logout"], [href*="logout"]');
+    if (logoutLink) {
+        // Delay slightly to allow logout to process
+        setTimeout(resetChatOnLogout, 100);
+    }
+});
+
+// Also listen for Laravel Fortify or other SPA logout forms
+document.addEventListener('submit', function(e) {
+    if (e.target.action && (e.target.action.includes('logout') || e.target.id === 'logout-form')) {
+        setTimeout(resetChatOnLogout, 100);
+    }
+});
 
 // Initialize Pusher if conversation ID exists
 if (conversationId) {
@@ -168,6 +473,9 @@ function toggleChat() {
     const chatToggle = document.getElementById('chatToggle');
     const chatNotification = document.getElementById('chatNotification');
     const whatsappWidget = document.getElementById('whatsapp-widget');
+    const guestForm = document.getElementById('guestForm');
+    const chatInputContainer = document.getElementById('chatInputContainer');
+    const convId = document.getElementById('conversationId').value;
     
     if (chatOpen) {
         // Stop title blinking
@@ -191,6 +499,16 @@ function toggleChat() {
         if (whatsappWidget) {
             whatsappWidget.classList.add('hidden');
         }
+        
+        // Show guest form if no conversation, otherwise show input
+        if (!convId) {
+            if (guestForm) guestForm.style.display = 'block';
+            if (chatInputContainer) chatInputContainer.style.display = 'none';
+        } else {
+            if (guestForm) guestForm.style.display = 'none';
+            if (chatInputContainer) chatInputContainer.style.display = 'flex';
+        }
+        
         // Reset loaded flag to show welcome message
         const messagesContainer = document.getElementById('chatMessages');
         if (messagesContainer) {
@@ -237,7 +555,7 @@ function loadChatHistory() {
                         <i class="bi bi-headset text-white text-sm"></i>
                     </div>
                     <div class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-[80%]">
-                        <p class="text-sm text-gray-700">Assalamu Alaikum! 👋 Welcome back! How can I help you today?</p>
+                        <p class="text-sm text-gray-700">${welcomeMessage || 'Hello! How can I help you today?'}</p>
                     </div>
                 </div>
             `;
@@ -283,8 +601,9 @@ function sendMessage(event) {
     
     if (!message) return;
     
-    // Add user message immediately
-    addMessage(message, 'user');
+    // Add user message immediately with a temporary ID
+    const tempId = 'temp_' + Date.now();
+    addMessage(message, 'user', tempId);
     input.value = '';
     
     // Send to backend - let backend handle conversation creation
@@ -319,22 +638,13 @@ function sendMessage(event) {
             // Start polling for new messages
             startMessagePolling();
             
-            // Show AI response
-            setTimeout(() => {
-                const response = getAIResponse(message);
-                addMessage(response, 'bot');
-            }, 1000);
+            // AI auto-reply is handled by backend now
         } else {
             console.error('Server error:', data);
         }
     })
     .catch(err => {
         console.error('Error sending message:', err);
-        // Still show AI response as fallback
-        setTimeout(() => {
-            const response = getAIResponse(message);
-            addMessage(response, 'bot');
-        }, 1000);
     });
 }
 
@@ -343,15 +653,91 @@ function sendQuickMessage(message) {
     sendMessage(new Event('submit'));
 }
 
-function addMessage(text, type) {
+// Typing indicator functions
+let typingTimeout = null;
+
+function showTypingIndicator() {
+    console.log('showTypingIndicator called');
+    const typingIndicator = document.getElementById('typingIndicator');
+    if (typingIndicator) {
+        typingIndicator.classList.remove('hidden');
+        console.log('Typing indicator shown');
+        // Auto-hide after 5 seconds
+        if (typingTimeout) clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            hideTypingIndicator();
+        }, 5000);
+    }
+}
+
+function hideTypingIndicator() {
+    console.log('hideTypingIndicator called');
+    const typingIndicator = document.getElementById('typingIndicator');
+    if (typingIndicator) {
+        typingIndicator.classList.add('hidden');
+    }
+}
+
+// Send typing status to server
+function sendTypingStatus(isTyping) {
+    const conversationId = document.getElementById('conversationId').value;
+    console.log('sendTypingStatus called:', isTyping, 'conversationId:', conversationId);
+    if (!conversationId) {
+        console.log('No conversation ID, skipping typing status');
+        return;
+    }
+    
+    fetch('{{ route("api.chat.typing") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            conversation_id: conversationId,
+            is_typing: isTyping
+        })
+    }).then(res => {
+        console.log('Typing status response:', res.status);
+    }).catch(err => console.log('Error sending typing status:', err));
+}
+
+// Listen for typing input
+function setupTypingListener() {
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) {
+        let typingTimer = null;
+        chatInput.addEventListener('input', function() {
+            sendTypingStatus(true);
+            // Clear typing status after user stops typing for 1 second
+            if (typingTimer) clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                sendTypingStatus(false);
+            }, 1000);
+        });
+    }
+}
+
+function addMessage(text, type, tempId = null) {
     const messagesContainer = document.getElementById('chatMessages');
     const messageDiv = document.createElement('div');
+    
+    // Skip if this exact message already exists (avoid duplication)
+    if (tempId) {
+        messageDiv.dataset.tempId = tempId;
+    }
+    const existingMessages = messagesContainer.querySelectorAll('.chat-message-text');
+    for (let msg of existingMessages) {
+        if (msg.textContent === text) {
+            return; // Skip duplicate
+        }
+    }
     
     if (type === 'user') {
         messageDiv.className = 'flex items-start space-x-2 justify-end user-message';
         messageDiv.innerHTML = `
             <div class="bg-halal-green text-white p-3 rounded-lg rounded-tr-none max-w-[80%]">
-                <p class="text-sm">${text}</p>
+                <p class="text-sm chat-message-text">${text}</p>
             </div>
             <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
                 <i class="bi bi-person-fill text-gray-600 text-sm"></i>
@@ -364,7 +750,7 @@ function addMessage(text, type) {
                 <i class="bi bi-headset text-white text-sm"></i>
             </div>
             <div class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-[80%]">
-                <p class="text-sm text-gray-700">${text}</p>
+                <p class="text-sm text-gray-700 chat-message-text">${text}</p>
             </div>
         `;
     }
@@ -376,22 +762,34 @@ function addMessage(text, type) {
 function getAIResponse(message) {
     const lowerMessage = message.toLowerCase();
     
+    // Auto-reply responses (can be customized from admin)
+    const autoReplies = {
+        'track_order': '{{ \App\Models\Setting::get("chat_reply_track_order", "To track your order, please provide your order number. You can also check your order status in My Orders section after logging in. 📦") }}',
+        'delivery': '{{ \App\Models\Setting::get("chat_reply_delivery", "We deliver across Bangladesh! 🇧🇩 Dhaka: Same day delivery. Other areas: 1-3 business days. Free delivery on orders over ৳500!") }}',
+        'payment': '{{ \App\Models\Setting::get("chat_reply_payment", "We accept multiple payment methods: 💳 bKash, Nagad, Rocket, Credit/Debit Cards (Visa, Mastercard), and Cash on Delivery (COD).") }}',
+        'halal': '{{ \App\Models\Setting::get("chat_reply_halal", "All our products are 100% Halal certified! ✅ We source from trusted suppliers and maintain strict quality standards.") }}',
+        'return_refund': '{{ \App\Models\Setting::get("chat_reply_return", "We have a hassle-free return policy! If you're not satisfied, contact us within 24 hours of delivery for a refund or replacement. 🔄") }}',
+        'price': '{{ \App\Models\Setting::get("chat_reply_price", "Our prices are competitive and transparent. Check our Deals section for special discounts! 💰 Free delivery on orders over ৳500.") }}',
+        'greeting': '{{ \App\Models\Setting::get("chat_reply_greeting", "Wa Alaikum Assalam! 👋 Welcome to Halal Food Store. How can I assist you today?") }}',
+        'default': '{{ \App\Models\Setting::get("chat_reply_default", "Thank you for your message! Our support team has received it and will respond shortly. For urgent queries, call +880 1700-000000. 😊") }}'
+    };
+    
     if (lowerMessage.includes('track') || lowerMessage.includes('order')) {
-        return "To track your order, please provide your order number. You can also check your order status in 'My Orders' section after logging in. 📦";
+        return autoReplies.track_order;
     } else if (lowerMessage.includes('delivery') || lowerMessage.includes('area')) {
-        return "We deliver across Bangladesh! 🇧🇩 Dhaka: Same day delivery. Other areas: 1-3 business days. Free delivery on orders over ৳500!";
+        return autoReplies.delivery;
     } else if (lowerMessage.includes('payment') || lowerMessage.includes('pay')) {
-        return "We accept multiple payment methods: 💳 bKash, Nagad, Rocket, Credit/Debit Cards (Visa, Mastercard), and Cash on Delivery (COD).";
+        return autoReplies.payment;
     } else if (lowerMessage.includes('halal') || lowerMessage.includes('quality')) {
-        return "All our products are 100% Halal certified! ✅ We source from trusted suppliers and maintain strict quality standards.";
+        return autoReplies.halal;
     } else if (lowerMessage.includes('return') || lowerMessage.includes('refund')) {
-        return "We have a hassle-free return policy! If you're not satisfied, contact us within 24 hours of delivery for a refund or replacement. 🔄";
+        return autoReplies.return_refund;
     } else if (lowerMessage.includes('price') || lowerMessage.includes('cost')) {
-        return "Our prices are competitive and transparent. Check our Deals section for special discounts! 💰 Free delivery on orders over ৳500.";
+        return autoReplies.price;
     } else if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('salam')) {
-        return "Wa Alaikum Assalam! 👋 Welcome to Halal Food Store. How can I assist you today?";
+        return autoReplies.greeting;
     } else {
-        return "Thank you for your message! Our support team has received it and will respond shortly. For urgent queries, call +880 1700-000000. 😊";
+        return autoReplies.default;
     }
 }
 </script>
