@@ -61,9 +61,9 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                             <p class="hero-slide-subtitle">{{ $slider->subtitle }}</p>
                             @endif
                             <h1 class="hero-slide-title">{{ $slider->title }}</h1>
-                            <a href="{{ $slider->link ?? route('products.index') }}" class="hero-slide-btn">
+                            <a href="{{ $slider->link ?? route('products.index') }}" class="hero-slide-btn" style="display: inline-flex !important; align-items: center !important; background-color: {{ $slider->button_color ?? '#D4AF37' }} !important; color: {{ $slider->button_text_color ?? '#FFFFFF' }} !important; padding: 1rem 2rem; border-radius: 0.75rem; font-weight: 600; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);">
                                 {{ $slider->button_text ?? 'Shop Now' }}
-                                <i class="bi bi-arrow-right ml-2"></i>
+                                <i class="bi {{ $slider->button_icon ?? 'bi-arrow-right' }} ms-2" style="color: {{ $slider->button_icon_color ?? '#FFFFFF' }} !important;"></i>
                             </a>
                         </div>
                     </div>
@@ -884,21 +884,15 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
     .hero-slide-btn {
         display: inline-flex;
         align-items: center;
-        background-color: #D4AF37;
-        color: white;
         padding: 1rem 2rem;
         border-radius: 0.75rem;
         font-weight: 600;
         text-decoration: none;
         transition: all 0.3s ease;
-        box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
     }
     
     .hero-slide-btn:hover {
-        background-color: #e5b919;
         transform: translateY(-2px);
-        box-shadow: 0 15px 30px rgba(212, 175, 55, 0.4);
-        color: white;
     }
     
     .hero-features-bar {

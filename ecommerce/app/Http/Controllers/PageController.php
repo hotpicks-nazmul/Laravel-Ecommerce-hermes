@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Page;
+use App\Models\Faq;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Mail;
 
@@ -58,7 +59,8 @@ class PageController extends Controller
     public function faq()
     {
         $page = Page::where('slug', 'faq')->first();
-        return view('themes.general.pages.faq', compact('page'));
+        $faqs = Faq::active()->ordered()->get();
+        return view('themes.general.pages.faq', compact('page', 'faqs'));
     }
 
     /**

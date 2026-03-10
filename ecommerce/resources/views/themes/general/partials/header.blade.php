@@ -33,7 +33,30 @@ $siteName = $siteNameSetting ? $siteNameSetting->value : 'Halal Food';
 $siteTagline = $siteTaglineSetting ? $siteTaglineSetting->value : 'Premium Quality Store';
 $siteLogoIcon = $siteLogoIconSetting ? $siteLogoIconSetting->value : 'bi bi-shop';
 $siteLogoImage = $siteLogoImageSetting ? $siteLogoImageSetting->value : '';
+
+// Menu Styling Settings
+$menuHoverColor = \App\Models\Setting::where('key', 'menu_hover_color')->first()?->value ?? '#ffffff';
+$menuTextHoverColor = \App\Models\Setting::where('key', 'menu_text_hover_color')->first()?->value ?? '#4f46e5';
+$menuActiveColor = \App\Models\Setting::where('key', 'menu_active_color')->first()?->value ?? '#ffffff';
+$menuActiveTextColor = \App\Models\Setting::where('key', 'menu_active_text_color')->first()?->value ?? '#4f46e5';
+$menuFontSize = \App\Models\Setting::where('key', 'menu_font_size')->first()?->value ?? '14';
+$menuFontWeight = \App\Models\Setting::where('key', 'menu_font_weight')->first()?->value ?? '400';
 @endphp
+
+<style>
+    .nav-menu-link {
+        font-size: {{ $menuFontSize }}px !important;
+        font-weight: {{ $menuFontWeight }} !important;
+    }
+    .nav-menu-link:hover {
+        background-color: {{ $menuHoverColor }} !important;
+        color: {{ $menuTextHoverColor }} !important;
+    }
+    .nav-menu-link.active {
+        background-color: {{ $menuActiveColor }} !important;
+        color: {{ $menuActiveTextColor }} !important;
+    }
+</style>
 
 <!-- Main Header -->
 <header class="bg-white shadow-md sticky top-0 z-40">
@@ -170,12 +193,12 @@ $siteLogoImage = $siteLogoImageSetting ? $siteLogoImageSetting->value : '';
                 
                 <!-- Nav Links -->
                 <div class="hidden lg:flex items-center space-x-1 ml-4">
-                    <a href="{{ route('home') }}" class="px-4 py-3 hover:bg-halal-dark rounded transition-colors {{ request()->routeIs('home') ? 'bg-halal-dark' : '' }}">Home</a>
-                    <a href="{{ route('products.index') }}" class="px-4 py-3 hover:bg-halal-dark rounded transition-colors {{ request()->routeIs('products.*') ? 'bg-halal-dark' : '' }}">Shop</a>
-                    <a href="{{ route('products.index', ['sort' => 'newest']) }}" class="px-4 py-3 hover:bg-halal-dark rounded transition-colors">New Arrivals</a>
-                    <a href="{{ route('products.index', ['sort' => 'discount']) }}" class="px-4 py-3 hover:bg-halal-dark rounded transition-colors">Deals</a>
-                    <a href="{{ route('blogs.index') }}" class="px-4 py-3 hover:bg-halal-dark rounded transition-colors {{ request()->routeIs('blogs.*') ? 'bg-halal-dark' : '' }}">Blog</a>
-                    <a href="{{ route('pages.contact') }}" class="px-4 py-3 hover:bg-halal-dark rounded transition-colors">Contact</a>
+                    <a href="{{ route('home') }}" class="px-4 py-3 hover:bg-halal-dark rounded transition-colors nav-menu-link {{ request()->routeIs('home') ? 'bg-halal-dark active' : '' }}">Home</a>
+                    <a href="{{ route('products.index') }}" class="px-4 py-3 hover:bg-halal-dark rounded transition-colors nav-menu-link {{ request()->routeIs('products.*') ? 'bg-halal-dark active' : '' }}">Shop</a>
+                    <a href="{{ route('products.index', ['sort' => 'newest']) }}" class="px-4 py-3 hover:bg-halal-dark rounded transition-colors nav-menu-link">New Arrivals</a>
+                    <a href="{{ route('products.index', ['sort' => 'discount']) }}" class="px-4 py-3 hover:bg-halal-dark rounded transition-colors nav-menu-link">Deals</a>
+                    <a href="{{ route('blogs.index') }}" class="px-4 py-3 hover:bg-halal-dark rounded transition-colors nav-menu-link {{ request()->routeIs('blogs.*') ? 'bg-halal-dark active' : '' }}">Blog</a>
+                    <a href="{{ route('pages.contact') }}" class="px-4 py-3 hover:bg-halal-dark rounded transition-colors nav-menu-link">Contact</a>
                 </div>
                 
                 <!-- Special Offer -->

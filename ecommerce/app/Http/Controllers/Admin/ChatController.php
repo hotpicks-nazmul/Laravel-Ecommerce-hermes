@@ -333,6 +333,20 @@ class ChatController extends Controller
     }
 
     /**
+     * Display AI Chatbot Settings page.
+     */
+    public function aiSettingsPage()
+    {
+        $aiSettings = [
+            'enabled' => Setting::where('key', 'ai_chatbot_enabled')->value('value') === '1',
+            'welcome_message' => Setting::where('key', 'ai_chatbot_welcome_message')->value('value') ?? 'Hello! How can I help you today?',
+            'openai_key' => Setting::where('key', 'openai_api_key')->value('value') ?? '',
+        ];
+
+        return view('admin.chat.ai-settings', compact('aiSettings'));
+    }
+
+    /**
      * Chat Widget Settings management.
      */
     public function widgetSettings(Request $request)
@@ -351,6 +365,14 @@ class ChatController extends Controller
         Setting::updateOrCreate(['key' => 'chat_reply_price'], ['value' => $request->chat_reply_price ?? '']);
 
         return back()->with('success', 'Chat Widget settings updated successfully.');
+    }
+
+    /**
+     * Display Chat Widget Settings page.
+     */
+    public function widgetSettingsPage()
+    {
+        return view('admin.chat.widget-settings');
     }
 
     /**

@@ -10,7 +10,7 @@ class SliderController extends Controller
 {
     public function index()
     {
-        $sliders = Slider::orderBy('order')->get();
+        $sliders = Slider::orderBy('order')->paginate(25);
         return view('admin.sliders.index', compact('sliders'));
     }
 
@@ -27,6 +27,10 @@ class SliderController extends Controller
             'image' => 'required|image|max:2048',
             'link' => 'nullable|url|max:255',
             'button_text' => 'nullable|string|max:50',
+            'button_color' => 'nullable|string|max:20',
+            'button_text_color' => 'nullable|string|max:20',
+            'button_icon' => 'nullable|string|max:50',
+            'button_icon_color' => 'nullable|string|max:20',
             'is_active' => 'boolean',
         ]);
 
@@ -57,6 +61,10 @@ class SliderController extends Controller
             'image' => 'nullable|image|max:2048',
             'link' => 'nullable|url|max:255',
             'button_text' => 'nullable|string|max:50',
+            'button_color' => 'nullable|string|max:20',
+            'button_text_color' => 'nullable|string|max:20',
+            'button_icon' => 'nullable|string|max:50',
+            'button_icon_color' => 'nullable|string|max:20',
             'is_active' => 'boolean',
         ]);
 

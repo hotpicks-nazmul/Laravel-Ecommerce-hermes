@@ -107,8 +107,16 @@ class ThemeService
     {
         $theme = $this->getActiveTheme();
 
+        // Handle simple key-value settings (colors, fonts)
         foreach ($settings as $key => $value) {
-            Setting::set($key, $value, 'theme_' . $theme);
+            if ($key !== 'features' && is_string($value)) {
+                Setting::set($key, $value, 'theme_' . $theme);
+            }
+        }
+        
+        // Handle features array
+        if (isset($settings['features']) && is_array($settings['features'])) {
+            Setting::set('features', json_encode($settings['features']), 'theme_' . $theme);
         }
     }
 
@@ -135,6 +143,38 @@ class ThemeService
         }
 
         return [];
+    }
+
+    /**
+     * Get theme customizable settings (colors, fonts, etc.)
+     */
+    public function getThemeCustomizableSettings(): array
+    {
+        $theme = $this->getActiveTheme();
+        $config = $this->getThemeConfig($theme);
+        
+        // Get current saved settings
+        $savedSettings = $this->getThemeSettings();
+        
+        // Merge with defaults
+        $defaults = [
+            'primary_color' => $config['colors']['primary'] ?? '#4f46e5',
+            'secondary_color' => $config['colors']['secondary'] ?? '#7c3aed',
+            'accent_color' => $config['colors']['accent'] ?? '#10b981',
+            'gold_color' => $config['colors']['gold'] ?? '#d4af37',
+            'heading_font' => $config['fonts']['heading'] ?? 'Inter',
+            'body_font' => $config['fonts']['body'] ?? 'Inter',
+        ];
+
+        // Get features if saved
+        $features = [];
+        if (isset($savedSettings['features'])) {
+            $features = json_decode($savedSettings['features'], true) ?? [];
+        } elseif (isset($config['features'])) {
+            $features = $config['features'];
+        }
+
+        return array_merge($defaults, $savedSettings, ['features' => $features]);
     }
 
     /**

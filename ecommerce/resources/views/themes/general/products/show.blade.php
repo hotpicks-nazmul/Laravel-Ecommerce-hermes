@@ -615,7 +615,7 @@
                     
                     @if($product->quantity > 0)
                     <button onclick="addToCartWithVariants({{ $product->id }}, document.getElementById('quantity').value)" 
-                            class="flex-1 bg-halal-green text-white py-3 rounded-lg hover:bg-halal-dark transition-colors font-medium">
+                            class="flex-1 text-white py-3 rounded-lg hover:opacity-90 transition-opacity font-medium" style="background-color: var(--theme-primary, #4f46e5);">
                         <i class="bi bi-cart-plus mr-2"></i>Add to Cart
                     </button>
                     @else

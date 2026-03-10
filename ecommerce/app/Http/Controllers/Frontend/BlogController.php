@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Blog;
-use App\Models\Category;
+use App\Models\BlogCategory;
 use Illuminate\Http\Request;
 
 class BlogController extends Controller
@@ -19,7 +19,7 @@ class BlogController extends Controller
 
         // Filter by category
         if ($request->has('category')) {
-            $category = Category::where('slug', $request->category)->first();
+            $category = BlogCategory::where('slug', $request->category)->first();
             if ($category) {
                 $query->where('category_id', $category->id);
             }
@@ -35,7 +35,7 @@ class BlogController extends Controller
         }
 
         $blogs = $query->latest('published_at')->paginate(9);
-        $categories = Category::where('status', 'active')->get();
+        $categories = BlogCategory::active()->ordered()->get();
 
         return view('themes.general.blogs.index', compact('blogs', 'categories'));
     }

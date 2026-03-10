@@ -170,7 +170,7 @@
                         </a>
                         <form action="{{ route('bundles.add-to-cart', $bundle->id) }}" method="POST" class="d-inline">
                             @csrf
-                            <button type="submit" class="btn btn-primary" {{ !$bundle->canBePurchasedBy(auth()->user()) ? 'disabled' : '' }}>
+                            <button type="submit" class="btn text-white" style="background-color: var(--theme-primary, #4f46e5);" {{ !$bundle->canBePurchasedBy(auth()->user()) ? 'disabled' : '' }}>
                                 <i class="bi bi-cart-plus"></i>
                             </button>
                         </form>

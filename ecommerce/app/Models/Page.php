@@ -13,9 +13,11 @@ class Page extends Model
         'title',
         'slug',
         'content',
+        'featured_image',
         'meta_title',
         'meta_description',
-        'is_active',
+        'status',
+        'created_by',
     ];
 
     protected $casts = [

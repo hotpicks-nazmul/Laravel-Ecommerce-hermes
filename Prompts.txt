@@ -1,9 +1,9 @@
 Read Preference.md and Follow the style and functionality Preference to implement.
 
 in admin panel
-implement and fully functional SUPPORT > Live Chat
+implement and fully functional APPEARANCE > Sliders
 
-implemented this functionality for both backend and if needed then also implement for frontend. 
+implement this functionality for both backend and if needed then also implement for frontend. 
 
 Make all features logical and easy to use functionality.
 
@@ -11,6 +11,20 @@ Read Preference.md carefully, there you will find 404 error solution. so apply t
 
 Do you understand? let me know.
 
+
+
+Read Preference.md and Follow the style and functionality Preference to implement.
+
+in admin panel
+check if  APPEARANCE > Sliders is implemented and fully functional or not
+
+implement this functionality for both backend and  also implement for frontend. 
+
+Make all features logical and easy to use functionality.
+
+Read Preference.md carefully, there you will find 404 error solution. so apply that solution.
+
+Do you understand? let me know.
 
 
 

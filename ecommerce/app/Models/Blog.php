@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\BlogCategory;
+use App\Models\BlogTag;
 
 class Blog extends Model
 {
@@ -43,7 +46,15 @@ class Blog extends Model
      */
     public function category()
     {
-        return $this->belongsTo(Category::class, 'category_id');
+        return $this->belongsTo(BlogCategory::class, 'category_id');
+    }
+
+    /**
+     * Get the tags associated with the blog post.
+     */
+    public function tags()
+    {
+        return $this->belongsToMany(BlogTag::class, 'blog_tag', 'blog_id', 'blog_tag_id');
     }
 
     /**

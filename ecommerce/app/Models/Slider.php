@@ -15,6 +15,10 @@ class Slider extends Model
         'image',
         'link',
         'button_text',
+        'button_color',
+        'button_text_color',
+        'button_icon',
+        'button_icon_color',
         'order',
         'is_active',
     ];

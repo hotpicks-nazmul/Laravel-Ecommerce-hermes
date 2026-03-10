@@ -5,20 +5,70 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Blog;
+use App\Models\BlogCategory;
 use Illuminate\Support\Facades\Storage;
 
 class BlogController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $blogs = Blog::with('author')->latest()->paginate(10);
+        $query = Blog::with(['author', 'category']);
+        
+        // Search
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('title', 'like', "%{$request->search}%")
+                  ->orWhere('content', 'like', "%{$request->search}%")
+                  ->orWhere('slug', 'like', "%{$request->search}%");
+            });
+        }
+        
+        // Status filter
+        if ($request->status) {
+            if ($request->status === 'published') {
+                $query->where('status', 'published')->where('published_at', '<=', now());
+            } else {
+                $query->where(function($q) {
+                    $q->where('status', 'draft')
+                      ->orWhere(function($q2) {
+                          $q2->where('status', 'published')->where('published_at', '>', now());
+                      });
+                });
+            }
+        }
+        
+        // Category filter
+        if ($request->category) {
+            $query->where('category_id', $request->category);
+        }
+        
+        // Sorting
+        $sort = $request->sort ?? 'created_at';
+        $direction = $request->direction ?? 'desc';
+        $query->orderBy($sort, $direction);
+        
+        // Pagination
+        $perPage = $request->per_page ?? 15;
+        $blogs = $query->paginate($perPage);
+        
+        // AJAX response
+        if ($request->ajax()) {
+            $html = view('admin.blogs.partials.table-rows', compact('blogs'))->render();
+            $pagination = $blogs->links('vendor.pagination.bootstrap-5')->toHtml();
+            
+            return response()->json([
+                'html' => $html,
+                'pagination' => $pagination
+            ]);
+        }
+        
         return view('admin.blogs.index', compact('blogs'));
     }
 
     public function create()
     {
-        // Use product categories since blog_categories table may be empty
-        $categories = \App\Models\Category::where('status', 'active')->get();
+        // Use blog categories
+        $categories = BlogCategory::active()->ordered()->get();
         return view('admin.blogs.create', compact('categories'));
     }
 
@@ -31,7 +81,7 @@ class BlogController extends Controller
             'excerpt' => 'nullable|string|max:500',
             'status' => 'required|in:published,draft',
             'featured_image' => 'nullable|image|max:5120',
-            'category_id' => 'nullable|exists:categories,id',
+            'category_id' => 'nullable|exists:blog_categories,id',
             'tags' => 'nullable|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
@@ -85,8 +135,8 @@ class BlogController extends Controller
 
     public function edit(Blog $blog)
     {
-        // Use product categories since blog_categories table may be empty
-        $categories = \App\Models\Category::where('status', 'active')->get();
+        // Use blog categories
+        $categories = BlogCategory::active()->ordered()->get();
         return view('admin.blogs.edit', compact('blog', 'categories'));
     }
 
@@ -99,7 +149,7 @@ class BlogController extends Controller
             'excerpt' => 'nullable|string|max:500',
             'status' => 'required|in:published,draft',
             'featured_image' => 'nullable|image|max:5120',
-            'category_id' => 'nullable|exists:categories,id',
+            'category_id' => 'nullable|exists:blog_categories,id',
             'tags' => 'nullable|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',

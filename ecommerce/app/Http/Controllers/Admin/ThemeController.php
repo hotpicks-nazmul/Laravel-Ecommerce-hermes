@@ -20,6 +20,11 @@ class ThemeController extends Controller
         $themes = $this->themeService->getAvailableThemes();
         $activeTheme = $this->themeService->getActiveTheme();
         
+        // Add active flag to each theme
+        foreach ($themes as $key => $theme) {
+            $themes[$key]['active'] = ($key === $activeTheme);
+        }
+        
         return view('admin.theme.index', compact('themes', 'activeTheme'));
     }
 
@@ -37,9 +42,10 @@ class ThemeController extends Controller
     public function settings()
     {
         $theme = $this->themeService->getActiveTheme();
-        $settings = $this->themeService->getThemeSettings();
+        $config = $this->themeService->getThemeConfig($theme);
+        $settings = $this->themeService->getThemeCustomizableSettings();
         
-        return view('admin.theme.settings', compact('theme', 'settings'));
+        return view('admin.theme.settings', compact('theme', 'settings', 'config'));
     }
 
     public function updateSettings(Request $request)

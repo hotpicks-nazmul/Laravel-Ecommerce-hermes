@@ -274,7 +274,7 @@
                     <input type="hidden" name="quantity" id="qtyInput" value="1">
                     
                     @if($bundle->canBePurchasedBy(auth()->user()))
-                    <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                    <button type="submit" class="btn btn-lg w-100 mb-3 text-white" style="background-color: var(--theme-primary, #4f46e5);">
                         <i class="bi bi-cart-plus me-2"></i>Add to Cart
                     </button>
                     <button type="button" class="btn btn-outline-primary btn-lg w-100" onclick="buyNow()">

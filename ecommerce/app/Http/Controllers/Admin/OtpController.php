@@ -3,43 +3,231 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\OtpConfiguration;
+use App\Services\OtpService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * OTP Controller for managing OTP settings.
  */
 class OtpController extends Controller
 {
-    public function configuration()
+    protected $otpService;
+
+    public function __construct(OtpService $otpService)
     {
-        return view('admin.otp.configuration');
+        $this->otpService = $otpService;
     }
 
+    /**
+     * Display OTP configuration page
+     */
+    public function configuration()
+    {
+        $config = array_merge(
+            OtpConfiguration::defaults(),
+            OtpConfiguration::getAllConfig()
+        );
+        
+        $stats = $this->otpService->getStats();
+        
+        return view('admin.otp.configuration', compact('config', 'stats'));
+    }
+
+    /**
+     * Update OTP configuration
+     */
     public function updateConfiguration(Request $request)
     {
+        $validated = $request->validate([
+            'otp_length' => 'required|in:4,5,6',
+            'otp_expiry' => 'required|integer|min:1|max:60',
+            'otp_max_attempts' => 'required|integer|min:1|max:10',
+            'resend_cooldown' => 'required|integer|min:30|max:300',
+            'max_otp_per_day' => 'required|integer|min:1|max:100',
+            'temp_block_duration' => 'required|integer|min:5|max:1440',
+        ]);
+
+        // Save configuration
+        foreach ($validated as $key => $value) {
+            OtpConfiguration::set($key, $value, 'configuration');
+        }
+
+        // Save checkbox fields (0 if not present)
+        $checkboxFields = [
+            'otp_for_login',
+            'otp_for_registration',
+            'otp_for_password_reset',
+            'otp_for_payment',
+            'otp_for_profile_change',
+            'otp_for_order_confirmation',
+            'otp_case_sensitive',
+            'otp_alphanumeric',
+        ];
+
+        foreach ($checkboxFields as $field) {
+            OtpConfiguration::set($field, $request->has($field) ? 1 : 0, 'configuration');
+        }
+
         return redirect()->route('admin.otp.configuration')
             ->with('success', 'OTP configuration updated successfully.');
     }
 
+    /**
+     * Display SMS templates page
+     */
     public function smsTemplates()
     {
-        return view('admin.otp.sms-templates');
+        $templates = array_merge(
+            OtpConfiguration::templateDefaults(),
+            OtpConfiguration::getAllConfig()
+        );
+
+        return view('admin.otp.sms-templates', compact('templates'));
     }
 
+    /**
+     * Update SMS templates
+     */
     public function updateSmsTemplates(Request $request)
     {
+        $validated = $request->validate([
+            'otp_verification_template' => 'required|string|max:160',
+            'registration_template' => 'nullable|string|max:160',
+            'password_reset_template' => 'nullable|string|max:160',
+            'payment_template' => 'nullable|string|max:160',
+            'order_confirmation_template' => 'nullable|string|max:160',
+            'login_notification_template' => 'nullable|string|max:160',
+        ]);
+
+        // Save templates
+        foreach ($validated as $key => $value) {
+            if (!empty($value)) {
+                OtpConfiguration::set($key, $value, 'templates');
+            }
+        }
+
         return redirect()->route('admin.otp.sms-templates')
             ->with('success', 'SMS templates updated successfully.');
     }
 
+    /**
+     * Display OTP credentials page
+     */
     public function credentials()
     {
-        return view('admin.otp.credentials');
+        $credentials = array_merge(
+            OtpConfiguration::credentialsDefaults(),
+            OtpConfiguration::getAllConfig()
+        );
+
+        return view('admin.otp.credentials', compact('credentials'));
     }
 
+    /**
+     * Update OTP credentials
+     */
     public function updateCredentials(Request $request)
     {
+        $validated = $request->validate([
+            'sms_gateway' => 'required|string|in:custom,twilio,nexmo,msg91,banglalion,ssl,mim',
+        ]);
+
+        // Save gateway selection
+        OtpConfiguration::set('sms_gateway', $validated['sms_gateway'], 'credentials');
+
+        // Save custom API credentials
+        if ($request->has('custom_api_url')) {
+            OtpConfiguration::set('custom_api_url', $request->custom_api_url, 'credentials');
+        }
+        if ($request->has('custom_api_key') && !empty($request->custom_api_key)) {
+            OtpConfiguration::set('custom_api_key', $request->custom_api_key, 'credentials');
+        }
+        if ($request->has('custom_api_secret') && !empty($request->custom_api_secret)) {
+            OtpConfiguration::set('custom_api_secret', $request->custom_api_secret, 'credentials');
+        }
+        if ($request->has('custom_sender_id')) {
+            OtpConfiguration::set('custom_sender_id', $request->custom_sender_id, 'credentials');
+        }
+        if ($request->has('custom_api_method')) {
+            OtpConfiguration::set('custom_api_method', $request->custom_api_method, 'credentials');
+        }
+        if ($request->has('custom_request_body')) {
+            OtpConfiguration::set('custom_request_body', $request->custom_request_body, 'credentials');
+        }
+
+        // Save Twilio credentials
+        if ($request->has('twilio_sid')) {
+            OtpConfiguration::set('twilio_sid', $request->twilio_sid, 'credentials');
+        }
+        if ($request->has('twilio_token') && !empty($request->twilio_token)) {
+            OtpConfiguration::set('twilio_token', $request->twilio_token, 'credentials');
+        }
+        if ($request->has('twilio_from')) {
+            OtpConfiguration::set('twilio_from', $request->twilio_from, 'credentials');
+        }
+
+        // Save MSG91 credentials
+        if ($request->has('msg91_authkey')) {
+            OtpConfiguration::set('msg91_authkey', $request->msg91_authkey, 'credentials');
+        }
+        if ($request->has('msg91_sender_id')) {
+            OtpConfiguration::set('msg91_sender_id', $request->msg91_sender_id, 'credentials');
+        }
+        if ($request->has('msg91_route')) {
+            OtpConfiguration::set('msg91_route', $request->msg91_route, 'credentials');
+        }
+
+        // Save SSL Wireless credentials
+        if ($request->has('ssl_sms_user')) {
+            OtpConfiguration::set('ssl_sms_user', $request->ssl_sms_user, 'credentials');
+        }
+        if ($request->has('ssl_sms_pass') && !empty($request->ssl_sms_pass)) {
+            OtpConfiguration::set('ssl_sms_pass', $request->ssl_sms_pass, 'credentials');
+        }
+        if ($request->has('ssl_sid')) {
+            OtpConfiguration::set('ssl_sid', $request->ssl_sid, 'credentials');
+        }
+
         return redirect()->route('admin.otp.credentials')
             ->with('success', 'OTP credentials updated successfully.');
+    }
+
+    /**
+     * Send test SMS
+     */
+    public function sendTestSms(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+        ]);
+
+        $result = $this->otpService->sendOtp($request->phone, 'test');
+
+        if ($result['success']) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Test SMS sent successfully!'
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => $result['message']
+        ], 400);
+    }
+
+    /**
+     * Check SMS balance
+     */
+    public function checkBalance(Request $request)
+    {
+        // This would integrate with actual gateway to check balance
+        // For now, return demo response
+        return response()->json([
+            'success' => true,
+            'balance' => 'Demo Mode - Check gateway dashboard for actual balance'
+        ]);
     }
 }

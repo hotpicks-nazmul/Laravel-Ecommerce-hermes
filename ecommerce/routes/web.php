@@ -14,6 +14,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\FormController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,6 +46,11 @@ Route::prefix('blogs')->name('blogs.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Frontend\BlogController::class, 'index'])->name('index');
     Route::get('/{slug}', [\App\Http\Controllers\Frontend\BlogController::class, 'show'])->name('show');
 });
+
+// Form Routes (must be before generic pages route to avoid conflicts)
+Route::get('/forms', [FormController::class, 'list'])->name('forms.list');
+Route::get('/form/{slug}', [FormController::class, 'show'])->name('forms.show');
+Route::post('/form/{slug}', [FormController::class, 'submit'])->name('forms.submit');
 
 // Live Chat Route
 Route::get('/chat/live', [ChatController::class, 'live'])->name('chat.live');

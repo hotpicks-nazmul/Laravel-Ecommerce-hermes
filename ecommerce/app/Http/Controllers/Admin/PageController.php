@@ -6,12 +6,36 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Page;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class PageController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pages = Page::latest()->paginate(15);
+        $query = Page::query();
+        
+        // Search functionality
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('title', 'like', "%{$request->search}%")
+                  ->orWhere('slug', 'like', "%{$request->search}%")
+                  ->orWhere('meta_title', 'like', "%{$request->search}%")
+                  ->orWhere('meta_description', 'like', "%{$request->search}%");
+            });
+        }
+        
+        // Status filter
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+        
+        // Sorting
+        $sort = $request->sort ?? 'created_at';
+        $direction = $request->direction ?? 'desc';
+        $query->orderBy($sort, $direction);
+        
+        $pages = $query->paginate(15);
+        
         return view('admin.pages.index', compact('pages'));
     }
 
@@ -25,16 +49,29 @@ class PageController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
+            'featured_image' => 'nullable|image|max:2048',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
         ]);
 
-        $data = $request->except('is_active');
+        $data = $request->except('is_active', 'featured_image');
         $data['slug'] = Str::slug($request->title);
+        
+        // Ensure unique slug
+        $count = Page::where('slug', $data['slug'])->count();
+        if ($count > 0) {
+            $data['slug'] = $data['slug'] . '-' . time();
+        }
+        
         $data['status'] = $request->has('is_active') && $request->is_active ? 'published' : 'draft';
         $data['created_by'] = auth()->id();
 
-        Page::create($data);
+        // Handle featured image upload
+        if ($request->hasFile('featured_image')) {
+            $data['featured_image'] = $request->file('featured_image')->store('pages', 'public');
+        }
+
+        $page = Page::create($data);
 
         return redirect()->route('admin.pages.index')->with('success', 'Page created successfully.');
     }
@@ -54,13 +91,40 @@ class PageController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
+            'featured_image' => 'nullable|image|max:2048',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
         ]);
 
-        $data = $request->except('is_active');
-        $data['slug'] = Str::slug($request->title);
+        $data = $request->except('is_active', 'featured_image', 'remove_image');
+        
+        // Only update slug if title changed
+        if ($page->title !== $request->title) {
+            $data['slug'] = Str::slug($request->title);
+            
+            // Ensure unique slug
+            $count = Page::where('slug', $data['slug'])->where('id', '!=', $page->id)->count();
+            if ($count > 0) {
+                $data['slug'] = $data['slug'] . '-' . time();
+            }
+        }
+        
         $data['status'] = $request->has('is_active') && $request->is_active ? 'published' : 'draft';
+
+        // Handle featured image upload
+        if ($request->hasFile('featured_image')) {
+            // Delete old image if exists
+            if ($page->featured_image) {
+                Storage::disk('public')->delete($page->featured_image);
+            }
+            $data['featured_image'] = $request->file('featured_image')->store('pages', 'public');
+        }
+        
+        // Handle image removal
+        if ($request->remove_image == '1' && $page->featured_image) {
+            Storage::disk('public')->delete($page->featured_image);
+            $data['featured_image'] = null;
+        }
 
         $page->update($data);
 
@@ -69,6 +133,11 @@ class PageController extends Controller
 
     public function destroy(Page $page)
     {
+        // Delete featured image if exists
+        if ($page->featured_image) {
+            Storage::disk('public')->delete($page->featured_image);
+        }
+        
         $page->delete();
         return back()->with('success', 'Page deleted successfully.');
     }

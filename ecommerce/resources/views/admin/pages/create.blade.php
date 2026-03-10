@@ -3,97 +3,113 @@
 @section('title', 'Create Page')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">Create New Page</h4>
-                <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-1"></i> Back to List
-                </a>
-            </div>
-        </div>
-    </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Create New Page</h4>
+    <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to Pages
+    </a>
+</div>
 
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <form action="{{ route('admin.pages.store') }}" method="POST">
-                        @csrf
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
-                            <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" 
-                                   value="{{ old('title') }}" placeholder="Enter page title" required>
-                            @error('title')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Content <span class="text-danger">*</span></label>
-                            <textarea name="content" id="page-content" class="form-control @error('content') is-invalid @enderror" 
-                                      rows="10" placeholder="Write your page content here..." required>{{ old('content') }}</textarea>
-                            @error('content')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
-                        </div>
-                        
-                        <hr>
-                        
-                        <h6 class="mb-3">SEO Settings</h6>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Meta Title</label>
-                            <input type="text" name="meta_title" class="form-control" value="{{ old('meta_title') }}" 
-                                   placeholder="SEO title (defaults to page title)">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Meta Description</label>
-                            <textarea name="meta_description" class="form-control" rows="2" 
-                                      placeholder="Brief description for search engines">{{ old('meta_description') }}</textarea>
-                        </div>
-                        
-                        <hr>
-                        
-                        <div class="mb-3">
-                            <div class="form-check form-switch">
-                                <input type="checkbox" name="is_active" class="form-check-input" id="isActive" 
-                                       value="1" checked>
-                                <label class="form-check-label" for="isActive">Publish Page</label>
-                            </div>
-                            <small class="text-muted">If unchecked, the page will be saved as draft</small>
-                        </div>
-                        
-                        <div class="d-flex justify-content-end gap-2 mt-4">
-                            <a href="{{ route('admin.pages.index') }}" class="btn btn-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-lg me-1"></i> Create Page
-                            </button>
-                        </div>
-                    </form>
-                </div>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Page Content</h6>
+            </div>
+            <div class="card-body">
+                <form id="pageForm" method="POST" action="{{ route('admin.pages.store') }}">
+                    @csrf
+                    
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                        <input type="text" id="title" name="title" class="form-control @error('title') is-invalid @enderror" 
+                               value="{{ old('title') }}" placeholder="Enter page title" required>
+                        @error('title')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="page-content" class="form-label">Content <span class="text-danger">*</span></label>
+                        <textarea id="page-content" name="content" class="form-control @error('content') is-invalid @enderror" 
+                                  rows="10" placeholder="Write your page content here..." required>{{ old('content') }}</textarea>
+                        @error('content')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <div class="form-text">Use the editor below to format your content with headings, images, links, etc.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="featured_image" class="form-label">Featured Image</label>
+                        <input type="file" id="featured_image" name="featured_image" class="form-control" accept="image/*">
+                        <div class="form-text">Recommended size: 1200x630px. Leave empty for no featured image.</div>
+                    </div>
+                </form>
             </div>
         </div>
         
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white">
-                    <h6 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Tips</h6>
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-search me-2"></i>SEO Settings</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="meta_title" class="form-label">Meta Title</label>
+                    <input type="text" id="meta_title" name="meta_title" class="form-control" value="{{ old('meta_title') }}" 
+                           placeholder="SEO title (defaults to page title)">
+                    <div class="form-text">Leave empty to use the page title</div>
                 </div>
-                <div class="card-body">
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Use descriptive titles</li>
-                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Add meta descriptions for SEO</li>
-                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Use headings to organize content</li>
-                        <li class="mb-0"><i class="bi bi-check-circle text-success me-2"></i>Preview before publishing</li>
-                    </ul>
+                
+                <div class="mb-3">
+                    <label for="meta_description" class="form-label">Meta Description</label>
+                    <textarea id="meta_description" name="meta_description" class="form-control" rows="2" 
+                              placeholder="Brief description for search engines">{{ old('meta_description') }}</textarea>
+                    <div class="form-text">A concise description for search engine results (150-160 characters)</div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Publish</h6>
+            </div>
+            <div class="card-body">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="isActive" name="is_active" value="1" {{ old('is_active', '1') ? 'checked' : '' }}>
+                    <label class="form-check-label" for="isActive">
+                        <i class="bi bi-check-circle text-success me-1"></i> Publish Page
+                    </label>
+                </div>
+                <div class="form-text">Uncheck to save as draft</div>
+            </div>
+        </div>
+        
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Tips</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Use descriptive page titles</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Add meta descriptions for SEO</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Use headings to organize content</li>
+                    <li class="mb-0"><i class="bi bi-check-circle text-success me-2"></i>Preview before publishing</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Save Buttons -->
+<div class="floating-save-container">
+    <a href="{{ route('admin.pages.index') }}" class="btn btn-secondary floating-reset-btn">
+        <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
+    <button type="submit" form="pageForm" class="btn btn-primary floating-save-btn">
+        <i class="bi bi-check-lg me-1"></i> Create Page
+    </button>
 </div>
 @endsection
 
@@ -114,6 +130,10 @@
     }
     .note-editor.note-frame .note-editing-area .note-editable {
         padding: 15px;
+    }
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
     }
 </style>
 @endpush

@@ -15,10 +15,28 @@
     <meta property="og:description" content="@yield('og_description', 'Premium Quality Halal Food')">
     <meta property="og:type" content="website">
     
-    <!-- Google Fonts - Poppins -->
+    <?php
+    // Get theme settings
+    $themeSettings = $themeSettings ?? [];
+    $primaryColor = $themeSettings['primary_color'] ?? '#4f46e5';
+    $secondaryColor = $themeSettings['secondary_color'] ?? '#7c3aed';
+    $accentColor = $themeSettings['accent_color'] ?? '#10b981';
+    $goldColor = $themeSettings['gold_color'] ?? '#d4af37';
+    $headingFont = $themeSettings['heading_font'] ?? 'Inter';
+    $bodyFont = $themeSettings['body_font'] ?? 'Inter';
+    
+    // Convert font names for Google Fonts
+    $headingFontLink = str_replace(' ', '+', $headingFont);
+    $bodyFontLink = str_replace(' ', '+', $bodyFont);
+    $fontsToLoad = [];
+    if (!in_array($headingFont, $fontsToLoad)) $fontsToLoad[] = $headingFontLink.':wght@300;400;500;600;700;800';
+    if (!in_array($bodyFont, $fontsToLoad) && $bodyFont !== $headingFont) $fontsToLoad[] = $bodyFontLink.':wght@300;400;500;600;700;800';
+    ?>
+    
+    <!-- Google Fonts - Dynamic -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family={{ implode('&family=', $fontsToLoad) }}&display=swap" rel="stylesheet">
     
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -33,20 +51,28 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        'poppins': ['Poppins', 'sans-serif'],
+                        'heading': ['{{ $headingFont }}', 'sans-serif'],
+                        'body': ['{{ $bodyFont }}', 'sans-serif'],
                     },
                     colors: {
                         primary: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            300: '#86efac',
-                            400: '#4ade80',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            800: '#166534',
-                            900: '#14532d',
+                            50: '{{ $primaryColor }}20',
+                            100: '{{ $primaryColor }}30',
+                            200: '{{ $primaryColor }}40',
+                            300: '{{ $primaryColor }}50',
+                            400: '{{ $primaryColor }}60',
+                            500: '{{ $primaryColor }}',
+                            600: '{{ $primaryColor }}',
+                            700: '{{ $primaryColor }}',
+                            800: '{{ $primaryColor }}',
+                            900: '{{ $primaryColor }}',
+                            DEFAULT: '{{ $primaryColor }}',
+                        },
+                        secondary: {
+                            DEFAULT: '{{ $secondaryColor }}',
+                        },
+                        accent: {
+                            DEFAULT: '{{ $accentColor }}',
                         },
                         halal: {
                             green: '#2D5A27',
@@ -62,15 +88,115 @@
     </script>
     
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
+        :root {
+            /* Theme Colors */
+            --theme-primary: {{ $primaryColor }};
+            --theme-secondary: {{ $secondaryColor }};
+            --theme-accent: {{ $accentColor }};
+            --theme-gold: {{ $goldColor }};
+            
+            /* Hardcoded Colors Override - Map to Theme Colors */
+            --hardcoded-green: #2D5A27;
+            --hardcoded-green-light: #4A7C43;
+            
+            /* Font Families */
+            --theme-heading-font: '{{ $headingFont }}', sans-serif;
+            --theme-body-font: '{{ $bodyFont }}', sans-serif;
+            
+            /* Extended Color Palette */
+            --theme-success: #10b981;
+            --theme-warning: #f59e0b;
+            --theme-danger: #ef4444;
+            --theme-info: #3b82f6;
+            --theme-dark: #1f2937;
+            --theme-light: #f9fafb;
         }
+        body {
+            font-family: var(--theme-body-font);
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--theme-heading-font);
+        }
+        
+        /* Theme Color Classes */
+        .theme-primary { color: var(--theme-primary); }
+        .theme-secondary { color: var(--theme-secondary); }
+        .theme-accent { color: var(--theme-accent); }
+        .theme-gold { color: var(--theme-gold); }
+        .theme-success { color: var(--theme-success); }
+        .theme-warning { color: var(--theme-warning); }
+        .theme-danger { color: var(--theme-danger); }
+        .theme-dark { color: var(--theme-dark); }
+        
+        /* Background Classes */
+        .bg-theme-primary { background-color: var(--theme-primary); }
+        .bg-theme-secondary { background-color: var(--theme-secondary); }
+        .bg-theme-accent { background-color: var(--theme-accent); }
+        .bg-theme-gold { background-color: var(--theme-gold); }
+        .bg-theme-success { background-color: var(--theme-success); }
+        .bg-theme-warning { background-color: var(--theme-warning); }
+        .bg-theme-danger { background-color: var(--theme-danger); }
+        .bg-theme-dark { background-color: var(--theme-dark); }
+        
+        /* Border Classes */
+        .border-theme-primary { border-color: var(--theme-primary); }
+        .border-theme-secondary { border-color: var(--theme-secondary); }
+        
+        /* Bootstrap Override - Primary Button */
+        .btn-primary {
+            background-color: var(--theme-primary) !important;
+            border-color: var(--theme-primary) !important;
+        }
+        .btn-primary:hover {
+            background-color: var(--theme-secondary) !important;
+            border-color: var(--theme-secondary) !important;
+        }
+        .btn-outline-primary {
+            color: var(--theme-primary) !important;
+            border-color: var(--theme-primary) !important;
+        }
+        .btn-outline-primary:hover {
+            background-color: var(--theme-primary) !important;
+            color: white !important;
+        }
+        
+        /* Links */
+        a { color: var(--theme-primary); }
+        a:hover { color: var(--theme-secondary); }
+        
+        /* Halal Theme Colors Override - Use Theme Primary */
+        .bg-halal-green { background-color: var(--theme-primary) !important; }
+        .hover\:bg-halal-green:hover { background-color: var(--theme-secondary) !important; }
+        .bg-halal-dark { background-color: var(--theme-dark); }
+        .text-halal-green { color: var(--theme-primary) !important; }
+        
+        /* Gold Theme Color Override */
+        .bg-halal-gold { background-color: var(--theme-gold) !important; }
+        .text-halal-gold { color: var(--theme-gold) !important; }
+        
+        /* Override Hardcoded Colors Throughout Theme */
+        /* Green colors (#2D5A27, #4A7C43) */
+        [style*="#2D5A27"] { color: var(--theme-primary) !important; }
+        [style*="#4A7C43"] { color: var(--theme-secondary) !important; }
+        [style*="background: linear-gradient*#2D5A27"] { background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary)) !important; }
+        [style*="background-color: #2D5A27"] { background-color: var(--theme-primary) !important; }
+        [style*="background-color: #4A7C43"] { background-color: var(--theme-secondary) !important; }
+        [style*="border-color: #2D5A27"] { border-color: var(--theme-primary) !important; }
+        
+        /* Gold color (#D4AF37) */
+        [style*="#D4AF37"] { color: var(--theme-gold) !important; }
+        [style*="background-color: #D4AF37"] { background-color: var(--theme-gold) !important; }
+        [style*="border-color: #D4AF37"] { border-color: var(--theme-gold) !important; }
+        [style*="background: linear-gradient*#D4AF37"] { background: linear-gradient(135deg, var(--theme-gold), #F4D03F) !important; }
+        
+        /* Gradient Classes */
         .gradient-halal {
-            background: linear-gradient(135deg, #2D5A27 0%, #4A7C43 100%);
+            background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
         }
         .gradient-gold {
-            background: linear-gradient(135deg, #D4AF37 0%, #F4D03F 100%);
+            background: linear-gradient(135deg, var(--theme-gold) 0%, #F4D03F 100%);
         }
+        
         .hero-pattern {
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
@@ -84,7 +210,7 @@
     
     @stack('styles')
 </head>
-<body class="bg-halal-cream scroll-smooth font-poppins">
+<body class="bg-halal-cream scroll-smooth font-body">
     <!-- Header -->
     @include('themes.general.partials.header')
     

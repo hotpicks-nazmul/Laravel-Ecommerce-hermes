@@ -1066,6 +1066,16 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.chat.ai-settings*') ? 'active' : '' }}" href="{{ route('admin.chat.ai-settings.index') }}">
+                                <i class="bi bi-robot"></i> AI Chatbot Settings
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.chat.widget-settings*') ? 'active' : '' }}" href="{{ route('admin.chat.widget-settings.index') }}">
+                                <i class="bi bi-chat-dots-fill"></i> Chat Widget Settings
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.chat.predefined.*') ? 'active' : '' }}" href="{{ route('admin.chat.predefined.index') }}">
                                 <i class="bi bi-chat-text"></i> Quick Replies
                             </a>
@@ -1116,14 +1126,14 @@
             
             <!-- CONTENT -->
             <div class="menu-category">
-                <a class="menu-category-header {{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuContent" role="button" aria-expanded="{{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') || request()->routeIs('admin.content.widgets.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuContent" role="button" aria-expanded="{{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') || request()->routeIs('admin.content.widgets.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-file-earmark-text menu-icon"></i>
                         <span class="menu-category-title">Content</span>
                     </div>
                     <i class="bi bi-chevron-down arrow"></i>
                 </a>
-                <div class="collapse {{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') ? 'show' : '' }}" id="menuContent">
+                <div class="collapse {{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') || request()->routeIs('admin.content.widgets.*') ? 'show' : '' }}" id="menuContent">
                     <ul class="nav flex-column submenu">
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}" href="{{ route('admin.pages.index') }}">
@@ -1155,6 +1165,11 @@
                                 <i class="bi bi-question-diamond"></i> FAQs
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.content.widgets.*') ? 'active' : '' }}" href="{{ route('admin.content.widgets.index') }}">
+                                <i class="bi bi-grid-3x3-gap"></i> Widget Manager
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -1178,11 +1193,6 @@
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.menus.*') ? 'active' : '' }}" href="{{ route('admin.menus.index') }}">
                                 <i class="bi bi-list-nested"></i> Menu Builder
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.widgets.*') ? 'active' : '' }}" href="{{ route('admin.widgets.index') }}">
-                                <i class="bi bi-grid-3x3-gap"></i> Widget Manager
                             </a>
                         </li>
                         <li class="nav-item">

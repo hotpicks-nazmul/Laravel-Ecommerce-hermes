@@ -65,6 +65,25 @@
                     </div>
                 @endif
                 
+                @if($faqs->count() > 0)
+                <div class="accordion" id="faqAccordion">
+                    @foreach($faqs as $index => $faq)
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button {{ $index === 0 ? '' : 'collapsed' }}" type="button" data-bs-toggle="collapse" data-bs-target="#faq{{ $faq->id }}">
+                                {{ $faq->question }}
+                            </button>
+                        </h2>
+                        <div id="faq{{ $faq->id }}" class="accordion-collapse collapse {{ $index === 0 ? 'show' : '' }}" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                {!! nl2br(e($faq->answer)) !!}
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <!-- Fallback static content when no FAQs in database -->
                 <div class="accordion" id="faqAccordion">
                     <div class="accordion-item">
                         <h2 class="accordion-header">
@@ -150,6 +169,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
                 
                 <!-- Contact CTA -->
                 <div class="text-center mt-5">

@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\HeroController;
 use App\Http\Controllers\Admin\HomePageController;
 use App\Http\Controllers\Admin\CustomerGroupController;
+use App\Http\Controllers\Admin\FormBuilderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -240,13 +241,17 @@ Route::prefix('wishlists')->name('wishlists.')->group(function () {
 });
 Route::post('/reviews/bulk-action', [ReviewController::class, 'bulkAction'])->name('reviews.bulk-action');
 
-// Pages Management
-Route::resource('pages', PageController::class);
+// Pages Management - Custom routes first (before resource route to avoid 404 errors)
 Route::post('/pages/{page}/toggle', [PageController::class, 'toggle'])->name('pages.toggle');
 
-// Sliders Management
-Route::resource('sliders', SliderController::class);
+// Resource routes after custom routes
+Route::resource('pages', PageController::class);
+
+// Sliders Management - Custom routes first (before resource route to avoid 404 errors)
 Route::post('/sliders/reorder', [SliderController::class, 'reorder'])->name('sliders.reorder');
+
+// Resource route after custom routes
+Route::resource('sliders', SliderController::class);
 
 // Banners Management
 Route::resource('banners', BannerController::class);
@@ -267,16 +272,13 @@ Route::prefix('homepage')->name('homepage.')->group(function () {
 });
 
 // Theme Management
-Route::prefix('theme')->name('theme.')->group(function () {
+Route::prefix('themes')->name('themes.')->group(function () {
     Route::get('/', [ThemeController::class, 'index'])->name('index');
     Route::post('/activate', [ThemeController::class, 'activate'])->name('activate');
     Route::get('/settings', [ThemeController::class, 'settings'])->name('settings');
     Route::post('/settings', [ThemeController::class, 'updateSettings'])->name('settings.update');
     Route::post('/reset', [ThemeController::class, 'reset'])->name('reset');
 });
-
-// Themes alias (for menu compatibility)
-Route::get('/themes', [ThemeController::class, 'index'])->name('themes.index');
 
 // Media Management
 Route::get('/media', [\App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media.index');
@@ -362,9 +364,11 @@ Route::prefix('chat')->name('chat.')->group(function () {
     
     // AI Settings
     Route::post('/ai-settings', [ChatController::class, 'aiSettings'])->name('ai-settings');
+    Route::get('/ai-settings', [ChatController::class, 'aiSettingsPage'])->name('ai-settings.index');
     
     // Chat Widget Settings
     Route::post('/widget-settings', [ChatController::class, 'widgetSettings'])->name('widget-settings');
+    Route::get('/widget-settings', [ChatController::class, 'widgetSettingsPage'])->name('widget-settings.index');
     
     // Predefined Messages - CRUD
     Route::get('/predefined', [ChatController::class, 'predefinedMessages'])->name('predefined.index');
@@ -757,9 +761,16 @@ Route::prefix('marketing')->name('marketing.')->group(function () {
 // Support - Additional Routes
 // IMPORTANT: Specific routes must come before parameterized routes to avoid 404 errors
 Route::prefix('support')->name('support.')->group(function () {
-    // Product Queries (must come before /tickets/{id})
-    Route::get('/product-queries', [\App\Http\Controllers\Admin\SupportController::class, 'productQueries'])->name('product-queries.index');
-    Route::post('/product-queries/{id}/reply', [\App\Http\Controllers\Admin\SupportController::class, 'replyQuery'])->name('product-queries.reply');
+    // Product Queries (using ProductQAController)
+    // Must come before /tickets/{id} to avoid 404 errors
+    Route::get('/product-queries', [\App\Http\Controllers\Admin\ProductQAController::class, 'index'])->name('product-queries.index');
+    Route::get('/product-queries/{product_qa}', [\App\Http\Controllers\Admin\ProductQAController::class, 'show'])->name('product-queries.show');
+    Route::put('/product-queries/{product_qa}', [\App\Http\Controllers\Admin\ProductQAController::class, 'update'])->name('product-queries.update');
+    Route::delete('/product-queries/{product_qa}', [\App\Http\Controllers\Admin\ProductQAController::class, 'destroy'])->name('product-queries.destroy');
+    Route::post('/product-queries/bulk-action', [\App\Http\Controllers\Admin\ProductQAController::class, 'bulkAction'])->name('product-queries.bulk-action');
+    Route::post('/product-queries/{product_qa}/toggle-featured', [\App\Http\Controllers\Admin\ProductQAController::class, 'toggleFeatured'])->name('product-queries.toggle-featured');
+    Route::post('/product-queries/{product_qa}/quick-answer', [\App\Http\Controllers\Admin\ProductQAController::class, 'quickAnswer'])->name('product-queries.quick-answer');
+    Route::post('/product-queries/{product_qa}/update-status', [\App\Http\Controllers\Admin\ProductQAController::class, 'updateStatus'])->name('product-queries.update-status');
     
     // Tickets - List
     Route::get('/tickets', [\App\Http\Controllers\Admin\SupportController::class, 'tickets'])->name('tickets.index');
@@ -787,6 +798,8 @@ Route::prefix('otp')->name('otp.')->group(function () {
     Route::post('/sms-templates', [\App\Http\Controllers\Admin\OtpController::class, 'updateSmsTemplates'])->name('sms-templates.update');
     Route::get('/credentials', [\App\Http\Controllers\Admin\OtpController::class, 'credentials'])->name('credentials');
     Route::post('/credentials', [\App\Http\Controllers\Admin\OtpController::class, 'updateCredentials'])->name('credentials.update');
+    Route::post('/send-test-sms', [\App\Http\Controllers\Admin\OtpController::class, 'sendTestSms'])->name('send-test-sms');
+    Route::post('/check-balance', [\App\Http\Controllers\Admin\OtpController::class, 'checkBalance'])->name('check-balance');
 });
 
 // Settings - Additional Routes
@@ -976,71 +989,121 @@ Route::prefix('affiliate')->name('affiliate.')->group(function () {
 
 // Blog Categories
 Route::prefix('blog-categories')->name('blog-categories.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'blogCategories'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\PlaceholderController::class, 'createBlogCategory'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeBlogCategory'])->name('store');
-    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\PlaceholderController::class, 'editBlogCategory'])->name('edit');
-    Route::put('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateBlogCategory'])->name('update');
-    Route::delete('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyBlogCategory'])->name('destroy');
+    Route::get('/', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'store'])->name('store');
+    Route::get('/{blogCategory}/edit', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'edit'])->name('edit');
+    Route::put('/{blogCategory}', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'update'])->name('update');
+    Route::delete('/{blogCategory}', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'destroy'])->name('destroy');
+    Route::post('/{blogCategory}/toggle-status', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'toggleStatus'])->name('toggle-status');
+    Route::post('/bulk-action', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'bulkAction'])->name('bulk-action');
 });
 
 // Blog Tags
 Route::prefix('blog-tags')->name('blog-tags.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'blogTags'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\PlaceholderController::class, 'createBlogTag'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeBlogTag'])->name('store');
-    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\PlaceholderController::class, 'editBlogTag'])->name('edit');
-    Route::put('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateBlogTag'])->name('update');
-    Route::delete('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyBlogTag'])->name('destroy');
+    Route::get('/', [\App\Http\Controllers\Admin\BlogTagController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\Admin\BlogTagController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Admin\BlogTagController::class, 'store'])->name('store');
+    Route::get('/{blogTag}/edit', [\App\Http\Controllers\Admin\BlogTagController::class, 'edit'])->name('edit');
+    Route::put('/{blogTag}', [\App\Http\Controllers\Admin\BlogTagController::class, 'update'])->name('update');
+    Route::delete('/{blogTag}', [\App\Http\Controllers\Admin\BlogTagController::class, 'destroy'])->name('destroy');
+    Route::post('/{blogTag}/toggle-status', [\App\Http\Controllers\Admin\BlogTagController::class, 'toggleStatus'])->name('toggle-status');
+    Route::post('/bulk-action', [\App\Http\Controllers\Admin\BlogTagController::class, 'bulkAction'])->name('bulk-action');
 });
 
-// FAQs Management
-Route::prefix('faqs')->name('faqs.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'faqs'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\PlaceholderController::class, 'createFaq'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeFaq'])->name('store');
-    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\PlaceholderController::class, 'editFaq'])->name('edit');
-    Route::put('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateFaq'])->name('update');
-    Route::delete('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyFaq'])->name('destroy');
-    Route::post('/reorder', [\App\Http\Controllers\Admin\PlaceholderController::class, 'reorderFaqs'])->name('reorder');
-});
+// FAQs Management - Specific routes must come before wildcard routes to avoid 404 errors
+Route::get('/faqs', [\App\Http\Controllers\Admin\FaqController::class, 'index'])->name('faqs.index');
+Route::get('/faqs/create', [\App\Http\Controllers\Admin\FaqController::class, 'create'])->name('faqs.create');
+Route::post('/faqs', [\App\Http\Controllers\Admin\FaqController::class, 'store'])->name('faqs.store');
+Route::get('/faqs/{faq}/edit', [\App\Http\Controllers\Admin\FaqController::class, 'edit'])->name('faqs.edit');
+Route::put('/faqs/{faq}', [\App\Http\Controllers\Admin\FaqController::class, 'update'])->name('faqs.update');
+Route::delete('/faqs/{faq}', [\App\Http\Controllers\Admin\FaqController::class, 'destroy'])->name('faqs.destroy');
+Route::post('/faqs/toggle-status/{faq}', [\App\Http\Controllers\Admin\FaqController::class, 'toggleStatus'])->name('faqs.toggle-status');
+Route::post('/faqs/bulk-action', [\App\Http\Controllers\Admin\FaqController::class, 'bulkAction'])->name('faqs.bulk-action');
+Route::post('/faqs/reorder', [\App\Http\Controllers\Admin\FaqController::class, 'reorder'])->name('faqs.reorder');
 
-// Form Builder
-Route::prefix('form-builder')->name('form-builder.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'formBuilder'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\PlaceholderController::class, 'createForm'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeForm'])->name('store');
-    Route::get('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'showForm'])->name('show');
-    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\PlaceholderController::class, 'editForm'])->name('edit');
-    Route::put('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateForm'])->name('update');
-    Route::delete('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyForm'])->name('destroy');
-    Route::get('/{id}/submissions', [\App\Http\Controllers\Admin\PlaceholderController::class, 'formSubmissions'])->name('submissions');
-    Route::get('/{id}/submissions/{submissionId}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'showFormSubmission'])->name('submissions.show');
-});
+// Form Builder - Specific routes must come before wildcard routes to avoid 404 errors
+Route::get('/form-builder', [FormBuilderController::class, 'index'])->name('form-builder.index');
+Route::get('/form-builder/create', [FormBuilderController::class, 'create'])->name('form-builder.create');
+Route::post('/form-builder', [FormBuilderController::class, 'store'])->name('form-builder.store');
+
+// Specific routes for form actions - must come before {id} route
+Route::get('/form-builder/{id}/duplicate', [FormBuilderController::class, 'duplicate'])->name('form-builder.duplicate');
+Route::post('/form-builder/{id}/toggle-status', [FormBuilderController::class, 'toggleStatus'])->name('form-builder.toggle-status');
+
+// Field management routes
+Route::post('/form-builder/{id}/fields', [FormBuilderController::class, 'storeField'])->name('form-builder.fields.store');
+Route::get('/form-builder/{id}/fields/{fieldId}', [FormBuilderController::class, 'getField'])->name('form-builder.fields.get');
+Route::put('/form-builder/{id}/fields/{fieldId}', [FormBuilderController::class, 'updateField'])->name('form-builder.fields.update');
+Route::delete('/form-builder/{id}/fields/{fieldId}', [FormBuilderController::class, 'destroyField'])->name('form-builder.fields.destroy');
+Route::post('/form-builder/{id}/fields/reorder', [FormBuilderController::class, 'reorderFields'])->name('form-builder.fields.reorder');
+
+// Submissions routes - must come before {id} route
+Route::get('/form-builder/{id}/submissions', [FormBuilderController::class, 'submissions'])->name('form-builder.submissions');
+Route::get('/form-builder/{id}/submissions/export', [FormBuilderController::class, 'exportSubmissions'])->name('form-builder.submissions.export');
+Route::get('/form-builder/{id}/submissions/{submissionId}', [FormBuilderController::class, 'showSubmission'])->name('form-builder.submissions.show');
+Route::post('/form-builder/{id}/submissions/{submissionId}/toggle-read', [FormBuilderController::class, 'toggleReadStatus'])->name('form-builder.submissions.toggle-read');
+Route::post('/form-builder/{id}/submissions/{submissionId}/note', [FormBuilderController::class, 'addNote'])->name('form-builder.submissions.note');
+Route::delete('/form-builder/{id}/submissions/{submissionId}', [FormBuilderController::class, 'destroySubmission'])->name('form-builder.submissions.destroy');
+
+// General form routes (show, edit, update, delete)
+Route::get('/form-builder/{id}', [FormBuilderController::class, 'show'])->name('form-builder.show');
+Route::get('/form-builder/{id}/edit', [FormBuilderController::class, 'edit'])->name('form-builder.edit');
+Route::put('/form-builder/{id}', [FormBuilderController::class, 'update'])->name('form-builder.update');
+Route::delete('/form-builder/{id}', [FormBuilderController::class, 'destroy'])->name('form-builder.destroy');
 
 // Menu Builder
 Route::prefix('menus')->name('menus.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'menus'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\PlaceholderController::class, 'createMenu'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeMenu'])->name('store');
-    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\PlaceholderController::class, 'editMenu'])->name('edit');
-    Route::put('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateMenu'])->name('update');
-    Route::delete('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyMenu'])->name('destroy');
-    Route::post('/{id}/items', [\App\Http\Controllers\Admin\PlaceholderController::class, 'addMenuItem'])->name('items.store');
-    Route::put('/{id}/items/{itemId}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateMenuItem'])->name('items.update');
-    Route::delete('/{id}/items/{itemId}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyMenuItem'])->name('items.destroy');
-    Route::post('/{id}/items/reorder', [\App\Http\Controllers\Admin\PlaceholderController::class, 'reorderMenuItems'])->name('items.reorder');
+    Route::get('/', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'store'])->name('store');
+    
+    // Menu items routes - must be before {id} routes to avoid conflicts
+    Route::post('/{id}/items', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'storeItem'])->name('items.store');
+    Route::get('/{id}/items', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'items'])->name('items');
+    Route::put('/{id}/items/{itemId}', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'updateItem'])->name('items.update');
+    Route::delete('/{id}/items/{itemId}', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'destroyItem'])->name('items.destroy');
+    Route::post('/{id}/items/reorder', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'reorderItems'])->name('items.reorder');
+    Route::post('/{id}/items/{itemId}/toggle', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'toggleItemStatus'])->name('items.toggle');
+    
+    // Link options route
+    Route::get('/link-options', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'getLinkOptions'])->name('link-options');
+    
+    // Toggle status
+    Route::post('/{id}/toggle', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'toggleStatus'])->name('toggle');
+    
+    // CRUD routes - must be after specific routes
+    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'update'])->name('update');
+    Route::delete('/{id}', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'destroy'])->name('destroy');
 });
 
 // Widget Manager
+Route::prefix('content/widgets')->name('content.widgets.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\WidgetController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\Admin\WidgetController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Admin\WidgetController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\WidgetController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'update'])->name('update');
+    Route::delete('/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'destroy'])->name('destroy');
+    Route::post('/reorder', [\App\Http\Controllers\Admin\WidgetController::class, 'reorder'])->name('reorder');
+    Route::post('/toggle-status/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'toggleStatus'])->name('toggle-status');
+    Route::post('/toggle-featured/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'toggleFeatured'])->name('toggle-featured');
+    Route::post('/bulk-action', [\App\Http\Controllers\Admin\WidgetController::class, 'bulkAction'])->name('bulk-action');
+});
+
+// Widget Manager (Legacy route - works at /admin/widgets)
 Route::prefix('widgets')->name('widgets.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'widgets'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\PlaceholderController::class, 'createWidget'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeWidget'])->name('store');
-    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\PlaceholderController::class, 'editWidget'])->name('edit');
-    Route::put('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateWidget'])->name('update');
-    Route::delete('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyWidget'])->name('destroy');
-    Route::post('/reorder', [\App\Http\Controllers\Admin\PlaceholderController::class, 'reorderWidgets'])->name('reorder');
+    Route::get('/', [\App\Http\Controllers\Admin\WidgetController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\Admin\WidgetController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Admin\WidgetController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\WidgetController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'update'])->name('update');
+    Route::delete('/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'destroy'])->name('destroy');
+    Route::post('/reorder', [\App\Http\Controllers\Admin\WidgetController::class, 'reorder'])->name('reorder');
+    Route::post('/toggle-status/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'toggleStatus'])->name('toggle-status');
+    Route::post('/toggle-featured/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'toggleFeatured'])->name('toggle-featured');
+    Route::post('/bulk-action', [\App\Http\Controllers\Admin\WidgetController::class, 'bulkAction'])->name('bulk-action');
 });
 
 // API Keys & Integrations
