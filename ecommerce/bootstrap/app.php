@@ -14,6 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\CheckInstallation::class,
             \App\Http\Middleware\ThemeMiddleware::class,
+            \App\Http\Middleware\LanguageMiddleware::class,
+            \App\Http\Middleware\SeoRedirectMiddleware::class,
         ]);
         
         $middleware->alias([
@@ -24,4 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })->create();
+    })
+    ->withProviders([
+        \App\Providers\MailServiceProvider::class,
+    ])
+    ->create();

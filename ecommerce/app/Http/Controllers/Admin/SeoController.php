@@ -13,16 +13,20 @@ class SeoController extends Controller
     {
         $settings = Setting::whereIn('key', [
             'site_meta_title', 'site_meta_description', 'site_meta_keywords',
-            'google_analytics_id', 'google_search_console_code',
+            'google_analytics_id', 'google_search_console_code', 'facebook_pixel_id',
+            'og_title', 'og_description', 'og_image',
+            'twitter_card_type',
         ])->pluck('value', 'key');
 
-        return view('admin.seo.index', compact('settings'));
+        $redirects = json_decode(Setting::get('seo_redirects', '[]'), true);
+        
+        return view('admin.seo.index', compact('settings', 'redirects'));
     }
 
     public function updateMeta(Request $request)
     {
         foreach ($request->except('_token') as $key => $value) {
-            Setting::updateOrCreate(['key' => $key], ['value' => $value]);
+            Setting::updateOrCreate(['key' => $key], ['value' => $value, 'group' => 'seo']);
         }
 
         return back()->with('success', 'SEO settings updated successfully.');
@@ -43,7 +47,7 @@ class SeoController extends Controller
     public function redirects()
     {
         $redirects = json_decode(Setting::get('seo_redirects', '[]'), true);
-        return view('admin.seo.redirects', compact('redirects'));
+        return view('admin.seo.index', compact('redirects'));
     }
 
     public function storeRedirect(Request $request)
@@ -61,7 +65,7 @@ class SeoController extends Controller
             'type' => $request->type,
         ];
 
-        Setting::updateOrCreate(['key' => 'seo_redirects'], ['value' => json_encode($redirects)]);
+        Setting::updateOrCreate(['key' => 'seo_redirects'], ['value' => json_encode($redirects), 'group' => 'seo']);
 
         return back()->with('success', 'Redirect added successfully.');
     }
@@ -72,7 +76,7 @@ class SeoController extends Controller
         
         if (isset($redirects[$index])) {
             unset($redirects[$index]);
-            Setting::updateOrCreate(['key' => 'seo_redirects'], ['value' => json_encode(array_values($redirects))]);
+            Setting::updateOrCreate(['key' => 'seo_redirects'], ['value' => json_encode(array_values($redirects)), 'group' => 'seo']);
         }
 
         return back()->with('success', 'Redirect deleted successfully.');

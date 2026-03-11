@@ -59,6 +59,7 @@ class CheckoutController extends Controller
             'billing_state' => 'required|string|max:100',
             'billing_postcode' => 'required|string|max:20',
             'billing_country' => 'required|string|max:100',
+            'shipping_method' => 'nullable|string|in:home_delivery,local_pickup',
             'payment_method' => 'required|string',
             'terms' => 'required|accepted',
         ]);
@@ -69,12 +70,28 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
         }
 
+        // Get order configuration settings
+        $minOrderAmount = (float) Setting::get('min_order_amount', 0);
+        $maxOrderAmount = (float) Setting::get('max_order_amount', 0);
+        $subtotal = $cart->subtotal;
+
+        // Validate minimum order amount
+        if ($minOrderAmount > 0 && $subtotal < $minOrderAmount) {
+            return back()->with('error', 'Minimum order amount is ' . config('app.currency_symbol', '৳') . number_format($minOrderAmount, 2))->withInput();
+        }
+
+        // Validate maximum order amount
+        if ($maxOrderAmount > 0 && $subtotal > $maxOrderAmount) {
+            return back()->with('error', 'Maximum order amount is ' . config('app.currency_symbol', '৳') . number_format($maxOrderAmount, 2))->withInput();
+        }
+
         DB::beginTransaction();
         try {
             // Calculate totals
             $subtotal = $cart->subtotal;
             $tax = $subtotal * (Setting::get('tax_rate', 0) / 100);
-            $shippingCost = $this->calculateShipping($subtotal);
+            $shippingMethod = $request->input('shipping_method', 'home_delivery');
+            $shippingCost = $this->calculateShipping($subtotal, $shippingMethod, $request->billing_city, $request->billing_state);
             $discount = 0;
 
             // Apply coupon
@@ -95,6 +112,7 @@ class CheckoutController extends Controller
                 'status' => 'pending',
                 'payment_status' => 'pending',
                 'payment_method' => $request->payment_method,
+                'shipping_method' => $shippingMethod,
                 'subtotal' => $subtotal,
                 'tax' => $tax,
                 'shipping_cost' => $shippingCost,
@@ -206,16 +224,123 @@ class CheckoutController extends Controller
     /**
      * Calculate shipping cost.
      */
-    protected function calculateShipping($subtotal)
+    protected function calculateShipping($subtotal, $shippingMethod = null, $city = null, $state = null)
     {
-        $freeShippingAmount = Setting::get('free_shipping_amount', 0);
-        $flatRate = Setting::get('flat_shipping_rate', 0);
+        // Get shipping settings from admin panel
+        $freeShippingEnabled = Setting::get('free_shipping_enabled', '0') === '1';
+        $freeShippingMinAmount = (float) Setting::get('free_shipping_min_amount', 0);
+        $defaultShippingCost = (float) Setting::get('default_shipping_cost', 0);
+        $shippingCalculationType = Setting::get('shipping_calculation_type', 'flat');
+        $localPickupEnabled = Setting::get('local_pickup_enabled', '0') === '1';
+        $localPickupCost = (float) Setting::get('local_pickup_cost', 0);
 
-        if ($freeShippingAmount > 0 && $subtotal >= $freeShippingAmount) {
+        // Check for free shipping
+        if ($freeShippingEnabled && $freeShippingMinAmount > 0 && $subtotal >= $freeShippingMinAmount) {
             return 0;
         }
 
-        return $flatRate;
+        // Handle local pickup
+        if ($shippingMethod === 'local_pickup') {
+            return $localPickupEnabled ? $localPickupCost : 0;
+        }
+
+        // Handle delivery zone-based shipping
+        if ($shippingCalculationType === 'location' && !empty($city)) {
+            // Try to find matching delivery zone
+            $zone = \App\Models\DeliveryZone::active()
+                ->where(function($query) use ($city, $state) {
+                    $query->where('city', 'like', "%{$city}%")
+                        ->orWhere('state', 'like', "%{$state}%")
+                        ->orWhereNull('city');
+                })
+                ->first();
+
+            if ($zone) {
+                // Check if free shipping threshold is met for this zone
+                if ($zone->free_shipping_enabled && $zone->free_shipping_threshold > 0 && $subtotal >= $zone->free_shipping_threshold) {
+                    return 0;
+                }
+
+                // Return zone shipping cost
+                return (float) $zone->shipping_cost;
+            }
+        }
+
+        // Default to flat rate
+        return $defaultShippingCost;
+    }
+
+    /**
+     * Get available shipping options for the cart.
+     */
+    public function getShippingOptions(Request $request)
+    {
+        $city = $request->input('city');
+        $state = $request->input('state');
+        $subtotal = (float) $request->input('subtotal', 0);
+
+        // Get settings
+        $freeShippingEnabled = Setting::get('free_shipping_enabled', '0') === '1';
+        $freeShippingMinAmount = (float) Setting::get('free_shipping_min_amount', 0);
+        $defaultShippingCost = (float) Setting::get('default_shipping_cost', 0);
+        $shippingCalculationType = Setting::get('shipping_calculation_type', 'flat');
+        $localPickupEnabled = Setting::get('local_pickup_enabled', '0') === '1';
+        $localPickupCost = (float) Setting::get('local_pickup_cost', 0);
+
+        $options = [];
+
+        // Add home delivery option
+        $homeDeliveryCost = $defaultShippingCost;
+        $homeDeliveryLabel = 'Home Delivery';
+
+        // If location-based, try to find matching zone
+        if ($shippingCalculationType === 'location' && !empty($city)) {
+            $zone = \App\Models\DeliveryZone::active()
+                ->where(function($query) use ($city, $state) {
+                    $query->where('city', 'like', "%{$city}%")
+                        ->orWhere('state', 'like', "%{$state}%")
+                        ->orWhereNull('city');
+                })
+                ->first();
+
+            if ($zone) {
+                if ($zone->free_shipping_enabled && $zone->free_shipping_threshold > 0 && $subtotal >= $zone->free_shipping_threshold) {
+                    $homeDeliveryCost = 0;
+                    $homeDeliveryLabel = 'Home Delivery (Free)';
+                } else {
+                    $homeDeliveryCost = (float) $zone->shipping_cost;
+                    $homeDeliveryLabel = 'Home Delivery - ' . $zone->name;
+                }
+            }
+        }
+
+        // Check global free shipping
+        if ($freeShippingEnabled && $freeShippingMinAmount > 0 && $subtotal >= $freeShippingMinAmount) {
+            $homeDeliveryCost = 0;
+            $homeDeliveryLabel = 'Free Shipping';
+        }
+
+        $options[] = [
+            'id' => 'home_delivery',
+            'name' => $homeDeliveryLabel,
+            'cost' => $homeDeliveryCost,
+            'estimated_days' => '3-5 business days',
+        ];
+
+        // Add local pickup option if enabled
+        if ($localPickupEnabled) {
+            $options[] = [
+                'id' => 'local_pickup',
+                'name' => 'Local Pickup',
+                'cost' => $localPickupCost,
+                'estimated_days' => 'Same day',
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'options' => $options,
+        ]);
     }
 
     /**

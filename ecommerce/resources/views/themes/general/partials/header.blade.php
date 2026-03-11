@@ -1,33 +1,18 @@
-<!-- Top Bar -->
-<div class="bg-halal-dark text-white py-2">
-    <div class="container mx-auto px-4">
-        <div class="flex flex-wrap justify-between items-center text-sm">
-            <div class="flex items-center space-x-4">
-                <span class="flex items-center">
-                    <i class="bi bi-telephone-fill mr-2 text-halal-gold"></i>
-                    +880 1700-000000
-                </span>
-                <span class="hidden md:flex items-center">
-                    <i class="bi bi-envelope-fill mr-2 text-halal-gold"></i>
-                    info@halalfoodstore.com
-                </span>
-            </div>
-            <div class="flex items-center space-x-4">
-                <span class="flex items-center text-halal-gold">
-                    <i class="bi bi-truck mr-1"></i>
-                    Free Delivery on orders over ৳500
-                </span>
-            </div>
-        </div>
-    </div>
-</div>
-
 @php
+// Home Page Settings - Top Bar
+$topBarPhoneSetting = \App\Models\Setting::where('key', 'top_bar_phone')->where('group', 'homepage')->first();
+$topBarEmailSetting = \App\Models\Setting::where('key', 'top_bar_email')->where('group', 'homepage')->first();
+$topBarDeliverySetting = \App\Models\Setting::where('key', 'top_bar_delivery_message')->where('group', 'homepage')->first();
+
+$topBarPhone = $topBarPhoneSetting ? $topBarPhoneSetting->value : '+880 1700-000000';
+$topBarEmail = $topBarEmailSetting ? $topBarEmailSetting->value : 'info@halalfoodstore.com';
+$topBarDelivery = $topBarDeliverySetting ? $topBarDeliverySetting->value : 'Free Delivery on orders over ৳500';
+
 // Site Branding Settings - Query settings with homepage group
-$siteNameSetting = \App\Models\Setting::where('key', 'site_name')->first();
-$siteTaglineSetting = \App\Models\Setting::where('key', 'site_tagline')->first();
-$siteLogoIconSetting = \App\Models\Setting::where('key', 'site_logo_icon')->first();
-$siteLogoImageSetting = \App\Models\Setting::where('key', 'site_logo')->first();
+$siteNameSetting = \App\Models\Setting::where('key', 'site_name')->where('group', 'homepage')->first();
+$siteTaglineSetting = \App\Models\Setting::where('key', 'site_tagline')->where('group', 'homepage')->first();
+$siteLogoIconSetting = \App\Models\Setting::where('key', 'site_logo_icon')->where('group', 'homepage')->first();
+$siteLogoImageSetting = \App\Models\Setting::where('key', 'site_logo')->where('group', 'homepage')->first();
 
 $siteName = $siteNameSetting ? $siteNameSetting->value : 'Halal Food';
 $siteTagline = $siteTaglineSetting ? $siteTaglineSetting->value : 'Premium Quality Store';
@@ -42,6 +27,36 @@ $menuActiveTextColor = \App\Models\Setting::where('key', 'menu_active_text_color
 $menuFontSize = \App\Models\Setting::where('key', 'menu_font_size')->first()?->value ?? '14';
 $menuFontWeight = \App\Models\Setting::where('key', 'menu_font_weight')->first()?->value ?? '400';
 @endphp
+
+<!-- Top Bar -->
+<div class="bg-halal-dark text-white py-2">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-wrap justify-between items-center text-sm">
+            <div class="flex items-center space-x-4">
+                <span class="flex items-center">
+                    <i class="bi bi-telephone-fill mr-2 text-halal-gold"></i>
+                    {{ $topBarPhone }}
+                </span>
+                <span class="hidden md:flex items-center">
+                    <i class="bi bi-envelope-fill mr-2 text-halal-gold"></i>
+                    {{ $topBarEmail }}
+                </span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="flex items-center text-halal-gold">
+                    <i class="bi bi-truck mr-1"></i>
+                    {{ $topBarDelivery }}
+                </span>
+                
+                <!-- Language Switcher -->
+                @include('themes.general.partials.language-switcher')
+                
+                <!-- Currency Switcher -->
+                @include('themes.general.partials.currency-switcher')
+            </div>
+        </div>
+    </div>
+</div>
 
 <style>
     .nav-menu-link {

@@ -43,6 +43,7 @@ return new class extends Migration
             $table->json('credentials')->nullable();
             $table->boolean('is_active')->default(false);
             $table->boolean('test_mode')->default(true);
+            $table->boolean('is_default')->default(false);
             $table->integer('sort_order')->default(0);
             $table->timestamps();
             

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Services\ThemeService;
 use App\Models\Category;
+use App\Models\Setting;
 
 class ThemeMiddleware
 {
@@ -44,6 +45,21 @@ class ThemeMiddleware
         // Share categories with all views for header navigation
         $categories = Category::withCount('products')->orderBy('name')->get();
         view()->share('categories', $categories);
+
+        // Share SEO settings with all views
+        $seoSettings = Setting::whereIn('key', [
+            'site_meta_title',
+            'site_meta_description',
+            'site_meta_keywords',
+            'google_analytics_id',
+            'google_search_console',
+            'facebook_pixel_id',
+            'og_title',
+            'og_description',
+            'og_image',
+            'twitter_card_type',
+        ])->pluck('value', 'key');
+        view()->share('seoSettings', $seoSettings);
 
         return $next($request);
     }

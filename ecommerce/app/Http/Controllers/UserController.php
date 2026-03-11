@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Address;
 use App\Models\Setting;
+use App\Models\UserNotificationPreference;
 use Laravel\Socialite\Facades\Socialite;
 
 class UserController extends Controller
@@ -191,7 +192,7 @@ class UserController extends Controller
         config([
             "services.{$provider}.client_id" => $settings["{$provider}_client_id"] ?? '',
             "services.{$provider}.client_secret" => $settings["{$provider}_client_secret"] ?? '',
-            "services.{$provider}.redirect" => url("/auth/{$provider}/callback"),
+            "services.{$provider}.redirect" => url("/login/{$provider}/callback"),
         ]);
         
         try {
@@ -404,5 +405,63 @@ class UserController extends Controller
         $address->delete();
 
         return back()->with('success', 'Address deleted successfully.');
+    }
+
+    /**
+     * Display user notification settings.
+     */
+    public function notifications()
+    {
+        $user = auth()->user();
+        $defaultKeys = UserNotificationPreference::getDefaultKeys();
+        
+        // Get user's preferences
+        $preferences = [];
+        foreach ($defaultKeys as $type => $keys) {
+            foreach ($keys as $key => $label) {
+                $pref = UserNotificationPreference::getPreference($user->id, $type, $key);
+                $preferences[$type][$key] = $pref->enabled;
+            }
+        }
+        
+        // Get global notification settings (to check what's enabled by admin)
+        $globalSettings = Setting::where('group', 'notifications')->pluck('value', 'key');
+        
+        return view('themes.general.dashboard.notifications', compact('user', 'preferences', 'globalSettings', 'defaultKeys'));
+    }
+
+    /**
+     * Update user notification settings.
+     */
+    public function updateNotifications(Request $request)
+    {
+        $user = auth()->user();
+        $defaultKeys = UserNotificationPreference::getDefaultKeys();
+        
+        // Update email notifications
+        if (isset($defaultKeys['email'])) {
+            foreach ($defaultKeys['email'] as $key => $label) {
+                $enabled = $request->has("email_{$key}") ? true : false;
+                UserNotificationPreference::updatePreference($user->id, 'email', $key, $enabled);
+            }
+        }
+        
+        // Update SMS notifications
+        if (isset($defaultKeys['sms'])) {
+            foreach ($defaultKeys['sms'] as $key => $label) {
+                $enabled = $request->has("sms_{$key}") ? true : false;
+                UserNotificationPreference::updatePreference($user->id, 'sms', $key, $enabled);
+            }
+        }
+        
+        // Update push notifications
+        if (isset($defaultKeys['push'])) {
+            foreach ($defaultKeys['push'] as $key => $label) {
+                $enabled = $request->has("push_{$key}") ? true : false;
+                UserNotificationPreference::updatePreference($user->id, 'push', $key, $enabled);
+            }
+        }
+
+        return back()->with('success', 'Notification preferences updated successfully.');
     }
 }

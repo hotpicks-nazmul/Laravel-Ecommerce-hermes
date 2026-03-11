@@ -1,9 +1,13 @@
 Read Preference.md and Follow the style and functionality Preference to implement.
 
 in admin panel
-implement and fully functional APPEARANCE > Sliders
+implement and fully functional SETTINGS > Banners
 
-implement this functionality for both backend and if needed then also implement for frontend. 
+
+implement this functionality for both backend and  also implement for frontend. 
+Always read existing code first before making changes - this prevents breaking existing functionality.
+and also do not duplicate functionality.
+
 
 Make all features logical and easy to use functionality.
 
@@ -16,9 +20,11 @@ Do you understand? let me know.
 Read Preference.md and Follow the style and functionality Preference to implement.
 
 in admin panel
-check if  APPEARANCE > Sliders is implemented and fully functional or not
+check if  SETTINGS > General Settings is implemented and fully functional or not
 
 implement this functionality for both backend and  also implement for frontend. 
+Always read existing code first before making changes - this prevents breaking existing functionality.
+and also do not duplicate functionality.
 
 Make all features logical and easy to use functionality.
 

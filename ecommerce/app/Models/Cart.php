@@ -24,6 +24,114 @@ class Cart extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Get user's shipping address for tax calculation
+     */
+    protected function getTaxAddress()
+    {
+        $user = $this->user;
+        
+        if ($user) {
+            $address = $user->addresses()->where('is_default', true)->first()
+                ?? $user->addresses()->first();
+            
+            if ($address) {
+                return [
+                    'country' => $address->country,
+                    'state' => $address->state,
+                    'zip_code' => $address->zip_code,
+                ];
+            }
+        }
+        
+        // Check session for address
+        return session('tax_address', [
+            'country' => null,
+            'state' => null,
+            'zip_code' => null,
+        ]);
+    }
+
+    /**
+     * Calculate tax amount for the cart
+     */
+    public function getTax()
+    {
+        $taxEnabled = Setting::get('tax_enabled', '1');
+        
+        if ($taxEnabled != '1') {
+            return 0;
+        }
+
+        $taxType = Setting::get('tax_type', 'global');
+        $subtotal = $this->getSubtotal();
+        
+        if ($taxType === 'location') {
+            $address = $this->getTaxAddress();
+            $tax = Tax::getTaxForLocation(
+                $address['country'],
+                $address['state'],
+                $address['zip_code']
+            );
+        } else {
+            $tax = Tax::getDefault();
+        }
+        
+        if (!$tax) {
+            return 0;
+        }
+        
+        return $tax->calculateTax($subtotal);
+    }
+
+    /**
+     * Get cart total including tax
+     */
+    public function getTotal()
+    {
+        return $this->getSubtotal() + $this->getTax();
+    }
+
+    /**
+     * Get tax rate percentage
+     */
+    public function getTaxRate()
+    {
+        $taxType = Setting::get('tax_type', 'global');
+        
+        if ($taxType === 'location') {
+            $address = $this->getTaxAddress();
+            $tax = Tax::getTaxForLocation(
+                $address['country'],
+                $address['state'],
+                $address['zip_code']
+            );
+        } else {
+            $tax = Tax::getDefault();
+        }
+        
+        return $tax ? $tax->rate : 0;
+    }
+
+    /**
+     * Get the active tax
+     */
+    public function getActiveTax()
+    {
+        $taxType = Setting::get('tax_type', 'global');
+        
+        if ($taxType === 'location') {
+            $address = $this->getTaxAddress();
+            return Tax::getTaxForLocation(
+                $address['country'],
+                $address['state'],
+                $address['zip_code']
+            );
+        } else {
+            return Tax::getDefault();
+        }
+    }
+
     public function addItem($product, $quantity = 1, $variantData = [])
     {
         $items = $this->items ?? [];
@@ -145,10 +253,5 @@ class Cart extends Model
             }
             return $price * $item['quantity'];
         }, $items));
-    }
-
-    public function getTotal()
-    {
-        return $this->getSubtotal();
     }
 }

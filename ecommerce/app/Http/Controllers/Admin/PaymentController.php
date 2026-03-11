@@ -3,80 +3,173 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\PaymentGateway;
 use Illuminate\Http\Request;
-use App\Models\Setting;
+use Illuminate\Support\Facades\Storage;
 
 class PaymentController extends Controller
 {
+    /**
+     * Display payment methods list.
+     */
     public function index()
     {
-        $settings = Setting::whereIn('key', [
-            'bkash_enabled', 'bkash_merchant_number', 'bkash_username', 'bkash_password', 'bkash_app_key', 'bkash_app_secret', 'bkash_sandbox',
-            'sslcommerz_enabled', 'sslcommerz_store_id', 'sslcommerz_store_password', 'sslcommerz_sandbox',
-            'nagad_enabled', 'nagad_merchant_id', 'nagad_merchant_number', 'nagad_sandbox',
-            'rocket_enabled', 'rocket_merchant_id', 'rocket_merchant_number', 'rocket_password', 'rocket_sandbox',
-            'cod_enabled', 'cod_instructions',
-        ])->pluck('value', 'key');
-
-        return view('admin.payment.index', compact('settings'));
-    }
-
-    public function updateBkash(Request $request)
-    {
-        foreach (['bkash_enabled', 'bkash_merchant_number', 'bkash_username', 'bkash_password', 'bkash_app_key', 'bkash_app_secret', 'bkash_sandbox'] as $key) {
-            Setting::updateOrCreate(['key' => $key], ['value' => $request->input($key, '')]);
-        }
-
-        return back()->with('success', 'bKash settings updated successfully.');
-    }
-
-    public function updateSslcommerz(Request $request)
-    {
-        foreach (['sslcommerz_enabled', 'sslcommerz_store_id', 'sslcommerz_store_password', 'sslcommerz_sandbox'] as $key) {
-            Setting::updateOrCreate(['key' => $key], ['value' => $request->input($key, '')]);
-        }
-
-        return back()->with('success', 'SSLCommerz settings updated successfully.');
-    }
-
-    public function updateNagad(Request $request)
-    {
-        foreach (['nagad_enabled', 'nagad_merchant_id', 'nagad_merchant_number', 'nagad_sandbox'] as $key) {
-            Setting::updateOrCreate(['key' => $key], ['value' => $request->input($key, '')]);
-        }
-
-        return back()->with('success', 'Nagad settings updated successfully.');
-    }
-
-    public function updateRocket(Request $request)
-    {
-        foreach (['rocket_enabled', 'rocket_merchant_id', 'rocket_merchant_number', 'rocket_password', 'rocket_sandbox'] as $key) {
-            Setting::updateOrCreate(['key' => $key], ['value' => $request->input($key, '')]);
-        }
-
-        return back()->with('success', 'Rocket settings updated successfully.');
-    }
-
-    public function updateCod(Request $request)
-    {
-        foreach (['cod_enabled', 'cod_instructions'] as $key) {
-            Setting::updateOrCreate(['key' => $key], ['value' => $request->input($key, '')]);
-        }
-
-        return back()->with('success', 'Cash on Delivery settings updated successfully.');
-    }
-
-    public function toggle($gateway)
-    {
-        $key = $gateway . '_enabled';
-        $setting = Setting::where('key', $key)->first();
+        $gateways = PaymentGateway::orderBy('sort_order')->get();
         
-        if ($setting) {
-            $setting->update(['value' => $setting->value === '1' ? '0' : '1']);
-        } else {
-            Setting::create(['key' => $key, 'value' => '1']);
+        // Convert to array with proper structure for the view
+        $gatewaysArray = [];
+        foreach ($gateways as $gateway) {
+            $gatewaysArray[$gateway->slug] = [
+                'id' => $gateway->id,
+                'name' => $gateway->name,
+                'description' => $gateway->description,
+                'logo' => $gateway->logo,
+                'enabled' => $gateway->is_active,
+                'sandbox' => $gateway->test_mode,
+                'credentials' => $gateway->credentials ?? [],
+            ];
         }
 
-        return back()->with('success', 'Payment gateway status updated.');
+        return view('admin.payment.index', compact('gateways', 'gatewaysArray'));
+    }
+
+    /**
+     * Store a new payment gateway.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:payment_gateways,slug',
+            'description' => 'nullable|string',
+            'logo' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048',
+        ]);
+
+        $data = $request->except('_token');
+        $data['is_active'] = $request->has('is_active');
+        $data['test_mode'] = $request->has('test_mode');
+        $data['sort_order'] = $request->input('sort_order', 0);
+
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            $path = $request->file('logo')->store('payment-logos', 'public');
+            $data['logo'] = $path;
+        }
+
+        PaymentGateway::create($data);
+
+        return back()->with('success', 'Payment gateway created successfully.');
+    }
+
+    /**
+     * Update a payment gateway.
+     */
+    public function update(Request $request, $id)
+    {
+        $gateway = PaymentGateway::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:payment_gateways,slug,' . $id,
+            'description' => 'nullable|string',
+            'logo' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048',
+        ]);
+
+        $data = $request->except('_token', '_method');
+        $data['is_active'] = $request->has('is_active');
+        $data['test_mode'] = $request->has('test_mode');
+        $data['sort_order'] = $request->input('sort_order', 0);
+
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            // Delete old logo
+            if ($gateway->logo) {
+                Storage::disk('public')->delete($gateway->logo);
+            }
+            $path = $request->file('logo')->store('payment-logos', 'public');
+            $data['logo'] = $path;
+        }
+
+        $gateway->update($data);
+
+        return back()->with('success', 'Payment gateway updated successfully.');
+    }
+
+    /**
+     * Update credentials for a specific gateway.
+     */
+    public function updateCredentials(Request $request, $slug)
+    {
+        $gateway = PaymentGateway::where('slug', $slug)->firstOrFail();
+        
+        $credentials = $gateway->credentials ?? [];
+        
+        // Merge new credentials with existing ones
+        $newCredentials = $request->except('_token');
+        foreach ($newCredentials as $key => $value) {
+            $credentials[$key] = $value;
+        }
+
+        $gateway->update(['credentials' => $credentials]);
+
+        return back()->with('success', ucfirst($gateway->name) . ' credentials updated successfully.');
+    }
+
+    /**
+     * Toggle gateway status.
+     */
+    public function toggle($id)
+    {
+        $gateway = PaymentGateway::findOrFail($id);
+        $gateway->update(['is_active' => !$gateway->is_active]);
+
+        return back()->with('success', $gateway->name . ' status updated.');
+    }
+
+    /**
+     * Delete a payment gateway.
+     */
+    public function destroy($id)
+    {
+        $gateway = PaymentGateway::findOrFail($id);
+
+        // Delete logo if exists
+        if ($gateway->logo) {
+            Storage::disk('public')->delete($gateway->logo);
+        }
+
+        $gateway->delete();
+
+        return back()->with('success', 'Payment gateway deleted successfully.');
+    }
+
+    /**
+     * Set default payment gateway.
+     */
+    public function setDefault($id)
+    {
+        $gateway = PaymentGateway::findOrFail($id);
+        
+        // Remove default from all other gateways
+        PaymentGateway::where('is_default', true)->update(['is_default' => false]);
+        
+        // Set this gateway as default
+        $gateway->update(['is_default' => true]);
+
+        return back()->with('success', $gateway->name . ' set as default payment method.');
+    }
+
+    /**
+     * Update gateway order/sort.
+     */
+    public function updateOrder(Request $request)
+    {
+        $order = $request->input('order', []);
+        
+        foreach ($order as $index => $id) {
+            PaymentGateway::where('id', $id)->update(['sort_order' => $index]);
+        }
+
+        return response()->json(['success' => true]);
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Blog;
+use App\Models\Banner;
 use App\Models\Setting;
 use App\Services\ThemeService;
 
@@ -84,6 +85,11 @@ class HomeController extends Controller
             ->take(3)
             ->get();
 
+        // Get banners for different positions
+        $homeTopBanners = Banner::getActiveByPosition('home_top', 3);
+        $homeMiddleBanners = Banner::getActiveByPosition('home_middle', 2);
+        $homeBottomBanners = Banner::getActiveByPosition('home_bottom', 4);
+
         // Get section order from settings
         $sectionOrderSetting = Setting::where('key', 'homepage_section_order')->first();
         $sectionOrder = $sectionOrderSetting ? json_decode($sectionOrderSetting->value, true) : [
@@ -106,7 +112,10 @@ class HomeController extends Controller
             'categories',
             'saleProducts',
             'latestBlogs',
-            'sectionOrder'
+            'sectionOrder',
+            'homeTopBanners',
+            'homeMiddleBanners',
+            'homeBottomBanners'
         ));
     }
 }

@@ -97,6 +97,9 @@ class HomePageController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
+            'top_bar_phone' => 'nullable|string|max:255',
+            'top_bar_email' => 'nullable|email|max:255',
+            'top_bar_delivery_message' => 'nullable|string|max:255',
             'homepage_product_columns' => 'required|integer|min:2|max:6',
             'homepage_featured_products_count' => 'required|integer|min:4|max:100',
             'homepage_new_arrivals_count' => 'required|integer|min:4|max:100',

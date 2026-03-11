@@ -253,9 +253,13 @@ Route::post('/sliders/reorder', [SliderController::class, 'reorder'])->name('sli
 // Resource route after custom routes
 Route::resource('sliders', SliderController::class);
 
-// Banners Management
-Route::resource('banners', BannerController::class);
+// Banners Management - Custom routes first (to avoid 404 errors)
 Route::post('/banners/{banner}/toggle', [BannerController::class, 'toggle'])->name('banners.toggle');
+Route::post('/banners/reorder', [BannerController::class, 'reorder'])->name('banners.reorder');
+Route::post('/banners/bulk-action', [BannerController::class, 'bulkAction'])->name('banners.bulkAction');
+
+// Resource route after custom routes
+Route::resource('banners', BannerController::class);
 
 // Hero Section Settings
 Route::prefix('hero')->name('hero.')->group(function () {
@@ -319,17 +323,42 @@ Route::prefix('settings')->name('settings.')->group(function () {
     Route::post('/footer', [SettingController::class, 'updateFooter'])->name('footer.update');
     Route::get('/maintenance', [SettingController::class, 'maintenance'])->name('maintenance');
     Route::post('/maintenance', [SettingController::class, 'updateMaintenance'])->name('maintenance.update');
+    
+    // Email Templates - Using custom controller
+    Route::prefix('email-templates')->name('email-templates.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'index'])->name('index');
+        Route::get('/{emailTemplate}/edit', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'edit'])->name('edit');
+        Route::put('/{emailTemplate}', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'update'])->name('update');
+        Route::patch('/{emailTemplate}/toggle-status', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/{emailTemplate}/preview', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'preview'])->name('preview');
+    });
 });
 
-// Payment Settings
+// Payment Settings - SPECIFIC ROUTES BEFORE RESOURCE ROUTES (to avoid 404 errors)
 Route::prefix('payment')->name('payment.')->group(function () {
+    // List all payment methods
     Route::get('/', [PaymentController::class, 'index'])->name('index');
-    Route::post('/bkash', [PaymentController::class, 'updateBkash'])->name('bkash.update');
-    Route::post('/sslcommerz', [PaymentController::class, 'updateSslcommerz'])->name('sslcommerz.update');
-    Route::post('/nagad', [PaymentController::class, 'updateNagad'])->name('nagad.update');
-    Route::post('/rocket', [PaymentController::class, 'updateRocket'])->name('rocket.update');
-    Route::post('/cod', [PaymentController::class, 'updateCod'])->name('cod.update');
-    Route::post('/toggle/{gateway}', [PaymentController::class, 'toggle'])->name('toggle');
+    
+    // Create new payment method
+    Route::post('/', [PaymentController::class, 'store'])->name('store');
+    
+    // Update payment method details
+    Route::put('/{id}', [PaymentController::class, 'update'])->name('update');
+    
+    // Delete payment method
+    Route::delete('/{id}', [PaymentController::class, 'destroy'])->name('destroy');
+    
+    // Toggle payment method status
+    Route::put('/toggle/{id}', [PaymentController::class, 'toggle'])->name('toggle');
+    
+    // Set as default payment method
+    Route::put('/set-default/{id}', [PaymentController::class, 'setDefault'])->name('set-default');
+    
+    // Update credentials for specific gateway (using slug)
+    Route::post('/credentials/{slug}', [PaymentController::class, 'updateCredentials'])->name('credentials');
+    
+    // Update order/sort
+    Route::post('/order', [PaymentController::class, 'updateOrder'])->name('order');
 });
 
 // Payment Gateways alias (for menu compatibility)
@@ -804,35 +833,53 @@ Route::prefix('otp')->name('otp.')->group(function () {
 
 // Settings - Additional Routes
 Route::prefix('settings')->name('settings.')->group(function () {
-    Route::get('/features', [SettingController::class, 'features'])->name('features');
-    Route::post('/features', [SettingController::class, 'updateFeatures'])->name('features.update');
     Route::get('/languages', [SettingController::class, 'languages'])->name('languages');
     Route::post('/languages', [SettingController::class, 'storeLanguage'])->name('languages.store');
     Route::put('/languages/{id}', [SettingController::class, 'updateLanguage'])->name('languages.update');
     Route::delete('/languages/{id}', [SettingController::class, 'destroyLanguage'])->name('languages.destroy');
+    Route::post('/languages/{id}/set-default', [SettingController::class, 'setDefaultLanguage'])->name('languages.setDefault');
+    Route::post('/languages/toggle-frontend', [SettingController::class, 'toggleFrontendLanguageSwitcher'])->name('languages.toggleFrontend');
     Route::get('/currency', [SettingController::class, 'currency'])->name('currency');
-    Route::post('/currency', [SettingController::class, 'updateCurrency'])->name('currency.update');
+    Route::post('/currency', [SettingController::class, 'storeCurrency'])->name('currency.store');
+    Route::put('/currency/{id}', [SettingController::class, 'updateCurrency'])->name('currency.update');
+    Route::delete('/currency/{id}', [SettingController::class, 'destroyCurrency'])->name('currency.destroy');
+    Route::post('/currency/{id}/set-default', [SettingController::class, 'setDefaultCurrency'])->name('currency.setDefault');
+    Route::post('/currency/toggle-frontend', [SettingController::class, 'toggleFrontendCurrencySwitcher'])->name('currency.toggleFrontend');
+    
+    // VAT & Tax Settings
     Route::get('/vat-tax', [SettingController::class, 'vatTax'])->name('vat-tax');
-    Route::post('/vat-tax', [SettingController::class, 'updateVatTax'])->name('vat-tax.update');
+    Route::post('/vat-tax/settings', [SettingController::class, 'updateVatTax'])->name('vat-tax.updateSettings');
+    Route::post('/vat-tax', [SettingController::class, 'storeTax'])->name('vat-tax.store');
+    Route::put('/vat-tax/{id}', [SettingController::class, 'updateTax'])->name('vat-tax.update');
+    Route::delete('/vat-tax/{id}', [SettingController::class, 'destroyTax'])->name('vat-tax.destroy');
+    Route::post('/vat-tax/{id}/set-default', [SettingController::class, 'setDefaultTax'])->name('vat-tax.setDefault');
+    
     Route::get('/order-configuration', [SettingController::class, 'orderConfiguration'])->name('order-configuration');
     Route::post('/order-configuration', [SettingController::class, 'updateOrderConfiguration'])->name('order-configuration.update');
     Route::get('/file-system', [SettingController::class, 'fileSystem'])->name('file-system');
+    Route::post('/file-system', [SettingController::class, 'updateFileSystem'])->name('file-system.update');
     Route::post('/file-system/clear-cache', [SettingController::class, 'clearCache'])->name('file-system.clear-cache');
+    
+    // API endpoint for frontend to get file system settings
+    Route::get('/api/file-system-settings', [SettingController::class, 'getFileSystemSettingsApi'])->name('api.file-system-settings');
+    // API endpoint for frontend to get SEO settings
+    Route::get('/api/seo-settings', [SettingController::class, 'getSeoSettingsApi'])->name('api.seo-settings');
+    // API endpoint for frontend to get email templates
+    Route::get('/api/email-templates', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'getAllTemplatesApi'])->name('api.email-templates');
+    Route::get('/api/email-templates/{slug}', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'getTemplateApi'])->name('api.email-templates.show');
+    Route::post('/api/email-templates/render', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'renderTemplate'])->name('api.email-templates.render');
     Route::get('/shipping', [SettingController::class, 'shipping'])->name('shipping');
     Route::post('/shipping', [SettingController::class, 'updateShipping'])->name('shipping.update');
     
-    // Email Templates
-    Route::prefix('email-templates')->name('email-templates.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'emailTemplates'])->name('index');
-        Route::get('/{id}/edit', [\App\Http\Controllers\Admin\PlaceholderController::class, 'editEmailTemplate'])->name('edit');
-        Route::put('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateEmailTemplate'])->name('update');
-    });
-    
+
     // Notification Settings
     Route::prefix('notifications')->name('notifications.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'notificationSettings'])->name('index');
-        Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateNotificationSettings'])->name('update');
+        Route::get('/', [\App\Http\Controllers\Admin\SettingController::class, 'notifications'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\SettingController::class, 'updateNotifications'])->name('update');
     });
+
+    // API endpoint for frontend to get notification settings
+    Route::get('/api/notification-settings', [SettingController::class, 'getNotificationSettingsApi'])->name('api.notification-settings');
 });
 
 // Warehouse Management
@@ -1120,12 +1167,4 @@ Route::prefix('api-keys')->name('api-keys.')->group(function () {
 
 // Settings - Additional Routes
 Route::prefix('settings')->name('settings.')->group(function () {
-    Route::get('/security', [\App\Http\Controllers\Admin\PlaceholderController::class, 'securitySettings'])->name('security');
-    Route::post('/security', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateSecuritySettings'])->name('security.update');
-    Route::get('/gdpr', [\App\Http\Controllers\Admin\PlaceholderController::class, 'gdprSettings'])->name('gdpr');
-    Route::post('/gdpr', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateGdprSettings'])->name('gdpr.update');
-    Route::get('/tax-classes', [\App\Http\Controllers\Admin\PlaceholderController::class, 'taxClasses'])->name('tax-classes');
-    Route::post('/tax-classes', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeTaxClass'])->name('tax-classes.store');
-    Route::put('/tax-classes/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateTaxClass'])->name('tax-classes.update');
-    Route::delete('/tax-classes/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyTaxClass'])->name('tax-classes.destroy');
 });

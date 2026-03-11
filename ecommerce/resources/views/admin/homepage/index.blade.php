@@ -127,6 +127,55 @@
                 </div>
             </div>
             
+            <!-- Top Bar Settings -->
+            <div class="col-lg-4 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-info-circle me-2 text-primary"></i>
+                            Top Bar Info
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Phone Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                <input type="text" name="top_bar_phone" 
+                                       class="form-control" 
+                                       value="{{ $homeSettings['top_bar_phone']->value ?? '+880 1700-000000' }}"
+                                       placeholder="+880 1700-000000">
+                            </div>
+                            <p class="text-muted small mt-1">Phone number shown in top bar</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input type="email" name="top_bar_email" 
+                                       class="form-control" 
+                                       value="{{ $homeSettings['top_bar_email']->value ?? 'info@halalfoodstore.com' }}"
+                                       placeholder="info@halalfoodstore.com">
+                            </div>
+                            <p class="text-muted small mt-1">Email shown in top bar</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Free Delivery Message</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-truck"></i></span>
+                                <input type="text" name="top_bar_delivery_message" 
+                                       class="form-control" 
+                                       value="{{ $homeSettings['top_bar_delivery_message']->value ?? 'Free Delivery on orders over ৳500' }}"
+                                       placeholder="Free Delivery on orders over ৳500">
+                            </div>
+                            <p class="text-muted small mt-1">Message shown in top bar</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Section Visibility -->
             <div class="col-lg-4 mb-3">
                 <div class="card border-0 shadow-sm h-100">

@@ -212,6 +212,46 @@ class Product extends Model
         return $this->isOnSale() ? $this->sale_price : $this->price;
     }
 
+    /**
+     * Calculate tax for this product
+     */
+    public function calculateTax($country = null, $state = null, $zipCode = null): float
+    {
+        return \App\Services\TaxHelper::calculateTax($this->final_price, $country, $state, $zipCode);
+    }
+
+    /**
+     * Get tax rate for this product
+     */
+    public function getTaxRate($country = null, $state = null, $zipCode = null): float
+    {
+        return \App\Services\TaxHelper::getTaxRate($country, $state, $zipCode);
+    }
+
+    /**
+     * Get price including tax
+     */
+    public function getPriceWithTax($country = null, $state = null, $zipCode = null): float
+    {
+        return $this->final_price + $this->calculateTax($country, $state, $zipCode);
+    }
+
+    /**
+     * Get formatted tax amount
+     */
+    public function getFormattedTax($country = null, $state = null, $zipCode = null): string
+    {
+        return \App\Services\TaxHelper::formatTaxAmount($this->calculateTax($country, $state, $zipCode));
+    }
+
+    /**
+     * Get formatted price with tax
+     */
+    public function getFormattedPriceWithTax($country = null, $state = null, $zipCode = null): string
+    {
+        return \App\Services\TaxHelper::formatTaxAmount($this->getPriceWithTax($country, $state, $zipCode));
+    }
+
     public function getDiscountPercentageAttribute()
     {
         if ($this->isOnSale() && $this->price > 0) {

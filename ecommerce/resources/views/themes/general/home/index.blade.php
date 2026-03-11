@@ -20,19 +20,12 @@ $homeSettings = \App\Models\Setting::where('group', 'homepage')->get()->keyBy('k
 $home = function($key, $default = '') use ($homeSettings) {
     return $homeSettings->has($key) ? $homeSettings[$key]->value : $default;
 };
-$productColumns = (int) $home('homepage_product_columns', '6');
-$gridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $productColumns;
 
-// Individual section column settings
-$featuredColumns = (int) $home('homepage_featured_columns', '6');
-$featuredGridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $featuredColumns;
-$newArrivalsColumns = (int) $home('homepage_new_arrivals_columns', '6');
-$newArrivalsGridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $newArrivalsColumns;
-$saleColumns = (int) $home('homepage_sale_columns', '6');
-$saleGridClass = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-' . $saleColumns;
+// Product columns - single setting for all sections
+$productColumns = (int) $home('homepage_product_columns', 6);
 
 // Section order with default fallback
-$sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arrivals', 'why_choose_us', 'sale', 'testimonials', 'blog'];
+$sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arrivals', 'why_choose_us', 'sale', 'testimonials', 'blog', 'dynamic_banners'];
 @endphp
 
 @section('content')
@@ -479,10 +472,10 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                 
                 <!-- Product Slider -->
                 <div class="product-slider-container relative">
-                    <div class="product-slider" id="featured-slider">
+                    <div class="product-slider" id="featured-slider" data-columns="{{ $productColumns }}">
                         <div class="swiper-wrapper">
                             @foreach($featuredProducts as $product)
-                                <div class="swiper-slide">
+                                <div class="swiper-slide" style="width: {{ 100 / $productColumns }}%;">
                                     @include('themes.general.partials.product-card', ['product' => $product])
                                 </div>
                             @endforeach
@@ -578,10 +571,10 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                 
                 <!-- Product Slider -->
                 <div class="product-slider-container relative">
-                    <div class="product-slider" id="new-arrivals-slider">
+                    <div class="product-slider" id="new-arrivals-slider" data-columns="{{ $productColumns }}">
                         <div class="swiper-wrapper">
                             @foreach($latestProducts as $product)
-                                <div class="swiper-slide">
+                                <div class="swiper-slide" style="width: {{ 100 / $productColumns }}%;">
                                     @include('themes.general.partials.product-card', ['product' => $product])
                                 </div>
                             @endforeach
@@ -648,10 +641,10 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                 
                 <!-- Product Slider -->
                 <div class="product-slider-container relative">
-                    <div class="product-slider" id="sale-slider">
+                    <div class="product-slider" id="sale-slider" data-columns="{{ $productColumns }}">
                         <div class="swiper-wrapper">
                             @foreach($saleProducts as $product)
-                                <div class="swiper-slide">
+                                <div class="swiper-slide" style="width: {{ 100 / $productColumns }}%;">
                                     @include('themes.general.partials.product-card', ['product' => $product])
                                 </div>
                             @endforeach
@@ -767,6 +760,111 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                 </div>
             </div>
         </section>
+        @endif
+    @elseif($section === 'dynamic_banners')
+        <!-- Dynamic Banners Section - Admin Created Banners -->
+        @php
+            $homeTopBanners = isset($homeTopBanners) && is_object($homeTopBanners) ? $homeTopBanners : collect();
+            $homeMiddleBanners = isset($homeMiddleBanners) && is_object($homeMiddleBanners) ? $homeMiddleBanners : collect();
+            $homeBottomBanners = isset($homeBottomBanners) && is_object($homeBottomBanners) ? $homeBottomBanners : collect();
+            $hasDynamicBanners = $homeTopBanners->count() > 0 || $homeMiddleBanners->count() > 0 || $homeBottomBanners->count() > 0;
+        @endphp
+        @if($hasDynamicBanners)
+            {{-- Home Top Banners --}}
+            @if($homeTopBanners->count() > 0)
+            <section class="py-8" data-section="dynamic-banner-top">
+                <div class="container mx-auto px-4">
+                    <div class="grid md:grid-cols-{{ min($homeTopBanners->count(), 3) }} gap-6">
+                        @foreach($homeTopBanners as $banner)
+                            @php
+                                $bannerImage = $banner->image;
+                                if($bannerImage && !str_starts_with($bannerImage, '/storage/') && !str_starts_with($bannerImage, 'http')) {
+                                    $bannerImage = '/storage/' . $bannerImage;
+                                }
+                            @endphp
+                            <a href="{{ $banner->link ?? '#' }}" class="group relative block overflow-hidden rounded-2xl">
+                                <img src="{{ $bannerImage }}" alt="{{ $banner->title }}" class="w-full h-48 md:h-56 object-cover transform group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-6">
+                                    @if($banner->title)
+                                        <h3 class="text-white font-bold text-xl">{{ $banner->title }}</h3>
+                                    @endif
+                                    @if($banner->description)
+                                        <p class="text-white/80 text-sm mt-1">{{ $banner->description }}</p>
+                                    @endif
+                                    @if($banner->button_text)
+                                        <span class="inline-block mt-3 px-4 py-2 rounded-full text-sm font-medium w-fit" 
+                                              style="background-color: {{ $banner->button_color ?? '#D4AF37' }}; color: #fff;">
+                                            {{ $banner->button_text }}
+                                        </span>
+                                    @endif
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+            @endif
+
+            {{-- Home Middle Banners --}}
+            @if($homeMiddleBanners->count() > 0)
+            <section class="py-8 bg-gray-50" data-section="dynamic-banner-middle">
+                <div class="container mx-auto px-4">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        @foreach($homeMiddleBanners as $banner)
+                            @php
+                                $bannerImage = $banner->image;
+                                if($bannerImage && !str_starts_with($bannerImage, '/storage/') && !str_starts_with($bannerImage, 'http')) {
+                                    $bannerImage = '/storage/' . $bannerImage;
+                                }
+                            @endphp
+                            <a href="{{ $banner->link ?? '#' }}" class="group relative block overflow-hidden rounded-2xl">
+                                <img src="{{ $bannerImage }}" alt="{{ $banner->title }}" class="w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex flex-col justify-center p-8">
+                                    @if($banner->title)
+                                        <h3 class="text-white font-bold text-2xl">{{ $banner->title }}</h3>
+                                    @endif
+                                    @if($banner->description)
+                                        <p class="text-white/80 mt-2">{{ $banner->description }}</p>
+                                    @endif
+                                    @if($banner->button_text)
+                                        <span class="inline-block mt-4 px-6 py-2 rounded-full text-sm font-medium w-fit" 
+                                              style="background-color: {{ $banner->button_color ?? '#D4AF37' }}; color: #fff;">
+                                            {{ $banner->button_text }}
+                                        </span>
+                                    @endif
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+            @endif
+
+            {{-- Home Bottom Banners --}}
+            @if($homeBottomBanners->count() > 0)
+            <section class="py-8" data-section="dynamic-banner-bottom">
+                <div class="container mx-auto px-4">
+                    <div class="grid md:grid-cols-{{ min($homeBottomBanners->count(), 4) }} gap-6">
+                        @foreach($homeBottomBanners as $banner)
+                            @php
+                                $bannerImage = $banner->image;
+                                if($bannerImage && !str_starts_with($bannerImage, '/storage/') && !str_starts_with($bannerImage, 'http')) {
+                                    $bannerImage = '/storage/' . $bannerImage;
+                                }
+                            @endphp
+                            <a href="{{ $banner->link ?? '#' }}" class="group relative block overflow-hidden rounded-xl">
+                                <img src="{{ $bannerImage }}" alt="{{ $banner->title }}" class="w-full h-36 object-cover transform group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                    @if($banner->title)
+                                        <h3 class="text-white font-semibold text-center px-2">{{ $banner->title }}</h3>
+                                    @endif
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+            @endif
         @endif
     @endif
 @endforeach
@@ -1125,10 +1223,8 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
     
     // Initialize Product Sliders with Swiper
     document.addEventListener('DOMContentLoaded', function() {
-        // Column settings from PHP
-        const featuredColumns = {{ $featuredColumns ?? 6 }};
-        const newArrivalsColumns = {{ $newArrivalsColumns ?? 6 }};
-        const saleColumns = {{ $saleColumns ?? 6 }};
+        // Single column setting for all product sections
+        const productColumns = {{ $productColumns ?? 6 }};
         
         // Function to create responsive breakpoints based on column setting
         function createBreakpoints(maxColumns) {
@@ -1177,7 +1273,7 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                     nextEl: '.featured-slider-next',
                     prevEl: '.featured-slider-prev',
                 },
-                breakpoints: createBreakpoints(featuredColumns),
+                breakpoints: createBreakpoints(productColumns),
             });
         }
         
@@ -1202,7 +1298,7 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                     nextEl: '.new-arrivals-slider-next',
                     prevEl: '.new-arrivals-slider-prev',
                 },
-                breakpoints: createBreakpoints(newArrivalsColumns),
+                breakpoints: createBreakpoints(productColumns),
             });
         }
         
@@ -1227,7 +1323,7 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                     nextEl: '.sale-slider-next',
                     prevEl: '.sale-slider-prev',
                 },
-                breakpoints: createBreakpoints(saleColumns),
+                breakpoints: createBreakpoints(productColumns),
             });
         }
     });

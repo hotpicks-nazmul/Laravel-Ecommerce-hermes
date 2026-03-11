@@ -15,6 +15,8 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\FormController;
+use App\Http\Controllers\Frontend\LanguageController;
+use App\Http\Controllers\Frontend\CurrencyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +32,13 @@ Route::prefix('install')->group(base_path('routes/install.php'));
 
 // Frontend Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Language Switcher Route
+Route::get('/language/switch', [LanguageController::class, 'switch'])->name('language.switch');
+
+// Currency Switcher Route
+Route::get('/currency/switch/{code}', [CurrencyController::class, 'switch'])->name('currency.switch');
+
 Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/contact', [PageController::class, 'contact'])->name('pages.contact');
 Route::post('/contact', [PageController::class, 'sendContact'])->name('contact.send');
@@ -113,6 +122,9 @@ Route::prefix('wishlist')->name('wishlist.')->middleware('auth')->group(function
 });
 
 // Checkout Routes
+// Public route for shipping options
+Route::get('/checkout/shipping-options', [CheckoutController::class, 'getShippingOptions'])->name('checkout.shipping-options');
+
 Route::prefix('checkout')->name('checkout.')->middleware('auth')->group(function () {
     Route::get('/', [CheckoutController::class, 'index'])->name('index');
     Route::post('/process', [CheckoutController::class, 'process'])->name('process');
@@ -177,6 +189,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [UserController::class, 'dashboard'])->name('dashboard');
         Route::get('/profile', [UserController::class, 'profile'])->name('profile');
         Route::put('/profile', [UserController::class, 'updateProfile'])->name('profile.update');
+        Route::get('/notifications', [UserController::class, 'notifications'])->name('notifications');
+        Route::post('/notifications', [UserController::class, 'updateNotifications'])->name('notifications.update');
         Route::get('/orders', [OrderController::class, 'index'])->name('orders');
         Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
@@ -192,6 +206,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/profile', [UserController::class, 'profile'])->name('profile');
         Route::put('/profile', [UserController::class, 'updateProfile'])->name('profile.update');
         Route::put('/password', [UserController::class, 'updatePassword'])->name('password.update');
+        Route::get('/notifications', [UserController::class, 'notifications'])->name('notifications');
+        Route::post('/notifications', [UserController::class, 'updateNotifications'])->name('notifications.update');
         Route::get('/addresses', [UserController::class, 'addresses'])->name('addresses');
         Route::post('/addresses', [UserController::class, 'storeAddress'])->name('addresses.store');
         Route::put('/addresses/{address}', [UserController::class, 'updateAddress'])->name('addresses.update');

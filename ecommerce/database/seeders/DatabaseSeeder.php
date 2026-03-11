@@ -407,5 +407,10 @@ class DatabaseSeeder extends Seeder
                 ]
             );
         }
+
+        // Seed payment gateways
+        $this->call([
+            PaymentGatewaySeeder::class,
+        ]);
     }
 }

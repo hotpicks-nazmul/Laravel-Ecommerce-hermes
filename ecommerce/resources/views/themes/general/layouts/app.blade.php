@@ -1,19 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ $isRTL ?? false ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
+    <?php
+    // Get SEO settings from middleware
+    $seoSettings = $seoSettings ?? [];
+    $siteMetaTitle = $seoSettings['site_meta_title'] ?? '';
+    $siteMetaDescription = $seoSettings['site_meta_description'] ?? '';
+    $siteMetaKeywords = $seoSettings['site_meta_keywords'] ?? '';
+    $googleAnalyticsId = $seoSettings['google_analytics_id'] ?? '';
+    $ogTitle = $seoSettings['og_title'] ?? ($siteMetaTitle ?: 'Halal Food Store');
+    $ogDescription = $seoSettings['og_description'] ?? ($siteMetaDescription ?: 'Premium Quality Halal Food');
+    $ogImage = $seoSettings['og_image'] ?? '';
+    $twitterCardType = $seoSettings['twitter_card_type'] ?? 'summary_large_image';
+    ?>
+    
     <!-- SEO Meta Tags -->
-    <title>@yield('title', 'Halal Food Store') - Premium Quality Halal Food</title>
-    <meta name="description" content="@yield('meta_description', 'Buy premium quality halal meat, poultry, seafood, and groceries online. Fresh delivery across Bangladesh.')">
-    <meta name="keywords" content="@yield('meta_keywords', 'halal food, halal meat, online grocery, fresh meat, Bangladesh')">
+    <title>@yield('title', {{ $siteMetaTitle ?: 'Halal Food Store' }}){{ $siteMetaTitle ? ' - ' . $siteMetaTitle : '' }}</title>
+    <meta name="description" content="@yield('meta_description', {{ $siteMetaDescription ?: 'Buy premium quality halal meat, poultry, seafood, and groceries online. Fresh delivery across Bangladesh.' }})">
+    <meta name="keywords" content="@yield('meta_keywords', {{ $siteMetaKeywords ?: 'halal food, halal meat, online grocery, fresh meat, Bangladesh' }})">
     
     <!-- Open Graph -->
-    <meta property="og:title" content="@yield('og_title', 'Halal Food Store')">
-    <meta property="og:description" content="@yield('og_description', 'Premium Quality Halal Food')">
+    <meta property="og:title" content="@yield('og_title', {{ $ogTitle }})">
+    <meta property="og:description" content="@yield('og_description', {{ $ogDescription }})">
     <meta property="og:type" content="website">
+    @if($ogImage)
+    <meta property="og:image" content="{{ $ogImage }}">
+    @endif
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="{{ $twitterCardType }}">
+    <meta name="twitter:title" content="@yield('og_title', {{ $ogTitle }})">
+    <meta name="twitter:description" content="@yield('og_description', {{ $ogDescription }})">
+    @if($ogImage)
+    <meta name="twitter:image" content="{{ $ogImage }}">
+    @endif
+    
+    <!-- Google Analytics -->
+    @if($googleAnalyticsId)
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ $googleAnalyticsId }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ $googleAnalyticsId }}');
+    </script>
+    @endif
     
     <?php
     // Get theme settings

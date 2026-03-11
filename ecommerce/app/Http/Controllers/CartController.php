@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Cart;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Session;
 
 class CartController extends Controller
@@ -265,7 +266,17 @@ class CartController extends Controller
             }
         }
         
-        $delivery = $subtotal > 500 ? 0 : 60;
+        // Calculate delivery cost using admin shipping settings
+        $freeShippingEnabled = Setting::get('free_shipping_enabled', '0') === '1';
+        $freeShippingMinAmount = (float) Setting::get('free_shipping_min_amount', 0);
+        $defaultShippingCost = (float) Setting::get('default_shipping_cost', 0);
+        
+        // Check if free shipping applies
+        if ($freeShippingEnabled && $freeShippingMinAmount > 0 && $subtotal >= $freeShippingMinAmount) {
+            $delivery = 0;
+        } else {
+            $delivery = $defaultShippingCost;
+        }
         
         return response()->json([
             'items' => $items,
@@ -273,6 +284,11 @@ class CartController extends Controller
             'delivery' => number_format($delivery, 2),
             'total' => number_format($subtotal + $delivery, 2),
             'cart_id' => $cart->id,
+            'free_shipping_enabled' => $freeShippingEnabled,
+            'free_shipping_min_amount' => $freeShippingMinAmount,
+            'free_shipping_remaining' => $freeShippingEnabled && $freeShippingMinAmount > 0 
+                ? max(0, $freeShippingMinAmount - $subtotal) 
+                : 0,
         ]);
     }
 

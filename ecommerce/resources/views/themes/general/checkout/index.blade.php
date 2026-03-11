@@ -16,6 +16,7 @@ let checkoutItems = [];
 let checkoutSubtotal = 0;
 let checkoutDelivery = 0;
 let checkoutTotal = 0;
+let selectedShippingMethod = 'home_delivery';
 
 async function loadCheckoutData() {
     try {
@@ -37,6 +38,85 @@ async function loadCheckoutData() {
         renderCheckoutPage();
     } catch (error) {
         console.error('Error loading checkout:', error);
+    }
+}
+
+async function updateShippingOptions() {
+    const city = document.querySelector('input[name="billing_city"]')?.value || '';
+    const state = document.querySelector('input[name="billing_state"]')?.value || '';
+    
+    try {
+        const response = await fetch(`/checkout/shipping-options?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&subtotal=${checkoutSubtotal}`, {
+            credentials: 'same-origin'
+        });
+        const data = await response.json();
+        
+        if (data.success && data.options) {
+            renderShippingOptions(data.options);
+        }
+    } catch (error) {
+        console.error('Error loading shipping options:', error);
+    }
+}
+
+function renderShippingOptions(options) {
+    const container = document.getElementById('shippingOptionsContainer');
+    if (!container) return;
+    
+    let html = options.map(option => {
+        const isSelected = option.id === selectedShippingMethod;
+        return `
+            <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${isSelected ? 'border-halal-green bg-green-50' : ''}">
+                <input type="radio" name="shipping_method" value="${option.id}" ${isSelected ? 'checked' : ''} 
+                    class="mr-3" onchange="selectShippingMethod('${option.id}', ${option.cost})">
+                <div class="flex-1">
+                    <div class="font-medium">${option.name}</div>
+                    <div class="text-sm text-gray-500">${option.estimated_days || ''}</div>
+                </div>
+                <div class="font-medium ${option.cost === 0 ? 'text-halal-green' : ''}">
+                    ${option.cost === 0 ? 'Free' : '৳' + option.cost.toLocaleString()}
+                </div>
+            </label>
+        `;
+    }).join('');
+    
+    container.innerHTML = html;
+}
+
+function selectShippingMethod(method, cost) {
+    selectedShippingMethod = method;
+    checkoutDelivery = cost;
+    checkoutTotal = checkoutSubtotal + checkoutDelivery;
+    updateOrderSummary();
+    
+    // Update radio button styling
+    document.querySelectorAll('input[name="shipping_method"]').forEach(radio => {
+        const label = radio.closest('label');
+        if (radio.value === method) {
+            label.classList.add('border-halal-green', 'bg-green-50');
+            label.classList.remove('border-gray-300');
+        } else {
+            label.classList.remove('border-halal-green', 'bg-green-50');
+            label.classList.add('border-gray-300');
+        }
+    });
+}
+
+function updateOrderSummary() {
+    const subtotalEl = document.getElementById('checkoutSubtotal');
+    const deliveryEl = document.getElementById('checkoutDelivery');
+    const totalEl = document.getElementById('checkoutTotal');
+    const freeDeliveryMsg = document.getElementById('freeDeliveryMessage');
+    
+    if (subtotalEl) subtotalEl.textContent = '৳' + checkoutSubtotal.toLocaleString();
+    if (deliveryEl) {
+        deliveryEl.textContent = checkoutDelivery === 0 ? 'Free' : '৳' + checkoutDelivery.toLocaleString();
+        deliveryEl.className = checkoutDelivery === 0 ? 'text-halal-green' : '';
+    }
+    if (totalEl) totalEl.textContent = '৳' + checkoutTotal.toLocaleString();
+    
+    if (freeDeliveryMsg) {
+        freeDeliveryMsg.style.display = checkoutDelivery === 0 ? 'block' : 'none';
     }
 }
 
@@ -81,7 +161,7 @@ function renderCheckoutPage() {
                 </div>
                 
                 <!-- Billing Details -->
-                <div class="bg-white p-6 rounded-lg shadow-sm">
+                <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
                     <h3 class="text-lg font-bold mb-4">Billing Details</h3>
                     <form id="checkoutForm" onsubmit="processCheckout(event)">
                         @csrf
@@ -108,11 +188,11 @@ function renderCheckoutPage() {
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">City *</label>
-                                <input type="text" name="billing_city" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
+                                <input type="text" name="billing_city" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green" onchange="updateShippingOptions()">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">State *</label>
-                                <input type="text" name="billing_state" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
+                                <input type="text" name="billing_state" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green" onchange="updateShippingOptions()">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Postcode *</label>
@@ -130,14 +210,48 @@ function renderCheckoutPage() {
                             </div>
                         </div>
                         
+                        <!-- Shipping Method -->
+                        <div class="mt-6">
+                            <h4 class="font-medium mb-3">Shipping Method</h4>
+                            <div id="shippingOptionsContainer" class="space-y-2">
+                                <!-- Default: Home Delivery -->
+                                <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 border-halal-green bg-green-50">
+                                    <input type="radio" name="shipping_method" value="home_delivery" checked 
+                                        class="mr-3" onchange="selectShippingMethod('home_delivery', ${checkoutDelivery})">
+                                    <div class="flex-1">
+                                        <div class="font-medium">Home Delivery</div>
+                                        <div class="text-sm text-gray-500">3-5 business days</div>
+                                    </div>
+                                    <div class="font-medium ${checkoutDelivery === 0 ? 'text-halal-green' : ''}">
+                                        ${checkoutDelivery === 0 ? 'Free' : '৳' + checkoutDelivery.toLocaleString()}
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
                         <!-- Payment Method -->
                         <div class="mt-6">
                             <h4 class="font-medium mb-3">Payment Method</h4>
                             <div class="space-y-2">
+                                @forelse($paymentGateways as $gateway)
+                                <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 {{ $loop->first ? 'border-halal-green bg-green-50' : '' }}">
+                                    <input type="radio" name="payment_method" value="{{ $gateway->slug }}" {{ $loop->first ? 'checked' : '' }} class="mr-3">
+                                    @if($gateway->logo)
+                                    <img src="{{ Storage::url($gateway->logo) }}" alt="{{ $gateway->name }}" class="w-8 h-8 object-contain mr-2">
+                                    @else
+                                    <i class="bi bi-credit-card mr-2"></i>
+                                    @endif
+                                    <span>{{ $gateway->name }}</span>
+                                    @if($gateway->test_mode)
+                                    <span class="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">Test</span>
+                                    @endif
+                                </label>
+                                @empty
                                 <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
                                     <input type="radio" name="payment_method" value="cod" checked class="mr-3">
                                     <span>Cash on Delivery</span>
                                 </label>
+                                @endforelse
                             </div>
                         </div>
                         
@@ -170,7 +284,9 @@ function renderCheckoutPage() {
                         <span id="checkoutTotal" class="text-halal-green">৳${checkoutTotal.toLocaleString()}</span>
                     </div>
                 </div>
-                ${checkoutDelivery === 0 ? '<p class="text-halal-green text-sm mb-4"><i class="bi bi-truck mr-1"></i>You have free delivery!</p>' : ''}
+                <div id="freeDeliveryMessage" class="text-halal-green text-sm mb-4" style="display: ${checkoutDelivery === 0 ? 'block' : 'none'}">
+                    <i class="bi bi-truck mr-1"></i>You have free delivery!
+                </div>
                 <button type="submit" form="checkoutForm" class="w-full bg-halal-green text-white py-3 rounded-lg font-medium hover:bg-halal-dark transition-colors">
                     Place Order
                 </button>

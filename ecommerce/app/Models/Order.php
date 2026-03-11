@@ -37,6 +37,7 @@ class Order extends Model
         'shipping_country',
         'subtotal',
         'shipping_cost',
+        'shipping_method',
         'tax',
         'discount',
         'total',
@@ -62,6 +63,20 @@ class Order extends Model
         'discount' => 'decimal:2',
         'total' => 'decimal:2',
     ];
+
+    /**
+     * The "booting" method of the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($order) {
+            if (empty($order->order_number)) {
+                $order->order_number = self::generateOrderNumber();
+            }
+        });
+    }
 
     public function user()
     {
@@ -114,6 +129,18 @@ class Order extends Model
             return 'Picked Up';
         }
         return ucfirst($this->status);
+    }
+
+    /**
+     * Get shipping method display name.
+     */
+    public function getShippingMethodNameAttribute()
+    {
+        return match($this->shipping_method) {
+            'home_delivery' => 'Home Delivery',
+            'local_pickup' => 'Local Pickup',
+            default => 'Standard Delivery',
+        };
     }
 
     /**
@@ -211,16 +238,45 @@ class Order extends Model
      */
     public static function generateOrderNumber(): string
     {
-        $prefix = 'ORD';
-        $date = now()->format('Ymd');
-        $lastOrder = self::withTrashed()
-            ->whereDate('created_at', today())
-            ->orderBy('id', 'desc')
-            ->first();
+        // Get order configuration settings
+        $prefix = Setting::get('order_prefix', 'ORD');
+        $suffix = Setting::get('order_suffix', '');
+        $length = (int) Setting::get('order_number_length', 8);
+        $format = Setting::get('order_number_format', 'random');
         
-        $sequence = $lastOrder ? (int) substr($lastOrder->order_number, -4) + 1 : 1;
-        $sequence = str_pad($sequence, 4, '0', STR_PAD_LEFT);
-        
-        return "{$prefix}-{$date}-{$sequence}";
+        if ($format === 'date') {
+            // Date-based format: PREFIX-DATE-SEQUENCE
+            $date = now()->format('Ymd');
+            $lastOrder = self::withTrashed()
+                ->whereDate('created_at', today())
+                ->orderBy('id', 'desc')
+                ->first();
+            
+            $sequence = $lastOrder ? (int) substr($lastOrder->order_number, -4) + 1 : 1;
+            $sequence = str_pad($sequence, 4, '0', STR_PAD_LEFT);
+            
+            return "{$prefix}-{$date}-{$sequence}{$suffix}";
+        } elseif ($format === 'sequential') {
+            // Sequential format: PREFIX-SEQUENCE
+            $lastOrder = self::withTrashed()
+                ->orderBy('id', 'desc')
+                ->first();
+            
+            $sequence = $lastOrder ? $lastOrder->id + 1 : 1;
+            $sequence = str_pad($sequence, $length, '0', STR_PAD_LEFT);
+            
+            return "{$prefix}{$sequence}{$suffix}";
+        } else {
+            // Random format: PREFIX-RANDOM
+            $random = '';
+            $characters = '0123456789';
+            $charactersLength = strlen($characters);
+            
+            for ($i = 0; $i < $length; $i++) {
+                $random .= $characters[rand(0, $charactersLength - 1)];
+            }
+            
+            return "{$prefix}{$random}{$suffix}";
+        }
     }
 }

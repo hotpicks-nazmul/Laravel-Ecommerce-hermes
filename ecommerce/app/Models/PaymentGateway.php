@@ -17,6 +17,7 @@ class PaymentGateway extends Model
         'credentials',
         'is_active',
         'test_mode',
+        'is_default',
         'sort_order',
     ];
 
@@ -24,6 +25,7 @@ class PaymentGateway extends Model
         'credentials' => 'array',
         'is_active' => 'boolean',
         'test_mode' => 'boolean',
+        'is_default' => 'boolean',
     ];
 
     /**
@@ -32,8 +34,18 @@ class PaymentGateway extends Model
     public static function getActive()
     {
         return static::where('is_active', true)
+            ->orderBy('is_default', 'desc')
             ->orderBy('sort_order')
             ->get();
+    }
+
+    /**
+     * Get default gateway.
+     */
+    public static function getDefault(): ?self
+    {
+        return static::where('is_default', true)->first() 
+            ?? static::where('is_active', true)->orderBy('sort_order')->first();
     }
 
     /**

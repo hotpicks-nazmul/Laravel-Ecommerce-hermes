@@ -1236,11 +1236,6 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.settings.features') ? 'active' : '' }}" href="{{ route('admin.settings.features') }}">
-                                <i class="bi bi-toggle-on"></i> Features Activation
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.settings.languages*') ? 'active' : '' }}" href="{{ route('admin.settings.languages') }}">
                                 <i class="bi bi-translate"></i> Languages
                             </a>
@@ -1303,21 +1298,6 @@
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.settings.notifications*') ? 'active' : '' }}" href="{{ route('admin.settings.notifications.index') }}">
                                 <i class="bi bi-bell"></i> Notification Settings
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.settings.security*') ? 'active' : '' }}" href="{{ route('admin.settings.security') }}">
-                                <i class="bi bi-shield-check"></i> Security Settings
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.settings.gdpr*') ? 'active' : '' }}" href="{{ route('admin.settings.gdpr') }}">
-                                <i class="bi bi-shield-lock"></i> GDPR & Privacy
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.settings.tax-classes*') ? 'active' : '' }}" href="{{ route('admin.settings.tax-classes') }}">
-                                <i class="bi bi-calculator"></i> Tax Classes
                             </a>
                         </li>
                         <li class="nav-item">
