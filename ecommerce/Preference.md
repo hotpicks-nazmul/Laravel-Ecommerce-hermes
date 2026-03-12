@@ -22,6 +22,7 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 14. **Create/Edit Form Layout** - Proper form structure for multi-card forms
 15. **Table Listing Pages** - Proper table structure and styling
 16. **@push Directive Placement** - CSS/JS not loading when @push is before @section
+17. **Tabbed Interface Pages** - Proper view rendering for tab-based admin pages
 
 ---
 
@@ -1110,6 +1111,89 @@ In Laravel Blade, the `@push` directive must be placed AFTER the `@section` decl
 1. **Always place @push after @section:** Put `@push('styles')` and `@push('scripts')` AFTER your `@section('content')` ends
 2. **Follow working examples:** Check how existing working pages like `brands/create.blade.php` are structured
 3. **Keep styles and scripts together:** Group all `@push` directives at the end of the file, after all content sections
+
+---
+
+## Tabbed Interface Pages
+
+### Problem
+
+When creating admin pages with tabs (like API Keys & Integrations with API Keys and Webhooks tabs), accessing a tab directly via URL (e.g., `/admin/api-keys?tab=webhooks`) may result in missing CSS/styles if the controller renders a partial view instead of the main page view.
+
+**Example Issue:**
+- Controller returns a separate partial view for webhooks: `return view('admin.settings.api-keys.webhooks', [...])`
+- The partial view doesn't extend the admin layout
+- Result: Page renders without proper styling
+
+### Solution
+
+Always render tabbed pages through the main index view that extends the admin layout.
+
+#### Correct Controller Implementation
+
+```php
+public function index(Request $request)
+{
+    $tab = $request->get('tab', 'api-keys');
+    
+    if ($tab === 'webhooks') {
+        return $this->webhooksIndex(); // Should return main index view
+    }
+    
+    return $this->apiKeysIndex();
+}
+
+protected function webhooksIndex()
+{
+    $webhooks = Webhook::orderBy('created_at', 'desc')->paginate(10);
+    $events = Webhook::getEvents();
+    $apiKeys = ApiKey::orderBy('created_at', 'desc')->paginate(10);
+    $types = ApiKey::getTypes();
+    
+    // Always return the main index view with all variables
+    return view('admin.settings.api-keys.index', [
+        'apiKeys' => $apiKeys,
+        'webhooks' => $webhooks,
+        'types' => $types,
+        'events' => $events,
+        'activeTab' => 'webhooks',
+    ]);
+}
+```
+
+#### View Implementation
+
+```php
+@extends('admin.layouts.app')
+
+@section('title', 'API Keys & Integrations')
+
+@section('content')
+@php
+    $activeTab = $activeTab ?? 'api-keys';
+    $apiKeys = $apiKeys ?? collect();
+    $webhooks = $webhooks ?? collect();
+    $types = $types ?? [];
+    $events = $events ?? [];
+@endphp
+
+<!-- Tab Content -->
+<div class="tab-content">
+    @if($activeTab === 'api-keys')
+        <!-- API Keys Tab Content -->
+    @else
+        <!-- Webhooks Tab Content -->
+    @endif
+</div>
+@endsection
+```
+
+### Key Points
+
+1. **Always use main layout view:** Don't return partial views that don't extend the admin layout
+2. **Pass all required variables:** Ensure all variables needed by the view are passed, even if empty
+3. **Use default values:** Use `@php` block to set default values for variables that may not be passed
+4. **Single entry point:** Use query parameter (`?tab=xyz`) to switch between tabs, all through the same controller method
 
 ---
 

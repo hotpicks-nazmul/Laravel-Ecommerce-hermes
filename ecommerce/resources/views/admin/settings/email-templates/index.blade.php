@@ -3,14 +3,11 @@
 @section('title', 'Email Templates')
 
 @section('content')
-<div class="content-area">
-    <div class="container-fluid pt-4">
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">Email Templates</h4>
-        </div>
+<div class="mb-4">
+    <h4 class="mb-0">Email Templates</h4>
+</div>
 
-        <!-- Stats Cards -->
+<!-- Stats Cards -->
         <div class="row mb-4">
             <div class="col-md-4 col-sm-6 mb-3">
                 <div class="card border-0 shadow-sm h-100">
@@ -121,8 +118,6 @@
                 @endif
             </div>
         </div>
-    </div>
-</div>
 @endsection
 
 @push('scripts')

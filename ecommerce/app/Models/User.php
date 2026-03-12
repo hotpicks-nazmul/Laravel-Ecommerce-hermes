@@ -50,6 +50,11 @@ class User extends Authenticatable
         'seller_type',
         'company_name',
         'company_address',
+        // Staff specific fields
+        'designation',
+        'permissions',
+        'warehouse_id',
+        'is_super_admin',
     ];
 
     /**
@@ -306,6 +311,30 @@ class User extends Authenticatable
     public function scopeVerifiedSellers($query)
     {
         return $query->where('role', 'vendor')->where('verification_status', 'verified');
+    }
+
+    /**
+     * Scope to get only staff members
+     */
+    public function scopeStaff($query)
+    {
+        return $query->where('role', 'staff');
+    }
+
+    /**
+     * Check if user is staff
+     */
+    public function isStaff(): bool
+    {
+        return $this->role === 'staff';
+    }
+
+    /**
+     * Get the warehouse associated with this staff member
+     */
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
     }
 
     /**

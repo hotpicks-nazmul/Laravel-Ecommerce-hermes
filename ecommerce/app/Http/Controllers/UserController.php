@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\Address;
 use App\Models\Setting;
 use App\Models\UserNotificationPreference;
+use App\Models\ActivityLog;
 use Laravel\Socialite\Facades\Socialite;
 
 class UserController extends Controller
@@ -36,6 +37,14 @@ class UserController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
+            
+            // Log login activity
+            ActivityLog::customerLog(
+                'User logged in',
+                Auth::user(),
+                Auth::user(),
+                ['login_method' => 'email']
+            );
             
             // Redirect based on user role
             if (Auth::user()->isAdmin()) {
@@ -78,6 +87,14 @@ class UserController extends Controller
         ]);
 
         Auth::login($user);
+        
+        // Log registration activity
+        ActivityLog::customerLog(
+            'User registered',
+            $user,
+            $user,
+            ['email' => $user->email]
+        );
 
         return redirect()->route('home');
     }
@@ -87,6 +104,18 @@ class UserController extends Controller
      */
     public function logout(Request $request)
     {
+        $user = Auth::user();
+        
+        // Log logout activity before logging out
+        if ($user) {
+            ActivityLog::customerLog(
+                'User logged out',
+                $user,
+                $user,
+                ['email' => $user->email]
+            );
+        }
+        
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -463,5 +492,69 @@ class UserController extends Controller
         }
 
         return back()->with('success', 'Notification preferences updated successfully.');
+    }
+
+    /**
+     * Display my data export page.
+     */
+    public function myData()
+    {
+        $user = auth()->user();
+        return view('themes.general.dashboard.my-data', compact('user'));
+    }
+
+    /**
+     * Export user data.
+     */
+    public function exportMyData(Request $request)
+    {
+        $user = auth()->user();
+        
+        $request->validate([
+            'export_type' => 'required|in:orders,wishlist,addresses,all',
+        ]);
+        
+        $exportType = $request->export_type;
+        
+        // Generate filename
+        $timestamp = now()->format('Y-m-d_H-i-s');
+        $filename = "{$user->name}_data_{$timestamp}.json";
+        
+        $data = [];
+        
+        // Export user profile
+        $data['profile'] = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'created_at' => $user->created_at,
+        ];
+        
+        // Export based on type
+        if ($exportType === 'orders' || $exportType === 'all') {
+            $data['orders'] = $user->orders()->get()->toArray();
+        }
+        
+        if ($exportType === 'wishlist' || $exportType === 'all') {
+            $data['wishlist'] = $user->wishlist()->with('product')->get()->toArray();
+        }
+        
+        if ($exportType === 'addresses' || $exportType === 'all') {
+            $data['addresses'] = $user->addresses()->get()->toArray();
+        }
+        
+        if ($exportType === 'all') {
+            $data['notifications'] = UserNotificationPreference::where('user_id', $user->id)->get()->toArray();
+        }
+        
+        $data['exported_at'] = now()->toIso8601String();
+        $data['export_type'] = $exportType;
+        
+        return response()->streamDownload(function () use ($data) {
+            echo json_encode($data, JSON_PRETTY_PRINT);
+        }, $filename, [
+            'Content-Type' => 'application/json',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 }

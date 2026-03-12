@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Order;
+use App\Models\ActivityLog;
 
 class OrderController extends Controller
 {
@@ -44,12 +45,26 @@ class OrderController extends Controller
             return back()->with('error', 'This order cannot be cancelled.');
         }
 
+        $oldStatus = $order->status;
         $order->update(['status' => 'cancelled']);
 
         // Restore product stock
         foreach ($order->items as $item) {
             $item->product->increment('stock', $item->quantity);
         }
+
+        // Log order cancellation
+        ActivityLog::customerLog(
+            'Order cancelled',
+            $order,
+            auth()->user(),
+            [
+                'order_id' => $order->id,
+                'order_code' => $order->code,
+                'old_status' => $oldStatus,
+                'new_status' => 'cancelled'
+            ]
+        );
 
         return back()->with('success', 'Order cancelled successfully.');
     }

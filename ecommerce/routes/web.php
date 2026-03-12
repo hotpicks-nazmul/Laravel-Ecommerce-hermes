@@ -36,6 +36,11 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Language Switcher Route
 Route::get('/language/switch', [LanguageController::class, 'switch'])->name('language.switch');
 
+// Store Switcher Route
+Route::get('/store/switch/{storeId?}', [\App\Http\Controllers\Frontend\StoreController::class, 'switch'])->name('store.switch');
+Route::get('/store/current', [\App\Http\Controllers\Frontend\StoreController::class, 'currentStore'])->name('store.current');
+Route::get('/stores', [\App\Http\Controllers\Frontend\StoreController::class, 'getStores'])->name('stores.list');
+
 // Currency Switcher Route
 Route::get('/currency/switch/{code}', [CurrencyController::class, 'switch'])->name('currency.switch');
 
@@ -111,6 +116,51 @@ Route::prefix('api')->name('api.')->group(function () {
     Route::get('/chat/check-guest', [ChatController::class, 'checkGuest'])->name('chat.check-guest');
     Route::post('/chat/register-logged-in', [ChatController::class, 'registerLoggedIn'])->name('chat.register-logged-in');
     Route::get('/products/quick-view/{id}', [ProductController::class, 'quickView'])->name('products.quick-view');
+    
+    // Public System API
+    Route::get('/system/version', [\App\Http\Controllers\Admin\SystemController::class, 'getVersionApi'])->name('system.version');
+    
+    // Addons API
+    Route::get('/addons', function() {
+        $addons = \App\Models\Addon::active()->orderBy('sort_order')->get();
+        return response()->json([
+            'addons' => $addons->map(function($addon) {
+                return [
+                    'id' => $addon->id,
+                    'name' => $addon->name,
+                    'slug' => $addon->slug,
+                    'description' => $addon->description,
+                    'version' => $addon->version,
+                    'author' => $addon->author,
+                    'icon' => $addon->icon,
+                    'settings' => $addon->settings,
+                ];
+            })
+        ]);
+    })->name('addons.index');
+
+    Route::get('/addons/{slug}', function($slug) {
+        $addon = \App\Models\Addon::active()->where('slug', $slug)->first();
+        
+        if (!$addon) {
+            return response()->json(['error' => 'Addon not found'], 404);
+        }
+        
+        return response()->json([
+            'addon' => [
+                'id' => $addon->id,
+                'name' => $addon->name,
+                'slug' => $addon->slug,
+                'description' => $addon->description,
+                'version' => $addon->version,
+                'author' => $addon->author,
+                'author_website' => $addon->author_website,
+                'website' => $addon->website,
+                'icon' => $addon->icon,
+                'settings' => $addon->settings,
+            ]
+        ]);
+    })->name('addons.show');
 });
 
 // Wishlist Routes
@@ -191,6 +241,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/profile', [UserController::class, 'updateProfile'])->name('profile.update');
         Route::get('/notifications', [UserController::class, 'notifications'])->name('notifications');
         Route::post('/notifications', [UserController::class, 'updateNotifications'])->name('notifications.update');
+        Route::get('/my-data', [UserController::class, 'myData'])->name('my-data');
+        Route::post('/my-data/export', [UserController::class, 'exportMyData'])->name('my-data.export');
         Route::get('/orders', [OrderController::class, 'index'])->name('orders');
         Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
@@ -208,6 +260,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/password', [UserController::class, 'updatePassword'])->name('password.update');
         Route::get('/notifications', [UserController::class, 'notifications'])->name('notifications');
         Route::post('/notifications', [UserController::class, 'updateNotifications'])->name('notifications.update');
+        Route::get('/my-data', [UserController::class, 'myData'])->name('my-data');
+        Route::post('/my-data/export', [UserController::class, 'exportMyData'])->name('my-data.export');
         Route::get('/addresses', [UserController::class, 'addresses'])->name('addresses');
         Route::post('/addresses', [UserController::class, 'storeAddress'])->name('addresses.store');
         Route::put('/addresses/{address}', [UserController::class, 'updateAddress'])->name('addresses.update');

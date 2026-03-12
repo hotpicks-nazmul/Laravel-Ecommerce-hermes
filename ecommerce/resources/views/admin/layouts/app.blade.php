@@ -936,14 +936,14 @@
             
             <!-- REPORTS -->
             <div class="menu-category">
-                <a class="menu-category-header {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuReports" role="button" aria-expanded="{{ request()->routeIs('admin.reports.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.reports.*') || request()->routeIs('admin.jakat.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuReports" role="button" aria-expanded="{{ request()->routeIs('admin.reports.*') || request()->routeIs('admin.jakat.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-graph-up menu-icon"></i>
                         <span class="menu-category-title">Reports</span>
                     </div>
                     <i class="bi bi-chevron-down arrow"></i>
                 </a>
-                <div class="collapse {{ request()->routeIs('admin.reports.*') ? 'show' : '' }}" id="menuReports">
+                <div class="collapse {{ request()->routeIs('admin.reports.*') || request()->routeIs('admin.jakat.*') ? 'show' : '' }}" id="menuReports">
                     <ul class="nav flex-column submenu">
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.reports.in-house-product-sale') ? 'active' : '' }}" href="{{ route('admin.reports.in-house-product-sale') }}">
@@ -978,6 +978,11 @@
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.reports.wallet-history') ? 'active' : '' }}" href="{{ route('admin.reports.wallet-history') }}">
                                 <i class="bi bi-wallet"></i> Wallet Recharge History
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.jakat.*') ? 'active' : '' }}" href="{{ route('admin.jakat.index') }}">
+                                <i class="bi bi-calculator"></i> Jakat Calculator
                             </a>
                         </li>
                     </ul>
@@ -1221,14 +1226,14 @@
             
             <!-- SETTINGS -->
             <div class="menu-category">
-                <a class="menu-category-header {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.payment.*') || request()->routeIs('admin.payment-gateways.*') || request()->routeIs('admin.seo.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuSettings" role="button" aria-expanded="{{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.payment.*') || request()->routeIs('admin.payment-gateways.*') || request()->routeIs('admin.seo.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.payment.*') || request()->routeIs('admin.payment-gateways.*') || request()->routeIs('admin.seo.*') || request()->routeIs('admin.api-keys*') || request()->routeIs('admin.backup*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuSettings" role="button" aria-expanded="{{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.payment.*') || request()->routeIs('admin.payment-gateways.*') || request()->routeIs('admin.seo.*') || request()->routeIs('admin.api-keys*') || request()->routeIs('admin.backup*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-gear-fill menu-icon"></i>
                         <span class="menu-category-title">Settings</span>
                     </div>
                     <i class="bi bi-chevron-down arrow"></i>
                 </a>
-                <div class="collapse {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.payment.*') || request()->routeIs('admin.payment-gateways.*') || request()->routeIs('admin.seo.*') ? 'show' : '' }}" id="menuSettings">
+                <div class="collapse {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.payment.*') || request()->routeIs('admin.payment-gateways.*') || request()->routeIs('admin.seo.*') || request()->routeIs('admin.api-keys*') || request()->routeIs('admin.backup*') ? 'show' : '' }}" id="menuSettings">
                     <ul class="nav flex-column submenu">
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.settings.general') || request()->routeIs('admin.settings.index') ? 'active' : '' }}" href="{{ route('admin.settings.general') }}">
@@ -1456,18 +1461,13 @@
                 <div class="collapse {{ request()->routeIs('admin.multi-store.*') ? 'show' : '' }}" id="menuMultiStore">
                     <ul class="nav flex-column submenu">
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.multi-store.locations') ? 'active' : '' }}" href="{{ route('admin.multi-store.locations') }}">
-                                <i class="bi bi-geo-alt"></i> Store Locations
+                            <a class="nav-link {{ request()->routeIs('admin.multi-store.index') ? 'active' : '' }}" href="{{ route('admin.multi-store.index') }}">
+                                <i class="bi bi-shop"></i> All Stores
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.multi-store.settings') ? 'active' : '' }}" href="{{ route('admin.multi-store.settings') }}">
-                                <i class="bi bi-gear"></i> Store Settings
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.multi-store.inventory') ? 'active' : '' }}" href="{{ route('admin.multi-store.inventory') }}">
-                                <i class="bi bi-boxes"></i> Inventory by Store
+                            <a class="nav-link {{ request()->routeIs('admin.multi-store.create') ? 'active' : '' }}" href="{{ route('admin.multi-store.create') }}">
+                                <i class="bi bi-plus-circle"></i> Add Store
                             </a>
                         </li>
                     </ul>

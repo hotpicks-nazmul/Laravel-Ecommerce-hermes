@@ -46,6 +46,9 @@
                     <a href="{{ route('account.addresses') }}" class="flex items-center p-3 rounded-lg text-gray-600 hover:bg-gray-50 mb-1">
                         <i class="bi bi-geo-alt mr-3"></i> Addresses
                     </a>
+                    <a href="{{ route('account.my-data') }}" class="flex items-center p-3 rounded-lg text-gray-600 hover:bg-gray-50 mb-1">
+                        <i class="bi bi-download mr-3"></i> My Data
+                    </a>
                     <a href="{{ route('tickets.index') }}" class="flex items-center p-3 rounded-lg text-gray-600 hover:bg-gray-50 mb-1">
                         <i class="bi bi-ticket-detailed mr-3"></i> Support Tickets
                     </a>

@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\SeoController;
+use App\Http\Controllers\Admin\JakatController;
 use App\Http\Controllers\Admin\ChatController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SliderController;
@@ -35,6 +36,11 @@ use App\Http\Controllers\Admin\FormBuilderController;
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/analytics', [DashboardController::class, 'analytics'])->name('analytics');
 Route::get('/sales-chart', [DashboardController::class, 'salesChart'])->name('sales-chart');
+
+// Jakat Calculator
+Route::get('/jakat', [JakatController::class, 'index'])->name('jakat.index');
+Route::post('/jakat/calculate', [JakatController::class, 'calculate'])->name('jakat.calculate');
+Route::post('/jakat/prices', [JakatController::class, 'updatePrices'])->name('jakat.prices');
 
 // Products Management - Custom routes (must be before resource routes to avoid conflicts)
 Route::get('/products/in-house', [ProductController::class, 'inHouse'])->name('products.in-house');
@@ -440,6 +446,7 @@ Route::get('/backup', [SettingController::class, 'backup'])->name('backup');
 Route::post('/backup/create', [SettingController::class, 'createBackup'])->name('backup.create');
 Route::get('/backup/download/{file}', [SettingController::class, 'downloadBackup'])->name('backup.download');
 Route::post('/backup/restore', [SettingController::class, 'restoreBackup'])->name('backup.restore');
+Route::post('/backup/delete', [SettingController::class, 'deleteBackup'])->name('backup.delete');
 
 /*
 |--------------------------------------------------------------------------
@@ -902,6 +909,7 @@ Route::prefix('staffs')->name('staffs.')->group(function () {
     Route::get('/{id}/edit', [\App\Http\Controllers\Admin\StaffController::class, 'edit'])->name('edit');
     Route::put('/{id}', [\App\Http\Controllers\Admin\StaffController::class, 'update'])->name('update');
     Route::delete('/{id}', [\App\Http\Controllers\Admin\StaffController::class, 'destroy'])->name('destroy');
+    Route::post('/bulk-action', [\App\Http\Controllers\Admin\StaffController::class, 'bulkAction'])->name('bulk-action');
     Route::get('/warehouse', [\App\Http\Controllers\Admin\StaffController::class, 'warehouse'])->name('warehouse');
     Route::get('/permissions', [\App\Http\Controllers\Admin\StaffController::class, 'permissions'])->name('permissions');
     Route::post('/permissions', [\App\Http\Controllers\Admin\StaffController::class, 'updatePermissions'])->name('permissions.update');
@@ -911,47 +919,93 @@ Route::prefix('staffs')->name('staffs.')->group(function () {
 Route::prefix('system')->name('system.')->group(function () {
     Route::get('/update', [\App\Http\Controllers\Admin\SystemController::class, 'update'])->name('update');
     Route::post('/update', [\App\Http\Controllers\Admin\SystemController::class, 'performUpdate'])->name('update.perform');
+    Route::post('/update/settings', [\App\Http\Controllers\Admin\SystemController::class, 'saveSettings'])->name('update.settings');
     Route::get('/server-status', [\App\Http\Controllers\Admin\SystemController::class, 'serverStatus'])->name('server-status');
+    
+    // API endpoint for frontend to get system info
+    Route::get('/api/info', [\App\Http\Controllers\Admin\SystemController::class, 'getSystemInfoApi'])->name('api.info');
+    Route::get('/api/version', [\App\Http\Controllers\Admin\SystemController::class, 'getVersionApi'])->name('api.version');
     
     // Activity Logs
     Route::prefix('activity-logs')->name('activity-logs.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'activityLogs'])->name('index');
-        Route::get('/admin', [\App\Http\Controllers\Admin\PlaceholderController::class, 'adminActivityLogs'])->name('admin');
-        Route::get('/customer', [\App\Http\Controllers\Admin\PlaceholderController::class, 'customerActivityLogs'])->name('customer');
+        Route::get('/', [\App\Http\Controllers\Admin\SystemController::class, 'activityLogs'])->name('index');
+        Route::get('/admin', [\App\Http\Controllers\Admin\SystemController::class, 'adminActivityLogs'])->name('admin');
+        Route::get('/customer', [\App\Http\Controllers\Admin\SystemController::class, 'customerActivityLogs'])->name('customer');
+        Route::post('/export', [\App\Http\Controllers\Admin\SystemController::class, 'exportActivityLogs'])->name('export');
+        Route::delete('/destroy', [\App\Http\Controllers\Admin\SystemController::class, 'destroyActivityLogs'])->name('destroy');
+        Route::post('/clear', [\App\Http\Controllers\Admin\SystemController::class, 'clearActivityLogs'])->name('clear');
     });
     
     // Data Export/Import
     Route::prefix('data-export')->name('data-export.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'dataExportImport'])->name('index');
-        Route::post('/export', [\App\Http\Controllers\Admin\PlaceholderController::class, 'exportData'])->name('export');
-        Route::post('/import', [\App\Http\Controllers\Admin\PlaceholderController::class, 'importData'])->name('import');
+        Route::get('/', [\App\Http\Controllers\Admin\DataExportImportController::class, 'index'])->name('index');
+        Route::get('/export', [\App\Http\Controllers\Admin\DataExportImportController::class, 'export'])->name('export');
+        Route::post('/import', [\App\Http\Controllers\Admin\DataExportImportController::class, 'import'])->name('import');
+        Route::get('/template', [\App\Http\Controllers\Admin\DataExportImportController::class, 'downloadTemplate'])->name('template');
     });
 });
 
 // POS Management
 Route::prefix('pos')->name('pos.')->group(function () {
-    Route::get('/terminal', [\App\Http\Controllers\Admin\PlaceholderController::class, 'posTerminal'])->name('terminal');
-    Route::get('/cash-register', [\App\Http\Controllers\Admin\PlaceholderController::class, 'cashRegister'])->name('cash-register');
-    Route::get('/reports', [\App\Http\Controllers\Admin\PlaceholderController::class, 'posReports'])->name('reports');
+    // Terminal - Main POS interface
+    Route::get('/terminal', [\App\Http\Controllers\Admin\POSController::class, 'terminal'])->name('terminal');
+    
+    // Product search API
+    Route::get('/products/search', [\App\Http\Controllers\Admin\POSController::class, 'searchProducts'])->name('products.search');
+    
+    // Cart management
+    Route::post('/cart/add', [\App\Http\Controllers\Admin\POSController::class, 'addToCart'])->name('cart.add');
+    Route::post('/cart/update', [\App\Http\Controllers\Admin\POSController::class, 'updateCartItem'])->name('cart.update');
+    Route::post('/cart/remove', [\App\Http\Controllers\Admin\POSController::class, 'removeFromCart'])->name('cart.remove');
+    Route::post('/cart/clear', [\App\Http\Controllers\Admin\POSController::class, 'clearCart'])->name('cart.clear');
+    Route::post('/cart/discount', [\App\Http\Controllers\Admin\POSController::class, 'applyDiscount'])->name('cart.discount');
+    
+    // Checkout
+    Route::post('/checkout', [\App\Http\Controllers\Admin\POSController::class, 'processCheckout'])->name('checkout');
+    
+    // Cash Register
+    Route::get('/cash-register', [\App\Http\Controllers\Admin\POSController::class, 'cashRegister'])->name('cash-register');
+    
+    // Reports
+    Route::get('/reports', [\App\Http\Controllers\Admin\POSController::class, 'reports'])->name('reports');
 });
 
-// Multi-Store Management
+// Multi-Store Management - Specific routes BEFORE wildcard routes to avoid 404 errors
 Route::prefix('multi-store')->name('multi-store.')->group(function () {
-    Route::get('/locations', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeLocations'])->name('locations');
-    Route::get('/settings', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeSettings'])->name('settings');
-    Route::get('/inventory', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeInventory'])->name('inventory');
-    Route::post('/locations/create', [\App\Http\Controllers\Admin\PlaceholderController::class, 'createStoreLocation'])->name('locations.create');
-    Route::put('/locations/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateStoreLocation'])->name('locations.update');
-    Route::delete('/locations/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'deleteStoreLocation'])->name('locations.destroy');
+    // Index - must be first
+    Route::get('/', [\App\Http\Controllers\Admin\StoreController::class, 'index'])->name('index');
+    // Specific routes BEFORE wildcard
+    Route::get('/create', [\App\Http\Controllers\Admin\StoreController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Admin\StoreController::class, 'store'])->name('store');
+    Route::get('/{store}/edit', [\App\Http\Controllers\Admin\StoreController::class, 'edit'])->name('edit');
+    Route::put('/{store}', [\App\Http\Controllers\Admin\StoreController::class, 'update'])->name('update');
+    Route::delete('/{store}', [\App\Http\Controllers\Admin\StoreController::class, 'destroy'])->name('destroy');
+    Route::post('/{store}/toggle-status', [\App\Http\Controllers\Admin\StoreController::class, 'toggleStatus'])->name('toggle-status');
+    Route::post('/{store}/set-default', [\App\Http\Controllers\Admin\StoreController::class, 'setDefault'])->name('set-default');
+    Route::post('/bulk-action', [\App\Http\Controllers\Admin\StoreController::class, 'bulkAction'])->name('bulk-action');
+    Route::get('/get-stores', [\App\Http\Controllers\Admin\StoreController::class, 'getStores'])->name('get-stores');
+    // Show route - must be after specific routes
+    Route::get('/{store}', [\App\Http\Controllers\Admin\StoreController::class, 'show'])->name('show');
 });
 
-// Addon Manager
+// Addon Manager - Specific routes BEFORE wildcard routes to avoid 404 errors
 Route::prefix('addons')->name('addons.')->group(function () {
+    // Index - must be first
     Route::get('/', [\App\Http\Controllers\Admin\AddonController::class, 'index'])->name('index');
+    // Specific routes BEFORE wildcard
     Route::get('/install', [\App\Http\Controllers\Admin\AddonController::class, 'install'])->name('install');
     Route::post('/install', [\App\Http\Controllers\Admin\AddonController::class, 'processInstall'])->name('install.process');
+    Route::get('/templates', [\App\Http\Controllers\Admin\AddonController::class, 'templates'])->name('templates');
+    Route::post('/templates/install', [\App\Http\Controllers\Admin\AddonController::class, 'installFromTemplate'])->name('templates.install');
+    Route::post('/bulk-action', [\App\Http\Controllers\Admin\AddonController::class, 'bulkAction'])->name('bulk-action');
+    Route::post('/reorder', [\App\Http\Controllers\Admin\AddonController::class, 'reorder'])->name('reorder');
+    // Wildcard routes AFTER specific routes
+    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\AddonController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [\App\Http\Controllers\Admin\AddonController::class, 'update'])->name('update');
     Route::post('/{id}/activate', [\App\Http\Controllers\Admin\AddonController::class, 'activate'])->name('activate');
     Route::post('/{id}/deactivate', [\App\Http\Controllers\Admin\AddonController::class, 'deactivate'])->name('deactivate');
+    Route::post('/{id}/toggle', [\App\Http\Controllers\Admin\AddonController::class, 'toggleStatus'])->name('toggle');
+    Route::post('/{id}/settings', [\App\Http\Controllers\Admin\AddonController::class, 'settings'])->name('settings');
     Route::delete('/{id}', [\App\Http\Controllers\Admin\AddonController::class, 'destroy'])->name('destroy');
 });
 
@@ -1155,14 +1209,21 @@ Route::prefix('widgets')->name('widgets.')->group(function () {
 
 // API Keys & Integrations
 Route::prefix('api-keys')->name('api-keys.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'apiKeys'])->name('index');
-    Route::post('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeApiKey'])->name('store');
-    Route::put('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'updateApiKey'])->name('update');
-    Route::delete('/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyApiKey'])->name('destroy');
-    Route::post('/{id}/regenerate', [\App\Http\Controllers\Admin\PlaceholderController::class, 'regenerateApiKey'])->name('regenerate');
-    Route::get('/webhooks', [\App\Http\Controllers\Admin\PlaceholderController::class, 'webhooks'])->name('webhooks');
-    Route::post('/webhooks', [\App\Http\Controllers\Admin\PlaceholderController::class, 'storeWebhook'])->name('webhooks.store');
-    Route::delete('/webhooks/{id}', [\App\Http\Controllers\Admin\PlaceholderController::class, 'destroyWebhook'])->name('webhooks.destroy');
+    Route::get('/', [\App\Http\Controllers\Admin\ApiKeyController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\Admin\ApiKeyController::class, 'store'])->name('store');
+    Route::put('/{id}', [\App\Http\Controllers\Admin\ApiKeyController::class, 'update'])->name('update');
+    Route::delete('/{id}', [\App\Http\Controllers\Admin\ApiKeyController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/regenerate', [\App\Http\Controllers\Admin\ApiKeyController::class, 'regenerate'])->name('regenerate');
+    Route::post('/{id}/toggle', [\App\Http\Controllers\Admin\ApiKeyController::class, 'toggle'])->name('toggle');
+    Route::get('/secret/{id}', [\App\Http\Controllers\Admin\ApiKeyController::class, 'showSecret'])->name('secret');
+    
+    // Webhooks
+    Route::get('/webhooks', [\App\Http\Controllers\Admin\ApiKeyController::class, 'index'])->name('webhooks.index');
+    Route::post('/webhooks', [\App\Http\Controllers\Admin\ApiKeyController::class, 'storeWebhook'])->name('webhooks.store');
+    Route::put('/webhooks/{id}', [\App\Http\Controllers\Admin\ApiKeyController::class, 'updateWebhook'])->name('webhooks.update');
+    Route::delete('/webhooks/{id}', [\App\Http\Controllers\Admin\ApiKeyController::class, 'destroyWebhook'])->name('webhooks.destroy');
+    Route::post('/webhooks/{id}/test', [\App\Http\Controllers\Admin\ApiKeyController::class, 'testWebhook'])->name('webhooks.test');
+    Route::post('/webhooks/{id}/toggle', [\App\Http\Controllers\Admin\ApiKeyController::class, 'toggleWebhook'])->name('webhooks.toggle');
 });
 
 // Settings - Additional Routes

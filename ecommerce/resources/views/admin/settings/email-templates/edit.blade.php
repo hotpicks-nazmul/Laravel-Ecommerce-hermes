@@ -3,15 +3,13 @@
 @section('title', 'Edit Email Template')
 
 @section('content')
-<div class="content-area">
-    <div class="container-fluid pt-4">
-        <!-- Header with Back Button -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">Edit Email Template</h4>
-            <a href="{{ route('admin.settings.email-templates.index') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Back to Templates
-            </a>
-        </div>
+<!-- Header with Back Button -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Edit Email Template</h4>
+    <a href="{{ route('admin.settings.email-templates.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to Templates
+    </a>
+</div>
 
         <div class="row">
             <div class="col-lg-8">
@@ -153,8 +151,6 @@
                 <i class="bi bi-check-lg me-1"></i> Update Template
             </button>
         </div>
-    </div>
-</div>
 
 <!-- Preview Modal -->
 <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
@@ -178,15 +174,9 @@
             </div>
         </div>
     </div>
-</div>
 @endsection
 
 @push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-</style>
 @endpush
 
 @push('scripts')

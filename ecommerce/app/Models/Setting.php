@@ -69,4 +69,33 @@ class Setting extends Model
             'enable_static_cache' => '1',
         ]);
     }
+
+    /**
+     * Get system update settings
+     */
+    public static function getSystemUpdateSettings()
+    {
+        return static::getByGroup('system_update', [
+            'auto_check_updates' => '1',
+            'auto_install_security' => '0',
+            'last_check' => null,
+            'update_channel' => 'stable',
+            'notify_on_update' => '1',
+            'backup_before_update' => '1',
+        ]);
+    }
+
+    /**
+     * Get current system version info
+     */
+    public static function getSystemVersion()
+    {
+        $version = [];
+        $version['app_version'] = static::get('app_version', '1.0.0');
+        $version['db_version'] = static::get('db_version', '1.0.0');
+        $version['last_updated'] = static::get('last_updated', null);
+        $version['update_available'] = static::get('update_available', '0');
+        $version['latest_version'] = static::get('latest_version', $version['app_version']);
+        return $version;
+    }
 }

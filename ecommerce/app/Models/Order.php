@@ -14,6 +14,7 @@ class Order extends Model
         'order_number',
         'order_type',
         'seller_id',
+        'store_id',
         'pickup_point_id',
         'picked_up_at',
         'picked_up_by',
@@ -81,6 +82,11 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
     }
 
     public function items()

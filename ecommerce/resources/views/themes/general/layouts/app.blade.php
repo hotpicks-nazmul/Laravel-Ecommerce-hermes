@@ -19,13 +19,13 @@
     ?>
     
     <!-- SEO Meta Tags -->
-    <title>@yield('title', {{ $siteMetaTitle ?: 'Halal Food Store' }}){{ $siteMetaTitle ? ' - ' . $siteMetaTitle : '' }}</title>
-    <meta name="description" content="@yield('meta_description', {{ $siteMetaDescription ?: 'Buy premium quality halal meat, poultry, seafood, and groceries online. Fresh delivery across Bangladesh.' }})">
-    <meta name="keywords" content="@yield('meta_keywords', {{ $siteMetaKeywords ?: 'halal food, halal meat, online grocery, fresh meat, Bangladesh' }})">
+    <title>@yield('title', $siteMetaTitle ?: 'Halal Food Store'){{ $siteMetaTitle ? ' - ' . $siteMetaTitle : '' }}</title>
+    <meta name="description" content="@yield('meta_description', $siteMetaDescription ?: 'Buy premium quality halal meat, poultry, seafood, and groceries online. Fresh delivery across Bangladesh.')">
+    <meta name="keywords" content="@yield('meta_keywords', $siteMetaKeywords ?: 'halal food, halal meat, online grocery, fresh meat, Bangladesh')">
     
     <!-- Open Graph -->
-    <meta property="og:title" content="@yield('og_title', {{ $ogTitle }})">
-    <meta property="og:description" content="@yield('og_description', {{ $ogDescription }})">
+    <meta property="og:title" content="@yield('og_title', $ogTitle)">
+    <meta property="og:description" content="@yield('og_description', $ogDescription)">
     <meta property="og:type" content="website">
     @if($ogImage)
     <meta property="og:image" content="{{ $ogImage }}">
@@ -33,8 +33,8 @@
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="{{ $twitterCardType }}">
-    <meta name="twitter:title" content="@yield('og_title', {{ $ogTitle }})">
-    <meta name="twitter:description" content="@yield('og_description', {{ $ogDescription }})">
+    <meta name="twitter:title" content="@yield('og_title', $ogTitle)">
+    <meta name="twitter:description" content="@yield('og_description', $ogDescription)">
     @if($ogImage)
     <meta name="twitter:image" content="{{ $ogImage }}">
     @endif

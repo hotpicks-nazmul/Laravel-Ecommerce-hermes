@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\ActivityLog;
 
 class AuthController extends Controller
 {
@@ -42,6 +43,15 @@ class AuthController extends Controller
             }
 
             $request->session()->regenerate();
+            
+            // Log admin login activity
+            ActivityLog::adminLog(
+                'Admin user logged in',
+                $user,
+                $user,
+                ['email' => $user->email, 'role' => $user->role]
+            );
+            
             return redirect()->intended(route('admin.dashboard'));
         }
 
@@ -55,6 +65,18 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        $user = Auth::user();
+        
+        // Log admin logout activity
+        if ($user) {
+            ActivityLog::adminLog(
+                'Admin user logged out',
+                $user,
+                $user,
+                ['email' => $user->email, 'role' => $user->role]
+            );
+        }
+        
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

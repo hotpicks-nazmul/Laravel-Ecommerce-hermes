@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Wishlist;
+use App\Models\ActivityLog;
 
 class WishlistController extends Controller
 {
@@ -91,6 +92,15 @@ class WishlistController extends Controller
             'product_id' => $request->product_id,
         ]);
 
+        // Log wishlist add activity
+        $product = Product::find($request->product_id);
+        ActivityLog::customerLog(
+            'Added product to wishlist',
+            $product,
+            auth()->user(),
+            ['product_id' => $product->id, 'product_name' => $product->name]
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Product added to wishlist!'
@@ -106,9 +116,19 @@ class WishlistController extends Controller
             'product_id' => 'required|exists:products,id',
         ]);
 
+        $product = Product::find($request->product_id);
+        
         Wishlist::where('user_id', auth()->id())
             ->where('product_id', $request->product_id)
             ->delete();
+
+        // Log wishlist remove activity
+        ActivityLog::customerLog(
+            'Removed product from wishlist',
+            $product,
+            auth()->user(),
+            ['product_id' => $product->id, 'product_name' => $product->name]
+        );
 
         return response()->json([
             'success' => true,

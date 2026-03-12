@@ -64,6 +64,7 @@ class Product extends Model
         'meta_keywords',
         'created_by',
         'seller_id',
+        'store_id',
         'product_source',
     ];
 
@@ -113,6 +114,14 @@ class Product extends Model
     public function seller()
     {
         return $this->belongsTo(User::class, 'seller_id');
+    }
+
+    /**
+     * Get the store of the product.
+     */
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
     }
 
     /**
