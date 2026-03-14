@@ -115,6 +115,16 @@
                     Sign In
                 </button>
             </form>
+            
+            <!-- Login Links -->
+            <div class="mt-6 pt-6 border-t border-gray-200 text-center">
+                <p class="text-gray-500 text-sm">
+                    Different role?
+                    <a href="{{ route('super-admin.login') }}" class="text-halal-green hover:underline">Super Admin</a>
+                    |
+                    <a href="{{ route('staff.login') }}" class="text-halal-green hover:underline">Staff Login</a>
+                </p>
+            </div>
         </div>
         
         <!-- Back to Store -->

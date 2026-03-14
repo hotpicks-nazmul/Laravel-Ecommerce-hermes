@@ -317,8 +317,8 @@ class Product extends Model
      */
     public function scopeInHouse($query)
     {
-        return $query->where('product_source', 'in_house')
-                     ->whereNull('seller_id');
+        return $query->where('products.product_source', 'in_house')
+                     ->whereNull('products.seller_id');
     }
 
     /**
@@ -326,8 +326,8 @@ class Product extends Model
      */
     public function scopeSellerProducts($query)
     {
-        return $query->where('product_source', 'seller')
-                     ->whereNotNull('seller_id');
+        return $query->where('products.product_source', 'seller')
+                     ->whereNotNull('products.seller_id');
     }
 
     /**

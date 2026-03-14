@@ -6,9 +6,15 @@
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">Warehouse Staffs</h4>
+    @if(auth()->user()->role !== 'staff')
     <a href="{{ route('admin.staffs.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg me-1"></i> Add New Staff
     </a>
+    @else
+    <button type="button" class="btn btn-primary" onclick="showAccessDenied()">
+        <i class="bi bi-plus-lg me-1"></i> Add New Staff
+    </button>
+    @endif
 </div>
 
 <!-- Filters Card -->
@@ -136,4 +142,35 @@
         @endif
     </div>
 </div>
+
+<!-- Access Denied Modal -->
+<div class="modal fade" id="accessDeniedModal" tabindex="-1" aria-labelledby="accessDeniedModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="accessDeniedModalLabel">
+                    <i class="bi bi-exclamation-triangle text-warning me-2"></i>Access Denied
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-shield-lock text-muted" style="font-size: 3rem;"></i>
+                <p class="mt-3 mb-0">Staff members cannot create other staff members.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+    // Show access denied modal for staff users
+    function showAccessDenied() {
+        var modal = new bootstrap.Modal(document.getElementById('accessDeniedModal'));
+        modal.show();
+    }
+</script>
+@endpush

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -11,19 +11,19 @@ use App\Models\ActivityLog;
 class AuthController extends Controller
 {
     /**
-     * Show admin login form.
+     * Show super admin login form.
      */
     public function showLogin()
     {
-        if (Auth::check() && in_array(Auth::user()->role, ['admin', 'staff'])) {
-            return redirect()->route('admin.dashboard');
+        if (Auth::check() && Auth::user()->role === 'super_admin') {
+            return redirect()->route('super-admin.dashboard');
         }
         
-        return view('admin.auth.login');
+        return view('super-admin.auth.login');
     }
 
     /**
-     * Handle admin login.
+     * Handle super admin login.
      */
     public function login(Request $request)
     {
@@ -35,16 +35,16 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
             
-            // Only allow admin role (not super_admin or staff)
-            if (!in_array($user->role, ['admin', 'super_admin'])) {
+            // Only allow super_admin role
+            if ($user->role !== 'super_admin') {
                 Auth::logout();
                 return back()->withErrors([
-                    'email' => 'You do not have admin access.',
+                    'email' => 'You do not have super admin access.',
                 ])->onlyInput('email');
             }
 
-            // Check if admin user is active
-            if (in_array($user->role, ['admin']) && $user->status !== 'active') {
+            // Check if user is active
+            if ($user->status !== 'active') {
                 Auth::logout();
                 return back()->withErrors([
                     'email' => 'Your account is not active. Please contact administrator.',
@@ -53,15 +53,15 @@ class AuthController extends Controller
 
             $request->session()->regenerate();
             
-            // Log admin/staff login activity
+            // Log super admin login activity
             ActivityLog::adminLog(
-                'Admin user logged in',
+                'Super Admin logged in',
                 $user,
                 $user,
                 ['email' => $user->email, 'role' => $user->role]
             );
             
-            return redirect()->intended(route('admin.dashboard'));
+            return redirect()->route('super-admin.dashboard');
         }
 
         return back()->withErrors([
@@ -70,16 +70,16 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle admin logout.
+     * Handle super admin logout.
      */
     public function logout(Request $request)
     {
         $user = Auth::user();
         
-        // Log admin logout activity
+        // Log super admin logout activity
         if ($user) {
             ActivityLog::adminLog(
-                'Admin user logged out',
+                'Super Admin logged out',
                 $user,
                 $user,
                 ['email' => $user->email, 'role' => $user->role]
@@ -89,7 +89,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
-        return redirect()->route('admin.login');
+
+        return redirect()->route('super-admin.login');
     }
 }

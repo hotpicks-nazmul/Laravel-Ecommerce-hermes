@@ -123,6 +123,22 @@
                         @enderror
                     </div>
 
+                    @if(isset($allowedRoles) && count($allowedRoles) > 0)
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Role <span class="text-danger">*</span></label>
+                        <select id="role" name="role" class="form-select @error('role') is-invalid @enderror" required>
+                            @foreach($allowedRoles as $role)
+                                <option value="{{ $role }}" {{ old('role', $staff->role) === $role ? 'selected' : '' }}>
+                                    {{ ucfirst($role) }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('role')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    @endif
+
                     <div class="form-check form-switch mb-3">
                         <input class="form-check-input" type="checkbox" id="is_super_admin" name="is_super_admin" value="1" {{ old('is_super_admin', $staff->is_super_admin) ? 'checked' : '' }}>
                         <label class="form-check-label" for="is_super_admin">

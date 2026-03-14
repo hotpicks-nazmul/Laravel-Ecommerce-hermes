@@ -19,8 +19,13 @@ class StaffController extends Controller
         // Get statistics
         $stats = $this->getStats();
 
-        // Build query for staff
-        $query = User::staff()->with('warehouse');
+        // Build query - show all admin panel users for super_admin, only staff for others
+        $currentUser = auth()->user();
+        if ($currentUser->role === 'super_admin') {
+            $query = User::adminPanel()->with('warehouse');
+        } else {
+            $query = User::staff()->with('warehouse');
+        }
 
         // Search
         if ($request->search) {
@@ -72,13 +77,20 @@ class StaffController extends Controller
      */
     protected function getStats()
     {
-        $staff = User::staff();
+        $currentUser = auth()->user();
+        
+        // Show all admin panel users for super_admin, only staff for others
+        if ($currentUser->role === 'super_admin') {
+            $users = User::adminPanel();
+        } else {
+            $users = User::staff();
+        }
 
         return [
-            'total' => (clone $staff)->count(),
-            'active' => (clone $staff)->where('status', 'active')->count(),
-            'inactive' => (clone $staff)->where('status', 'inactive')->count(),
-            'banned' => (clone $staff)->where('status', 'banned')->count(),
+            'total' => (clone $users)->count(),
+            'active' => (clone $users)->where('status', 'active')->count(),
+            'inactive' => (clone $users)->where('status', 'inactive')->count(),
+            'banned' => (clone $users)->where('status', 'banned')->count(),
         ];
     }
 
@@ -87,9 +99,21 @@ class StaffController extends Controller
      */
     public function create()
     {
+        $user = auth()->user();
+        
+        // Determine available roles based on current user's role
+        $allowedRoles = [];
+        if ($user->role === 'super_admin') {
+            $allowedRoles = ['admin', 'staff'];
+        } elseif ($user->role === 'admin') {
+            $allowedRoles = ['staff'];
+        } else {
+            $allowedRoles = ['staff'];
+        }
+        
         $warehouses = Warehouse::where('is_active', 1)->orderBy('name')->get();
         
-        return view('admin.staffs.create', compact('warehouses'));
+        return view('admin.staffs.create', compact('warehouses', 'allowedRoles'));
     }
 
     /**
@@ -97,6 +121,23 @@ class StaffController extends Controller
      */
     public function store(Request $request)
     {
+        $user = auth()->user();
+        
+        // Staff cannot create staff members
+        if ($user->role === 'staff') {
+            abort(403, 'Unauthorized access. Staff members cannot create other staff.');
+        }
+        
+        // Determine available roles based on current user's role
+        $allowedRoles = [];
+        if ($user->role === 'super_admin') {
+            $allowedRoles = ['admin', 'staff'];
+        } elseif ($user->role === 'admin') {
+            $allowedRoles = ['staff'];
+        } else {
+            $allowedRoles = ['staff'];
+        }
+        
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
@@ -104,6 +145,7 @@ class StaffController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'designation' => 'nullable|string|max:255',
             'warehouse_id' => 'nullable|exists:warehouses,id',
+            'role' => 'required|in:' . implode(',', $allowedRoles),
             'is_super_admin' => 'boolean',
             'status' => 'required|in:active,inactive,banned',
         ]);
@@ -113,7 +155,7 @@ class StaffController extends Controller
         $staff->email = $request->email;
         $staff->phone = $request->phone;
         $staff->password = Hash::make($request->password);
-        $staff->role = 'staff';
+        $staff->role = $request->role;
         $staff->designation = $request->designation;
         $staff->warehouse_id = $request->warehouse_id;
         $staff->is_super_admin = $request->is_super_admin ?? false;
@@ -129,8 +171,9 @@ class StaffController extends Controller
 
         $staff->save();
 
+        $roleLabel = ucfirst($request->role);
         return redirect()->route('admin.staffs.index')
-            ->with('success', 'Staff member created successfully.');
+            ->with('success', $roleLabel . ' created successfully.');
     }
 
     /**
@@ -138,10 +181,20 @@ class StaffController extends Controller
      */
     public function edit($id)
     {
-        $staff = User::staff()->findOrFail($id);
+        $currentUser = auth()->user();
+        
+        // Use adminPanel scope for super_admin, staff scope for others
+        if ($currentUser->role === 'super_admin') {
+            $staff = User::adminPanel()->findOrFail($id);
+            $allowedRoles = ['admin', 'staff'];
+        } else {
+            $staff = User::staff()->findOrFail($id);
+            $allowedRoles = ['staff'];
+        }
+        
         $warehouses = Warehouse::where('is_active', 1)->orderBy('name')->get();
 
-        return view('admin.staffs.edit', compact('staff', 'warehouses'));
+        return view('admin.staffs.edit', compact('staff', 'warehouses', 'allowedRoles'));
     }
 
     /**
@@ -149,7 +202,16 @@ class StaffController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $staff = User::staff()->findOrFail($id);
+        $currentUser = auth()->user();
+        
+        // Use adminPanel scope for super_admin, staff scope for others
+        if ($currentUser->role === 'super_admin') {
+            $staff = User::adminPanel()->findOrFail($id);
+            $allowedRoles = ['admin', 'staff'];
+        } else {
+            $staff = User::staff()->findOrFail($id);
+            $allowedRoles = ['staff'];
+        }
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -164,6 +226,7 @@ class StaffController extends Controller
             'password' => 'nullable|string|min:8|confirmed',
             'designation' => 'nullable|string|max:255',
             'warehouse_id' => 'nullable|exists:warehouses,id',
+            'role' => 'sometimes|in:' . implode(',', $allowedRoles),
             'is_super_admin' => 'boolean',
             'status' => 'required|in:active,inactive,banned',
         ]);
@@ -175,6 +238,11 @@ class StaffController extends Controller
         $staff->warehouse_id = $request->warehouse_id;
         $staff->is_super_admin = $request->is_super_admin ?? false;
         $staff->status = $request->status;
+
+        // Update role if provided and allowed
+        if ($request->has('role') && in_array($request->role, $allowedRoles)) {
+            $staff->role = $request->role;
+        }
 
         // Update password if provided
         if ($request->password) {
@@ -205,7 +273,14 @@ class StaffController extends Controller
      */
     public function destroy($id)
     {
-        $staff = User::staff()->findOrFail($id);
+        $currentUser = auth()->user();
+        
+        // Use adminPanel scope for super_admin, staff scope for others
+        if ($currentUser->role === 'super_admin') {
+            $staff = User::adminPanel()->findOrFail($id);
+        } else {
+            $staff = User::staff()->findOrFail($id);
+        }
 
         // Delete avatar
         if ($staff->avatar && file_exists(public_path('uploads/' . $staff->avatar))) {
@@ -223,8 +298,19 @@ class StaffController extends Controller
      */
     public function warehouse(Request $request)
     {
-        // Get staff assigned to warehouses
-        $query = User::staff()->whereNotNull('warehouse_id')->with('warehouse');
+        $currentUser = auth()->user();
+        
+        // Staff cannot access warehouse staff page
+        if ($currentUser->role === 'staff') {
+            abort(403, 'Unauthorized access. Staff members cannot access warehouse staff page.');
+        }
+        
+        // Get staff assigned to warehouses - use adminPanel for super_admin/admin
+        if ($currentUser->role === 'super_admin' || $currentUser->role === 'admin') {
+            $query = User::adminPanel()->whereNotNull('warehouse_id')->with('warehouse');
+        } else {
+            $query = User::staff()->whereNotNull('warehouse_id')->with('warehouse');
+        }
 
         // Search
         if ($request->search) {
@@ -258,7 +344,20 @@ class StaffController extends Controller
      */
     public function permissions(Request $request)
     {
-        $staff = User::staff()->with('warehouse')->get();
+        $currentUser = auth()->user();
+        
+        // Staff cannot access permissions page
+        if ($currentUser->role === 'staff') {
+            abort(403, 'Unauthorized access. Staff members cannot manage permissions.');
+        }
+        
+        // Use adminPanel for super_admin/admin, staff scope for others
+        if ($currentUser->role === 'super_admin' || $currentUser->role === 'admin') {
+            $staff = User::adminPanel()->with('warehouse')->get();
+        } else {
+            $staff = User::staff()->with('warehouse')->get();
+        }
+        
         $warehouses = Warehouse::where('is_active', 1)->orderBy('name')->get();
 
         return view('admin.staffs.permissions', compact('staff', 'warehouses'));
@@ -269,13 +368,26 @@ class StaffController extends Controller
      */
     public function updatePermissions(Request $request)
     {
+        $currentUser = auth()->user();
+        
+        // Staff cannot update permissions
+        if ($currentUser->role === 'staff') {
+            abort(403, 'Unauthorized access. Staff members cannot manage permissions.');
+        }
+        
         $request->validate([
             'staff_id' => 'required|exists:users,id',
             'permissions' => 'nullable|array',
         ]);
 
-        $staff = User::staff()->findOrFail($request->staff_id);
-        $staff->permissions = json_encode($request->permissions ?? []);
+        // Use adminPanel for super_admin/admin
+        if ($currentUser->role === 'super_admin' || $currentUser->role === 'admin') {
+            $staff = User::adminPanel()->findOrFail($request->staff_id);
+        } else {
+            $staff = User::staff()->findOrFail($request->staff_id);
+        }
+        
+        $staff->permissions = $request->permissions ?? [];
         $staff->save();
 
         return redirect()->route('admin.staffs.permissions')
@@ -287,6 +399,13 @@ class StaffController extends Controller
      */
     public function bulkAction(Request $request)
     {
+        $currentUser = auth()->user();
+        
+        // Staff cannot perform bulk actions
+        if ($currentUser->role === 'staff') {
+            abort(403, 'Unauthorized access. Staff members cannot perform bulk actions.');
+        }
+        
         $request->validate([
             'action' => 'required|in:activate,deactivate,delete',
             'staff_ids' => 'required|array',

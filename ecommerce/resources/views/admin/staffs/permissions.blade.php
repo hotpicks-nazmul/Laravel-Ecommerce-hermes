@@ -72,9 +72,13 @@
                                 @endif
                             </td>
                             <td>
-                                @if($member->is_super_admin)
+                                @if($member->role === 'super_admin')
                                     <span class="badge bg-warning text-dark">
                                         <i class="bi bi-shield-check me-1"></i> Super Admin
+                                    </span>
+                                @elseif($member->role === 'admin')
+                                    <span class="badge bg-primary">
+                                        <i class="bi bi-shield me-1"></i> Admin
                                     </span>
                                 @else
                                     <span class="badge bg-secondary">Staff</span>
@@ -110,8 +114,26 @@
                                             <div class="row">
                                                 <div class="col-md-6 mb-3">
                                                     <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="dashboard" id="perm_dashboard_{{ $member->id }}"
+                                                            {{ in_array('dashboard', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_dashboard_{{ $member->id }}">
+                                                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="analytics" id="perm_analytics_{{ $member->id }}"
+                                                            {{ in_array('analytics', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_analytics_{{ $member->id }}">
+                                                            <i class="bi bi-graph-up me-1"></i> Analytics
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
                                                         <input class="form-check-input" type="checkbox" name="permissions[]" value="products" id="perm_products_{{ $member->id }}"
-                                                            {{ in_array('products', json_decode($member->permissions ?? '[]', true) ?? []) ? 'checked' : '' }}>
+                                                            {{ in_array('products', $member->getPermissionsArray()) ? 'checked' : '' }}>
                                                         <label class="form-check-label" for="perm_products_{{ $member->id }}">
                                                             <i class="bi bi-box me-1"></i> Products Management
                                                         </label>
@@ -120,7 +142,7 @@
                                                 <div class="col-md-6 mb-3">
                                                     <div class="form-check">
                                                         <input class="form-check-input" type="checkbox" name="permissions[]" value="orders" id="perm_orders_{{ $member->id }}"
-                                                            {{ in_array('orders', json_decode($member->permissions ?? '[]', true) ?? []) ? 'checked' : '' }}>
+                                                            {{ in_array('orders', $member->getPermissionsArray()) ? 'checked' : '' }}>
                                                         <label class="form-check-label" for="perm_orders_{{ $member->id }}">
                                                             <i class="bi bi-cart me-1"></i> Orders Management
                                                         </label>
@@ -128,8 +150,26 @@
                                                 </div>
                                                 <div class="col-md-6 mb-3">
                                                     <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="delivery" id="perm_delivery_{{ $member->id }}"
+                                                            {{ in_array('delivery', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_delivery_{{ $member->id }}">
+                                                            <i class="bi bi-truck me-1"></i> Delivery Management
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="refund" id="perm_refund_{{ $member->id }}"
+                                                            {{ in_array('refund', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_refund_{{ $member->id }}">
+                                                            <i class="bi bi-arrow-return-left me-1"></i> Refund Management
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
                                                         <input class="form-check-input" type="checkbox" name="permissions[]" value="customers" id="perm_customers_{{ $member->id }}"
-                                                            {{ in_array('customers', json_decode($member->permissions ?? '[]', true) ?? []) ? 'checked' : '' }}>
+                                                            {{ in_array('customers', $member->getPermissionsArray()) ? 'checked' : '' }}>
                                                         <label class="form-check-label" for="perm_customers_{{ $member->id }}">
                                                             <i class="bi bi-people me-1"></i> Customers Management
                                                         </label>
@@ -137,8 +177,26 @@
                                                 </div>
                                                 <div class="col-md-6 mb-3">
                                                     <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="sellers" id="perm_sellers_{{ $member->id }}"
+                                                            {{ in_array('sellers', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_sellers_{{ $member->id }}">
+                                                            <i class="bi bi-shop me-1"></i> Sellers Management
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="affiliate" id="perm_affiliate_{{ $member->id }}"
+                                                            {{ in_array('affiliate', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_affiliate_{{ $member->id }}">
+                                                            <i class="bi bi-link-45deg me-1"></i> Affiliate Management
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
                                                         <input class="form-check-input" type="checkbox" name="permissions[]" value="reports" id="perm_reports_{{ $member->id }}"
-                                                            {{ in_array('reports', json_decode($member->permissions ?? '[]', true) ?? []) ? 'checked' : '' }}>
+                                                            {{ in_array('reports', $member->getPermissionsArray()) ? 'checked' : '' }}>
                                                         <label class="form-check-label" for="perm_reports_{{ $member->id }}">
                                                             <i class="bi bi-graph-up me-1"></i> Reports & Analytics
                                                         </label>
@@ -147,16 +205,16 @@
                                                 <div class="col-md-6 mb-3">
                                                     <div class="form-check">
                                                         <input class="form-check-input" type="checkbox" name="permissions[]" value="inventory" id="perm_inventory_{{ $member->id }}"
-                                                            {{ in_array('inventory', json_decode($member->permissions ?? '[]', true) ?? []) ? 'checked' : '' }}>
+                                                            {{ in_array('inventory', $member->getPermissionsArray()) ? 'checked' : '' }}>
                                                         <label class="form-check-label" for="perm_inventory_{{ $member->id }}">
-                                                            <i class="bi bi-box-seam me-1"></i> Inventory Management
+                                                            <i class="bi bi-boxes me-1"></i> Inventory Management
                                                         </label>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6 mb-3">
                                                     <div class="form-check">
                                                         <input class="form-check-input" type="checkbox" name="permissions[]" value="marketing" id="perm_marketing_{{ $member->id }}"
-                                                            {{ in_array('marketing', json_decode($member->permissions ?? '[]', true) ?? []) ? 'checked' : '' }}>
+                                                            {{ in_array('marketing', $member->getPermissionsArray()) ? 'checked' : '' }}>
                                                         <label class="form-check-label" for="perm_marketing_{{ $member->id }}">
                                                             <i class="bi bi-megaphone me-1"></i> Marketing Tools
                                                         </label>
@@ -164,8 +222,44 @@
                                                 </div>
                                                 <div class="col-md-6 mb-3">
                                                     <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="support" id="perm_support_{{ $member->id }}"
+                                                            {{ in_array('support', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_support_{{ $member->id }}">
+                                                            <i class="bi bi-headset me-1"></i> Support & Tickets
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="otp" id="perm_otp_{{ $member->id }}"
+                                                            {{ in_array('otp', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_otp_{{ $member->id }}">
+                                                            <i class="bi bi-phone me-1"></i> OTP Management
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="content" id="perm_content_{{ $member->id }}"
+                                                            {{ in_array('content', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_content_{{ $member->id }}">
+                                                            <i class="bi bi-file-text me-1"></i> Content Management
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="appearance" id="perm_appearance_{{ $member->id }}"
+                                                            {{ in_array('appearance', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_appearance_{{ $member->id }}">
+                                                            <i class="bi bi-palette me-1"></i> Theme & Design
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
                                                         <input class="form-check-input" type="checkbox" name="permissions[]" value="settings" id="perm_settings_{{ $member->id }}"
-                                                            {{ in_array('settings', json_decode($member->permissions ?? '[]', true) ?? []) ? 'checked' : '' }}>
+                                                            {{ in_array('settings', $member->getPermissionsArray()) ? 'checked' : '' }}>
                                                         <label class="form-check-label" for="perm_settings_{{ $member->id }}">
                                                             <i class="bi bi-gear me-1"></i> System Settings
                                                         </label>
@@ -173,10 +267,64 @@
                                                 </div>
                                                 <div class="col-md-6 mb-3">
                                                     <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="support" id="perm_support_{{ $member->id }}"
-                                                            {{ in_array('support', json_decode($member->permissions ?? '[]', true) ?? []) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_support_{{ $member->id }}">
-                                                            <i class="bi bi-headset me-1"></i> Support & Tickets
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="warehouse" id="perm_warehouse_{{ $member->id }}"
+                                                            {{ in_array('warehouse', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_warehouse_{{ $member->id }}">
+                                                            <i class="bi bi-building me-1"></i> Warehouse Management
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="staffs" id="perm_staffs_{{ $member->id }}"
+                                                            {{ in_array('staffs', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_staffs_{{ $member->id }}">
+                                                            <i class="bi bi-people me-1"></i> Staff Management
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="system" id="perm_system_{{ $member->id }}"
+                                                            {{ in_array('system', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_system_{{ $member->id }}">
+                                                            <i class="bi bi-display me-1"></i> System Management
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="pos" id="perm_pos_{{ $member->id }}"
+                                                            {{ in_array('pos', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_pos_{{ $member->id }}">
+                                                            <i class="bi bi-terminal me-1"></i> POS Management
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="multistore" id="perm_multistore_{{ $member->id }}"
+                                                            {{ in_array('multistore', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_multistore_{{ $member->id }}">
+                                                            <i class="bi bi-shop me-1"></i> Multi-Store Management
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="media" id="perm_media_{{ $member->id }}"
+                                                            {{ in_array('media', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_media_{{ $member->id }}">
+                                                            <i class="bi bi-images me-1"></i> Media Management
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="addon" id="perm_addon_{{ $member->id }}"
+                                                            {{ in_array('addon', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_addon_{{ $member->id }}">
+                                                            <i class="bi bi-puzzle me-1"></i> Addon Manager
                                                         </label>
                                                     </div>
                                                 </div>

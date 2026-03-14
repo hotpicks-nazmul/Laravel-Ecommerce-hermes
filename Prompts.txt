@@ -1,7 +1,7 @@
 Read Preference.md and Follow the style and functionality Preference to implement.
 
 in admin panel
-implement and fully functional SETTINGS > Banners
+implement and fully functional MULTI-STORE
 
 
 implement this functionality for both backend and  also implement for frontend. 

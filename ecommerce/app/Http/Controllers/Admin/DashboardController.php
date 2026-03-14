@@ -8,7 +8,9 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Category;
+use App\Models\UserSearch;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -191,34 +193,413 @@ class DashboardController extends Controller
     /**
      * Display analytics page.
      */
-    public function analytics()
+    public function analytics(Request $request)
     {
-        return view('admin.analytics');
+        // Get date range from request or default to this month
+        $period = $request->get('period', 'this_month');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        
+        // Calculate date range based on period
+        $dateRange = $this->getDateRange($period, $startDate, $endDate);
+        $start = $dateRange['start'];
+        $end = $dateRange['end'];
+        
+        // Compare with previous period for growth calculations
+        $previousPeriod = $this->getPreviousPeriod($period, $start, $end);
+        $prevStart = $previousPeriod['start'];
+        $prevEnd = $previousPeriod['end'];
+        
+        // ============ SALES ANALYTICS ============
+        $currentSales = DB::table('orders')
+            ->where('payment_status', 'paid')
+            ->whereBetween('created_at', [$start, $end])
+            ->sum('total');
+        
+        $previousSales = DB::table('orders')
+            ->where('payment_status', 'paid')
+            ->whereBetween('created_at', [$prevStart, $prevEnd])
+            ->sum('total');
+        
+        $salesGrowth = $previousSales > 0 
+            ? round((($currentSales - $previousSales) / $previousSales) * 100, 1) 
+            : ($currentSales > 0 ? 100 : 0);
+        
+        // ============ ORDER ANALYTICS ============
+        $currentOrders = DB::table('orders')->whereBetween('created_at', [$start, $end])->count();
+        $previousOrders = DB::table('orders')->whereBetween('created_at', [$prevStart, $prevEnd])->count();
+        
+        $orderGrowth = $previousOrders > 0 
+            ? round((($currentOrders - $previousOrders) / $previousOrders) * 100, 1) 
+            : ($currentOrders > 0 ? 100 : 0);
+        
+        // ============ CUSTOMER ANALYTICS ============
+        $currentCustomers = DB::table('users')
+            ->where('role', 'customer')
+            ->whereBetween('created_at', [$start, $end])
+            ->count();
+        $previousCustomers = DB::table('users')
+            ->where('role', 'customer')
+            ->whereBetween('created_at', [$prevStart, $prevEnd])
+            ->count();
+        
+        $customerGrowth = $previousCustomers > 0 
+            ? round((($currentCustomers - $previousCustomers) / $previousCustomers) * 100, 1) 
+            : ($currentCustomers > 0 ? 100 : 0);
+        
+        // ============ PRODUCT ANALYTICS ============
+        $totalProducts = DB::table('products')->count();
+        $activeProducts = DB::table('products')->where('is_active', true)->count();
+        $outOfStockProducts = DB::table('products')->where('quantity', 0)->count();
+        $lowStockProducts = DB::table('products')->where('quantity', '>', 0)->where('quantity', '<=', 10)->count();
+        
+        // Products added in current period
+        $newProducts = DB::table('products')->whereBetween('created_at', [$start, $end])->count();
+        $prevNewProducts = DB::table('products')->whereBetween('created_at', [$prevStart, $prevEnd])->count();
+        
+        $productGrowth = $prevNewProducts > 0 
+            ? round((($newProducts - $prevNewProducts) / $prevNewProducts) * 100, 1) 
+            : ($newProducts > 0 ? 100 : 0);
+        
+        // ============ SALES BY PERIOD (for chart) ============
+        $salesByDay = $this->getSalesByDay($start, $end);
+        $salesByMonth = $this->getSalesByMonth($start, $end);
+        
+        // ============ TOP PRODUCTS ============
+        $topProducts = DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->where('orders.payment_status', 'paid')
+            ->whereBetween('orders.created_at', [$start, $end])
+            ->select(
+                'order_items.product_id',
+                'order_items.product_name',
+                DB::raw('SUM(order_items.quantity) as total_sold'),
+                DB::raw('SUM(order_items.quantity * order_items.price) as total_revenue')
+            )
+            ->groupBy('order_items.product_id', 'order_items.product_name')
+            ->orderByDesc('total_revenue')
+            ->take(10)
+            ->get();
+        
+        // ============ TOP CATEGORIES ============
+        $topCategories = DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->where('orders.payment_status', 'paid')
+            ->whereBetween('orders.created_at', [$start, $end])
+            ->select(
+                'categories.id',
+                'categories.name',
+                DB::raw('SUM(order_items.quantity) as total_sold'),
+                DB::raw('SUM(order_items.quantity * order_items.price) as total_revenue')
+            )
+            ->groupBy('categories.id', 'categories.name')
+            ->orderByDesc('total_revenue')
+            ->take(8)
+            ->get();
+        
+        // ============ ORDER STATUS BREAKDOWN ============
+        $orderStatus = DB::table('orders')->whereBetween('created_at', [$start, $end])
+            ->select('status', DB::raw('COUNT(*) as count'), DB::raw('SUM(total) as total'))
+            ->groupBy('status')
+            ->get();
+        
+        // ============ PAYMENT METHOD DISTRIBUTION ============
+        $paymentMethods = DB::table('orders')->where('payment_status', 'paid')
+            ->whereBetween('created_at', [$start, $end])
+            ->select('payment_method', DB::raw('COUNT(*) as count'), DB::raw('SUM(total) as total'))
+            ->groupBy('payment_method')
+            ->get();
+        
+        // ============ AVERAGE ORDER VALUE ============
+        $avgOrderValue = $currentOrders > 0 ? round($currentSales / $currentOrders, 2) : 0;
+        $prevAvgOrderValue = $previousOrders > 0 ? round($previousSales / $previousOrders, 2) : 0;
+        $avgGrowth = $prevAvgOrderValue > 0 
+            ? round((($avgOrderValue - $prevAvgOrderValue) / $prevAvgOrderValue) * 100, 1) 
+            : ($avgOrderValue > 0 ? 100 : 0);
+        
+        // ============ CONVERSION RATE (Orders / Visitors) ============
+        // Using user searches as a proxy for visitors
+        $totalSearches = UserSearch::whereBetween('created_at', [$start, $end])->count();
+        $conversionRate = $totalSearches > 0 ? round(($currentOrders / $totalSearches) * 100, 2) : 0;
+        
+        // ============ USER SEARCH ANALYTICS ============
+        $topSearches = UserSearch::select('query', DB::raw('COUNT(*) as count'))
+            ->whereBetween('created_at', [$start, $end])
+            ->groupBy('query')
+            ->orderByDesc('count')
+            ->take(10)
+            ->get();
+        
+        // ============ REVENUE BY DAY (Last 30 days for chart) ============
+        $last30DaysRevenue = [];
+        $last30DaysLabels = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $last30DaysLabels[] = $date->format('d M');
+            $last30DaysRevenue[] = round(DB::table('orders')->where('payment_status', 'paid')
+                ->whereDate('created_at', $date->format('Y-m-d'))
+                ->sum('total'), 2);
+        }
+        
+        // ============ YEARLY COMPARISON ============
+        $yearlySales = [];
+        $yearlyLabels = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $yearlyLabels[] = $month->format('M Y');
+            $yearlySales[] = round(DB::table('orders')->where('payment_status', 'paid')
+                ->whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->sum('total'), 2);
+        }
+        
+        // ============ CUSTOMER SEGMENTS ============
+        $newCustomers = DB::table('users')->where('role', 'customer')
+            ->whereBetween('created_at', [$start, $end])
+            ->count();
+        $returningCustomers = DB::table('orders')->where('payment_status', 'paid')
+            ->whereBetween('created_at', [$start, $end])
+            ->distinct('user_id')
+            ->count('user_id');
+        
+        return view('admin.analytics', compact(
+            'period',
+            'startDate',
+            'endDate',
+            'currentSales',
+            'previousSales',
+            'salesGrowth',
+            'currentOrders',
+            'previousOrders',
+            'orderGrowth',
+            'currentCustomers',
+            'previousCustomers',
+            'customerGrowth',
+            'totalProducts',
+            'activeProducts',
+            'outOfStockProducts',
+            'lowStockProducts',
+            'newProducts',
+            'productGrowth',
+            'topProducts',
+            'topCategories',
+            'orderStatus',
+            'paymentMethods',
+            'avgOrderValue',
+            'avgGrowth',
+            'conversionRate',
+            'totalSearches',
+            'topSearches',
+            'last30DaysRevenue',
+            'last30DaysLabels',
+            'yearlySales',
+            'yearlyLabels',
+            'newCustomers',
+            'returningCustomers',
+            'salesByDay',
+            'salesByMonth'
+        ));
+    }
+    
+    /**
+     * Get date range based on period
+     */
+    private function getDateRange($period, $startDate = null, $endDate = null)
+    {
+        $now = now();
+        
+        return match ($period) {
+            'today' => [
+                'start' => $now->copy()->startOfDay(),
+                'end' => $now->copy()->endOfDay()
+            ],
+            'yesterday' => [
+                'start' => $now->copy()->subDay()->startOfDay(),
+                'end' => $now->copy()->subDay()->endOfDay()
+            ],
+            'this_week' => [
+                'start' => $now->copy()->startOfWeek(),
+                'end' => $now->copy()->endOfWeek()
+            ],
+            'last_week' => [
+                'start' => $now->copy()->subWeek()->startOfWeek(),
+                'end' => $now->copy()->subWeek()->endOfWeek()
+            ],
+            'this_month' => [
+                'start' => $now->copy()->startOfMonth(),
+                'end' => $now->copy()->endOfMonth()
+            ],
+            'last_month' => [
+                'start' => $now->copy()->subMonth()->startOfMonth(),
+                'end' => $now->copy()->subMonth()->endOfMonth()
+            ],
+            'this_year' => [
+                'start' => $now->copy()->startOfYear(),
+                'end' => $now->copy()->endOfYear()
+            ],
+            'custom' => [
+                'start' => $startDate ? Carbon::parse($startDate)->startOfDay() : $now->copy()->startOfMonth(),
+                'end' => $endDate ? Carbon::parse($endDate)->endOfDay() : $now->copy()->endOfDay()
+            ],
+            default => [
+                'start' => $now->copy()->startOfMonth(),
+                'end' => $now->copy()->endOfMonth()
+            ]
+        };
+    }
+    
+    /**
+     * Get previous period for comparison
+     */
+    private function getPreviousPeriod($period, $start, $end)
+    {
+        $start = Carbon::parse($start);
+        $end = Carbon::parse($end);
+        $diff = $start->diffInDays($end);
+        
+        return match ($period) {
+            'today' => [
+                'start' => $start->copy()->subDay()->startOfDay(),
+                'end' => $start->copy()->subDay()->endOfDay()
+            ],
+            'yesterday' => [
+                'start' => $start->copy()->subDays(2)->startOfDay(),
+                'end' => $start->copy()->subDays(2)->endOfDay()
+            ],
+            'this_week' => [
+                'start' => $start->copy()->subWeek()->startOfWeek(),
+                'end' => $start->copy()->subWeek()->endOfWeek()
+            ],
+            'last_week' => [
+                'start' => $start->copy()->subWeeks(2)->startOfWeek(),
+                'end' => $start->copy()->subWeeks(2)->endOfWeek()
+            ],
+            'this_month' => [
+                'start' => $start->copy()->subMonth()->startOfMonth(),
+                'end' => $start->copy()->subMonth()->endOfMonth()
+            ],
+            'last_month' => [
+                'start' => $start->copy()->subMonths(2)->startOfMonth(),
+                'end' => $start->copy()->subMonths(2)->endOfMonth()
+            ],
+            'this_year' => [
+                'start' => $start->copy()->subYear()->startOfYear(),
+                'end' => $start->copy()->subYear()->endOfYear()
+            ],
+            'custom' => [
+                'start' => $start->copy()->subDays($diff + 1)->startOfDay(),
+                'end' => $start->copy()->subDay()->endOfDay()
+            ],
+            default => [
+                'start' => $start->copy()->subMonth()->startOfMonth(),
+                'end' => $start->copy()->subMonth()->endOfMonth()
+            ]
+        };
+    }
+    
+    /**
+     * Get sales by day for chart
+     */
+    private function getSalesByDay($start, $end)
+    {
+        $start = Carbon::parse($start);
+        $end = Carbon::parse($end);
+        
+        // If range is more than 60 days, switch to monthly
+        if ($start->diffInDays($end) > 60) {
+            return $this->getSalesByMonth($start, $end);
+        }
+        
+        $sales = DB::table('orders')->where('payment_status', 'paid')
+            ->whereBetween('created_at', [$start, $end])
+            ->select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('SUM(total) as total')
+            )
+            ->groupBy('date')
+            ->pluck('total', 'date');
+        
+        $result = [];
+        $labels = [];
+        $current = $start->copy();
+        
+        while ($current->lte($end)) {
+            $dateStr = $current->format('Y-m-d');
+            $labels[] = $current->format('d M');
+            $result[] = round($sales->get($dateStr, 0), 2);
+            $current->addDay();
+        }
+        
+        return ['labels' => $labels, 'data' => $result];
+    }
+    
+    /**
+     * Get sales by month for chart
+     */
+    private function getSalesByMonth($start, $end)
+    {
+        $start = Carbon::parse($start);
+        $end = Carbon::parse($end);
+        
+        $sales = DB::table('orders')->where('payment_status', 'paid')
+            ->whereBetween('created_at', [$start, $end])
+            ->select(
+                DB::raw('YEAR(created_at) as year'),
+                DB::raw('MONTH(created_at) as month'),
+                DB::raw('SUM(total) as total')
+            )
+            ->groupBy('year', 'month')
+            ->get();
+        
+        $result = [];
+        $labels = [];
+        $current = $start->copy()->startOfMonth();
+        
+        while ($current->lte($end)) {
+            $year = $current->year;
+            $month = $current->month;
+            $label = $current->format('M Y');
+            
+            $total = $sales->filter(function($s) use ($year, $month) {
+                return $s->year == $year && $s->month == $month;
+            })->first()->total ?? 0;
+            
+            $labels[] = $label;
+            $result[] = round($total, 2);
+            $current->addMonth();
+        }
+        
+        return ['labels' => $labels, 'data' => $result];
     }
 
     /**
-     * Get sales chart data.
+     * Get sales chart data via AJAX.
      */
     public function salesChart(Request $request)
     {
         $period = $request->get('period', 'week');
 
         $data = match ($period) {
-            'week' => Order::where('created_at', '>=', now()->subWeek())
+            'week' => DB::table('orders')->where('created_at', '>=', now()->subWeek())
+                ->where('payment_status', 'paid')
                 ->select(
                     DB::raw('DATE(created_at) as date'),
                     DB::raw('SUM(total) as total')
                 )
                 ->groupBy('date')
                 ->get(),
-            'month' => Order::where('created_at', '>=', now()->subMonth())
+            'month' => DB::table('orders')->where('created_at', '>=', now()->subMonth())
+                ->where('payment_status', 'paid')
                 ->select(
                     DB::raw('DATE(created_at) as date'),
                     DB::raw('SUM(total) as total')
                 )
                 ->groupBy('date')
                 ->get(),
-            'year' => Order::where('created_at', '>=', now()->subYear())
+            'year' => DB::table('orders')->where('created_at', '>=', now()->subYear())
+                ->where('payment_status', 'paid')
                 ->select(
                     DB::raw('MONTH(created_at) as month'),
                     DB::raw('SUM(total) as total')

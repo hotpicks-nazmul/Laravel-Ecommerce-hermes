@@ -52,6 +52,33 @@
                             @enderror
                         </div>
                     </div>
+                    
+                    @if(count($allowedRoles) > 1)
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="role" class="form-label">Role <span class="text-danger">*</span></label>
+                            <select id="role" name="role" class="form-select @error('role') is-invalid @enderror" required>
+                                <option value="">Select Role</option>
+                                @foreach($allowedRoles as $role)
+                                    <option value="{{ $role }}" {{ old('role') === $role ? 'selected' : '' }}>{{ ucfirst($role) }}</option>
+                                @endforeach
+                            </select>
+                            @error('role')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">
+                                @if(in_array('admin', $allowedRoles))
+                                    <span class="text-info">Admin: Can create staff and manage business operations</span>
+                                @endif
+                                @if(in_array('staff', $allowedRoles))
+                                    <span class="text-info">Staff: Limited access based on permissions</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    @else
+                        <input type="hidden" name="role" value="{{ $allowedRoles[0] }}">
+                    @endif
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="password" class="form-label">Password <span class="text-danger">*</span></label>

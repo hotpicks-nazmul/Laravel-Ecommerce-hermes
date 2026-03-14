@@ -473,6 +473,47 @@
             color: #4b5563;
         }
         
+        /* Notification Dropdown Styles */
+        .notification-dropdown {
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .notification-dropdown .notification-item {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 12px 16px;
+            white-space: normal;
+            transition: background-color 0.2s;
+        }
+        
+        .notification-dropdown .notification-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .notification-dropdown .notification-item.unread {
+            background-color: #e7f1ff;
+        }
+        
+        .notification-dropdown .notification-item.unread:hover {
+            background-color: #dbe7f5;
+        }
+        
+        .notification-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .notification-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .notification-list::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        
+        .notification-list::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
         /* Hide original save buttons when floating is active */
         .original-save-container {
             display: none;
@@ -508,6 +549,7 @@
         
         <nav class="sidebar-menu">
             <!-- Dashboard -->
+            @if(Auth::user()->hasPermission('dashboard'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
                     <div>
@@ -516,8 +558,10 @@
                     </div>
                 </a>
             </div>
+            @endif
             
             <!-- ANALYTICS -->
+            @if(Auth::user()->hasPermission('analytics'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.analytics') ? 'active' : '' }}" href="{{ route('admin.analytics') }}">
                     <div>
@@ -527,8 +571,10 @@
                     <span class="badge bg-success menu-badge">New</span>
                 </a>
             </div>
+            @endif
             
             <!-- PRODUCTS -->
+            @if(Auth::user()->hasPermission('products'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlists.*') || request()->routeIs('admin.inventory.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuProducts" role="button" aria-expanded="{{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlist-management.*') || request()->routeIs('admin.inventory.*') ? 'true' : 'false' }}">
                     <div>
@@ -622,8 +668,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- SALES -->
+            @if(Auth::user()->hasPermission('orders'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.quotations.*') || request()->routeIs('admin.subscriptions.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuSales" role="button" aria-expanded="{{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.quotations.*') || request()->routeIs('admin.subscriptions.*') ? 'true' : 'false' }}">
                     <div>
@@ -667,8 +715,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- DELIVERY -->
+            @if(Auth::user()->hasPermission('delivery'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.delivery.*') || request()->routeIs('admin.pickup-points*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuDelivery" role="button" aria-expanded="{{ request()->routeIs('admin.delivery.*') || request()->routeIs('admin.pickup-points*') ? 'true' : 'false' }}">
                     <div>
@@ -732,8 +782,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- REFUND -->
+            @if(Auth::user()->hasPermission('refund'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.refunds.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuRefund" role="button" aria-expanded="{{ request()->routeIs('admin.refunds.*') ? 'true' : 'false' }}">
                     <div>
@@ -772,8 +824,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- CUSTOMERS -->
+            @if(Auth::user()->hasPermission('customers'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.customers.*') || request()->routeIs('admin.customers.groups.*') || request()->routeIs('admin.customers.segmentation.*') || request()->routeIs('admin.customers.loyalty.*') || request()->routeIs('admin.customers.membership.*') || request()->routeIs('admin.customers.wallet.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuCustomers" role="button" aria-expanded="{{ request()->routeIs('admin.customers.*') || request()->routeIs('admin.customers.groups.*') || request()->routeIs('admin.customers.segmentation.*') || request()->routeIs('admin.customers.loyalty.*') || request()->routeIs('admin.customers.membership.*') || request()->routeIs('admin.customers.wallet.*') ? 'true' : 'false' }}">
                     <div>
@@ -817,8 +871,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- SELLERS (B2B) -->
+            @if(Auth::user()->hasPermission('sellers'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.sellers.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuSellers" role="button" aria-expanded="{{ request()->routeIs('admin.sellers.*') ? 'true' : 'false' }}">
                     <div>
@@ -857,8 +913,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- AFFILIATE -->
+            @if(Auth::user()->hasPermission('affiliate'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.affiliate.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuAffiliate" role="button" aria-expanded="{{ request()->routeIs('admin.affiliate.*') ? 'true' : 'false' }}">
                     <div>
@@ -922,8 +980,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- MEDIA -->
+            @if(Auth::user()->hasPermission('media'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.media.*') ? 'active' : '' }}" href="{{ route('admin.media.index') }}">
                     <div>
@@ -933,8 +993,10 @@
                     <span class="badge bg-info menu-badge">Files</span>
                 </a>
             </div>
+            @endif
             
             <!-- REPORTS -->
+            @if(Auth::user()->hasPermission('reports'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.reports.*') || request()->routeIs('admin.jakat.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuReports" role="button" aria-expanded="{{ request()->routeIs('admin.reports.*') || request()->routeIs('admin.jakat.*') ? 'true' : 'false' }}">
                     <div>
@@ -988,8 +1050,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- MARKETING -->
+            @if(Auth::user()->hasPermission('marketing'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.marketing.*') || request()->routeIs('admin.coupons.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuMarketing" role="button" aria-expanded="{{ request()->routeIs('admin.marketing.*') || request()->routeIs('admin.coupons.*') ? 'true' : 'false' }}">
                     <div>
@@ -1048,8 +1112,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- SUPPORT -->
+            @if(Auth::user()->hasPermission('support'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.support.*') || request()->routeIs('admin.chat.*') || request()->routeIs('admin.settings.whatsapp') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuSupport" role="button" aria-expanded="{{ request()->routeIs('admin.support.*') || request()->routeIs('admin.chat.*') || request()->routeIs('admin.settings.whatsapp') ? 'true' : 'false' }}">
                     <div>
@@ -1098,8 +1164,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- OTP SYSTEM -->
+            @if(Auth::user()->hasPermission('otp'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.otp.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuOtp" role="button" aria-expanded="{{ request()->routeIs('admin.otp.*') ? 'true' : 'false' }}">
                     <div>
@@ -1128,8 +1196,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- CONTENT -->
+            @if(Auth::user()->hasPermission('content'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') || request()->routeIs('admin.content.widgets.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuContent" role="button" aria-expanded="{{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') || request()->routeIs('admin.content.widgets.*') ? 'true' : 'false' }}">
                     <div>
@@ -1178,8 +1248,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- APPEARANCE -->
+            @if(Auth::user()->hasPermission('appearance'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.themes.*') || request()->routeIs('admin.hero.*') || request()->routeIs('admin.homepage.*') || request()->routeIs('admin.sliders.*') || request()->routeIs('admin.banners.*') || request()->routeIs('admin.menus.*') || request()->routeIs('admin.widgets.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuAppearance" role="button" aria-expanded="{{ request()->routeIs('admin.themes.*') || request()->routeIs('admin.hero.*') || request()->routeIs('admin.homepage.*') || request()->routeIs('admin.sliders.*') || request()->routeIs('admin.banners.*') || request()->routeIs('admin.menus.*') || request()->routeIs('admin.widgets.*') ? 'true' : 'false' }}">
                     <div>
@@ -1223,8 +1295,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- SETTINGS -->
+            @if(Auth::user()->hasPermission('settings'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.payment.*') || request()->routeIs('admin.payment-gateways.*') || request()->routeIs('admin.seo.*') || request()->routeIs('admin.api-keys*') || request()->routeIs('admin.backup*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuSettings" role="button" aria-expanded="{{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.payment.*') || request()->routeIs('admin.payment-gateways.*') || request()->routeIs('admin.seo.*') || request()->routeIs('admin.api-keys*') || request()->routeIs('admin.backup*') ? 'true' : 'false' }}">
                     <div>
@@ -1318,8 +1392,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- WAREHOUSE -->
+            @if(Auth::user()->hasPermission('warehouse'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuWarehouse" role="button" aria-expanded="{{ request()->routeIs('admin.warehouses.*') ? 'true' : 'false' }}">
                     <div>
@@ -1343,8 +1419,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- STAFFS -->
+            @if(Auth::user()->hasPermission('staffs'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.staffs.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuStaffs" role="button" aria-expanded="{{ request()->routeIs('admin.staffs.*') ? 'true' : 'false' }}">
                     <div>
@@ -1373,8 +1451,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- SYSTEM -->
+            @if(Auth::user()->hasPermission('system'))
             <div class="menu-category">
                 <a class="menu-category-header" data-bs-toggle="collapse" href="#menuSystem" role="button" aria-expanded="{{ request()->routeIs('admin.system.*') ? 'true' : 'false' }}">
                     <div>
@@ -1408,8 +1488,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- POS -->
+            @if(Auth::user()->hasPermission('pos'))
             <div class="menu-category">
                 <a class="menu-category-header" data-bs-toggle="collapse" href="#menuPos" role="button" aria-expanded="{{ request()->routeIs('admin.pos.*') ? 'true' : 'false' }}">
                     <div>
@@ -1438,8 +1520,10 @@
                     </ul>
                 </div>
             </div>
+            @endif
             
             <!-- ADDON MANAGER -->
+            @if(Auth::user()->hasPermission('addon'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.addons.*') ? 'active' : '' }}" href="{{ route('admin.addons.index') }}">
                     <div>
@@ -1448,8 +1532,10 @@
                     </div>
                 </a>
             </div>
+            @endif
             
             <!-- MULTI-STORE -->
+            @if(Auth::user()->hasPermission('multistore'))
             <div class="menu-category">
                 <a class="menu-category-header" data-bs-toggle="collapse" href="#menuMultiStore" role="button" aria-expanded="{{ request()->routeIs('admin.multi-store.*') ? 'true' : 'false' }}">
                     <div>
@@ -1473,6 +1559,7 @@
                     </ul>
                 </div>
             </div>
+            @endif
         </nav>
     </aside>
     
@@ -1493,33 +1580,78 @@
                         </a>
                         
                         <!-- Notifications -->
-                        <div class="dropdown me-3">
-                            <button class="btn btn-light position-relative" data-bs-toggle="dropdown">
+                        <div class="dropdown me-3" id="notificationDropdown">
+                            <button class="btn btn-light position-relative" data-bs-toggle="dropdown" id="notificationBtn">
                                 <i class="bi bi-bell"></i>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                    3
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationBadge" style="display: none;">
+                                    0
                                 </span>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><h6 class="dropdown-header">Notifications</h6></li>
-                                <li><a class="dropdown-item" href="#">New order received</a></li>
-                                <li><a class="dropdown-item" href="#">Low stock alert</a></li>
-                                <li><a class="dropdown-item" href="#">New review pending</a></li>
-                            </ul>
+                            <div class="dropdown-menu dropdown-menu-end notification-dropdown" style="width: 360px; max-height: 400px;">
+                                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                                    <h6 class="mb-0">Notifications</h6>
+                                    <div>
+                                        <a href="javascript:void(0)" class="btn btn-sm btn-link text-decoration-none p-0" onclick="markAllNotificationsAsRead()" title="Mark all as read">
+                                            <small>Mark all read</small>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="notification-list" id="notificationList" style="max-height: 300px; overflow-y: auto;">
+                                    <div class="text-center py-4">
+                                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                                        <p class="mb-0 mt-2 small text-muted">Loading notifications...</p>
+                                    </div>
+                                </div>
+                                <div class="border-top">
+                                    <a href="{{ route('admin.notifications.index') }}" class="dropdown-item text-center text-primary">
+                                        View All Notifications
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- User Menu -->
+                        @php
+                            $userRole = Auth::user()->role;
+                            $roleLabel = '';
+                            $dashboardRoute = '';
+                            $profileRoute = '';
+                            $logoutRoute = '';
+                            
+                            if ($userRole === 'super_admin') {
+                                $roleLabel = 'Super Admin';
+                                $dashboardRoute = route('super-admin.dashboard');
+                                $profileRoute = route('admin.profile');
+                                $logoutRoute = route('super-admin.logout');
+                            } elseif ($userRole === 'admin') {
+                                $roleLabel = 'Admin';
+                                $dashboardRoute = route('admin.dashboard');
+                                $profileRoute = route('admin.profile');
+                                $logoutRoute = route('admin.logout');
+                            } else {
+                                $roleLabel = 'Staff';
+                                $dashboardRoute = route('admin.dashboard'); // Staff uses admin dashboard
+                                $profileRoute = route('admin.profile');
+                                $logoutRoute = route('staff.logout');
+                            }
+                        @endphp
                         <div class="dropdown">
                             <button class="btn btn-light dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
+                                <span class="badge bg-{{ $userRole === 'super_admin' ? 'warning' : ($userRole === 'admin' ? 'success' : 'info') }} me-2">
+                                    {{ $roleLabel }}
+                                </span>
                                 <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) }}" 
                                      alt="{{ Auth::user()->name }}" class="rounded-circle me-2" width="32" height="32">
                                 {{ Auth::user()->name }}
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{{ route('admin.profile') }}"><i class="bi bi-person me-2"></i> Profile</a></li>
+                                @if($dashboardRoute)
+                                <li><a class="dropdown-item" href="{{ $dashboardRoute }}"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
+                                @endif
+                                <li><a class="dropdown-item" href="{{ $profileRoute }}"><i class="bi bi-person me-2"></i> Profile</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form id="logout-form" action="{{ route('admin.logout') }}" method="POST">
+                                    <form id="logout-form" action="{{ $logoutRoute }}" method="POST">
                                         @csrf
                                         <button type="submit" class="dropdown-item" onclick="event.stopPropagation(); document.getElementById('logout-form').submit(); return false;"><i class="bi bi-box-arrow-right me-2"></i> Logout</button>
                                     </form>
@@ -1686,6 +1818,149 @@
             if (document.querySelector('.floating-save-container')) {
                 document.querySelector('.content-area').classList.add('has-floating-save');
             }
+        });
+    </script>
+    
+    <!-- Notification System JavaScript -->
+    <script>
+        // Notification functions
+        function loadNotifications() {
+            fetch('{{ route('admin.notifications.recent') }}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateNotificationBadge(data.unread_count);
+                updateNotificationList(data.notifications);
+            })
+            .catch(error => console.error('Error loading notifications:', error));
+        }
+        
+        function updateNotificationBadge(count) {
+            const badge = document.getElementById('notificationBadge');
+            if (badge) {
+                if (count > 0) {
+                    badge.textContent = count > 99 ? '99+' : count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+        
+        function updateNotificationList(notifications) {
+            const list = document.getElementById('notificationList');
+            if (!list) return;
+            
+            if (!notifications || notifications.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="bi bi-bell-slash text-muted" style="font-size: 2rem;"></i>
+                        <p class="mb-0 mt-2 small text-muted">No notifications yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const typeColors = {
+                'order': 'primary',
+                'review': 'warning',
+                'stock': 'danger',
+                'refund': 'info',
+                'customer': 'success',
+                'support': 'secondary',
+                'system': 'dark',
+                'product': 'primary'
+            };
+            
+            const typeIcons = {
+                'order': 'bi-bag',
+                'review': 'bi-star',
+                'stock': 'bi-box',
+                'refund': 'bi-arrow-return-left',
+                'customer': 'bi-person-plus',
+                'support': 'bi-headset',
+                'system': 'bi-gear',
+                'product': 'bi-box-seam'
+            };
+            
+            let html = '';
+            notifications.forEach(function(notification) {
+                const color = typeColors[notification.type] || 'primary';
+                const icon = typeIcons[notification.type] || 'bi-bell';
+                const timeAgo = notification.time_ago || 'Just now';
+                const link = notification.link || '#';
+                
+                html += `
+                    <a href="${link}" class="dropdown-item notification-item ${notification.is_read ? '' : 'unread'}" onclick="handleNotificationClick(event, ${notification.id}, '${link}')">
+                        <div class="d-flex align-items-start">
+                            <div class="bg-${color} bg-opacity-10 rounded p-2 me-2">
+                                <i class="bi ${icon} text-${color}"></i>
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <strong class="small">${notification.title}</strong>
+                                    <small class="text-muted">${timeAgo}</small>
+                                </div>
+                                <p class="mb-0 small text-muted text-truncate">${notification.message}</p>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            });
+            
+            list.innerHTML = html;
+        }
+        
+        function handleNotificationClick(event, notificationId, link) {
+            event.preventDefault();
+            
+            // Mark as read
+            fetch('{{ route('admin.notifications.mark-read') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ ids: [notificationId] })
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateNotificationBadge(data.unread_count);
+                // Navigate to the link
+                if (link && link !== '#') {
+                    window.location.href = link;
+                }
+            })
+            .catch(error => console.error('Error marking notification as read:', error));
+        }
+        
+        function markAllNotificationsAsRead() {
+            fetch('{{ route('admin.notifications.mark-all-read') }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateNotificationBadge(0);
+                loadNotifications();
+            })
+            .catch(error => console.error('Error marking all as read:', error));
+        }
+        
+        // Load notifications on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNotifications();
+            
+            // Refresh notifications every 30 seconds
+            setInterval(loadNotifications, 30000);
         });
     </script>
     

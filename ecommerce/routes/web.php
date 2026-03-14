@@ -273,11 +273,31 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-// Admin Authentication Routes
+// Admin Authentication Routes (General - for existing admins)
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login', [\App\Http\Controllers\Admin\AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [\App\Http\Controllers\Admin\AuthController::class, 'login'])->name('login.post');
     Route::post('/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout'])->name('logout');
+});
+
+// Super Admin Authentication Routes
+Route::prefix('super-admin')->name('super-admin.')->group(function () {
+    Route::get('/login', [\App\Http\Controllers\SuperAdmin\AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [\App\Http\Controllers\SuperAdmin\AuthController::class, 'login'])->name('login.post');
+    Route::post('/logout', [\App\Http\Controllers\SuperAdmin\AuthController::class, 'logout'])->name('logout');
+});
+
+// Staff Authentication Routes (only login/logout, no dashboard)
+Route::prefix('staff')->name('staff.')->group(function () {
+    Route::get('/login', [\App\Http\Controllers\Staff\AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [\App\Http\Controllers\Staff\AuthController::class, 'login'])->name('login.post');
+    Route::post('/logout', [\App\Http\Controllers\Staff\AuthController::class, 'logout'])->name('logout');
+});
+
+// Super Admin Dashboard Routes (requires super_admin role)
+Route::prefix('super-admin')->name('super-admin.')->middleware(['auth', 'super_admin'])->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])->name('dashboard');
+    // Add other super admin routes here as needed
 });
 
 // Admin Routes

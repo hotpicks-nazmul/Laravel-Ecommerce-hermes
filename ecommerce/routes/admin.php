@@ -1226,6 +1226,39 @@ Route::prefix('api-keys')->name('api-keys.')->group(function () {
     Route::post('/webhooks/{id}/toggle', [\App\Http\Controllers\Admin\ApiKeyController::class, 'toggleWebhook'])->name('webhooks.toggle');
 });
 
+// Notifications - API Routes for AJAX (must be before wildcard routes)
+Route::prefix('notifications')->name('notifications.')->group(function () {
+    // Get recent notifications for dropdown
+    Route::get('/recent', [\App\Http\Controllers\Admin\NotificationController::class, 'recent'])->name('recent');
+    
+    // Get notification counts
+    Route::get('/counts', [\App\Http\Controllers\Admin\NotificationController::class, 'counts'])->name('counts');
+    
+    // Mark notifications as read
+    Route::post('/mark-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markRead'])->name('mark-read');
+    
+    // Mark single notification as read
+    Route::post('/{id}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('read');
+    
+    // Mark all as read
+    Route::post('/mark-all-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+    
+    // Delete notification
+    Route::delete('/{id}', [\App\Http\Controllers\Admin\NotificationController::class, 'destroy'])->name('destroy');
+    
+    // Clear read notifications
+    Route::delete('/clear-read', [\App\Http\Controllers\Admin\NotificationController::class, 'clearRead'])->name('clear-read');
+    
+    // Clear all notifications
+    Route::delete('/clear-all', [\App\Http\Controllers\Admin\NotificationController::class, 'clearAll'])->name('clear-all');
+    
+    // Create test notification
+    Route::post('/test', [\App\Http\Controllers\Admin\NotificationController::class, 'createTestNotification'])->name('test');
+    
+    // Main notifications list page
+    Route::get('/', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('index');
+});
+
 // Settings - Additional Routes
 Route::prefix('settings')->name('settings.')->group(function () {
 });

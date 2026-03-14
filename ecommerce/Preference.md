@@ -23,6 +23,7 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 15. **Table Listing Pages** - Proper table structure and styling
 16. **@push Directive Placement** - CSS/JS not loading when @push is before @section
 17. **Tabbed Interface Pages** - Proper view rendering for tab-based admin pages
+18. **Bootstrap Modal Popup** - Reusable modal for showing messages/info without page reload
 
 ---
 
@@ -1194,6 +1195,114 @@ protected function webhooksIndex()
 2. **Pass all required variables:** Ensure all variables needed by the view are passed, even if empty
 3. **Use default values:** Use `@php` block to set default values for variables that may not be passed
 4. **Single entry point:** Use query parameter (`?tab=xyz`) to switch between tabs, all through the same controller method
+
+---
+
+*Last updated: March 2026*
+
+---
+
+## Bootstrap Modal Popup
+
+Use Bootstrap modal popups to show messages, confirmations, or information without requiring a page reload. This provides better UX than browser alerts or redirecting to error pages.
+
+### Common Use Cases
+
+- Show access denied messages instead of 403 error pages
+- Display success/error messages after form submissions
+- Confirm destructive actions (delete, etc.)
+- Show information modals with detailed content
+
+### Why Use Modal?
+- Better user experience - no page reload or error page
+- Users understand the message clearly
+- Can easily dismiss and continue using the app
+
+### Implementation Steps
+
+#### 1. Check User Role in Controller (Optional)
+
+If you want to block the actual action, add check in the controller methods:
+
+```php
+public function store(Request $request)
+{
+    $user = auth()->user();
+    
+    // Check if user has permission
+    if ($user->role === 'staff') {
+        abort(403, 'Unauthorized access.');
+    }
+    // ... rest of the code
+}
+```
+
+#### 2. Show Modal via Button/Link Click
+
+Conditionally show either a link or a button that triggers a modal:
+
+```html
+@if(auth()->user()->role !== 'staff')
+<a href="{{ route('admin.staffs.create') }}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i> Add New Staff
+</a>
+@else
+<button type="button" class="btn btn-primary" onclick="showAccessDenied()">
+    <i class="bi bi-plus-lg me-1"></i> Add New Staff
+</button>
+@endif
+```
+
+#### 3. Add JavaScript Function to Show Modal
+
+Add this JavaScript in the @push('scripts') section:
+
+```html
+@push('scripts')
+<script>
+    // Show access denied modal for staff users
+    function showAccessDenied() {
+        var modal = new bootstrap.Modal(document.getElementById('accessDeniedModal'));
+        modal.show();
+    }
+</script>
+@endpush
+```
+
+#### 4. Add Modal HTML
+
+Add the modal HTML at the end of the view file (before @endsection):
+
+```html
+<!-- Access Denied Modal -->
+<div class="modal fade" id="accessDeniedModal" tabindex="-1" aria-labelledby="accessDeniedModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="accessDeniedModalLabel">
+                    <i class="bi bi-exclamation-triangle text-warning me-2"></i>Access Denied
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-shield-lock text-muted" style="font-size: 3rem;"></i>
+                <p class="mt-3 mb-0">Staff members cannot create other staff members.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+### Key Points
+
+1. **Use Bootstrap modal** - The admin panel already uses Bootstrap modals, so this integrates seamlessly
+2. **Use JavaScript function** - Call a function like `showModal('modalId')` from onclick handler
+3. **Unique modal ID** - Use a unique ID that doesn't conflict with other modals on the page
+4. **User-friendly message** - Include icon and clear message explaining what's happening
+5. **Reusable** - The same pattern can be used for any type of modal (info, warning, error, confirmation)
 
 ---
 

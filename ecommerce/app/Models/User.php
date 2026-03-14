@@ -75,6 +75,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'permissions' => 'array',
     ];
 
     /**
@@ -82,7 +83,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'super_admin']);
     }
 
     /**
@@ -93,6 +94,21 @@ class User extends Authenticatable
         return $this->role === $role;
     }
 
+    /**
+     * Check if user is super admin
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
+    /**
+     * Check if user has admin access (any level)
+     */
+    public function hasAdminAccess(): bool
+    {
+        return in_array($this->role, ['super_admin', 'admin', 'staff']);
+    }
     /**
      * Check if user has any of the given roles
      */
@@ -322,6 +338,30 @@ class User extends Authenticatable
     }
 
     /**
+     * Scope to get only admin users (not super_admin)
+     */
+    public function scopeAdmin($query)
+    {
+        return $query->where('role', 'admin');
+    }
+
+    /**
+     * Scope to get only super admin users
+     */
+    public function scopeSuperAdmin($query)
+    {
+        return $query->where('role', 'super_admin');
+    }
+
+    /**
+     * Scope to get admin panel users (super_admin, admin, staff)
+     */
+    public function scopeAdminPanel($query)
+    {
+        return $query->whereIn('role', ['super_admin', 'admin', 'staff']);
+    }
+
+    /**
      * Check if user is staff
      */
     public function isStaff(): bool
@@ -351,5 +391,60 @@ class User extends Authenticatable
     public function scopeByVerificationStatus($query, $verificationStatus)
     {
         return $query->where('role', 'vendor')->where('verification_status', $verificationStatus);
+    }
+
+    /**
+     * Check if user has a specific permission
+     * 
+     * @param string $permission
+     * @return bool
+     */
+    public function hasPermission($permission)
+    {
+        // Super admin has all permissions
+        if ($this->role === 'super_admin') {
+            return true;
+        }
+        
+        // Log for debugging permission issues
+        
+        // Staff check their permissions
+        if ($this->role === 'staff') {
+            // If no permissions set, return false (no access)
+            if (empty($this->permissions)) {
+                return false;
+            }
+            
+            // Permissions is already cast to array, so we can use it directly
+            return in_array($permission, $this->permissions);
+        }
+        
+        // Admin role - check permissions strictly (no auto-grant)
+        if ($this->role === 'admin') {
+            // Check other permissions
+            if (empty($this->permissions)) {
+                return false;
+            }
+            
+            return in_array($permission, $this->permissions);
+        }
+        
+        // For other roles (customers, vendors, etc.), no permissions
+        return false;
+    }
+
+    /**
+     * Get user's permissions as array
+     * 
+     * @return array
+     */
+    public function getPermissionsArray()
+    {
+        if (empty($this->permissions)) {
+            return [];
+        }
+        
+        // Permissions is already cast to array, so we can use it directly
+        return $this->permissions;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -11,19 +11,19 @@ use App\Models\ActivityLog;
 class AuthController extends Controller
 {
     /**
-     * Show admin login form.
+     * Show staff login form.
      */
     public function showLogin()
     {
-        if (Auth::check() && in_array(Auth::user()->role, ['admin', 'staff'])) {
-            return redirect()->route('admin.dashboard');
+        if (Auth::check() && Auth::user()->role === 'staff') {
+            return redirect()->route('staff.dashboard');
         }
         
-        return view('admin.auth.login');
+        return view('staff.auth.login');
     }
 
     /**
-     * Handle admin login.
+     * Handle staff login.
      */
     public function login(Request $request)
     {
@@ -35,16 +35,16 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
             
-            // Only allow admin role (not super_admin or staff)
-            if (!in_array($user->role, ['admin', 'super_admin'])) {
+            // Only allow staff role
+            if ($user->role !== 'staff') {
                 Auth::logout();
                 return back()->withErrors([
-                    'email' => 'You do not have admin access.',
+                    'email' => 'You do not have staff access.',
                 ])->onlyInput('email');
             }
 
-            // Check if admin user is active
-            if (in_array($user->role, ['admin']) && $user->status !== 'active') {
+            // Check if user is active
+            if ($user->status !== 'active') {
                 Auth::logout();
                 return back()->withErrors([
                     'email' => 'Your account is not active. Please contact administrator.',
@@ -53,15 +53,16 @@ class AuthController extends Controller
 
             $request->session()->regenerate();
             
-            // Log admin/staff login activity
+            // Log staff login activity
             ActivityLog::adminLog(
-                'Admin user logged in',
+                'Staff logged in',
                 $user,
                 $user,
-                ['email' => $user->email, 'role' => $user->role]
+                ['email' => $user->email, 'role' => $user->role, 'designation' => $user->designation]
             );
             
-            return redirect()->intended(route('admin.dashboard'));
+            // Staff has no dashboard - redirect to admin dashboard
+            return redirect()->route('admin.dashboard');
         }
 
         return back()->withErrors([
@@ -70,16 +71,16 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle admin logout.
+     * Handle staff logout.
      */
     public function logout(Request $request)
     {
         $user = Auth::user();
         
-        // Log admin logout activity
+        // Log staff logout activity
         if ($user) {
             ActivityLog::adminLog(
-                'Admin user logged out',
+                'Staff logged out',
                 $user,
                 $user,
                 ['email' => $user->email, 'role' => $user->role]
@@ -89,7 +90,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
-        return redirect()->route('admin.login');
+
+        return redirect()->route('staff.login');
     }
 }
