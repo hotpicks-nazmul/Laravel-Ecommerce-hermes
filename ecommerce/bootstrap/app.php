@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
             'staff' => \App\Http\Middleware\StaffMiddleware::class,
+            'permission' => \App\Http\Middleware\CheckPermission::class,
             'theme' => \App\Http\Middleware\ThemeMiddleware::class,
             'installed' => \App\Http\Middleware\CheckInstallation::class,
         ]);

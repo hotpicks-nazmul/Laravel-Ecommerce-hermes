@@ -85,7 +85,7 @@
                                 @endif
                             </td>
                             <td>
-                                @if($member->is_super_admin)
+                                @if($member->is_super_admin || $member->role === 'super_admin')
                                     <span class="text-muted small">No action needed</span>
                                 @else
                                     <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#permissionsModal{{ $member->id }}">
@@ -96,7 +96,7 @@
                         </tr>
 
                         <!-- Permissions Modal -->
-                        @if(!$member->is_super_admin)
+                        @if(!$member->is_super_admin && $member->role !== 'super_admin')
                         <div class="modal fade" id="permissionsModal{{ $member->id }}" tabindex="-1" aria-labelledby="permissionsModalLabel{{ $member->id }}" aria-hidden="true">
                             <div class="modal-dialog modal-lg">
                                 <form action="{{ route('admin.staffs.permissions.update') }}" method="POST">

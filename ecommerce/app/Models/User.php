@@ -76,6 +76,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'permissions' => 'array',
+        'is_super_admin' => 'boolean',
     ];
 
     /**
@@ -446,5 +447,69 @@ class User extends Authenticatable
         
         // Permissions is already cast to array, so we can use it directly
         return $this->permissions;
+    }
+
+    /**
+     * Get the first allowed route based on user permissions
+     * 
+     * @return string
+     */
+    public function getFirstAllowedRoute()
+    {
+        // Super admin and admin with no restrictions get dashboard
+        if ($this->role === 'super_admin' || $this->is_super_admin) {
+            return 'admin.dashboard';
+        }
+        
+        // If admin with no permissions set, they have full access
+        if ($this->role === 'admin' && empty($this->permissions)) {
+            return 'admin.dashboard';
+        }
+        
+        // Get user's permissions
+        $permissions = $this->getPermissionsArray();
+        
+        // If user has dashboard permission, go to dashboard
+        if (in_array('dashboard', $permissions)) {
+            return 'admin.dashboard';
+        }
+        
+        // Map permissions to routes
+        $permissionToRoute = [
+            'dashboard' => 'admin.dashboard',
+            'analytics' => 'admin.analytics',
+            'products' => 'admin.products.in-house',
+            'orders' => 'admin.orders.index',
+            'delivery' => 'admin.delivery.index',
+            'customers' => 'admin.customers.index',
+            'marketing' => 'admin.marketing.flash-deals.index',
+            'reports' => 'admin.reports.index',
+            'refund' => 'admin.refunds.index',
+            'sellers' => 'admin.sellers.index',
+            'inventory' => 'admin.inventory.index',
+            'support' => 'admin.support.index',
+            'affiliate' => 'admin.affiliate.index',
+            'pos' => 'admin.pos.index',
+            'settings' => 'admin.settings.index',
+            'warehouse' => 'admin.warehouses.index',
+            'staffs' => 'admin.staffs.index',
+            'system' => 'admin.system.update',
+            'otp' => 'admin.otp.configuration',
+            'appearance' => 'admin.appearance.index',
+            'content' => 'admin.blogs.index',
+            'media' => 'admin.media.index',
+            'multistore' => 'admin.multi-store.index',
+            'addon' => 'admin.addons.index',
+        ];
+        
+        // Find the first permission user has and return corresponding route
+        foreach ($permissions as $permission) {
+            if (isset($permissionToRoute[$permission])) {
+                return $permissionToRoute[$permission];
+            }
+        }
+        
+        // Fallback - user has no valid permissions, redirect to dashboard (will show error)
+        return 'admin.dashboard';
     }
 }

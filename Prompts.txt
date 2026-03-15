@@ -45,3 +45,34 @@ also update the Table of contents of Preference.md
 Tomorrow work:
 -------------
 need to edit Ask a Question and  Write a Review on product frontend page
+
+
+
+
+
+
+ Dashboard
+ Analytics
+New
+ Products
+ Sales
+ Delivery
+ Refund
+ Customers
+ Sellers (B2B)
+ Affiliate
+ Media
+Files
+ Reports
+ Marketing
+ Support
+ OTP System
+ Content
+ Appearance
+ Settings
+ Warehouse
+ Staffs
+ System
+ POS
+ Addon Manager
+ Multi-Store

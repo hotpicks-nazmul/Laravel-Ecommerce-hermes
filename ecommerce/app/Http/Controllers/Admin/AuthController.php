@@ -16,7 +16,7 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check() && in_array(Auth::user()->role, ['admin', 'staff'])) {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route(Auth::user()->getFirstAllowedRoute());
         }
         
         return view('admin.auth.login');
@@ -61,7 +61,7 @@ class AuthController extends Controller
                 ['email' => $user->email, 'role' => $user->role]
             );
             
-            return redirect()->intended(route('admin.dashboard'));
+            return redirect()->intended(route(Auth::user()->getFirstAllowedRoute()));
         }
 
         return back()->withErrors([

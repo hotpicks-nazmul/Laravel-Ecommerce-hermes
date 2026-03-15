@@ -33,9 +33,15 @@ use App\Http\Controllers\Admin\FormBuilderController;
 */
 
 // Admin Dashboard
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/analytics', [DashboardController::class, 'analytics'])->name('analytics');
-Route::get('/sales-chart', [DashboardController::class, 'salesChart'])->name('sales-chart');
+Route::middleware('permission:dashboard')->group(function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/sales-chart', [DashboardController::class, 'salesChart'])->name('sales-chart');
+});
+
+// Analytics - Separate permission
+Route::middleware('permission:analytics')->group(function () {
+    Route::get('/analytics', [DashboardController::class, 'analytics'])->name('analytics');
+});
 
 // Jakat Calculator
 Route::get('/jakat', [JakatController::class, 'index'])->name('jakat.index');
@@ -114,7 +120,7 @@ Route::post('/digital-categories/update-order', [\App\Http\Controllers\Admin\Dig
 Route::get('/digital-categories/api/categories', [\App\Http\Controllers\Admin\DigitalCategoryController::class, 'getCategories'])->name('digital-categories.api.categories');
 
 // Products Resource Routes
-Route::resource('products', ProductController::class);
+Route::resource('products', ProductController::class)->middleware('permission:products');
 
 // Categories Management
 Route::resource('categories', CategoryController::class);
@@ -151,7 +157,7 @@ Route::post('/pickup-points/{pickupPoint}/toggle-status', [\App\Http\Controllers
 Route::get('/api/pickup-points', [\App\Http\Controllers\Admin\PickupPointController::class, 'getPickupPoints'])->name('api.pickup-points');
 
 // Orders Management - Resource route MUST be LAST
-Route::resource('orders', OrderController::class)->only(['index', 'show', 'update']);
+Route::resource('orders', OrderController::class)->only(['index', 'show', 'update'])->middleware('permission:orders');
 
 Route::post('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
 Route::post('/orders/{order}/payment-status', [OrderController::class, 'updatePaymentStatus'])->name('orders.payment-status');
@@ -223,7 +229,7 @@ Route::prefix('customers/wallet')->name('customers.wallet.')->group(function () 
 });
 
 // Customers Management
-Route::resource('customers', CustomerController::class)->only(['index', 'show', 'update', 'destroy']);
+Route::resource('customers', CustomerController::class)->only(['index', 'show', 'update', 'destroy'])->middleware('permission:customers');
 Route::get('/customers/{customer}/orders', [CustomerController::class, 'orders'])->name('customers.orders');
 Route::post('/customers/{customer}/login-as', [CustomerController::class, 'loginAs'])->name('customers.login-as');
 
@@ -420,7 +426,7 @@ Route::prefix('chat')->name('chat.')->group(function () {
 });
 
 // Reports
-Route::prefix('reports')->name('reports.')->group(function () {
+Route::prefix('reports')->middleware('permission:reports')->name('reports.')->group(function () {
     // Products Wishlist - MUST be before resource routes to avoid 404
     Route::get('/wishlist', [ReportController::class, 'productsWishlist'])->name('wishlist');
     Route::get('/wishlist/export', [ReportController::class, 'productsWishlistExport'])->name('wishlist.export');
@@ -506,7 +512,7 @@ Route::prefix('wishlist-management')->name('wishlist-management.')->group(functi
 });
 
 // Inventory Management
-Route::prefix('inventory')->name('inventory.')->group(function () {
+Route::prefix('inventory')->middleware('permission:inventory')->name('inventory.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('index');
     Route::get('/stock-alerts', [\App\Http\Controllers\Admin\InventoryController::class, 'stockAlerts'])->name('stock-alerts');
     Route::get('/stock-history', [\App\Http\Controllers\Admin\InventoryController::class, 'stockHistory'])->name('stock-history');
@@ -517,7 +523,7 @@ Route::prefix('inventory')->name('inventory.')->group(function () {
 });
 
 // Delivery Management
-Route::prefix('delivery')->name('delivery.')->group(function () {
+Route::prefix('delivery')->middleware('permission:delivery')->name('delivery.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\DeliveryController::class, 'index'])->name('index');
     Route::post('/quick-ship', [\App\Http\Controllers\Admin\DeliveryController::class, 'quickShip'])->name('quick-ship');
     Route::post('/mark-delivered', [\App\Http\Controllers\Admin\DeliveryController::class, 'markDelivered'])->name('mark-delivered');
@@ -620,7 +626,7 @@ Route::prefix('subscriptions')->name('subscriptions.')->group(function () {
 });
 
 // Refund Management
-Route::prefix('refunds')->name('refunds.')->group(function () {
+Route::prefix('refunds')->middleware('permission:refund')->name('refunds.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\RefundController::class, 'index'])->name('index');
     Route::get('/requests', [\App\Http\Controllers\Admin\RefundController::class, 'requests'])->name('requests');
     Route::get('/approved', [\App\Http\Controllers\Admin\RefundController::class, 'approved'])->name('approved');
@@ -634,7 +640,7 @@ Route::prefix('refunds')->name('refunds.')->group(function () {
 });
 
 // Sellers (B2B) Management
-Route::prefix('sellers')->name('sellers.')->group(function () {
+Route::prefix('sellers')->middleware('permission:sellers')->name('sellers.')->group(function () {
     // Specific routes MUST come before resource routes to avoid 404 errors
     
     // Payout Routes - must come before /{id} route
@@ -689,7 +695,7 @@ Route::prefix('reports')->name('reports.')->group(function () {
 });
 
 // Marketing
-Route::prefix('marketing')->name('marketing.')->group(function () {
+Route::prefix('marketing')->middleware('permission:marketing')->name('marketing.')->group(function () {
     // Flash Deals - must be before wildcard routes
     Route::get('/flash-deals/create', [\App\Http\Controllers\Admin\FlashDealController::class, 'create'])->name('flash-deals.create');
     Route::post('/flash-deals', [\App\Http\Controllers\Admin\FlashDealController::class, 'store'])->name('flash-deals.store');
@@ -796,7 +802,7 @@ Route::prefix('marketing')->name('marketing.')->group(function () {
 
 // Support - Additional Routes
 // IMPORTANT: Specific routes must come before parameterized routes to avoid 404 errors
-Route::prefix('support')->name('support.')->group(function () {
+Route::prefix('support')->middleware('permission:support')->name('support.')->group(function () {
     // Product Queries (using ProductQAController)
     // Must come before /tickets/{id} to avoid 404 errors
     Route::get('/product-queries', [\App\Http\Controllers\Admin\ProductQAController::class, 'index'])->name('product-queries.index');
@@ -827,7 +833,7 @@ Route::prefix('support')->name('support.')->group(function () {
 });
 
 // OTP System
-Route::prefix('otp')->name('otp.')->group(function () {
+Route::prefix('otp')->middleware('permission:otp')->name('otp.')->group(function () {
     Route::get('/configuration', [\App\Http\Controllers\Admin\OtpController::class, 'configuration'])->name('configuration');
     Route::post('/configuration', [\App\Http\Controllers\Admin\OtpController::class, 'updateConfiguration'])->name('configuration.update');
     Route::get('/sms-templates', [\App\Http\Controllers\Admin\OtpController::class, 'smsTemplates'])->name('sms-templates');
@@ -890,7 +896,7 @@ Route::prefix('settings')->name('settings.')->group(function () {
 });
 
 // Warehouse Management
-Route::prefix('warehouses')->name('warehouses.')->group(function () {
+Route::prefix('warehouses')->middleware('permission:warehouse')->name('warehouses.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\WarehouseController::class, 'index'])->name('index');
     Route::get('/create', [\App\Http\Controllers\Admin\WarehouseController::class, 'create'])->name('create');
     Route::post('/', [\App\Http\Controllers\Admin\WarehouseController::class, 'store'])->name('store');
@@ -902,7 +908,7 @@ Route::prefix('warehouses')->name('warehouses.')->group(function () {
 });
 
 // Staff Management
-Route::prefix('staffs')->name('staffs.')->group(function () {
+Route::prefix('staffs')->middleware('permission:staffs')->name('staffs.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\StaffController::class, 'index'])->name('index');
     Route::get('/create', [\App\Http\Controllers\Admin\StaffController::class, 'create'])->name('create');
     Route::post('/', [\App\Http\Controllers\Admin\StaffController::class, 'store'])->name('store');
@@ -916,7 +922,7 @@ Route::prefix('staffs')->name('staffs.')->group(function () {
 });
 
 // System Management
-Route::prefix('system')->name('system.')->group(function () {
+Route::prefix('system')->middleware('permission:system')->name('system.')->group(function () {
     Route::get('/update', [\App\Http\Controllers\Admin\SystemController::class, 'update'])->name('update');
     Route::post('/update', [\App\Http\Controllers\Admin\SystemController::class, 'performUpdate'])->name('update.perform');
     Route::post('/update/settings', [\App\Http\Controllers\Admin\SystemController::class, 'saveSettings'])->name('update.settings');
@@ -946,7 +952,7 @@ Route::prefix('system')->name('system.')->group(function () {
 });
 
 // POS Management
-Route::prefix('pos')->name('pos.')->group(function () {
+Route::prefix('pos')->middleware('permission:pos')->name('pos.')->group(function () {
     // Terminal - Main POS interface
     Route::get('/terminal', [\App\Http\Controllers\Admin\POSController::class, 'terminal'])->name('terminal');
     
@@ -971,7 +977,7 @@ Route::prefix('pos')->name('pos.')->group(function () {
 });
 
 // Multi-Store Management - Specific routes BEFORE wildcard routes to avoid 404 errors
-Route::prefix('multi-store')->name('multi-store.')->group(function () {
+Route::prefix('multi-store')->middleware('permission:multistore')->name('multi-store.')->group(function () {
     // Index - must be first
     Route::get('/', [\App\Http\Controllers\Admin\StoreController::class, 'index'])->name('index');
     // Specific routes BEFORE wildcard
@@ -989,7 +995,7 @@ Route::prefix('multi-store')->name('multi-store.')->group(function () {
 });
 
 // Addon Manager - Specific routes BEFORE wildcard routes to avoid 404 errors
-Route::prefix('addons')->name('addons.')->group(function () {
+Route::prefix('addons')->middleware('permission:addon')->name('addons.')->group(function () {
     // Index - must be first
     Route::get('/', [\App\Http\Controllers\Admin\AddonController::class, 'index'])->name('index');
     // Specific routes BEFORE wildcard
@@ -1010,7 +1016,7 @@ Route::prefix('addons')->name('addons.')->group(function () {
 });
 
 // Affiliate Management
-Route::prefix('affiliate')->name('affiliate.')->group(function () {
+Route::prefix('affiliate')->middleware('permission:affiliate')->name('affiliate.')->group(function () {
     // Affiliate Users
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\AffiliateController::class, 'users'])->name('index');
