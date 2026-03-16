@@ -4,8 +4,18 @@
 
 @section('content')
 <!-- Page Header -->
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0">Analytics</h4>
+    <a href="{{ route('admin.analytics.export', request()->query()) }}" class="btn btn-success">
+        <i class="bi bi-download me-1"></i> Export
+    </a>
 </div>
 
 <!-- Period Filter -->
@@ -476,7 +486,7 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ asset('vendor/js/chart.js') }}"></script>
 <script>
     // Period select handler
     document.getElementById('periodSelect').addEventListener('change', function() {

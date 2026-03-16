@@ -41,6 +41,7 @@ Route::middleware('permission:dashboard')->group(function () {
 // Analytics - Separate permission
 Route::middleware('permission:analytics')->group(function () {
     Route::get('/analytics', [DashboardController::class, 'analytics'])->name('analytics');
+    Route::get('/analytics/export', [DashboardController::class, 'exportAnalytics'])->name('analytics.export');
 });
 
 // Jakat Calculator

@@ -27,7 +27,7 @@
                         </div>
                     </div>
                     <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                        <i class="bi bi-currency-dollar"></i>
+                        <i class="bi bi-wallet2"></i>
                     </div>
                 </div>
             </div>
@@ -125,7 +125,8 @@
                 <div class="d-flex align-items-center justify-content-between">
                     <h5 class="card-title mb-0 fw-semibold">Sales Overview</h5>
                     <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" class="btn btn-outline-primary active" id="btnWeekly">Weekly</button>
+                        <button type="button" class="btn btn-outline-primary active" id="btnDaily">Daily</button>
+                        <button type="button" class="btn btn-outline-primary" id="btnWeekly">Weekly</button>
                         <button type="button" class="btn btn-outline-primary" id="btnMonthly">Monthly</button>
                         <button type="button" class="btn btn-outline-primary" id="btnYearly">Yearly</button>
                     </div>
@@ -153,30 +154,38 @@
                 </div>
             </div>
             <div class="card-footer bg-white border-0 pt-0">
-                <div class="row text-center">
-                    <div class="col-3">
-                        <div class="d-flex align-items-center justify-content-center mb-1">
-                            <span class="badge bg-warning rounded-pill px-2 py-1">{{ $pendingOrders }}</span>
+                <div class="d-flex flex-column gap-3">
+                    <!-- Pending -->
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="status-dot bg-warning rounded-circle me-2"></div>
+                            <span class="text-muted small">Pending</span>
                         </div>
-                        <small class="text-muted">Pending</small>
+                        <span class="fw-semibold">{{ $pendingOrders }}</span>
                     </div>
-                    <div class="col-3">
-                        <div class="d-flex align-items-center justify-content-center mb-1">
-                            <span class="badge bg-info rounded-pill px-2 py-1">{{ $processingOrders }}</span>
+                    <!-- Processing -->
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="status-dot bg-info rounded-circle me-2"></div>
+                            <span class="text-muted small">Processing</span>
                         </div>
-                        <small class="text-muted">Processing</small>
+                        <span class="fw-semibold">{{ $processingOrders }}</span>
                     </div>
-                    <div class="col-3">
-                        <div class="d-flex align-items-center justify-content-center mb-1">
-                            <span class="badge bg-success rounded-pill px-2 py-1">{{ $completedOrders }}</span>
+                    <!-- Completed -->
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="status-dot bg-success rounded-circle me-2"></div>
+                            <span class="text-muted small">Completed</span>
                         </div>
-                        <small class="text-muted">Completed</small>
+                        <span class="fw-semibold">{{ $completedOrders }}</span>
                     </div>
-                    <div class="col-3">
-                        <div class="d-flex align-items-center justify-content-center mb-1">
-                            <span class="badge bg-danger rounded-pill px-2 py-1">{{ $cancelledOrders ?? 0 }}</span>
+                    <!-- Cancelled -->
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="status-dot bg-danger rounded-circle me-2"></div>
+                            <span class="text-muted small">Cancelled</span>
                         </div>
-                        <small class="text-muted">Cancelled</small>
+                        <span class="fw-semibold">{{ $cancelledOrders ?? 0 }}</span>
                     </div>
                 </div>
             </div>
@@ -349,6 +358,15 @@
     .bg-info-subtle { background-color: rgba(13, 202, 240, 0.1) !important; }
     .bg-warning-subtle { background-color: rgba(255, 193, 7, 0.1) !important; }
     .bg-primary-subtle { background-color: rgba(13, 110, 253, 0.1) !important; }
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        display: inline-block;
+    }
+    .status-dot.bg-warning { background-color: #f59e0b; }
+    .status-dot.bg-info { background-color: #0ea5e9; }
+    .status-dot.bg-success { background-color: #10b981; }
+    .status-dot.bg-danger { background-color: #ef4444; }
 </style>
 @endpush
 
@@ -399,14 +417,16 @@
     const monthlyData = @json($last30DaysSales);
     const monthlyLabels = @json($last30DaysLabels);
     const yearlyData = @json($monthlySalesData);
+    const dailyData = @json($todayHourlySales);
+    const dailyLabels = @json($todayHourlyLabels);
     
     let salesChart = new Chart(salesCtx, {
         type: 'line',
         data: {
-            labels: weeklyLabels,
+            labels: dailyLabels,
             datasets: [{
                 label: 'Sales (৳)',
-                data: weeklyData,
+                data: dailyData,
                 borderColor: colors.primary.main,
                 backgroundColor: salesGradient,
                 borderWidth: 3,
@@ -465,6 +485,9 @@
     });
     
     // Chart period switcher
+    document.getElementById('btnDaily').addEventListener('click', function() {
+        updateChartPeriod('daily', this);
+    });
     document.getElementById('btnWeekly').addEventListener('click', function() {
         updateChartPeriod('weekly', this);
     });
@@ -479,7 +502,10 @@
         document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         
-        if (period === 'weekly') {
+        if (period === 'daily') {
+            salesChart.data.labels = dailyLabels;
+            salesChart.data.datasets[0].data = dailyData;
+        } else if (period === 'weekly') {
             salesChart.data.labels = weeklyLabels;
             salesChart.data.datasets[0].data = weeklyData;
         } else if (period === 'monthly') {

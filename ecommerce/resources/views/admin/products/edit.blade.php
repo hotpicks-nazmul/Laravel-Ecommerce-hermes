@@ -308,7 +308,7 @@
     </div>
 </div>
 
-<!-- Floating Save Button -->
+<!-- Floating Buttons - Following Preference.md standard -->
 <div class="floating-save-container">
     <a href="{{ route('admin.products.index') }}" class="btn btn-secondary floating-reset-btn">
         <i class="bi bi-x-lg me-1"></i> Cancel
@@ -317,10 +317,161 @@
         <i class="bi bi-check-lg me-1"></i> Update Product
     </button>
 </div>
+
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .card-body {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
+<!-- Note: Update button is now inside the form for reliable submission -->
 @endsection
+
+<!-- Alert Modal -->
+<div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="alertModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4" id="alertModalBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @push('scripts')
 <script>
+// Form validation for stock quantity
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('product-form');
+    const stockInput = document.getElementById('stock');
+    const lowStockInput = document.getElementById('low_stock_threshold');
+    
+    // Auto-scroll to first error field (using existing invalid-feedback)
+    @if($errors->any())
+        var firstErrorField = document.querySelector('.is-invalid');
+        if (firstErrorField) {
+            setTimeout(function() {
+                firstErrorField.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                firstErrorField.focus();
+            }, 100);
+        }
+    @endif
+    
+    if (form && stockInput && lowStockInput) {
+        form.addEventListener('submit', function(e) {
+            const stock = parseInt(stockInput.value) || 0;
+            const lowStock = parseInt(lowStockInput.value) || 0;
+            
+            if (stock < lowStock) {
+                e.preventDefault();
+                
+                // Add error class
+                stockInput.classList.add('is-invalid');
+                
+                // Create or update invalid-feedback div
+                let feedbackDiv = stockInput.parentElement.querySelector('.invalid-feedback');
+                if (!feedbackDiv) {
+                    feedbackDiv = document.createElement('div');
+                    feedbackDiv.className = 'invalid-feedback';
+                    stockInput.parentElement.appendChild(feedbackDiv);
+                }
+                feedbackDiv.textContent = 'Stock Quantity must be greater than or equal to Low Stock Alert (' + lowStock + ')';
+                
+                // Scroll to the field
+                stockInput.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                stockInput.focus();
+            }
+        });
+        
+        // Real-time validation when low stock threshold changes
+        lowStockInput.addEventListener('change', function() {
+            const stock = parseInt(stockInput.value) || 0;
+            const lowStock = parseInt(this.value) || 0;
+            
+            if (stock < lowStock && stock > 0) {
+                stockInput.classList.add('is-invalid');
+                
+                // Dispose existing popover if any
+                var existingPopover = bootstrap.Popover.getInstance(stockInput);
+                if (existingPopover) {
+                    existingPopover.dispose();
+                }
+                
+                // Let browser show native validation message
+                stockInput.focus();
+            } else {
+                stockInput.classList.remove('is-invalid');
+                var popover = bootstrap.Popover.getInstance(stockInput);
+                if (popover) {
+                    popover.dispose();
+                }
+            }
+        });
+    }
+    
+    // Sale Price validation - cannot be higher than Regular Price
+    const priceInput = document.getElementById('price');
+    const salePriceInput = document.getElementById('sale_price');
+    
+    if (form && priceInput && salePriceInput) {
+        form.addEventListener('submit', function(e) {
+            const price = parseFloat(priceInput.value) || 0;
+            const salePrice = parseFloat(salePriceInput.value) || 0;
+            
+            if (salePrice > price && salePrice > 0) {
+                e.preventDefault();
+                
+                // Add error class
+                salePriceInput.classList.add('is-invalid');
+                
+                // Create or update invalid-feedback div
+                let feedbackDiv = salePriceInput.parentElement.querySelector('.invalid-feedback');
+                if (!feedbackDiv) {
+                    feedbackDiv = document.createElement('div');
+                    feedbackDiv.className = 'invalid-feedback';
+                    salePriceInput.parentElement.appendChild(feedbackDiv);
+                }
+                feedbackDiv.textContent = 'Sale Price cannot be higher than Regular Price (' + price + ')';
+                
+                // Scroll to the field
+                salePriceInput.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                salePriceInput.focus();
+            }
+        });
+        
+        // Real-time validation when price changes
+        priceInput.addEventListener('change', function() {
+            const price = parseFloat(this.value) || 0;
+            const salePrice = parseFloat(salePriceInput.value) || 0;
+            
+            if (salePrice > price && salePrice > 0) {
+                salePriceInput.classList.add('is-invalid');
+                salePriceInput.focus();
+            } else {
+                salePriceInput.classList.remove('is-invalid');
+            }
+        });
+    }
+});
+
 // Preview featured image
 document.getElementById('image').addEventListener('change', function(e) {
     const preview = document.getElementById('imagePreview');

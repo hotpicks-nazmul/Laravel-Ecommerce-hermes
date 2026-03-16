@@ -35,6 +35,7 @@ class Product extends Model
         'dimensions',
         'images',
         'featured_image',
+        'thumbnail',
         'gallery',
         'attributes',
         'variations',

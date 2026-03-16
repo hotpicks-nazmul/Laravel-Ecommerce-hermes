@@ -24,6 +24,7 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 16. **@push Directive Placement** - CSS/JS not loading when @push is before @section
 17. **Tabbed Interface Pages** - Proper view rendering for tab-based admin pages
 18. **Bootstrap Modal Popup** - Reusable modal for showing messages/info without page reload
+19. **Form Validation Errors** - Input field tooltips with auto-scroll and modal for non-input errors
 
 ---
 
@@ -1303,6 +1304,163 @@ Add the modal HTML at the end of the view file (before @endsection):
 3. **Unique modal ID** - Use a unique ID that doesn't conflict with other modals on the page
 4. **User-friendly message** - Include icon and clear message explaining what's happening
 5. **Reusable** - The same pattern can be used for any type of modal (info, warning, error, confirmation)
+
+---
+
+## Form Validation Errors
+
+This section describes how to handle form validation errors using Bootstrap's built-in invalid-feedback with auto-scroll to first error field.
+
+### The Strategy
+
+| Error Type | Display Method | Example |
+|------------|----------------|---------|
+| **Input Field Errors** | Bootstrap invalid-feedback div (below input) | Empty required field, invalid format |
+| **Custom JavaScript Validation** | Create invalid-feedback div dynamically | Stock < Low Stock Alert |
+| **General Errors** | Bootstrap Modal Popup | Server errors, database errors |
+
+### Implementation
+
+#### 1. Form Field with Invalid-Feedback
+
+Use the standard Bootstrap pattern for input fields:
+
+```html
+<form id="itemForm" method="POST" action="...">
+    @csrf
+    
+    <div class="mb-3">
+        <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+        <input type="text" 
+               id="name" 
+               name="name" 
+               class="form-control @error('name') is-invalid @enderror" 
+               required
+               placeholder="Enter name">
+        @error('name')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
+    
+    <div class="mb-3">
+        <label for="stock" class="form-label">Stock <span class="text-danger">*</span></label>
+        <input type="number" 
+               id="stock" 
+               name="stock" 
+               class="form-control @error('stock') is-invalid @enderror" 
+               required>
+        @error('stock')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
+</form>
+```
+
+#### 2. JavaScript for Auto-Scroll to First Error
+
+Add this JavaScript to scroll to first error field when page loads with validation errors:
+
+```html
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-scroll to first error field
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+</script>
+@endpush
+```
+
+#### 3. Custom JavaScript Validation (e.g., Stock vs Low Stock)
+
+For custom validations that don't come from server, create invalid-feedback dynamically:
+
+```javascript
+form.addEventListener('submit', function(e) {
+    const stock = parseInt(stockInput.value) || 0;
+    const lowStock = parseInt(lowStockInput.value) || 0;
+    
+    if (stock < lowStock) {
+        e.preventDefault();
+        
+        // Add error class
+        stockInput.classList.add('is-invalid');
+        
+        // Create or update invalid-feedback div
+        let feedbackDiv = stockInput.parentElement.querySelector('.invalid-feedback');
+        if (!feedbackDiv) {
+            feedbackDiv = document.createElement('div');
+            feedbackDiv.className = 'invalid-feedback';
+            stockInput.parentElement.appendChild(feedbackDiv);
+        }
+        feedbackDiv.textContent = 'Stock Quantity must be greater than or equal to Low Stock Alert (' + lowStock + ')';
+        
+        // Scroll to the field
+        stockInput.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+        });
+        stockInput.focus();
+    }
+});
+```
+
+#### 4. General Error Modal
+
+For non-field errors, use Bootstrap modal (as shown in section 18):
+
+```html
+<!-- Use existing alertModal or create new -->
+<div class="modal fade" id="alertModal" tabindex="-1" ...>
+    ...
+</div>
+```
+
+#### 5. Controller - Returning Errors
+
+In your controller, return field-specific errors normally:
+
+```php
+public function store(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'name' => 'required|string|max:255',
+        'stock' => 'required|integer|min:0',
+    ]);
+    
+    if ($validator->fails()) {
+        return back()->withErrors($validator)->withInput();
+    }
+    
+    // General error example
+    try {
+        // Your logic here
+    } catch (\Exception $e) {
+        return back()->with('error', 'Failed to save data. Please try again.');
+    }
+    
+    return redirect()->route('admin.items.index')->with('success', 'Item created successfully');
+}
+```
+
+### Key Points
+
+1. **Use invalid-feedback div** - Shows error message below the input field
+2. **Auto-scroll** - JavaScript scrolls to first error field on page load
+3. **Focus field** - Focus the error field so user can immediately correct it
+4. **Custom validations** - Create invalid-feedback div dynamically for JavaScript validations
+5. **General errors** - Use session('error') for non-field errors in Bootstrap modal
 
 ---
 

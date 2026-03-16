@@ -88,6 +88,17 @@ class DashboardController extends Controller
                 ->sum('total'), 2);
         }
 
+        // Today's hourly sales data (for daily view)
+        $todayHourlySales = [];
+        $todayHourlyLabels = [];
+        for ($i = 0; $i < 24; $i++) {
+            $todayHourlyLabels[] = sprintf('%02d:00', $i);
+            $todayHourlySales[] = round(Order::where('payment_status', 'paid')
+                ->whereDate('created_at', today())
+                ->whereRaw('HOUR(created_at) = ?', [$i])
+                ->sum('total'), 2);
+        }
+
         // Last 30 days sales data
         $last30DaysSales = [];
         $last30DaysLabels = [];
@@ -174,6 +185,8 @@ class DashboardController extends Controller
             'last7DaysLabels',
             'last30DaysSales',
             'last30DaysLabels',
+            'todayHourlySales',
+            'todayHourlyLabels',
             'pendingOrders',
             'processingOrders',
             'completedOrders',
@@ -199,6 +212,21 @@ class DashboardController extends Controller
         $period = $request->get('period', 'this_month');
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
+        
+        // Validate custom date range
+        if ($period === 'custom') {
+            if ($startDate && $endDate) {
+                try {
+                    $start = Carbon::parse($startDate);
+                    $end = Carbon::parse($endDate);
+                    if ($start->gt($end)) {
+                        return redirect()->route('admin.analytics')->with('error', 'End date must be after start date');
+                    }
+                } catch (\Exception $e) {
+                    return redirect()->route('admin.analytics')->with('error', 'Invalid date format');
+                }
+            }
+        }
         
         // Calculate date range based on period
         $dateRange = $this->getDateRange($period, $startDate, $endDate);
@@ -401,6 +429,84 @@ class DashboardController extends Controller
             'salesByDay',
             'salesByMonth'
         ));
+    }
+
+    /**
+     * Export analytics data to CSV
+     */
+    public function exportAnalytics(Request $request)
+    {
+        $period = $request->get('period', 'this_month');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        
+        $dateRange = $this->getDateRange($period, $startDate, $endDate);
+        $start = $dateRange['start'];
+        $end = $dateRange['end'];
+        
+        // Get data for export
+        $currentSales = DB::table('orders')
+            ->where('payment_status', 'paid')
+            ->whereBetween('created_at', [$start, $end])
+            ->sum('total');
+        
+        $currentOrders = DB::table('orders')->whereBetween('created_at', [$start, $end])->count();
+        
+        $currentCustomers = DB::table('users')
+            ->where('role', 'customer')
+            ->whereBetween('created_at', [$start, $end])
+            ->count();
+        
+        $topProducts = DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->where('orders.payment_status', 'paid')
+            ->whereBetween('orders.created_at', [$start, $end])
+            ->select(
+                'order_items.product_name',
+                DB::raw('SUM(order_items.quantity) as total_sold'),
+                DB::raw('SUM(order_items.quantity * order_items.price) as total_revenue')
+            )
+            ->groupBy('order_items.product_name')
+            ->orderByDesc('total_revenue')
+            ->take(10)
+            ->get();
+        
+        $filename = 'analytics-' . $start->format('Y-m-d') . '-to-' . $end->format('Y-m-d') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+        
+        $callback = function() use ($currentSales, $currentOrders, $currentCustomers, $topProducts, $start, $end) {
+            $file = fopen('php://output', 'w');
+            
+            // Header
+            fputcsv($file, ['Analytics Report', $start->format('Y-m-d') . ' to ' . $end->format('Y-m-d')]);
+            fputcsv($file, []);
+            
+            // Key Metrics
+            fputcsv($file, ['Key Metrics']);
+            fputcsv($file, ['Total Revenue', '৳' . number_format($currentSales, 2)]);
+            fputcsv($file, ['Total Orders', number_format($currentOrders)]);
+            fputcsv($file, ['New Customers', number_format($currentCustomers)]);
+            fputcsv($file, []);
+            
+            // Top Products
+            fputcsv($file, ['Top Selling Products']);
+            fputcsv($file, ['Product Name', 'Units Sold', 'Revenue']);
+            foreach ($topProducts as $product) {
+                fputcsv($file, [
+                    $product->product_name,
+                    number_format($product->total_sold),
+                    '৳' . number_format($product->total_revenue, 2)
+                ]);
+            }
+            
+            fclose($file);
+        };
+        
+        return response()->stream($callback, 200, $headers);
     }
     
     /**

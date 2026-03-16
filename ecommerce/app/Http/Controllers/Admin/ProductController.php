@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Helpers\ImageHelper;
 
 class ProductController extends Controller
 {
@@ -264,7 +266,11 @@ class ProductController extends Controller
     {
         $categories = Category::getFlattenedTree();
         $preselectedCategory = $request->get('category_id');
-        return view('admin.products.create', compact('categories', 'preselectedCategory'));
+        
+        // Generate SKU based on current date/time
+        $nextSku = 'SKU-' . date('YmdHis');
+        
+        return view('admin.products.create', compact('categories', 'preselectedCategory', 'nextSku'));
     }
 
     /**
@@ -278,11 +284,21 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0',
             'purchase_price' => 'nullable|numeric|min:0',
-            'sku' => 'required|string|max:100|unique:products',
-            'product_code' => 'nullable|string|max:100',
-            'barcode' => 'nullable|string|max:100|unique:products,barcode',
+            'sku' => 'nullable|string|max:100',
+            'product_code' => 'required|string|max:100',
+            'barcode' => 'nullable|string|max:100',
             'brand' => 'nullable|string|max:100',
-            'stock' => 'required|integer|min:0',
+            'stock' => [
+                'required',
+                'integer',
+                'min:0',
+                function ($attribute, $value, $fail) use ($request) {
+                    $lowStockThreshold = $request->input('low_stock_threshold', 0);
+                    if ($value < $lowStockThreshold) {
+                        $fail('Stock Quantity must be greater than or equal to Low Stock Alert (' . $lowStockThreshold . ').');
+                    }
+                },
+            ],
             'low_stock_threshold' => 'nullable|integer|min:0',
             'description' => 'required|string',
             'short_description' => 'nullable|string|max:500',
@@ -292,26 +308,57 @@ class ProductController extends Controller
             'is_featured' => 'boolean',
         ]);
 
+        // Check for duplicate product code before saving
+        if (\App\Models\Product::where('product_code', $request->product_code)->exists()) {
+            return back()->withInput()->with('error', 'Product code "' . $request->product_code . '" already exists. Please use a different product code.');
+        }
+        
         $data = $request->except(['description', 'stock']);
         $data['slug'] = Str::slug($request->name);
+        
+        // Ensure slug is unique - append number if exists
+        $originalSlug = $data['slug'];
+        $counter = 1;
+        while (\App\Models\Product::where('slug', $data['slug'])->exists()) {
+            $data['slug'] = $originalSlug . '-' . $counter;
+            $counter++;
+            if ($counter > 100) break;
+        }
+        
         $data['long_description'] = $request->description;
         $data['quantity'] = $request->stock;
+        
+        // Auto-generate SKU based on date/time
+        $data['sku'] = 'SKU-' . date('YmdHis');
         
         // Set as in-house product by default
         $data['product_source'] = 'in_house';
         $data['low_stock_threshold'] = $request->low_stock_threshold ?? 10;
         $data['stock_update_date'] = now();
 
+        // Process featured image with WebP conversion, resize & thumbnail
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $data['featured_image'] = Storage::url($path);
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'products',      // directory
+                    1920,            // max width
+                    300,             // thumbnail width
+                    85               // quality
+                );
+                $data['featured_image'] = $imageResult['path'];
+                $data['thumbnail'] = $imageResult['thumbnail'] ?? null;
+            }
         }
 
+        // Process gallery images
         if ($request->hasFile('images')) {
             $images = [];
             foreach ($request->file('images') as $image) {
-                $path = $image->store('products', 'public');
-                $images[] = Storage::url($path);
+                if (ImageHelper::isValidImage($image)) {
+                    $imageResult = ImageHelper::processImage($image, 'products/gallery', 1200, 0, 85);
+                    $images[] = $imageResult['path'];
+                }
             }
             $data['images'] = json_encode($images);
         }
@@ -334,6 +381,15 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
+        // If product is null (soft-deleted), try to find it with trashed
+        if (!$product) {
+            $product = Product::withTrashed()->find(request()->route('product'));
+            if ($product && $product->trashed()) {
+                $product->restore();
+            }
+        }
+        
+        Log::info('EDIT METHOD REACHED', ['product_id' => $product->id]);
         $categories = Category::getFlattenedTree();
         return view('admin.products.edit', compact('product', 'categories'));
     }
@@ -343,6 +399,21 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
+        // If product is null (soft-deleted), try to find it with trashed
+        if (!$product || !$product->exists) {
+            $product = Product::withTrashed()->find($request->route('product'));
+            if ($product && $product->trashed()) {
+                $product->restore();
+            }
+        }
+        
+        if (!$product) {
+            return redirect()->route('admin.products.index')->with('error', 'Product not found.');
+        }
+        
+        // Debug: Log the incoming request
+        Log::info('Update product START', ['product_id' => $product->id, 'route' => $request->path()]);
+        
         $request->validate([
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
@@ -396,6 +467,9 @@ class ProductController extends Controller
         }
 
         $product->update($data);
+        
+        // Debug: Log success
+        Log::info('Product updated successfully', ['product_id' => $product->id]);
 
         return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
     }

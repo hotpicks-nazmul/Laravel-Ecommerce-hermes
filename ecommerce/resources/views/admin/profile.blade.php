@@ -16,7 +16,6 @@
             <div class="card-body">
                 <form method="POST" action="{{ route('admin.profile.update') }}">
                     @csrf
-                    @method('PUT')
                     
                     <div class="mb-3">
                         <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
@@ -79,7 +78,6 @@
             <div class="card-body">
                 <form method="POST" action="{{ route('admin.password.update') }}">
                     @csrf
-                    @method('POST')
                     
                     <div class="mb-3">
                         <label for="current_password" class="form-label">Current Password <span class="text-danger">*</span></label>
