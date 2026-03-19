@@ -24,9 +24,11 @@
             @endif
         </div>
     </td>
-    <td>
-        <span class="badge bg-light text-dark">{{ $product->sku ?? 'N/A' }}</span>
-    </td>
+    <td style="white-space: nowrap;">
+    <div class="small text-truncate" style="max-width: 120px;">
+        <span class="badge bg-primary">{{ $product->sku ?? 'N/A' }}</span>
+    </div>
+</td>
     <td>{{ $product->category?->name ?? 'Uncategorized' }}</td>
     <td class="text-center">
         <span class="fw-medium {{ $product->quantity <= 0 ? 'text-danger' : ($product->quantity <= 10 ? 'text-warning' : 'text-success') }}">

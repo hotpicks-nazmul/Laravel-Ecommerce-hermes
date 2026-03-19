@@ -48,19 +48,25 @@
                             <div class="row g-3 mb-4">
                                 <div class="col-md-6">
                                     <label class="form-label">Discount Type <span class="text-danger">*</span></label>
-                                    <select name="discount_type" id="discountType" class="form-select" required>
+                                    <select name="discount_type" id="discountType" class="form-select @error('discount_type') is-invalid @enderror" required>
                                         <option value="percentage">Percentage (%)</option>
                                         <option value="fixed">Fixed Amount</option>
                                     </select>
+                                    @error('discount_type')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Discount Value <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <input type="number" name="discount_value" id="discountValue" class="form-control" 
+                                        <input type="number" name="discount_value" id="discountValue" class="form-control @error('discount_value') is-invalid @enderror" 
                                                placeholder="Enter value" step="0.01" min="0" required>
                                         <span class="input-group-text" id="discountTypeLabel">%</span>
                                     </div>
-                                    <small class="text-muted" id="discountHelp">Enter a percentage value (e.g., 10 for 10% off)</small>
+                                    <div class="form-text" id="discountHelp">Enter a percentage value (e.g., 10 for 10% off)</div>
+                                    @error('discount_value')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
 
@@ -147,8 +153,13 @@
                                         <th width="40">
                                             <input type="checkbox" id="selectAllProducts" onchange="toggleSelectAll()">
                                         </th>
-                                        <th>Product</th>
-                                        <th>SKU</th>
+                                        <th>
+    <a href="javascript:void(0);" class="text-decoration-none text-dark">
+        Product
+        <i class="bi bi-caret-down-fill"></i>
+    </a>
+</th>
+                                        <th>Product Code</th>
                                         <th>Price</th>
                                         <th>Sale Price</th>
                                     </tr>
@@ -228,15 +239,12 @@
                         </div>
                     </div>
 
-                    <!-- Submit Button -->
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary" id="applyDiscountBtn">
-                            <i class="bi bi-percent me-1"></i> Apply Discount
-                        </button>
-                        <button type="button" class="btn btn-outline-danger" onclick="showRemoveDiscountModal()">
-                            <i class="bi bi-x-circle me-1"></i> Remove Discounts
-                        </button>
-                    </div>
+                     <!-- Submit Button -->
+                     <div class="d-flex gap-2">
+                         <button type="button" class="btn btn-outline-danger" onclick="showRemoveDiscountModal()">
+                             <i class="bi bi-x-circle me-1"></i> Remove Discounts
+                         </button>
+                     </div>
                 </form>
             </div>
         </div>
@@ -374,8 +382,13 @@
                     <table class="table table-hover mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Product</th>
-                                <th>SKU</th>
+                                <th>
+    <a href="javascript:void(0);" class="text-decoration-none text-dark">
+        Product
+        <i class="bi bi-caret-down-fill"></i>
+    </a>
+</th>
+                                <th>Product Code</th>
                                 <th>Regular Price</th>
                                 <th>Sale Price</th>
                                 <th>Discount</th>
@@ -386,7 +399,10 @@
                         </thead>
                         <tbody id="discountListBody">
                             @forelse($productsWithDiscounts as $product)
-                            <tr data-id="{{ $product->id }}" data-status="{{ $product->isOnSale() ? 'active' : ($product->isDiscountScheduled() ? 'scheduled' : 'expired') }}">
+                             <tr data-id="{{ $product->id }}" 
+                                 data-status="{{ $product->isOnSale() ? 'active' : ($product->isDiscountScheduled() ? 'scheduled' : 'expired') }}"
+                                 data-starts-at="{{ $product->discount_starts_at ? $product->discount_starts_at->format('Y-m-d H:i:s') : '' }}"
+                                 data-ends-at="{{ $product->discount_ends_at ? $product->discount_ends_at->format('Y-m-d H:i:s') : '' }}">
                                 <td>
                                     <div class="d-flex align-items-center">
                                         @if($product->featured_image)
@@ -399,7 +415,7 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td><code>{{ $product->sku }}</code></td>
+                                 <td><code>{{ $product->product_code }}</code></td>
                                 <td>৳{{ number_format($product->price, 2) }}</td>
                                 <td class="text-success">৳{{ number_format($product->sale_price, 2) }}</td>
                                 <td>
@@ -451,12 +467,17 @@
                     </table>
                 </div>
                 
-                <!-- Pagination -->
-                @if($productsWithDiscounts->hasPages())
-                <div class="card-footer bg-white">
-                    {{ $productsWithDiscounts->links() }}
-                </div>
-                @endif
+                 <!-- Pagination -->
+                 @if($productsWithDiscounts->hasPages())
+                 <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                     <div class="text-muted small">
+                         Showing {{ $productsWithDiscounts->firstItem() }} - {{ $productsWithDiscounts->lastItem() }} of {{ $productsWithDiscounts->total() }} items
+                     </div>
+                     <div>
+                         {{ $productsWithDiscounts->appends(request()->query())->links() }}
+                     </div>
+                 </div>
+                 @endif
             </div>
         </div>
     </div>
@@ -600,7 +621,11 @@
     function updatePreview() {
         const type = document.getElementById('discountType').value;
         const value = parseFloat(document.getElementById('discountValue').value) || 0;
-        const originalPrice = 100;
+        // Use first product price as sample, or fallback to 100
+        let originalPrice = 100;
+        if (window.allProducts && window.allProducts.length > 0) {
+            originalPrice = parseFloat(window.allProducts[0].price) || 100;
+        }
         let discountedPrice;
 
         if (type === 'percentage') {
@@ -625,18 +650,19 @@
         });
     });
 
-    // Search products
-    function searchProducts() {
-        const search = document.getElementById('productSearch').value;
-        const category = document.getElementById('productCategoryFilter').value;
-        
-        fetch(`{{ route('admin.products.bulk-discount.products') }}?search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}`)
-            .then(res => res.json())
-            .then(data => {
-                allProducts = data.products;
-                renderProductList(data.products);
-            });
-    }
+     // Search products
+     function searchProducts() {
+         const search = document.getElementById('productSearch').value;
+         const category = document.getElementById('productCategoryFilter').value;
+         
+         fetch(`{{ route('admin.products.bulk-discount.products') }}?search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}`)
+             .then(res => res.json())
+             .then(data => {
+                 allProducts = data.products;
+                 renderProductList(data.products);
+                 updatePreview(); // Update preview when products change
+             });
+     }
 
     function renderProductList(products) {
         const tbody = document.getElementById('productList');
@@ -813,14 +839,29 @@
             document.getElementById('editRegularPrice').value = cells[2].textContent.replace(/[^\d.]/g, '');
             document.getElementById('editSalePrice').value = cells[3].textContent.replace(/[^\d.]/g, '');
             
-            // Parse dates from the validity period column
-            const validityCell = cells[5];
+            // Parse dates from row data attributes
             const startDateInput = document.getElementById('editStartDate');
             const endDateInput = document.getElementById('editEndDate');
             
-            // Reset dates
-            startDateInput.value = '';
-            endDateInput.value = '';
+            // Set dates from data attributes
+            const startsAt = row.dataset.startsAt;
+            const endsAt = row.dataset.endsAt;
+            
+            if (startsAt) {
+                // Format: Y-m-d H:i:s -> Y-m-dTH:i for datetime-local input
+                const [datePart, timePart] = startsAt.split(' ');
+                startDateInput.value = `${datePart}T${timePart}`;
+            } else {
+                startDateInput.value = '';
+            }
+            
+            if (endsAt) {
+                // Format: Y-m-d H:i:s -> Y-m-dTH:i for datetime-local input
+                const [datePart, timePart] = endsAt.split(' ');
+                endDateInput.value = `${datePart}T${timePart}`;
+            } else {
+                endDateInput.value = '';
+            }
         }
         
         new bootstrap.Modal(document.getElementById('editDiscountModal')).show();
@@ -920,4 +961,25 @@
     updatePreview();
 </script>
 @endpush
+     <script>
+       // Tab state persistence
+       document.addEventListener('DOMContentLoaded', function() {
+         // Restore tab
+         const activeTab = localStorage.getItem('activeDiscountTab');
+         if (activeTab) {
+           const tabEl = document.querySelector(`button[data-bs-target="${activeTab}"]`);
+           if (tabEl) {
+             new bootstrap.Tab(tabEl).show();
+           }
+         }
+
+         // Save tab when shown
+         const tabButtons = document.querySelectorAll('#discountTabs button[data-bs-toggle="tab"]');
+         tabButtons.forEach(button => {
+           button.addEventListener('shown.bs.tab', event => {
+             localStorage.setItem('activeDiscountTab', event.target.getAttribute('data-bs-target'));
+           });
+         });
+       });
+     </script>
 @endsection

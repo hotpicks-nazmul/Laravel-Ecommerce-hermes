@@ -1,9 +1,11 @@
 @php
     $hasChildren = $category->children->count() > 0;
     $indent = str_repeat('<span class="tree-indent"></span>', $depth);
+    $search = request('search');
+    $isMatch = $search && (stripos($category->name, $search) !== false || stripos($category->slug, $search) !== false);
 @endphp
 
-<tr data-id="{{ $category->id }}" data-parent="{{ $category->parent_id }}" class="{{ $depth > 0 ? 'children-row' : '' }}">
+<tr data-id="{{ $category->id }}" data-parent="{{ $category->parent_id }}" class="{{ $depth > 0 ? 'children-row' : '' }} {{ $isMatch ? 'table-warning' : '' }}">
     <td>
         <input type="checkbox" class="form-check-input category-checkbox" value="{{ $category->id }}" onchange="updateBulkActions()">
     </td>
@@ -84,8 +86,6 @@
 {{-- Render children recursively --}}
 @if($hasChildren)
     @foreach($category->children as $child)
-        @if($child->products_count || !$child->children->isEmpty() || !request('search'))
-            @include('admin.categories.partials.category-row', ['category' => $child, 'depth' => $depth + 1])
-        @endif
+        @include('admin.categories.partials.category-row', ['category' => $child, 'depth' => $depth + 1])
     @endforeach
 @endif

@@ -1,5 +1,14 @@
 @forelse($products ?? [] as $product)
-<tr data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-product-code="{{ $product->product_code ?? $product->sku }}" data-short-description="{{ $product->short_description ?? '' }}">
+@php
+    $search = request('search');
+    $isMatch = $search && (
+        stripos($product->name, $search) !== false ||
+        stripos($product->sku, $search) !== false ||
+        stripos($product->product_code, $search) !== false ||
+        stripos($product->short_description, $search) !== false
+    );
+@endphp
+<tr data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-product-code="{{ $product->product_code ?? $product->sku }}" data-short-description="{{ $product->short_description ?? '' }}" class="{{ $isMatch ? 'table-warning' : '' }}">
     <td>
         <input type="checkbox" class="form-check-input product-checkbox" value="{{ $product->id }}" onchange="updateBulkActions()">
     </td>

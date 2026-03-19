@@ -76,19 +76,36 @@
                     </div>
 
                     <!-- Submit Button -->
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
-                            <i class="bi bi-upload me-1"></i> Start Import
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="clearForm()">
-                            <i class="bi bi-x-lg me-1"></i> Clear
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                     <div class="d-flex gap-2">
+                         <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                             <i class="bi bi-upload me-1"></i> Start Import
+                         </button>
+                         <button type="button" class="btn btn-outline-secondary" onclick="clearForm()">
+                             <i class="bi bi-x-lg me-1"></i> Clear
+                         </button>
+                     </div>
+                 </form>
+             </div>
+         </div>
 
-        <!-- Import Results -->
+         <!-- Import Progress -->
+         <div id="importProgress" style="display: none;">
+             <div class="card border-0 shadow-sm mb-4">
+                 <div class="card-header bg-info text-white">
+                     <h6 class="mb-0"><i class="bi bi-hourglass-split me-2"></i>Import Progress</h6>
+                 </div>
+                 <div class="card-body">
+                     <div class="mb-3">
+                         <div class="progress" style="height: 25px;">
+                             <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                         </div>
+                         <p class="mb-0" id="progressText">Importing... <span id="progressPercent">0%</span></p>
+                     </div>
+                 </div>
+             </div>
+         </div>
+
+         <!-- Import Results -->
         @if(session('success'))
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-success text-white">
@@ -240,6 +257,38 @@
         }
     });
 
+    // Form submission with progress tracking
+    document.getElementById('importForm').addEventListener('submit', function(e) {
+        // Show progress bar immediately
+        updateProgress('0%', 'Starting import...');
+        
+        // Disable submit button to prevent multiple submissions
+        submitBtn.disabled = true;
+        floatingSubmitBtn.disabled = true;
+        
+        // In a real implementation, you would use AJAX to get progress updates
+        // For now, we'll simulate progress updates
+        const progressInterval = setInterval(() => {
+            // This is a simulation - in reality, you'd get actual progress from the server
+            const currentWidth = parseInt(progressBar.style.width) || 0;
+            if (currentWidth >= 100) {
+                clearInterval(progressInterval);
+                updateProgress('100%', 'Import completed!');
+            } else {
+                const newWidth = Math.min(currentWidth + 10, 90); // Cap at 90% until completion
+                updateProgress(newWidth + '%', 'Processing...');
+            }
+        }, 500);
+        
+        // Re-enable button after a delay (in case of quick failure)
+        setTimeout(() => {
+            if (!submitBtn.disabled) { // Only re-enable if not already disabled by server response
+                submitBtn.disabled = false;
+                floatingSubmitBtn.disabled = false;
+            }
+        }, 5000);
+    });
+
     function handleFileSelect(file) {
         const allowedTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
         const extension = file.name.split('.').pop().toLowerCase();
@@ -287,34 +336,61 @@
     }
 
     function downloadSampleTemplate() {
-        const headers = [
-            'name', 'sku', 'product_code', 'barcode', 'category', 'brand',
-            'short_description', 'long_description', 'price', 'sale_price',
-            'cost_price', 'purchase_price', 'quantity', 'low_stock_threshold',
-            'weight', 'status', 'featured', 'meta_title', 'meta_description',
-            'meta_keywords', 'tags'
-        ];
-        
-        const sampleData = [
-            'Sample Product 1', 'SKU-001', 'PC-001', '1234567890123', 'Electronics', 'Brand A',
-            'Short description here', 'Long description goes here', '100.00', '79.99',
-            '50.00', '45.00', '100', '10',
-            '0.5', 'active', 'yes', 'Product Title', 'Meta description',
-            'keyword1, keyword2', 'tag1, tag2'
-        ];
-
-        let csvContent = headers.join(',') + '\n' + sampleData.map(v => `"${v}"`).join(',');
-        
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'product-import-template.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-    }
-</script>
+         const headers = [
+             'name', 'sku', 'product_code', 'barcode', 'category', 'brand',
+             'short_description', 'long_description', 'price', 'sale_price',
+             'cost_price', 'purchase_price', 'quantity', 'low_stock_threshold',
+             'weight', 'status', 'featured', 'meta_title', 'meta_description',
+             'meta_keywords', 'tags'
+         ];
+         
+         const sampleData = [
+             'Sample Product 1', 'SKU-001', 'PC-001', '1234567890123', 'Electronics', 'Brand A',
+             'Short description here', 'Long description goes here', '100.00', '79.99',
+             '50.00', '45.00', '100', '10',
+             '0.5', 'active', 'yes', 'Product Title', 'Meta description',
+             'keyword1, keyword2', 'tag1, tag2'
+         ];
+         
+         let csvContent = headers.join(',') + '\n' + sampleData.map(v => `"${v}"`).join(',');
+         
+         const blob = new Blob([csvContent], { type: 'text/csv' });
+         const url = window.URL.createObjectURL(blob);
+         const a = document.createElement('a');
+         a.href = url;
+         a.download = 'product-import-template.csv';
+         document.body.appendChild(a);
+         a.click();
+         document.body.removeChild(a);
+         window.URL.revokeObjectURL(url);
+     }
+     
+     // Function to update progress bar
+     function updateProgress(percent, text) {
+         const progressBar = document.getElementById('progressBar');
+         const progressText = document.getElementById('progressText');
+         const progressPercent = document.getElementById('progressPercent');
+         
+         if (progressBar) {
+             progressBar.style.width = percent + '%';
+             progressBar.setAttribute('aria-valuenow', percent);
+             progressBar.textContent = text;
+         }
+         
+         if (progressText) {
+             progressText.textContent = 'Importing... ' + text;
+         }
+         
+         if (progressPercent) {
+             progressPercent.textContent = text;
+         }
+         
+         // Show progress bar
+         const importProgress = document.getElementById('importProgress');
+         if (importProgress) {
+             importProgress.style.display = 'block';
+         }
+     }
+ </script>
 @endpush
 @endsection

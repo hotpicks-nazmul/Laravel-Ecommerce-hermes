@@ -103,7 +103,7 @@
                 <thead class="table-light">
                     <tr>
                         <th>Product</th>
-                        <th>SKU</th>
+                        <th>Product Code</th>
                         <th class="text-center">Current Stock</th>
                         <th class="text-center">Threshold</th>
                         <th class="text-center">Alert Level</th>

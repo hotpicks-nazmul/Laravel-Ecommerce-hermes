@@ -2,32 +2,6 @@
 
 @section('title', 'Create Product')
 
-@push('styles')
-<style>
-    /* Add padding at bottom to prevent floating button overlap */
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-    
-    /* Popover close button styling */
-    .btn-close-red {
-        filter: invert(1) grayscale(100%) brightness(200%);
-        opacity: 0.6;
-        cursor: pointer;
-    }
-    .btn-close-red:hover {
-        opacity: 1;
-    }
-    
-    /* Popover header styling */
-    .popover-header {
-        background-color: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-        padding: 8px 12px;
-    }
-</style>
-@endpush
-
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0">Create New Product</h4>
@@ -45,6 +19,7 @@
             <div class="card-body">
                 <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data" id="product-form">
                     @csrf
+                    <input type="hidden" name="redirect_route" value="{{ $redirectRoute ?? 'admin.products.index' }}">
                     
                     <div class="mb-3">
                         <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
@@ -136,12 +111,20 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="brand" class="form-label">Brand</label>
-                                <input type="text" class="form-control @error('brand') is-invalid @enderror" id="brand" name="brand" value="{{ old('brand') }}" placeholder="Product brand"
-                                       data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('brand') }}">
+                                <label for="brand" class="form-label">Brand <span class="text-danger">*</span></label>
+                                 <select class="form-select @error('brand') is-invalid @enderror" id="brand" name="brand" required form="product-form"
+                                         data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('brand') }}">
+                                     <option value="">Select Brand</option>
+                                     @foreach($brands as $id => $name)
+                                         <option value="{{ $id }}" {{ old('brand') == $id ? 'selected' : '' }}>
+                                             {{ $name }}
+                                         </option>
+                                     @endforeach
+                                 </select>
                                 @error('brand')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                <div class="form-text">Choose from existing brands or <a href="{{ route('admin.brands.create') }}" target="_blank">create new</a></div>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -314,6 +297,32 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+    
+    /* Popover close button styling */
+    .btn-close-red {
+        filter: invert(1) grayscale(100%) brightness(200%);
+        opacity: 0.6;
+        cursor: pointer;
+    }
+    .btn-close-red:hover {
+        opacity: 1;
+    }
+    
+    /* Popover header styling */
+    .popover-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        padding: 8px 12px;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>

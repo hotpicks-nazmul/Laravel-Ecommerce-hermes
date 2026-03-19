@@ -19,7 +19,11 @@
             <small class="text-muted">{{ $product->category?->name ?? 'Uncategorized' }}</small>
         </div>
     </td>
-    <td><span class="badge bg-light text-dark">{{ $product->sku ?? 'N/A' }}</span></td>
+    <td style="white-space: nowrap;">
+    <div class="small text-truncate" style="max-width: 120px;">
+        <span class="badge bg-primary">{{ $product->sku ?? 'N/A' }}</span>
+    </div>
+</td>
     <td class="text-center">
         <span class="fw-bold {{ $product->quantity <= 0 ? 'text-danger' : 'text-warning' }}">
             {{ $product->quantity }}

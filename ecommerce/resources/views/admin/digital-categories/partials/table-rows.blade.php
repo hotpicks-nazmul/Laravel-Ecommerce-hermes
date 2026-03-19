@@ -30,8 +30,10 @@
     <td>
         <button type="button" class="btn btn-sm status-toggle {{ $category->status === 'active' ? 'btn-success' : 'btn-secondary' }}" 
                 data-id="{{ $category->id }}" 
-                data-status="{{ $category->status }}">
-            {{ ucfirst($category->status) }}
+                data-status="{{ $category->status }}"
+                data-loading="false">
+            <span class="status-text">{{ ucfirst($category->status) }}</span>
+            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
         </button>
     </td>
     <td>

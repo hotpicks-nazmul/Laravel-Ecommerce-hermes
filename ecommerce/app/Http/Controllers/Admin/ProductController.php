@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Brand;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
@@ -222,6 +224,14 @@ class ProductController extends Controller
             ->pluck('brand')
             ->sort()
             ->values();
+        
+        // Get brands from Brand model for dropdown
+        $brandModels = Brand::where('is_active', true)
+            ->orderBy('name')
+            ->pluck('name', 'id');
+        
+        // Convert to array for dropdown
+        $brands = $brandModels->toArray();
 
         // Statistics for In-House products
         $stats = [
@@ -267,10 +277,24 @@ class ProductController extends Controller
         $categories = Category::getFlattenedTree();
         $preselectedCategory = $request->get('category_id');
         
+        // Get active brands for dropdown
+        $brands = Brand::where('is_active', true)->orderBy('name')->pluck('name', 'id')->toArray();
+        
         // Generate SKU based on current date/time
         $nextSku = 'SKU-' . date('YmdHis');
         
-        return view('admin.products.create', compact('categories', 'preselectedCategory', 'nextSku'));
+        // Determine redirect route based on source
+        $redirectRoute = 'admin.products.index';
+        if ($request->has('from') && $request->from === 'in-house') {
+            $redirectRoute = 'admin.products.in-house';
+        } elseif (str_contains($request->headers->get('referer', ''), 'in-house')) {
+            $redirectRoute = 'admin.products.in-house';
+        }
+        
+        // Store the redirect route in session for use after form submission
+        session(['product_redirect_route' => $redirectRoute]);
+        
+        return view('admin.products.create', compact('categories', 'preselectedCategory', 'nextSku', 'redirectRoute', 'brands'));
     }
 
     /**
@@ -314,6 +338,24 @@ class ProductController extends Controller
         }
         
         $data = $request->except(['description', 'stock']);
+        
+        // Handle brand selection - get brand name and ID from selected brand
+        if ($request->has('brand') && $request->brand != '') {
+            $brandId = $request->input('brand');
+            $brand = \App\Models\Brand::find($brandId);
+            if ($brand) {
+                $data['brand'] = $brand->name;
+                $data['brand_id'] = $brand->id;
+            } else {
+                // If brand not found, treat as new brand name
+                $data['brand'] = $request->input('brand');
+                $data['brand_id'] = null;
+            }
+        } else {
+            $data['brand'] = $request->input('brand', '');
+            $data['brand_id'] = null;
+        }
+        
         $data['slug'] = Str::slug($request->name);
         
         // Ensure slug is unique - append number if exists
@@ -365,7 +407,9 @@ class ProductController extends Controller
 
         Product::create($data);
 
-        return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
+        $redirectRoute = $request->redirect_route ?? session('product_redirect_route', 'admin.products.index');
+        
+        return redirect()->route($redirectRoute)->with('success', 'Product created successfully.');
     }
 
     /**
@@ -1039,6 +1083,7 @@ class ProductController extends Controller
         $updated = 0;
         $skipped = 0;
         $errors = [];
+        $totalRows = count($data);
 
         try {
             if ($extension === 'csv' || $extension === 'txt') {
@@ -1067,9 +1112,61 @@ class ProductController extends Controller
                 // Map row data to headers
                 $rowData = array_combine($headers, $row);
 
+                // Track progress
+                $processed = $rowIndex + 1;
+                $progress = round(($processed / $totalRows) * 100);
+                
+                // For very large files, you might want to flush progress periodically
+                // This is a simple implementation - in production, consider using a job queue
+                if ($processed % 100 === 0) {
+                    // You could log progress or store it in session for AJAX updates
+                    Log::info("Bulk import progress: {$progress}% - {$processed}/{$totalRows} rows processed");
+                }
+
                 // Validate required fields
                 if (empty($rowData['name']) && empty($rowData['product_name'])) {
                     $errors[] = "Row {$rowNumber}: Product name is required.";
+                    $skipped++;
+                    continue;
+                }
+
+                // Validate numeric fields
+                $price = $rowData['price'] ?? $rowData['regular_price'] ?? 0;
+                $quantity = $rowData['quantity'] ?? $rowData['stock'] ?? $rowData['qty'] ?? 0;
+                $lowStockThreshold = $rowData['low_stock_threshold'] ?? $rowData['min_stock'] ?? 10;
+
+                if (!is_numeric($price)) {
+                    $errors[] = "Row {$rowNumber}: Price must be a numeric value.";
+                    $skipped++;
+                    continue;
+                }
+
+                if (!is_numeric($quantity)) {
+                    $errors[] = "Row {$rowNumber}: Quantity must be a numeric value.";
+                    $skipped++;
+                    continue;
+                }
+
+                if (!is_numeric($lowStockThreshold)) {
+                    $errors[] = "Row {$rowNumber}: Low stock threshold must be a numeric value.";
+                    $skipped++;
+                    continue;
+                }
+
+                if ($quantity < 0) {
+                    $errors[] = "Row {$rowNumber}: Quantity cannot be negative.";
+                    $skipped++;
+                    continue;
+                }
+
+                if ($lowStockThreshold < 0) {
+                    $errors[] = "Row {$rowNumber}: Low stock threshold cannot be negative.";
+                    $skipped++;
+                    continue;
+                }
+
+                if ($quantity < $lowStockThreshold) {
+                    $errors[] = "Row {$rowNumber}: Quantity must be greater than or equal to low stock threshold.";
                     $skipped++;
                     continue;
                 }
@@ -1156,19 +1253,30 @@ class ProductController extends Controller
     }
 
     /**
-     * Parse Excel file (simple implementation).
+     * Parse Excel file using PhpSpreadsheet.
      */
     private function parseExcelFile($path)
     {
-        // Simple CSV fallback for Excel - in production, use PhpSpreadsheet
-        $data = [];
-        if (($handle = fopen($path, 'r')) !== false) {
-            while (($row = fgetcsv($handle)) !== false) {
-                $data[] = $row;
+        try {
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
+            $worksheet = $spreadsheet->getActiveSheet();
+            $data = [];
+            
+            foreach ($worksheet->getRowIterator() as $row) {
+                $rowData = [];
+                $cellIterator = $row->getCellIterator();
+                $cellIterator->setIterateOnlyExistingCells(false);
+                
+                foreach ($cellIterator as $cell) {
+                    $rowData[] = $cell->getValue();
+                }
+                $data[] = $rowData;
             }
-            fclose($handle);
+            
+            return $data;
+        } catch (\Exception $e) {
+            throw new \Exception('Error parsing Excel file: ' . $e->getMessage());
         }
-        return $data;
     }
 
     /**
@@ -1328,7 +1436,7 @@ class ProductController extends Controller
         // Get products with discounts for the discount list
         $productsWithDiscounts = Product::with('category')
             ->whereNotNull('sale_price')
-            ->select(['id', 'name', 'sku', 'price', 'sale_price', 'category_id', 'quantity', 'discount_starts_at', 'discount_ends_at', 'is_active'])
+            ->select(['id', 'name', 'sku', 'product_code', 'price', 'sale_price', 'category_id', 'quantity', 'discount_starts_at', 'discount_ends_at', 'is_active'])
             ->orderBy('updated_at', 'desc')
             ->paginate(20);
         
@@ -1405,7 +1513,7 @@ class ProductController extends Controller
         }
 
         // Only apply to active products
-        if ($request->boolean('active_only', true)) {
+        if ($request->boolean('active_only')) {
             $query->where('is_active', true);
         }
 

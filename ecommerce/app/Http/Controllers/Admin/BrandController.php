@@ -112,15 +112,15 @@ class BrandController extends Controller
             'meta_title', 'meta_description', 'meta_keywords'
         ]);
         
-        // Generate slug if not provided
-        if (empty($data['slug'])) {
-            $data['slug'] = Str::slug($data['name']);
-        }
-        
         // Handle checkbox values
         $data['is_active'] = $request->has('is_active');
         $data['is_featured'] = $request->has('is_featured');
         $data['sort_order'] = $data['sort_order'] ?? 0;
+        
+        // Generate slug if not provided
+        if (empty($data['slug'])) {
+            $data['slug'] = Str::slug($data['name']);
+        }
         
         // Upload logo
         if ($request->hasFile('logo')) {

@@ -162,7 +162,7 @@
                             <input type="checkbox" class="form-check-input" id="selectAll" onchange="toggleSelectAll()">
                         </th>
                         <th>Product</th>
-                        <th>SKU</th>
+                        <th>Product Code</th>
                         <th>Category</th>
                         <th class="text-center">Stock</th>
                         <th class="text-center">Status</th>

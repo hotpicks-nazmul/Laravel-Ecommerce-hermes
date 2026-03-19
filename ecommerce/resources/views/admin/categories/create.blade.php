@@ -151,7 +151,7 @@
                     @enderror
                 </div>
                 
-                <div class="form-check mb-2">
+                <div class="form-check form-switch mb-2">
                     <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" value="1" {{ old('is_featured') ? 'checked' : '' }} form="category-form">
                     <label class="form-check-label" for="is_featured">
                         <i class="bi bi-star text-warning me-1"></i> Featured Category
@@ -159,7 +159,7 @@
                     <div class="form-text">Featured categories may be highlighted on the homepage</div>
                 </div>
                 
-                <div class="form-check mb-2">
+                <div class="form-check form-switch mb-2">
                     <input class="form-check-input" type="checkbox" id="show_in_menu" name="show_in_menu" value="1" {{ old('show_in_menu', true) ? 'checked' : '' }} form="category-form">
                     <label class="form-check-label" for="show_in_menu">
                         <i class="bi bi-list text-primary me-1"></i> Show in Menu
@@ -167,29 +167,12 @@
                     <div class="form-text">Display in navigation menu</div>
                 </div>
                 
-                <div class="form-check mb-2">
+                <div class="form-check form-switch mb-2">
                     <input class="form-check-input" type="checkbox" id="show_in_homepage" name="show_in_homepage" value="1" {{ old('show_in_homepage') ? 'checked' : '' }} form="category-form">
                     <label class="form-check-label" for="show_in_homepage">
                         <i class="bi bi-house text-success me-1"></i> Show on Homepage
                     </label>
                     <div class="form-text">Display on homepage category section</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Save Actions -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <button type="submit" form="category-form" name="action" value="save" class="btn btn-primary">
-                        <i class="bi bi-check-lg me-1"></i> Create Category
-                    </button>
-                    <button type="submit" form="category-form" name="action" value="save_and_new" class="btn btn-outline-primary">
-                        <i class="bi bi-plus-lg me-1"></i> Save & Add New
-                    </button>
-                    <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-lg me-1"></i> Cancel
-                    </a>
                 </div>
             </div>
         </div>
@@ -209,6 +192,22 @@
 
 @push('scripts')
 <script>
+// Auto-scroll to first error field on validation errors
+document.addEventListener('DOMContentLoaded', function() {
+    @if($errors->any())
+        var firstErrorField = document.querySelector('.is-invalid');
+        if (firstErrorField) {
+            setTimeout(function() {
+                firstErrorField.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                firstErrorField.focus();
+            }, 100);
+        }
+    @endif
+});
+
 // Preview image before upload
 function previewImage(input) {
     const preview = document.getElementById('imagePreview');

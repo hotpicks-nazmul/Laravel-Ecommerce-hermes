@@ -247,7 +247,9 @@
                             @endif
                         </td>
                         <td>
-                            @if($product->category)
+                            @if($product->digitalCategory)
+                                <span class="badge bg-light text-dark">{{ $product->digitalCategory->name }}</span>
+                            @elseif($product->category)
                                 <span class="badge bg-light text-dark">{{ $product->category->name }}</span>
                             @else
                                 <span class="text-muted">-</span>

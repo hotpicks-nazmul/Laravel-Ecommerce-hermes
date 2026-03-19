@@ -35,6 +35,10 @@
     border-radius: 8px;
     padding: 1rem;
 }
+/* Add padding at bottom to prevent floating button overlap */
+.content-area {
+    padding-bottom: 100px !important;
+}
 </style>
 @endpush
 

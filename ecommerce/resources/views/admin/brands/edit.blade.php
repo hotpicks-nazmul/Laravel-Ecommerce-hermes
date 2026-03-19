@@ -10,7 +10,7 @@
     </a>
 </div>
 
-<div class="row">
+<div class="row content-area">
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-header bg-white">
@@ -221,10 +221,9 @@
         <i class="bi bi-x-lg me-1"></i> Cancel
     </a>
     @if($brand->products_count === 0)
-    <form action="{{ route('admin.brands.destroy', $brand->id) }}" method="POST" class="d-inline" id="deleteForm" onsubmit="return confirm('Are you sure you want to delete this brand?')">
-        @csrf @method('DELETE')
-    </form>
-    <a href="#" class="btn btn-outline-danger floating-reset-btn" onclick="event.preventDefault(); document.getElementById('deleteForm').submit();">
+    <a href="{{ route('admin.brands.destroy', $brand->id) }}" 
+       class="btn btn-outline-danger floating-reset-btn" 
+       onclick="event.preventDefault(); if(confirm('Are you sure you want to delete this brand?')) { document.getElementById('deleteForm').submit(); }">
         <i class="bi bi-trash me-1"></i> Delete
     </a>
     @endif
@@ -281,9 +280,12 @@ function removeLogo() {
 document.getElementById('name').addEventListener('input', function() {
     const slugInput = document.getElementById('slug');
     if (!slugInput.value || slugInput.dataset.auto === '1') {
-        slugInput.value = this.value.toLowerCase()
+        let name = this.value;
+        let slug = name.toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)/g, '');
+        console.log('Generated slug:', slug); // Debug log
+        slugInput.value = slug;
         slugInput.dataset.auto = '1';
     }
 });

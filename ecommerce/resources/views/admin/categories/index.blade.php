@@ -201,7 +201,11 @@
                         @endforelse
                     @else
                         @forelse($categories as $category)
-                            <tr data-id="{{ $category->id }}">
+                            @php
+                                $search = request('search');
+                                $isMatch = $search && (stripos($category->name, $search) !== false || stripos($category->slug, $search) !== false);
+                            @endphp
+                            <tr data-id="{{ $category->id }}" class="{{ $isMatch ? 'table-warning' : '' }}">
                                 <td>
                                     <input type="checkbox" class="form-check-input category-checkbox" value="{{ $category->id }}" onchange="updateBulkActions()">
                                 </td>

@@ -199,7 +199,7 @@
                     @enderror
                 </div>
                 
-                <div class="form-check mb-3">
+                <div class="form-check form-switch mb-3">
                     <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" value="1" {{ old('is_featured', $category->is_featured) ? 'checked' : '' }} form="category-form">
                     <label class="form-check-label" for="is_featured">
                         <i class="bi bi-star-fill text-warning me-1"></i> Featured Category
@@ -207,7 +207,7 @@
                     <div class="form-text">Featured categories may be highlighted on the homepage</div>
                 </div>
                 
-                <div class="form-check mb-3">
+                <div class="form-check form-switch mb-3">
                     <input class="form-check-input" type="checkbox" id="show_in_menu" name="show_in_menu" value="1" {{ old('show_in_menu', $category->show_in_menu) ? 'checked' : '' }} form="category-form">
                     <label class="form-check-label" for="show_in_menu">
                         <i class="bi bi-list text-primary me-1"></i> Show in Menu
@@ -215,7 +215,7 @@
                     <div class="form-text">Display in navigation menu</div>
                 </div>
                 
-                <div class="form-check mb-3">
+                <div class="form-check form-switch mb-3">
                     <input class="form-check-input" type="checkbox" id="show_in_homepage" name="show_in_homepage" value="1" {{ old('show_in_homepage', $category->show_in_homepage) ? 'checked' : '' }} form="category-form">
                     <label class="form-check-label" for="show_in_homepage">
                         <i class="bi bi-house text-success me-1"></i> Show on Homepage
@@ -249,41 +249,6 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Actions -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <button type="submit" form="category-form" class="btn btn-primary">
-                        <i class="bi bi-check-lg me-1"></i> Update Category
-                    </button>
-                    <a href="{{ route('admin.categories.create') }}" class="btn btn-outline-primary">
-                        <i class="bi bi-plus-lg me-1"></i> Add New Category
-                    </a>
-                    @if($category->canBeDeleted())
-                        <form action="{{ route('admin.categories.destroy', $category->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this category?')">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="btn btn-outline-danger w-100">
-                                <i class="bi bi-trash me-1"></i> Delete Category
-                            </button>
-                        </form>
-                    @else
-                        <button type="button" class="btn btn-outline-secondary" disabled title="Cannot delete - has children or products">
-                            <i class="bi bi-trash me-1"></i> Cannot Delete
-                        </button>
-                        <div class="form-text text-center">
-                            @if($category->children()->count() > 0)
-                                Has {{ $category->children()->count() }} subcategories
-                            @endif
-                            @if($category->products()->count() > 0)
-                                @if($category->children()->count() > 0)<br>@endif
-                                Has {{ $category->products()->count() }} products
-                            @endif
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -292,6 +257,16 @@
     <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary floating-reset-btn">
         <i class="bi bi-x-lg me-1"></i> Cancel
     </a>
+    @if($category->canBeDeleted())
+        <a href="{{ route('admin.categories.destroy', $category->id) }}" 
+           class="btn btn-outline-danger floating-reset-btn" 
+           onclick="event.preventDefault(); if(confirm('Are you sure you want to delete this category?')) { document.getElementById('deleteForm').submit(); }">
+            <i class="bi bi-trash me-1"></i> Delete
+        </a>
+        <form id="deleteForm" action="{{ route('admin.categories.destroy', $category->id) }}" method="POST" class="d-none">
+            @csrf @method('DELETE')
+        </form>
+    @endif
     <button type="submit" form="category-form" class="btn btn-primary floating-save-btn">
         <i class="bi bi-check-lg me-1"></i> Update Category
     </button>
@@ -300,6 +275,22 @@
 
 @push('scripts')
 <script>
+// Auto-scroll to first error field on validation errors
+document.addEventListener('DOMContentLoaded', function() {
+    @if($errors->any())
+        var firstErrorField = document.querySelector('.is-invalid');
+        if (firstErrorField) {
+            setTimeout(function() {
+                firstErrorField.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                firstErrorField.focus();
+            }, 100);
+        }
+    @endif
+});
+
 // Preview image before upload
 function previewImage(input) {
     const preview = document.getElementById('imagePreview');

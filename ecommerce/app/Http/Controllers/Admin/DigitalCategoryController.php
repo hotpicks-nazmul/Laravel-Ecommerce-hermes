@@ -7,9 +7,15 @@ use App\Models\DigitalCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class DigitalCategoryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:digital-categories');
+    }
     /**
      * Display digital categories list.
      */
@@ -124,10 +130,15 @@ class DigitalCategoryController extends Controller
 
         // Handle image upload
         if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imageName = Str::random(40) . '.' . $image->getClientOriginalExtension();
-            $image->storeAs('public/digital-categories', $imageName);
-            $data['image'] = 'digital-categories/' . $imageName;
+            try {
+                $image = $request->file('image');
+                $imageName = Str::random(40) . '.' . $image->getClientOriginalExtension();
+                $image->storeAs('public/digital-categories', $imageName);
+                $data['image'] = 'digital-categories/' . $imageName;
+            } catch (\Exception $e) {
+                Log::error('Digital category image upload failed: ' . $e->getMessage());
+                return back()->withInput()->with('error', 'Failed to upload image. Please try again.');
+            }
         }
 
         $category = DigitalCategory::create($data);
@@ -180,15 +191,20 @@ class DigitalCategoryController extends Controller
 
         // Handle image upload
         if ($request->hasFile('image')) {
-            // Delete old image
-            if ($digitalCategory->image) {
-                Storage::delete('public/' . $digitalCategory->image);
+            try {
+                // Delete old image
+                if ($digitalCategory->image) {
+                    Storage::delete('public/' . $digitalCategory->image);
+                }
+                
+                $image = $request->file('image');
+                $imageName = Str::random(40) . '.' . $image->getClientOriginalExtension();
+                $image->storeAs('public/digital-categories', $imageName);
+                $data['image'] = 'digital-categories/' . $imageName;
+            } catch (\Exception $e) {
+                Log::error('Digital category image update failed: ' . $e->getMessage());
+                return back()->withInput()->with('error', 'Failed to update image. Please try again.');
             }
-            
-            $image = $request->file('image');
-            $imageName = Str::random(40) . '.' . $image->getClientOriginalExtension();
-            $image->storeAs('public/digital-categories', $imageName);
-            $data['image'] = 'digital-categories/' . $imageName;
         }
 
         $digitalCategory->update($data);

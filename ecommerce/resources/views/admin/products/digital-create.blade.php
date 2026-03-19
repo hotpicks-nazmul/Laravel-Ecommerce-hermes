@@ -45,20 +45,9 @@
 .note-editor.note-frame .note-editing-area .note-editable {
     padding: 15px;
 }
-/* Floating Action Buttons */
-.floating-actions {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(255, 255, 255, 0.98);
-    border-top: 1px solid #dee2e6;
-    padding: 1rem;
-    z-index: 1030;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-}
-body {
-    padding-bottom: 80px;
+/* Add padding at bottom to prevent floating button overlap */
+.content-area {
+    padding-bottom: 100px !important;
 }
 </style>
 @endpush
@@ -87,14 +76,14 @@ body {
                             <input type="text" name="name" id="productName" class="form-control" value="{{ old('name') }}" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">SKU <span class="text-danger">*</span></label>
+                            <label class="form-label">SKU <span class="text-success">(Auto-generated)</span></label>
                             <div class="input-group">
                                 <input type="text" name="sku" id="skuInput" class="form-control" value="{{ old('sku') }}" readonly style="background-color: #f8f9fa;">
                                 <button type="button" class="btn btn-outline-secondary" id="regenerateSku" title="Regenerate SKU">
                                     <i class="bi bi-arrow-clockwise"></i>
                                 </button>
                             </div>
-                            <small class="text-muted">Auto-generated from product name</small>
+                            <small class="text-muted">Auto-generated from date and time</small>
                         </div>
                     </div>
                     
@@ -460,58 +449,41 @@ $(document).ready(function() {
 
 // SKU Auto-generation
 function generateSKU(name) {
-    if (!name) return '';
+    // Generate SKU in format: DIG-YYYYMMDDHHMMSS
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
     
-    // Get first letters of each word
-    const words = name.trim().split(/\s+/);
-    let prefix = '';
-    
-    if (words.length >= 2) {
-        prefix = words.slice(0, 2).map(word => word.charAt(0).toUpperCase()).join('');
-    } else {
-        prefix = name.substring(0, 3).toUpperCase();
-    }
-    
-    // Add timestamp suffix
-    const timestamp = Date.now().toString().slice(-6);
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    
-    return `DGT-${prefix}-${timestamp}${random}`;
+    return `DIG-${year}${month}${day}${hours}${minutes}${seconds}`;
 }
 
 function updateSKU() {
-    const nameInput = document.getElementById('productName');
     const skuInput = document.getElementById('skuInput');
     
-    if (nameInput && skuInput) {
-        const name = nameInput.value;
-        if (name.trim()) {
-            skuInput.value = generateSKU(name);
-        }
+    if (skuInput) {
+        // Always generate new SKU with current date/time
+        skuInput.value = generateSKU();
     }
 }
 
-// Initialize SKU generation
-document.getElementById('productName').addEventListener('input', function() {
-    // Debounce the SKU generation
-    clearTimeout(this.skuTimeout);
-    this.skuTimeout = setTimeout(updateSKU, 500);
-});
+// SKU is auto-generated based on date/time on page load
 
 // Regenerate SKU button
 document.getElementById('regenerateSku').addEventListener('click', function() {
-    const nameInput = document.getElementById('productName');
     const skuInput = document.getElementById('skuInput');
-    skuInput.value = generateSKU(nameInput.value);
+    skuInput.value = generateSKU();
 });
 
 // Generate initial SKU on page load
 document.addEventListener('DOMContentLoaded', function() {
-    const nameInput = document.getElementById('productName');
     const skuInput = document.getElementById('skuInput');
     
-    // Only generate if SKU is empty
-    if (!skuInput.value) {
+    // Always generate SKU on page load
+    if (skuInput) {
         updateSKU();
     }
 });
@@ -584,20 +556,38 @@ function updateAdditionalFilesDisplay() {
     const files = additionalFilesInput.files;
     if (files.length) {
         let html = '';
-        for (let file of files) {
+        for (let i = 0; i < files.length; i++) {
             html += `
                 <div class="additional-file-item">
                     <div>
                         <i class="bi bi-file-earmark me-2"></i>
-                        <span>${file.name}</span>
-                        <small class="text-muted ms-2">${formatFileSize(file.size)}</small>
+                        <span>${files[i].name}</span>
+                        <small class="text-muted ms-2">${formatFileSize(files[i].size)}</small>
                     </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeAdditionalFile(${i})">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
             `;
         }
         additionalFilesList.innerHTML = html;
         additionalFilesZone.classList.add('has-file');
+    } else {
+        additionalFilesList.innerHTML = '';
+        additionalFilesZone.classList.remove('has-file');
     }
+}
+
+function removeAdditionalFile(index) {
+    const dt = new DataTransfer();
+    const files = additionalFilesInput.files;
+    for (let i = 0; i < files.length; i++) {
+        if (i !== index) {
+            dt.items.add(files[i]);
+        }
+    }
+    additionalFilesInput.files = dt.files;
+    updateAdditionalFilesDisplay();
 }
 
 function formatFileSize(bytes) {

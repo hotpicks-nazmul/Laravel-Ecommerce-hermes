@@ -20,7 +20,7 @@ class DigitalProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::with('category')->digital()->inHouse();
+        $query = Product::with('digitalCategory', 'category')->digital()->inHouse();
 
         // Search by name, SKU, Product Code, or description
         if ($request->search) {
@@ -33,9 +33,9 @@ class DigitalProductController extends Controller
             });
         }
 
-        // Filter by category
+        // Filter by category (digital category)
         if ($request->category) {
-            $query->where('category_id', $request->category);
+            $query->where('digital_category_id', $request->category);
         }
 
         // Filter by file type
@@ -84,7 +84,7 @@ class DigitalProductController extends Controller
         $perPage = $request->per_page ?? 25;
 
         $products = $query->paginate($perPage)->appends($request->query());
-        $categories = Category::where('status', 'active')->get();
+        $categories = DigitalCategory::where('status', 'active')->get();
         
         // Get unique file types for filter
         $fileTypes = Product::digital()->inHouse()

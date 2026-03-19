@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\Product;
+use App\Helpers\ImageHelper;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
@@ -36,12 +37,11 @@ class CategoryController extends Controller
         // Build base query for filtered results
         $query = Category::with(['parent', 'children']);
         
-        // Search
+        // Search (only name and slug, not description to avoid unexpected matches)
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('slug', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('slug', 'like', "%{$search}%");
             });
         }
         
@@ -66,36 +66,61 @@ class CategoryController extends Controller
         }
         
         if ($viewMode === 'tree') {
-            // Tree view - get parent categories with filtered children
-            $parentQuery = clone $query;
-            
+            // Tree view - search should filter categories like flat view
             // Get all matching category IDs
             $matchingIds = $query->pluck('id')->toArray();
             
-            // Get parent IDs of matching categories to show full tree path
-            $parentIds = Category::whereIn('id', $matchingIds)
-                ->whereNotNull('parent_id')
-                ->pluck('parent_id')
-                ->unique()
-                ->toArray();
+            // Get all ancestor IDs for matching categories to show the full tree
+            $allAncestorIds = [];
+            if (!empty($matchingIds)) {
+                $allAncestorIds = $this->getAllAncestorIds($matchingIds);
+            }
             
-            // Merge all IDs to show
-            $allIds = array_unique(array_merge($matchingIds, $parentIds));
+            // Get root parent IDs (categories with parent_id = null)
+            $rootParentIds = [];
+            if (!empty($matchingIds)) {
+                $allIdsToCheck = array_unique(array_merge($matchingIds, $allAncestorIds));
+                $rootParentIds = Category::whereIn('id', $allIdsToCheck)
+                    ->whereNull('parent_id')
+                    ->pluck('id')
+                    ->toArray();
+            }
             
-            // Build tree with filtered categories
-            $categories = Category::with(['children' => function ($q) use ($matchingIds, $status, $search, $featured, $showInMenu, $showInHomepage) {
+            // Build tree with filtered children
+            // Load ALL children (not filtered) to preserve tree structure
+            // The view will handle showing/hiding based on matching
+            $categories = Category::with(['children' => function ($q) use ($status, $featured, $showInMenu, $showInHomepage) {
                     $q->withCount('products');
+                    // Apply filters to children
                     if ($status) $q->where('status', $status);
-                    if ($search) $q->where('name', 'like', "%{$search}%");
                     if ($featured !== null && $featured !== '') $q->where('is_featured', $featured === 'yes');
                     if ($showInMenu !== null && $showInMenu !== '') $q->where('show_in_menu', $showInMenu === 'yes');
                     if ($showInHomepage !== null && $showInHomepage !== '') $q->where('show_in_homepage', $showInHomepage === 'yes');
                 }])
                 ->withCount('products')
-                ->whereIn('id', $allIds)
-                ->whereNull('parent_id')
-                ->ordered()
-                ->get();
+                ->whereNull('parent_id');
+            
+            // Apply filters to root categories
+            if ($status) $categories->where('status', $status);
+            if ($featured !== null && $featured !== '') $categories->where('is_featured', $featured === 'yes');
+            if ($showInMenu !== null && $showInMenu !== '') $categories->where('show_in_menu', $showInMenu === 'yes');
+            if ($showInHomepage !== null && $showInHomepage !== '') $categories->where('show_in_homepage', $showInHomepage === 'yes');
+            
+            // If searching and we found matches, filter to only show relevant parents
+            if ($search) {
+                if (!empty($rootParentIds)) {
+                    $categories->whereIn('id', $rootParentIds);
+                } elseif (!empty($matchingIds)) {
+                    // If there are matching categories but no root parents found,
+                    // check if the matching categories themselves are root
+                    $categories->whereIn('id', $matchingIds);
+                } else {
+                    // No matches found - show empty result
+                    $categories->whereIn('id', [0]);
+                }
+            }
+            
+            $categories = $categories->ordered()->get();
         } else {
             // Flat view - all categories paginated
             $categories = $query->withCount('products')
@@ -121,7 +146,7 @@ class CategoryController extends Controller
             ]);
         }
         
-        return view('admin.categories.index', compact('categories', 'stats', 'viewMode'));
+        return view('admin.categories.index', compact('categories', 'stats', 'viewMode', 'search'));
     }
 
     /**
@@ -160,10 +185,20 @@ class CategoryController extends Controller
         $data['show_in_menu'] = $request->has('show_in_menu');
         $data['show_in_homepage'] = $request->has('show_in_homepage');
 
-        // Handle image upload
+        // Handle image upload using ImageHelper
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('categories', 'public');
-            $data['image'] = Storage::url($path);
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'categories',  // Directory
+                    800,           // Max width (per Preference.md)
+                    200,           // Thumbnail width (per Preference.md)
+                    80             // Quality (per Preference.md)
+                );
+                
+                $data['image'] = $imageResult['path'];
+                $data['thumbnail'] = $imageResult['thumbnail'] ?? null;
+            }
         }
 
         // Set sort order
@@ -237,17 +272,34 @@ class CategoryController extends Controller
         $data['show_in_menu'] = $request->has('show_in_menu');
         $data['show_in_homepage'] = $request->has('show_in_homepage');
 
-        // Handle image upload
+        // Handle image upload using ImageHelper
         if ($request->hasFile('image')) {
-            // Delete old image
+            // Delete old image and thumbnail
             if ($category->image) {
                 $oldPath = str_replace('/storage/', '', $category->image);
                 if (Storage::disk('public')->exists($oldPath)) {
                     Storage::disk('public')->delete($oldPath);
                 }
             }
-            $path = $request->file('image')->store('categories', 'public');
-            $data['image'] = Storage::url($path);
+            if ($category->thumbnail) {
+                $oldThumbPath = str_replace('/storage/', '', $category->thumbnail);
+                if (Storage::disk('public')->exists($oldThumbPath)) {
+                    Storage::disk('public')->delete($oldThumbPath);
+                }
+            }
+            
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'categories',  // Directory
+                    800,           // Max width (per Preference.md)
+                    200,           // Thumbnail width (per Preference.md)
+                    80             // Quality (per Preference.md)
+                );
+                
+                $data['image'] = $imageResult['path'];
+                $data['thumbnail'] = $imageResult['thumbnail'] ?? null;
+            }
         }
 
         // Prevent setting parent to self
@@ -275,11 +327,17 @@ class CategoryController extends Controller
             return back()->with('error', 'Cannot delete category with products. Please move or delete products first.');
         }
 
-        // Delete image
+        // Delete image and thumbnail
         if ($category->image) {
             $oldPath = str_replace('/storage/', '', $category->image);
             if (Storage::disk('public')->exists($oldPath)) {
                 Storage::disk('public')->delete($oldPath);
+            }
+        }
+        if ($category->thumbnail) {
+            $oldThumbPath = str_replace('/storage/', '', $category->thumbnail);
+            if (Storage::disk('public')->exists($oldThumbPath)) {
+                Storage::disk('public')->delete($oldThumbPath);
             }
         }
         
@@ -405,11 +463,17 @@ class CategoryController extends Controller
                     if ($category->children()->count() > 0 || $category->products()->count() > 0) {
                         $cannotDelete[] = $category->name;
                     } else {
-                        // Delete image
+                        // Delete image and thumbnail
                         if ($category->image) {
                             $oldPath = str_replace('/storage/', '', $category->image);
                             if (Storage::disk('public')->exists($oldPath)) {
                                 Storage::disk('public')->delete($oldPath);
+                            }
+                        }
+                        if ($category->thumbnail) {
+                            $oldThumbPath = str_replace('/storage/', '', $category->thumbnail);
+                            if (Storage::disk('public')->exists($oldThumbPath)) {
+                                Storage::disk('public')->delete($oldThumbPath);
                             }
                         }
                         $category->delete();
@@ -553,5 +617,35 @@ class CategoryController extends Controller
         $categories = Category::getFlattenedTree($excludeId);
         
         return response()->json($categories);
+    }
+    
+    /**
+     * Get all ancestor IDs for given category IDs (recursive).
+     * This helps show the full tree path when searching for subcategories.
+     *
+     * @param array $categoryIds
+     * @return array
+     */
+    private function getAllAncestorIds(array $categoryIds): array
+    {
+        if (empty($categoryIds)) {
+            return [];
+        }
+        
+        // Get immediate parents of these categories
+        $parentIds = Category::whereIn('id', $categoryIds)
+            ->whereNotNull('parent_id')
+            ->pluck('parent_id')
+            ->unique()
+            ->toArray();
+        
+        if (empty($parentIds)) {
+            return [];
+        }
+        
+        // Recursively get all ancestors
+        $ancestorIds = $this->getAllAncestorIds($parentIds);
+        
+        return array_unique(array_merge($parentIds, $ancestorIds));
     }
 }

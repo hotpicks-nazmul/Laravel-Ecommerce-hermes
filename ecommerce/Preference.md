@@ -25,6 +25,7 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 17. **Tabbed Interface Pages** - Proper view rendering for tab-based admin pages
 18. **Bootstrap Modal Popup** - Reusable modal for showing messages/info without page reload
 19. **Form Validation Errors** - Input field tooltips with auto-scroll and modal for non-input errors
+20. **Image Upload Functionality** - Complete solution for uploading and processing images in admin panel
 
 ---
 
@@ -710,6 +711,164 @@ public function index(Request $request)
 | **Sorting** | Clickable column headers for sorting |
 | **Per Page** | User can select items per page (10, 25, 50, 100) |
 | **AJAX Updates** | Table updates without full page reload |
+
+---
+
+## Testing Search & Filter Functionality
+
+When implementing or modifying search and filter functionality in admin pages, follow these testing procedures to ensure all features work correctly.
+
+### Categories Page Testing
+
+```bash
+# Test all categories display (no filters)
+php artisan tinker --execute="
+\$categories = \App\Models\Category::with(['children' => function (\$q) {
+    \$q->withCount('products');
+}])
+->withCount('products')
+->whereNull('parent_id')
+->ordered()
+->get();
+echo 'Root categories: ' . \$categories->count();
+"
+
+# Test search
+php artisan tinker --execute="
+\$search = 'b';
+\$query = \App\Models\Category::with(['parent', 'children']);
+\$query->where(function(\$q) use(\$search) {
+    \$q->where('name', 'like', \"%{\$search}%\")
+        ->orWhere('slug', 'like', \"%{\$search}%\");
+});
+echo 'Matching: ' . \$query->pluck('id')->toArray();
+"
+
+# Test filters
+php artisan tinker --execute="
+// Status filter
+\App\Models\Category::where('status', 'active')->count();
+
+// Featured filter  
+\App\Models\Category::where('is_featured', true)->count();
+
+// Show in menu
+\App\Models\Category::where('show_in_menu', true)->count();
+"
+```
+
+### Products Page Testing
+
+```bash
+# Test all products
+php artisan tinker --execute="echo \App\Models\Product::count();"
+
+# Test search
+php artisan tinker --execute="
+\$search = 'Fry Pan';
+\$query = \App\Models\Product::with('category');
+\$query->where(function(\$q) use(\$search) {
+    \$q->where('name', 'like', \"%{\$search}%\")
+        ->orWhere('sku', 'like', \"%{\$search}%\")
+        ->orWhere('product_code', 'like', \"%{\$search}%\")
+        ->orWhere('short_description', 'like', \"%{\$search}%\");
+});
+echo 'Found: ' . \$query->count();
+"
+
+# Test filters
+php artisan tinker --execute="
+// Status
+\App\Models\Product::where('is_active', true)->count();
+
+// Featured
+\App\Models\Product::where('is_featured', true)->count();
+
+// Stock status
+\App\Models\Product::where('quantity', '>', 10)->count(); // in stock
+\App\Models\Product::whereBetween('quantity', [1, 10])->count(); // low stock
+\App\Models\Product::where('quantity', '<=', 0)->count(); // out of stock
+
+// Price range
+\App\Models\Product::where('price', '>=', 500)->where('price', '<=', 1000)->count();
+"
+```
+
+### Common Filter Issues & Solutions
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| No results when no search | Empty `$matchingIds` triggers `whereIn('id', [0])` | Wrap filter in `if ($search) {}` |
+| Subcategories not showing | View condition filters out children without products/children | Remove restrictive condition or use `!request('search')` |
+| Filters not applied to root | Filters only applied to children, not parents | Add filters to root query |
+| Search matches wrong results | Searching description field | Limit search to name/slug only |
+
+---
+
+## Search Highlighting
+
+When searching in admin list views (like categories, products, etc.), matching rows can be highlighted with a visual indicator.
+
+### Implementation
+
+Add search highlighting to any list view by following these steps:
+
+**1. Controller - Pass search parameter to view:**
+
+```php
+// In your controller's index method
+$search = $request->get('search');
+return view('admin.yourview.index', compact('categories', 'search'));
+```
+
+**2. View - Add highlighting logic:**
+
+```php
+@php
+    $search = request('search');
+    $isMatch = $search && (
+        stripos($category->name, $search) !== false || 
+        stripos($category->slug, $search) !== false
+    );
+@endphp
+
+<tr class="{{ $isMatch ? 'table-warning' : '' }}">
+    <!-- table cells -->
+</tr>
+```
+
+**3. For Tree Views (Recursive):**
+
+In partial views that render recursively (like `category-row.blade.php`), use the same logic:
+
+```php
+@php
+    $search = request('search');
+    $isMatch = $search && (
+        stripos($category->name, $search) !== false || 
+        stripos($category->slug, $search) !== false
+    );
+@endphp
+
+<tr data-id="{{ $category->id }}" class="{{ $isMatch ? 'table-warning' : '' }}">
+    <!-- table cells -->
+</tr>
+
+{{-- Render children recursively --}}
+@if($hasChildren)
+    @foreach($category->children as $child)
+        @include('admin.partials.child-row', ['category' => $child, 'depth' => $depth + 1])
+    @endforeach
+@endif
+```
+
+### Key Points
+
+- Uses Bootstrap's `table-warning` class for yellow highlight
+- Case-insensitive matching using `stripos()`
+- Works with both regular page loads and AJAX requests
+- Search term accessed via `request('search')` in Blade templates
+- Can match against multiple fields (name, slug, etc.)
 
 ---
 
@@ -1461,6 +1620,273 @@ public function store(Request $request)
 3. **Focus field** - Focus the error field so user can immediately correct it
 4. **Custom validations** - Create invalid-feedback div dynamically for JavaScript validations
 5. **General errors** - Use session('error') for non-field errors in Bootstrap modal
+
+---
+
+## 20. Image Upload Functionality
+
+This section documents the complete image upload and processing solution used in the admin panel. This solution is implemented in the Product creation page and should be used for all image upload functionality in the admin panel.
+
+### Overview
+
+The image upload solution consists of:
+1. **Frontend (Blade Template)** - File inputs with JavaScript preview
+2. **Backend (ImageHelper)** - Server-side image processing with WebP conversion, resizing, and thumbnail generation
+3. **Controller Integration** - How to use ImageHelper in controllers
+
+---
+
+### 20.1 Frontend - Blade Template
+
+#### HTML Structure for Image Upload
+
+```html
+<!-- Featured Image -->
+<div class="mb-3">
+    <label for="image" class="form-label">Featured Image</label>
+    <input type="file" class="form-control @error('image') is-invalid @enderror" 
+           id="image" name="image" accept="image/*" form="item-form" 
+           onchange="previewFeaturedImage(this)"
+           data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('image') }}">
+    @error('image')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+    <div class="form-text">Main image. Max 5MB. Recommended: 1920x1080px</div>
+    <div id="featuredImagePreview" class="mt-2"></div>
+</div>
+
+<!-- Gallery Images (Multiple) -->
+<div class="mb-3">
+    <label for="images" class="form-label">Gallery Images</label>
+    <input type="file" class="form-control @error('images') is-invalid @enderror" 
+           id="images" name="images[]" multiple accept="image/*" form="item-form" 
+           onchange="previewGalleryImages(this)"
+           data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('images') }}">
+    @error('images')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+    <div class="form-text">Additional images. Multiple allowed.</div>
+    <div id="galleryPreview" class="mt-2 d-flex flex-wrap gap-2"></div>
+</div>
+```
+
+#### JavaScript Preview Functions
+
+Add these functions in the `@push('scripts')` section:
+
+```javascript
+// Preview featured image
+function previewFeaturedImage(input) {
+    const preview = document.getElementById('featuredImagePreview');
+    preview.innerHTML = '';
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Preview gallery images
+function previewGalleryImages(input) {
+    const preview = document.getElementById('galleryPreview');
+    preview.innerHTML = '';
+    
+    if (input.files) {
+        Array.from(input.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">';
+                preview.appendChild(div.firstChild);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+}
+```
+
+---
+
+### 20.2 Backend - ImageHelper Class
+
+The `ImageHelper` class (`app/Helpers/ImageHelper.php`) provides the following functionality:
+
+#### Features
+
+1. **WebP Conversion** - All uploaded images are converted to WebP format for better compression
+2. **Automatic Resizing** - Images are resized to specified max width while maintaining aspect ratio
+3. **Thumbnail Generation** - Optional thumbnail creation with specified width
+4. **Transparency Support** - Preserves transparency for PNG and GIF images
+5. **Multiple Format Support** - Supports JPG, JPEG, PNG, GIF, WebP, BMP, TIFF
+
+#### Methods
+
+##### `processImage()` - Process single image with optional thumbnail
+
+```php
+use App\Helpers\ImageHelper;
+
+$result = ImageHelper::processImage(
+    $file,           // UploadedFile instance
+    'products',      // Storage directory
+    1920,            // Max width (0 = no resize)
+    300,             // Thumbnail width (0 = no thumbnail)
+    85               // WebP quality (0-100)
+);
+
+// Returns:
+// [
+//     'path' => '/storage/products/abc123.webp',
+//     'filename' => 'abc123.webp',
+//     'original_width' => 1920,
+//     'original_height' => 1080,
+//     'thumbnail' => '/storage/products/abc123_thumb.webp',  // if thumbWidth > 0
+//     'thumbnail_filename' => 'abc123_thumb.webp'
+// ]
+```
+
+##### `processGalleryImages()` - Process multiple images
+
+```php
+$images = ImageHelper::processGalleryImages(
+    $request->file('images'),  // Array of uploaded files
+    'products/gallery',         // Storage directory
+    1200,                       // Max width
+    85                          // Quality
+);
+
+// Returns array of processed image paths
+// ['/storage/products/gallery/abc123.webp', '/storage/products/gallery/xyz789.webp']
+```
+
+##### `isValidImage()` - Validate image file
+
+```php
+if (ImageHelper::isValidImage($request->file('image'))) {
+    // Valid image
+}
+```
+
+##### `deleteImage()` - Delete image and thumbnail
+
+```php
+ImageHelper::deleteImage($imagePath, $thumbnailPath = null);
+```
+
+##### `allowedExtensions()` - Get supported formats
+
+```php
+$extensions = ImageHelper::allowedExtensions();
+// ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'tiff', 'tif']
+```
+
+---
+
+### 20.3 Controller Integration
+
+#### Request Validation
+
+Add image validation to your controller's validation rules:
+
+```php
+$request->validate([
+    'name' => 'required|string|max:255',
+    // Other fields...
+    'image' => 'nullable|image|max:5120',        // Max 5MB
+    'images.*' => 'nullable|image|max:5120',      // Max 5MB each
+]);
+```
+
+#### Processing Featured Image
+
+```php
+if ($request->hasFile('image')) {
+    if (ImageHelper::isValidImage($request->file('image'))) {
+        $imageResult = ImageHelper::processImage(
+            $request->file('image'),
+            'items',           // Directory name
+            1920,              // Max width
+            300,               // Thumbnail width
+            85                 // Quality
+        );
+        
+        $data['featured_image'] = $imageResult['path'];
+        $data['thumbnail'] = $imageResult['thumbnail'] ?? null;
+    }
+}
+```
+
+#### Processing Gallery Images
+
+```php
+if ($request->hasFile('images')) {
+    $images = [];
+    foreach ($request->file('images') as $image) {
+        if (ImageHelper::isValidImage($image)) {
+            $imageResult = ImageHelper::processImage(
+                $image,
+                'items/gallery',   // Directory
+                1200,              // Max width
+                0,                 // No thumbnail for gallery
+                85                 // Quality
+            );
+            $images[] = $imageResult['path'];
+        }
+    }
+    $data['images'] = json_encode($images);
+}
+```
+
+---
+
+### 20.4 Recommended Configuration by Use Case
+
+| Use Case | Max Width | Thumbnail Width | Quality | Notes |
+|----------|-----------|-----------------|---------|-------|
+| Featured Image | 1920 | 300 | 85 | Main product/banner image |
+| Gallery Images | 1200 | 0 | 85 | Additional images, no thumbnail needed |
+| Category Image | 800 | 200 | 80 | Category thumbnails |
+| Brand Logo | 400 | 150 | 85 | Logo images |
+| User Avatar | 300 | 100 | 90 | Profile pictures |
+| Blog Image | 1200 | 300 | 80 | Blog post images |
+
+---
+
+### 20.5 Database Considerations
+
+For storing image paths in the database:
+
+1. **Featured Image** - Store in a single column (e.g., `featured_image`)
+2. **Thumbnail** - Store in separate column (e.g., `thumbnail`) if using thumbnails
+3. **Gallery Images** - Store as JSON array: `['/storage/...', '/storage/...']`
+
+Example migration for products:
+
+```php
+Schema::create('products', function (Blueprint $table) {
+    $table->id();
+    $table->string('name');
+    $table->string('featured_image')->nullable();
+    $table->string('thumbnail')->nullable();
+    $table->json('images')->nullable(); // JSON array of image paths
+    // ... other columns
+});
+```
+
+---
+
+### Key Points
+
+1. **Always validate** - Use `ImageHelper::isValidImage()` before processing
+2. **Use WebP** - Images are automatically converted to WebP for better performance
+3. **Set appropriate sizes** - Choose max width based on use case (see table above)
+4. **Handle thumbnails** - Set thumbnail width > 0 only when needed
+5. **Quality tradeoff** - Higher quality (90+) = larger file size, Lower (70-) = more compression
+6. **Max file size** - Validation should allow up to 5MB (5120KB) for high-quality images
+7. **Storage directory** - Use descriptive directory names (e.g., `products`, `categories`, `brands`)
 
 ---
 

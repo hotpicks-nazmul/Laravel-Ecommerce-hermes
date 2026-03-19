@@ -292,6 +292,11 @@ function initStatusToggle() {
             const status = this.dataset.status;
             const btn = this;
             
+            // Show loading state
+            btn.dataset.loading = 'true';
+            btn.querySelector('.status-text').style.display = 'none';
+            btn.querySelector('.spinner-border').classList.remove('d-none');
+            
             fetch(`{{ route('admin.digital-categories.toggle-status', 0) }}`.replace('0', id), {
                 method: 'POST',
                 headers: {
@@ -303,10 +308,21 @@ function initStatusToggle() {
             .then(data => {
                 if (data.success) {
                     btn.dataset.status = data.status;
-                    btn.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                    btn.querySelector('.status-text').textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
                     btn.classList.remove('btn-success', 'btn-secondary');
                     btn.classList.add(data.status === 'active' ? 'btn-success' : 'btn-secondary');
                 }
+                // Hide loading state
+                btn.dataset.loading = 'false';
+                btn.querySelector('.status-text').style.display = 'inline';
+                btn.querySelector('.spinner-border').classList.add('d-none');
+            })
+            .catch(err => {
+                // Hide loading state
+                btn.dataset.loading = 'false';
+                btn.querySelector('.status-text').style.display = 'inline';
+                btn.querySelector('.spinner-border').classList.add('d-none');
+                console.error('Status toggle error:', err);
             });
         });
     });

@@ -12,6 +12,7 @@ class Product extends Model
 
     protected $fillable = [
         'category_id',
+        'digital_category_id',
         'brand_id',
         'name',
         'slug',
@@ -99,6 +100,14 @@ class Product extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Get the digital category of the product.
+     */
+    public function digitalCategory()
+    {
+        return $this->belongsTo(DigitalCategory::class, 'digital_category_id');
     }
 
     /**

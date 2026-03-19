@@ -10,7 +10,7 @@
     </a>
 </div>
 
-<div class="row">
+<div class="row content-area">
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-header bg-white">
@@ -229,11 +229,20 @@ function removeLogo() {
 // Auto-generate slug from name
 document.getElementById('name').addEventListener('input', function() {
     const slugInput = document.getElementById('slug');
-    if (!slugInput.value) {
-        slugInput.value = this.value.toLowerCase()
+    if (!slugInput.value || slugInput.dataset.auto === '1') {
+        let name = this.value;
+        let slug = name.toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)/g, '');
+        console.log('Generated slug:', slug); // Debug log
+        slugInput.value = slug;
+        slugInput.dataset.auto = '1';
     }
+});
+
+// Reset auto flag when slug is manually edited
+document.getElementById('slug').addEventListener('input', function() {
+    this.dataset.auto = '0';
 });
 </script>
 @endpush

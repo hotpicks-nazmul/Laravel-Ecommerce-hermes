@@ -199,7 +199,7 @@
                     <tr>
                         <th style="width: 50px;">#</th>
                         <th>Product</th>
-                        <th class="text-center" style="width: 100px;">SKU</th>
+                        <th class="text-center" style="width: 100px;">Product Code</th>
                         <th class="text-center" style="width: 120px;">Category</th>
                         <th class="text-center" style="width: 100px;">Stock</th>
                         <th class="text-center" style="width: 100px;">Low Stock Threshold</th>
@@ -232,9 +232,11 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="text-center">
-                            <span class="badge bg-light text-dark">{{ $product->sku ?? 'N/A' }}</span>
-                        </td>
+                        <td class="text-center" style="white-space: nowrap;">
+    <div class="small text-truncate" style="max-width: 120px;">
+        <span class="badge bg-primary">{{ $product->sku ?? 'N/A' }}</span>
+    </div>
+</td>
                         <td class="text-center">
                             {{ $product->category->name ?? 'Uncategorized' }}
                         </td>

@@ -69,7 +69,7 @@
         <a href="{{ route('admin.products.export-in-house', request()->query()) }}" class="btn btn-outline-secondary">
             <i class="bi bi-download me-1"></i> Export CSV
         </a>
-        <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
+        <a href="{{ route('admin.products.create', ['from' => 'in-house']) }}" class="btn btn-primary">
             <i class="bi bi-plus-lg me-1"></i> Add New Product
         </a>
     </div>
@@ -81,11 +81,11 @@
         <form method="GET" id="filterForm">
             <div class="row g-2 align-items-end">
                 <!-- Search -->
-                <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="col-lg-2 col-md-3 col-sm-4">
                     <label class="form-label small text-muted">Search</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" name="search" id="liveSearch" class="form-control" placeholder="Name, SKU, Barcode..." value="{{ request('search') }}">
+                        <input type="text" name="search" id="liveSearch" class="form-control" placeholder="Name, SKU..." value="{{ request('search') }}">
                         <span class="input-group-text" id="searchSpinner" style="display: none;">
                             <div class="spinner-border spinner-border-sm" role="status">
                                 <span class="visually-hidden">Loading...</span>
@@ -95,10 +95,10 @@
                 </div>
                 
                 <!-- Category -->
-                <div class="col-lg-2 col-md-3 col-sm-6">
+                <div class="col-lg-2 col-md-3 col-sm-4">
                     <label class="form-label small text-muted">Category</label>
                     <select name="category" id="filterCategory" class="form-select form-select-sm">
-                        <option value="">All Categories</option>
+                        <option value="">All</option>
                         @foreach($categories as $category)
                             <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
                                 {{ $category->name }}
@@ -108,10 +108,10 @@
                 </div>
                 
                 <!-- Brand -->
-                <div class="col-lg-2 col-md-3 col-sm-6">
+                <div class="col-lg-2 col-md-3 col-sm-4">
                     <label class="form-label small text-muted">Brand</label>
                     <select name="brand" id="filterBrand" class="form-select form-select-sm">
-                        <option value="">All Brands</option>
+                        <option value="">All</option>
                         @foreach($brands as $brand)
                             <option value="{{ $brand }}" {{ request('brand') == $brand ? 'selected' : '' }}>
                                 {{ $brand }}
@@ -121,13 +121,13 @@
                 </div>
                 
                 <!-- Stock Status -->
-                <div class="col-lg-2 col-md-3 col-sm-6">
+                <div class="col-lg-2 col-md-3 col-sm-4">
                     <label class="form-label small text-muted">Stock</label>
                     <select name="stock_status" id="filterStock" class="form-select form-select-sm">
-                        <option value="">All Stock</option>
+                        <option value="">All</option>
                         <option value="in_stock" {{ request('stock_status') === 'in_stock' ? 'selected' : '' }}>In Stock</option>
                         <option value="low_stock" {{ request('stock_status') === 'low_stock' ? 'selected' : '' }}>Low Stock</option>
-                        <option value="out_of_stock" {{ request('stock_status') === 'out_of_stock' ? 'selected' : '' }}>Out of Stock</option>
+                        <option value="out_of_stock" {{ request('stock_status') === 'out_of_stock' ? 'selected' : '' }}>Out</option>
                     </select>
                 </div>
                 
@@ -141,8 +141,18 @@
                     </select>
                 </div>
                 
+                <!-- Featured -->
+                <div class="col-lg-1 col-md-2 col-sm-4">
+                    <label class="form-label small text-muted">Featured</label>
+                    <select name="featured" id="filterFeatured" class="form-select form-select-sm">
+                        <option value="">All</option>
+                        <option value="yes" {{ request('featured') === 'yes' ? 'selected' : '' }}>Yes</option>
+                        <option value="no" {{ request('featured') === 'no' ? 'selected' : '' }}>No</option>
+                    </select>
+                </div>
+                
                 <!-- Buttons -->
-                <div class="col-lg-2 col-md-4 col-sm-8">
+                <div class="col-lg-2 col-md-4 col-sm-12">
                     <div class="d-flex gap-1">
                         <a href="{{ route('admin.products.in-house') }}" class="btn btn-sm btn-outline-secondary flex-grow-1" id="resetFilters">
                             <i class="bi bi-x-lg me-1"></i> Reset
@@ -173,6 +183,12 @@
                 </button>
                 <button type="button" class="btn btn-sm btn-warning" onclick="bulkAction('deactivate')">
                     <i class="bi bi-pause-circle me-1"></i> Deactivate
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-info" onclick="bulkAction('feature')">
+                    <i class="bi bi-star me-1"></i> Feature
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="bulkAction('unfeature')">
+                    <i class="bi bi-star-fill me-1"></i> Unfeature
                 </button>
                 <button type="button" class="btn btn-sm btn-info" onclick="showBulkStockModal()">
                     <i class="bi bi-box-seam me-1"></i> Update Stock
@@ -207,7 +223,7 @@
                                 @endif
                             </a>
                         </th>
-                        <th>SKU / Barcode</th>
+                        <th>Product Code</th>
                         <th>Category</th>
                         <th>
                             <a href="{{ route('admin.products.in-house', array_merge(request()->query(), ['sort' => 'purchase_price', 'direction' => request('sort') == 'purchase_price' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
@@ -405,6 +421,16 @@
 .product-checkbox:checked + td img {
     box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.3);
 }
+/* Table styles */
+.table > :not(caption) > * > * {
+    padding: 0.75rem 0.5rem;
+}
+.product-checkbox:checked + td img {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.3);
+}
+.table thead th {
+    background: #f8f9fa !important;
+}
 </style>
 @endpush
 
@@ -477,6 +503,12 @@ function bulkAction(action) {
             break;
         case 'deactivate':
             confirmMsg = `Deactivate ${selectedProducts.size} product(s)?`;
+            break;
+        case 'feature':
+            confirmMsg = `Mark ${selectedProducts.size} product(s) as featured?`;
+            break;
+        case 'unfeature':
+            confirmMsg = `Remove ${selectedProducts.size} product(s) from featured?`;
             break;
         case 'duplicate':
             confirmMsg = `Duplicate ${selectedProducts.size} product(s)?`;
@@ -596,14 +628,18 @@ function showLowStockAlerts() {
                 if (data.products.length === 0) {
                     html = '<div class="text-center py-4"><i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i><p class="mt-3">All products are well stocked!</p></div>';
                 } else {
-                    html = '<div class="table-responsive"><table class="table table-sm"><thead><tr><th>Product</th><th>SKU</th><th>Current</th><th>Threshold</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+                    html = '<div class="table-responsive"><table class="table table-sm"><thead><tr><th>Product</th><th>Product Code</th><th>Current</th><th>Threshold</th><th>Status</th><th>Action</th></tr></thead><tbody>';
                     data.products.forEach(p => {
                         const status = p.quantity <= 0 ? 
                             '<span class="badge bg-danger">Out of Stock</span>' : 
                             '<span class="badge bg-warning text-dark">Low Stock</span>';
                         html += `<tr>
                             <td>${p.name}</td>
-                            <td>${p.sku}</td>
+                            <td style="white-space: nowrap;">
+    <div class="small text-truncate" style="max-width: 120px;">
+        <span class="badge bg-primary">${p.sku}</span>
+    </div>
+</td>
                             <td>${p.quantity}</td>
                             <td>${p.low_stock_threshold}</td>
                             <td>${status}</td>
@@ -666,7 +702,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Live filter for dropdowns
-    const filterSelects = ['filterCategory', 'filterBrand', 'filterStatus', 'filterStock'];
+    const filterSelects = ['filterCategory', 'filterBrand', 'filterStatus', 'filterStock', 'filterFeatured'];
     filterSelects.forEach(id => {
         const select = document.getElementById(id);
         if (select) {
@@ -702,6 +738,9 @@ function performLiveSearch(searchTerm) {
     
     const stockStatus = document.getElementById('filterStock').value;
     if (stockStatus) params.set('stock_status', stockStatus);
+    
+    const featured = document.getElementById('filterFeatured').value;
+    if (featured) params.set('featured', featured);
     
     // Keep existing sort and per_page
     const urlParams = new URLSearchParams(window.location.search);
@@ -774,6 +813,17 @@ function updateStats(stats) {
             el.textContent = stats[key];
         }
     });
+    
+    // Update stock value and retail value
+    const stockValueEl = document.getElementById('statStockValue');
+    if (stockValueEl && stats.total_stock_value !== undefined) {
+        stockValueEl.textContent = '৳' + parseInt(stats.total_stock_value).toLocaleString();
+    }
+    
+    const retailValueEl = document.getElementById('statRetailValue');
+    if (retailValueEl && stats.total_retail_value !== undefined) {
+        retailValueEl.textContent = '৳' + parseInt(stats.total_retail_value).toLocaleString();
+    }
     
     // Update low stock badge
     const lowStockBadge = document.getElementById('lowStockBadge');
