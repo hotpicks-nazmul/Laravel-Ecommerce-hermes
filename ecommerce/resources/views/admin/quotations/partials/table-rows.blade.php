@@ -1,20 +1,44 @@
 @forelse($quotations as $quotation)
-<tr>
+@php
+    $search = $search ?? '';
+    $isMatch = $search && (
+        stripos($quotation->quotation_number, $search) !== false || 
+        stripos($quotation->customer_name, $search) !== false ||
+        stripos($quotation->customer_email, $search) !== false
+    );
+@endphp
+<tr class="{{ $isMatch ? 'table-warning' : '' }}">
     <td class="ps-3">
         <input type="checkbox" class="form-check-input quotation-checkbox" value="{{ $quotation->id }}">
     </td>
     <td>
         <a href="{{ route('admin.quotations.show', $quotation) }}" class="text-decoration-none fw-medium">
-            {{ $quotation->quotation_number }}
+            @if($search && stripos($quotation->quotation_number, $search) !== false)
+                {!! preg_replace('/(' . preg_quote($search, '/') . ')/i', '<mark>$1</mark>', $quotation->quotation_number) !!}
+            @else
+                {{ $quotation->quotation_number }}
+            @endif
         </a>
         @if($quotation->is_expired && $quotation->status !== 'converted')
             <span class="badge bg-secondary ms-1">Expired</span>
         @endif
     </td>
     <td>
-        <div class="fw-medium">{{ $quotation->customer_name }}</div>
+        <div class="fw-medium">
+            @if($search && stripos($quotation->customer_name, $search) !== false)
+                {!! preg_replace('/(' . preg_quote($search, '/') . ')/i', '<mark>$1</mark>', $quotation->customer_name) !!}
+            @else
+                {{ $quotation->customer_name }}
+            @endif
+        </div>
         @if($quotation->customer_email)
-            <small class="text-muted">{{ $quotation->customer_email }}</small>
+            <small class="text-muted">
+                @if($search && stripos($quotation->customer_email, $search) !== false)
+                    {!! preg_replace('/(' . preg_quote($search, '/') . ')/i', '<mark>$1</mark>', $quotation->customer_email) !!}
+                @else
+                    {{ $quotation->customer_email }}
+                @endif
+            </small>
         @endif
     </td>
     <td>
@@ -87,11 +111,12 @@
 </tr>
 @empty
 <tr>
-    <td colspan="8" class="text-center py-4">
-        <div class="text-muted">
-            <i class="bi bi-inbox display-6"></i>
-            <p class="mt-2">No quotations found.</p>
-        </div>
+    <td colspan="8" class="text-center py-5">
+        <i class="bi bi-folder text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mb-2 mt-2">No quotations found</p>
+        <a href="{{ route('admin.quotations.create') }}" class="btn btn-sm btn-primary mt-1">
+            <i class="bi bi-plus-lg me-1"></i> Create First Quotation
+        </a>
     </td>
 </tr>
 @endforelse

@@ -237,13 +237,13 @@
                         <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Help</h6>
                     </div>
                     <div class="card-body">
-                        <small class="text-muted">
+                        <div class="form-text">
                             <ul class="mb-0 ps-3">
                                 <li>Update products or add custom items</li>
                                 <li>Extend the valid until date if needed</li>
                                 <li>Save changes before sending to customer</li>
                             </ul>
-                        </small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -292,6 +292,7 @@
 @push('scripts')
 <script>
     let itemCounter = {{ count($quotation->items) }};
+    let newItemCounter = {{ count($quotation->items) }};
     const products = @json($products);
 
     function fillCustomerDetails() {
@@ -309,63 +310,63 @@
     }
 
     function addItemRow(product = null) {
-        itemCounter++;
+        newItemCounter++;
         const container = document.getElementById('itemsContainer');
         
         const row = document.createElement('div');
         row.className = 'item-row';
-        row.id = `itemRow${itemCounter}`;
+        row.id = `itemRow${newItemCounter}`;
         
         row.innerHTML = `
             <div class="row align-items-end">
                 <div class="col-md-4 mb-2">
                     <label class="form-label small">Product</label>
-                    <select class="form-select form-select-sm product-select" onchange="onProductChange(${itemCounter})" data-row="${itemCounter}">
+                    <select class="form-select form-select-sm product-select" onchange="onProductChange(${newItemCounter})" data-row="${newItemCounter}">
                         <option value="">-- Custom Item --</option>
                         ${products.map(p => `<option value="${p.id}" data-price="${p.price}" data-name="${p.name}">${p.name} (${p.sku || 'No SKU'})</option>`).join('')}
                     </select>
-                    <input type="hidden" name="items[${itemCounter}][product_id]" id="productId${itemCounter}">
+                    <input type="hidden" name="items[${newItemCounter}][product_id]" id="productId${newItemCounter}">
                 </div>
                 <div class="col-md-4 mb-2">
                     <label class="form-label small">Item Name <span class="text-danger">*</span></label>
-                    <input type="text" name="items[${itemCounter}][product_name]" class="form-control form-control-sm item-name" 
-                           id="itemName${itemCounter}" required value="${product ? product.name : ''}">
+                    <input type="text" name="items[${newItemCounter}][product_name]" class="form-control form-control-sm item-name" 
+                           id="itemName${newItemCounter}" required value="${product ? product.name : ''}">
                 </div>
                 <div class="col-md-2 mb-2">
                     <label class="form-label small">Quantity <span class="text-danger">*</span></label>
-                    <input type="number" name="items[${itemCounter}][quantity]" class="form-control form-control-sm item-qty" 
-                           id="itemQty${itemCounter}" value="1" min="1" required onchange="calculateRow(${itemCounter})">
+                    <input type="number" name="items[${newItemCounter}][quantity]" class="form-control form-control-sm item-qty" 
+                           id="itemQty${newItemCounter}" value="1" min="1" required onchange="calculateRow(${newItemCounter})">
                 </div>
                 <div class="col-md-2 mb-2">
                     <label class="form-label small">Unit Price <span class="text-danger">*</span></label>
-                    <input type="number" name="items[${itemCounter}][unit_price]" class="form-control form-control-sm item-price" 
-                           id="itemPrice${itemCounter}" value="${product ? product.price : '0'}" min="0" step="0.01" required onchange="calculateRow(${itemCounter})">
+                    <input type="number" name="items[${newItemCounter}][unit_price]" class="form-control form-control-sm item-price" 
+                           id="itemPrice${newItemCounter}" value="${product ? product.price : '0'}" min="0" step="0.01" required onchange="calculateRow(${newItemCounter})">
                 </div>
                 <div class="col-md-10 mb-2">
                     <label class="form-label small">Description</label>
-                    <input type="text" name="items[${itemCounter}][description]" class="form-control form-control-sm" 
+                    <input type="text" name="items[${newItemCounter}][description]" class="form-control form-control-sm" 
                            placeholder="Optional description">
                 </div>
                 <div class="col-md-2 mb-2 text-end">
-                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItemRow(${itemCounter})">
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItemRow(${newItemCounter})">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
             </div>
             <div class="row">
                 <div class="col-12 text-end">
-                    <small class="text-muted">Total: <span class="fw-medium row-total" id="rowTotal${itemCounter}">0.00</span></small>
+                    <small class="text-muted">Total: <span class="fw-medium row-total" id="rowTotal${newItemCounter}">0.00</span></small>
                 </div>
             </div>
         `;
         
         container.appendChild(row);
-        calculateRow(itemCounter);
+        calculateRow(newItemCounter);
         
         if (product) {
             const select = row.querySelector('.product-select');
             select.value = product.id;
-            document.getElementById(`productId${itemCounter}`).value = product.id;
+            document.getElementById(`productId${newItemCounter}`).value = product.id;
         }
     }
 

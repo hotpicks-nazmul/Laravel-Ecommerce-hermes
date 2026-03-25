@@ -164,7 +164,7 @@ class ProductQAController extends Controller
                 break;
 
             case 'unpublish':
-                $count = ProductQA::whereIn('id', $ids)->update(['status' => 'answered']);
+                $count = ProductQA::whereIn('id', $ids)->update(['status' => 'pending']);
                 $message = "{$count} Q&A entries unpublished.";
                 break;
 

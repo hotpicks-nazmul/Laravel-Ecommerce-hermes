@@ -3,13 +3,6 @@
 @section('title', 'Inventory Management')
 
 @section('content')
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-</style>
-@endpush
 
 <div class="row mb-4">
     <div class="col-md-2 col-sm-4 col-6 mb-3">
@@ -56,7 +49,7 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Stock Value</div>
-                <div class="h5 mb-0 text-primary">${{ number_format($stats['total_value'] ?? 0, 2) }}</div>
+                <div class="h4 mb-0 text-primary">${{ number_format($stats['total_value'] ?? 0, 2) }}</div>
             </div>
         </div>
     </div>
@@ -155,7 +148,7 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
                         <th width="40">
@@ -174,16 +167,17 @@
                 </tbody>
             </table>
         </div>
-    </div>
-    <div class="card-footer bg-white">
-        <div class="d-flex justify-content-between align-items-center">
+        
+        @if($products->hasPages())
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div class="text-muted small">
-                Showing {{ $products->firstItem() ?? 0 }} to {{ $products->lastItem() ?? 0 }} of {{ $products->total() }} entries
+                Showing {{ $products->firstItem() ?? 0 }} - {{ $products->lastItem() ?? 0 }} of {{ $products->total() }} entries
             </div>
             <div>
                 {{ $products->appends(request()->query())->links() }}
             </div>
         </div>
+        @endif
     </div>
 </div>
 
@@ -277,6 +271,46 @@
     </div>
 </div>
 
+<!-- Threshold Modal -->
+<div class="modal fade" id="thresholdModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Set Low Stock Threshold</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="thresholdForm">
+                <div class="modal-body">
+                    <input type="hidden" id="thresholdProductId" name="product_id">
+                    <div class="mb-3">
+                        <label class="form-label">Product</label>
+                        <input type="text" id="thresholdProductName" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Low Stock Threshold <span class="text-danger">*</span></label>
+                        <input type="number" name="low_stock_threshold" id="thresholdValue" class="form-control" min="0" required>
+                        <div class="form-text">Product will be marked as "Low Stock" when quantity falls at or below this value.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i> Save Threshold
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
     let selectedItems = new Set();
@@ -336,6 +370,13 @@
                 document.querySelector('#tableBody').innerHTML = data.html;
                 const newUrl = `${window.location.pathname}?${params.toString()}`;
                 window.history.pushState({}, '', newUrl);
+            }
+            
+            if (data.pagination) {
+                const paginationContainer = document.querySelector('.card-footer');
+                if (paginationContainer) {
+                    paginationContainer.innerHTML = data.pagination;
+                }
             }
         })
         .catch(() => {
@@ -464,6 +505,45 @@
             }
         })
         .catch(err => toastr.error('Failed to adjust stock'));
+    });
+
+    // Threshold Modal
+    function showThresholdModal(productId, currentThreshold) {
+        fetch(`{{ route('admin.inventory.product', ':id') }}`.replace(':id', productId))
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('thresholdProductId').value = data.product.id;
+                    document.getElementById('thresholdProductName').value = data.product.name;
+                    document.getElementById('thresholdValue').value = data.product.low_stock_threshold || 10;
+                    new bootstrap.Modal(document.getElementById('thresholdModal')).show();
+                }
+            });
+    }
+
+    // Threshold form submission
+    document.getElementById('thresholdForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        fetch('{{ route('admin.inventory.threshold') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('thresholdModal')).hide();
+                toastr.success(data.message);
+                setTimeout(() => window.location.reload(), 500);
+            }
+        })
+        .catch(err => toastr.error('Failed to update threshold'));
     });
 </script>
 @endpush

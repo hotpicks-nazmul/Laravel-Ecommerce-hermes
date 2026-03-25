@@ -188,13 +188,13 @@
                         <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Help</h6>
                     </div>
                     <div class="card-body">
-                        <small class="text-muted">
+                        <div class="form-text">
                             <ul class="mb-0 ps-3">
                                 <li>Select products from the dropdown or enter custom items</li>
                                 <li>Quotations are valid until the specified date</li>
                                 <li>Customers can accept quotations to proceed with orders</li>
                             </ul>
-                        </small>
+                        </div>
                     </div>
                 </div>
             </div>

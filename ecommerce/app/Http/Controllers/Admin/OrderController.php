@@ -47,6 +47,23 @@ class OrderController extends Controller
     }
 
     /**
+     * Get filtered stats based on current query filters.
+     */
+    protected function getFilteredStats($query)
+    {
+        return [
+            'total' => (clone $query)->count(),
+            'pending' => (clone $query)->where('status', 'pending')->count(),
+            'processing' => (clone $query)->where('status', 'processing')->count(),
+            'confirmed' => (clone $query)->where('status', 'confirmed')->count(),
+            'shipped' => (clone $query)->where('status', 'shipped')->count(),
+            'delivered' => (clone $query)->where('status', 'delivered')->count(),
+            'cancelled' => (clone $query)->where('status', 'cancelled')->count(),
+            'refunded' => (clone $query)->where('status', 'refunded')->count(),
+        ];
+    }
+
+    /**
      * Display a listing of orders.
      */
     public function index(Request $request)
@@ -85,6 +102,11 @@ class OrderController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
+        // Check for CSV export
+        if ($request->get('export') === 'csv') {
+            return $this->exportSellerOrdersCsv($query);
+        }
+
         // Sorting
         $sort = $request->sort ?? 'created_at';
         $direction = $request->direction ?? 'desc';
@@ -94,8 +116,12 @@ class OrderController extends Controller
         $perPage = $request->per_page ?? 25;
         $orders = $query->paginate($perPage);
 
-        // Get stats
-        $stats = $this->getStats();
+        // Get filtered stats (for AJAX) or all stats (for page load)
+        if ($request->ajax()) {
+            $stats = $this->getFilteredStats($query);
+        } else {
+            $stats = $this->getStats();
+        }
 
         // AJAX response
         if ($request->ajax()) {
@@ -107,6 +133,57 @@ class OrderController extends Controller
         }
 
         return view('admin.orders.index', compact('orders', 'stats'));
+    }
+
+    /**
+     * Export orders to CSV.
+     */
+    protected function exportCsv($query)
+    {
+        $orders = $query->orderBy('created_at', 'desc')->get();
+        
+        $filename = 'orders_' . date('Y-m-d_His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+        
+        $callback = function() use ($orders) {
+            $handle = fopen('php://output', 'w');
+            
+            // Header row
+            fputcsv($handle, [
+                'Order #',
+                'Customer Name',
+                'Email',
+                'Phone',
+                'Total',
+                'Status',
+                'Payment Status',
+                'Payment Method',
+                'Date'
+            ]);
+            
+            // Data rows
+            foreach ($orders as $order) {
+                fputcsv($handle, [
+                    $order->order_number,
+                    $order->billing_full_name,
+                    $order->billing_email,
+                    $order->billing_phone,
+                    $order->total,
+                    $order->status,
+                    $order->payment_status,
+                    $order->payment_method ?? 'N/A',
+                    $order->created_at->format('Y-m-d H:i:s')
+                ]);
+            }
+            
+            fclose($handle);
+        };
+        
+        return response()->stream($callback, 200, $headers);
     }
 
     /**
@@ -148,6 +225,11 @@ class OrderController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
+        // Check for CSV export
+        if ($request->get('export') === 'csv') {
+            return $this->exportInhouseCsv($query);
+        }
+
         // Sorting
         $sort = $request->sort ?? 'created_at';
         $direction = $request->direction ?? 'desc';
@@ -157,8 +239,12 @@ class OrderController extends Controller
         $perPage = $request->per_page ?? 25;
         $orders = $query->paginate($perPage);
 
-        // Get stats
-        $stats = $this->getInhouseStats();
+        // Get filtered stats (for AJAX) or all stats (for page load)
+        if ($request->ajax()) {
+            $stats = $this->getInhouseFilteredStats($query);
+        } else {
+            $stats = $this->getInhouseStats();
+        }
 
         // AJAX response
         if ($request->ajax()) {
@@ -170,6 +256,72 @@ class OrderController extends Controller
         }
 
         return view('admin.orders.inhouse.index', compact('orders', 'stats'));
+    }
+
+    /**
+     * Get filtered stats for inhouse orders based on current query.
+     */
+    protected function getInhouseFilteredStats($query)
+    {
+        return [
+            'total' => (clone $query)->count(),
+            'pending' => (clone $query)->where('status', 'pending')->count(),
+            'processing' => (clone $query)->where('status', 'processing')->count(),
+            'confirmed' => (clone $query)->where('status', 'confirmed')->count(),
+            'shipped' => (clone $query)->where('status', 'shipped')->count(),
+            'delivered' => (clone $query)->where('status', 'delivered')->count(),
+            'cancelled' => (clone $query)->where('status', 'cancelled')->count(),
+            'refunded' => (clone $query)->where('status', 'refunded')->count(),
+        ];
+    }
+
+    /**
+     * Export inhouse orders to CSV.
+     */
+    protected function exportInhouseCsv($query)
+    {
+        $orders = $query->orderBy('created_at', 'desc')->get();
+        
+        $filename = 'inhouse_orders_' . date('Y-m-d_His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+        
+        $callback = function() use ($orders) {
+            $handle = fopen('php://output', 'w');
+            
+            fputcsv($handle, [
+                'Order #',
+                'Customer Name',
+                'Email',
+                'Phone',
+                'Total',
+                'Status',
+                'Payment Status',
+                'Payment Method',
+                'Date'
+            ]);
+            
+            foreach ($orders as $order) {
+                fputcsv($handle, [
+                    $order->order_number,
+                    $order->billing_full_name,
+                    $order->billing_email,
+                    $order->billing_phone,
+                    $order->total,
+                    $order->status,
+                    $order->payment_status,
+                    $order->payment_method ?? 'N/A',
+                    $order->created_at->format('Y-m-d H:i:s')
+                ]);
+            }
+            
+            fclose($handle);
+        };
+        
+        return response()->stream($callback, 200, $headers);
     }
 
     /**
@@ -211,6 +363,14 @@ class OrderController extends Controller
             'payment_method' => 'required|string|max:50',
             'payment_status' => 'required|in:pending,paid,failed',
         ]);
+
+        // Validate stock availability
+        foreach ($request->products as $item) {
+            $product = Product::find($item['product_id']);
+            if ($product->quantity < $item['quantity']) {
+                return back()->with('error', "Insufficient stock for product: {$product->name}. Available: {$product->quantity}, Requested: {$item['quantity']}")->withInput();
+            }
+        }
 
         // Generate order number
         $orderNumber = 'ORD-' . strtoupper(Str::random(8));
@@ -332,10 +492,19 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:pending,processing,shipped,delivered,cancelled',
+            'status' => 'required|in:pending,processing,confirmed,shipped,delivered,cancelled,refunded',
         ]);
 
-        $order->update(['status' => $request->status]);
+        $updateData = ['status' => $request->status];
+
+        if ($request->has('payment_status')) {
+            $request->validate([
+                'payment_status' => 'in:pending,paid,failed,refunded',
+            ]);
+            $updateData['payment_status'] = $request->payment_status;
+        }
+
+        $order->update($updateData);
 
         return back()->with('success', 'Order status updated.');
     }
@@ -434,6 +603,29 @@ class OrderController extends Controller
     }
 
     /**
+     * Search customers for AJAX.
+     */
+    public function searchCustomers(Request $request)
+    {
+        $search = $request->get('q', '');
+        
+        $customers = User::where('status', 'active')
+            ->where(function($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            })
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'name', 'email', 'phone']);
+        
+        return response()->json([
+            'success' => true,
+            'customers' => $customers
+        ]);
+    }
+
+    /**
      * Get statistics for seller orders
      */
     protected function getSellerStats()
@@ -447,6 +639,23 @@ class OrderController extends Controller
             'delivered' => Order::seller()->where('status', 'delivered')->count(),
             'cancelled' => Order::seller()->where('status', 'cancelled')->count(),
             'refunded' => Order::seller()->where('status', 'refunded')->count(),
+        ];
+    }
+
+    /**
+     * Get filtered stats based on current query filters for seller orders.
+     */
+    protected function getFilteredSellerStats($query)
+    {
+        return [
+            'total' => (clone $query)->count(),
+            'pending' => (clone $query)->where('status', 'pending')->count(),
+            'processing' => (clone $query)->where('status', 'processing')->count(),
+            'confirmed' => (clone $query)->where('status', 'confirmed')->count(),
+            'shipped' => (clone $query)->where('status', 'shipped')->count(),
+            'delivered' => (clone $query)->where('status', 'delivered')->count(),
+            'cancelled' => (clone $query)->where('status', 'cancelled')->count(),
+            'refunded' => (clone $query)->where('status', 'refunded')->count(),
         ];
     }
 
@@ -505,13 +714,15 @@ class OrderController extends Controller
         $perPage = $request->per_page ?? 25;
         $orders = $query->paginate($perPage);
 
-        // Get stats
-        $stats = $this->getSellerStats();
+        // Get stats - filtered for AJAX, all stats for page load
+        if ($request->ajax()) {
+            $stats = $this->getFilteredSellerStats($query);
+        } else {
+            $stats = $this->getSellerStats();
+        }
 
         // Get sellers for filter dropdown
-        $sellers = User::whereHas('products', function($q) {
-            $q->whereNotNull('seller_id');
-        })->select('id', 'name', 'email')->get();
+        $sellers = User::sellers()->select('id', 'name', 'email')->get();
 
         // AJAX response
         if ($request->ajax()) {
@@ -523,6 +734,54 @@ class OrderController extends Controller
         }
 
         return view('admin.orders.seller.index', compact('orders', 'stats', 'sellers'));
+    }
+
+    /**
+     * Export seller orders to CSV.
+     */
+    protected function exportSellerOrdersCsv($query)
+    {
+        $orders = $query->orderBy('created_at', 'desc')->get();
+        
+        $filename = 'seller_orders_' . date('Y-m-d_His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $columns = ['Order #', 'Customer Name', 'Customer Email', 'Phone', 'Seller', 'Total', 'Payment Status', 'Order Status', 'Date'];
+
+        $callback = function() use ($orders, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($orders as $order) {
+                $sellers = [];
+                foreach ($order->items as $item) {
+                    if ($item->product && $item->product->seller) {
+                        $sellers[] = $item->product->seller->name;
+                    }
+                }
+                $sellers = array_unique($sellers);
+
+                fputcsv($file, [
+                    $order->order_number,
+                    $order->billing_full_name,
+                    $order->billing_email,
+                    $order->billing_phone,
+                    implode(', ', $sellers) ?: 'N/A',
+                    $order->total,
+                    $order->payment_status,
+                    $order->status,
+                    $order->created_at->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     /**
@@ -672,5 +931,26 @@ class OrderController extends Controller
         }
 
         return back()->with('success', 'Order marked as picked up successfully.');
+    }
+
+    /**
+     * Bulk update order status.
+     */
+    public function bulkUpdateStatus(Request $request)
+    {
+        $request->validate([
+            'order_ids' => 'required|array',
+            'order_ids.*' => 'exists:orders,id',
+            'status' => 'required|string|in:pending,processing,confirmed,ready,delivered,cancelled',
+        ]);
+
+        $count = Order::whereIn('id', $request->order_ids)->update([
+            'status' => $request->status,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$count} order(s) updated to {$request->status}",
+        ]);
     }
 }

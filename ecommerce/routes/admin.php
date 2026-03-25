@@ -142,6 +142,7 @@ Route::get('/orders/in-house', [OrderController::class, 'inHouse'])->name('order
 Route::get('/orders/in-house/create', [OrderController::class, 'create'])->name('orders.in-house.create');
 Route::post('/orders/in-house', [OrderController::class, 'store'])->name('orders.in-house.store');
 Route::get('/orders/in-house/{order}', [OrderController::class, 'inHouseShow'])->name('orders.in-house.show');
+Route::get('/orders/search-customers', [OrderController::class, 'searchCustomers'])->name('orders.search-customers');
 
 // Seller Orders - MUST be before resource routes
 Route::get('/orders/seller', [OrderController::class, 'seller'])->name('orders.seller');
@@ -164,6 +165,7 @@ Route::post('/orders/{order}/status', [OrderController::class, 'updateStatus'])-
 Route::post('/orders/{order}/payment-status', [OrderController::class, 'updatePaymentStatus'])->name('orders.payment-status');
 Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice'])->name('orders.invoice');
 Route::post('/orders/{order}/ship', [OrderController::class, 'ship'])->name('orders.ship');
+Route::post('/orders/bulk-status', [OrderController::class, 'bulkUpdateStatus'])->name('orders.bulk-status');
 
 // Customer Groups - Must be defined BEFORE the customers resource route
 Route::prefix('customers/groups')->name('customers.groups.')->group(function () {
@@ -504,13 +506,6 @@ Route::post('/product-qa/bulk-action', [\App\Http\Controllers\Admin\ProductQACon
 Route::post('/product-qa/{product_qa}/toggle-featured', [\App\Http\Controllers\Admin\ProductQAController::class, 'toggleFeatured'])->name('product-qa.toggle-featured');
 Route::post('/product-qa/{product_qa}/quick-answer', [\App\Http\Controllers\Admin\ProductQAController::class, 'quickAnswer'])->name('product-qa.quick-answer');
 Route::post('/product-qa/{product_qa}/update-status', [\App\Http\Controllers\Admin\ProductQAController::class, 'updateStatus'])->name('product-qa.update-status');
-
-// Wishlist Management
-Route::prefix('wishlist-management')->name('wishlist-management.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\PlaceholderController::class, 'wishlistManagement'])->name('index');
-    Route::get('/analytics', [\App\Http\Controllers\Admin\PlaceholderController::class, 'wishlistAnalytics'])->name('analytics');
-    Route::get('/conversions', [\App\Http\Controllers\Admin\PlaceholderController::class, 'wishlistConversions'])->name('conversions');
-});
 
 // Inventory Management
 Route::prefix('inventory')->middleware('permission:inventory')->name('inventory.')->group(function () {

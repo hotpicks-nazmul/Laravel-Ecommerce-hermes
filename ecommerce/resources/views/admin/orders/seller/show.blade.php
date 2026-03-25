@@ -83,7 +83,7 @@
                         </div>
                         <div class="col-md-5">
                             <label class="form-label fw-semibold">Update Payment Status</label>
-                            <select name="payment_status" class="form-select" form="paymentForm">
+                            <select name="payment_status" class="form-select">
                                 <option value="pending" {{ $order->payment_status == 'pending' ? 'selected' : '' }}>Pending</option>
                                 <option value="paid" {{ $order->payment_status == 'paid' ? 'selected' : '' }}>Paid</option>
                                 <option value="failed" {{ $order->payment_status == 'failed' ? 'selected' : '' }}>Failed</option>
@@ -97,8 +97,6 @@
                         </div>
                     </div>
                 </form>
-                
-                <form action="{{ route('admin.orders.payment-status', $order->id) }}" method="POST" id="paymentForm" class="d-none"></form>
                 
                 @if(in_array($order->status, ['processing', 'confirmed']))
                 <hr>

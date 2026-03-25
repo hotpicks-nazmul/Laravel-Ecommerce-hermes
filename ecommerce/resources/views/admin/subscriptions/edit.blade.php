@@ -68,6 +68,20 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6 mb-3">
+                                <label class="form-label">Product <span class="text-danger">*</span></label>
+                                <select name="product_id" id="productSelect" class="form-select @error('product_id') is-invalid @enderror" required>
+                                    <option value="">Choose a product...</option>
+                                    @foreach($products as $product)
+                                        <option value="{{ $product->id }}" data-price="{{ $product->price }}" data-sku="{{ $product->sku }}" data-stock="{{ $product->quantity }}" {{ old('product_id', $subscription->product_id) == $product->id ? 'selected' : '' }}>
+                                            {{ $product->name }} (SKU: {{ $product->sku }}) - ৳{{ number_format($product->price, 2) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('product_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label">Plan Name <span class="text-danger">*</span></label>
                                 <input type="text" name="plan_name" class="form-control @error('plan_name') is-invalid @enderror" 
                                        value="{{ old('plan_name', $subscription->plan_name) }}" required>
@@ -75,6 +89,9 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                        </div>
+
+                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Billing Frequency <span class="text-danger">*</span></label>
                                 <select name="billing_frequency" class="form-select @error('billing_frequency') is-invalid @enderror" required>
@@ -110,6 +127,8 @@
                                     <option value="pending" {{ old('status', $subscription->status) === 'pending' ? 'selected' : '' }}>Pending</option>
                                     <option value="active" {{ old('status', $subscription->status) === 'active' ? 'selected' : '' }}>Active</option>
                                     <option value="paused" {{ old('status', $subscription->status) === 'paused' ? 'selected' : '' }}>Paused</option>
+                                    <option value="cancelled" {{ old('status', $subscription->status) === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                    <option value="expired" {{ old('status', $subscription->status) === 'expired' ? 'selected' : '' }}>Expired</option>
                                 </select>
                                 @error('status')
                                     <div class="invalid-feedback">{{ $message }}</div>

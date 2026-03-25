@@ -173,7 +173,7 @@
                         <th>
                             <a href="{{ route('admin.orders.in-house', array_merge(request()->query(), ['sort' => 'created_at', 'direction' => request('sort') == 'created_at' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
                                 Date
-                                @if(request('sort') == 'created_at' || !request('sort'))
+                                @if(request('sort') == 'created_at')
                                     <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
                                 @endif
                             </a>

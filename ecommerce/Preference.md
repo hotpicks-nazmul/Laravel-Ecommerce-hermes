@@ -13,7 +13,7 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 5. **Form Controls** - Required fields, help text, validation errors
 6. **Search & Filter Functionality** - Live search, filters, AJAX updates
 7. **Bulk Actions** - Selection management and bulk operations
-8. **Statistics Cards** - Summary statistics display for listing pages
+8. **Statistics Cards** - Full-width centered cards with icon backgrounds
 9. **Important Implementation Rule** - Admin Panel + Frontend Integration Rule
 10. **Route Conflict Prevention** - Avoid placeholder routes conflicting with actual implementations
 11. **Sidebar Navigation State** - Keep menu expanded when child item is active
@@ -930,29 +930,165 @@ function bulkAction(action) {
 
 ## Statistics Cards
 
-Display summary statistics at the top of listing pages:
+Display summary statistics at the top of listing pages with full-width centered cards:
+
+### Full-Width Centered Card Style (Recommended)
+
+This style displays cards that cover the full width of the container with centered content:
 
 ```html
-<div class="row mb-4">
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total</div>
-                <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4" id="statsCards">
+    <!-- Card 1 -->
+    <div class="col">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon">
+                <i class="bi bi-bag-check"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Orders</span>
+                <span class="stat-card-value">{{ number_format($stats['total_orders']) }}</span>
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Active</div>
-                <div class="h4 mb-0 text-success">{{ $stats['active'] ?? 0 }}</div>
+
+    <!-- Card 2 -->
+    <div class="col">
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Pending Shipments</span>
+                <span class="stat-card-value">{{ number_format($stats['pending_shipments']) }}</span>
+            </div>
+            @if($stats['pending_shipments'] > 0)
+            <a href="{{ route('admin.orders.in-house') }}?status=pending" class="stat-card-link">
+                View pending <i class="bi bi-arrow-right"></i>
+            </a>
+            @endif
+        </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="col">
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon">
+                <i class="bi bi-truck"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">In Transit</span>
+                <span class="stat-card-value">{{ number_format($stats['in_transit']) }}</span>
             </div>
         </div>
     </div>
-    <!-- More stat cards... -->
+
+    <!-- Card 4 -->
+    <div class="col">
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Delivered</span>
+                <span class="stat-card-value">{{ number_format($stats['delivered']) }}</span>
+            </div>
+        </div>
+    </div>
 </div>
 ```
+
+### CSS Styles
+
+Add this in `@push('styles')` section:
+
+```html
+@push('styles')
+<style>
+.stat-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 20px 24px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.stat-card-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 22px;
+}
+.stat-card-primary .stat-card-icon { background: #e8f4fd; color: #0d6efd; }
+.stat-card-warning .stat-card-icon { background: #fff3cd; color: #ffc107; }
+.stat-card-info .stat-card-icon { background: #cff4fc; color: #0dcaf0; }
+.stat-card-success .stat-card-icon { background: #d1e7dd; color: #198754; }
+.stat-card-danger .stat-card-icon { background: #f8d7da; color: #dc3545; }
+
+.stat-card-content {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+.stat-card-label {
+    font-size: 13px;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+.stat-card-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #212529;
+    line-height: 1.2;
+}
+.stat-card-link {
+    position: absolute;
+    right: 16px;
+    font-size: 12px;
+    text-decoration: none;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.stat-card-link:hover {
+    color: #212529;
+}
+.stat-card { position: relative; }
+</style>
+@endpush
+```
+
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **Full Width** | Using `col` (equal width columns) fills container width |
+| **Centered** | Content centered with `justify-content: center` |
+| **Icon Backgrounds** | Clean colored backgrounds only on icons |
+| **Hover Effect** | Cards lift slightly on hover |
+| **Dynamic Size** | Cards resize based on container width |
+
+### Color Variants
+
+| Class | Icon Background | Icon Color |
+|-------|----------------|------------|
+| `stat-card-primary` | #e8f4fd | #0d6efd |
+| `stat-card-warning` | #fff3cd | #ffc107 |
+| `stat-card-info` | #cff4fc | #0dcaf0 |
+| `stat-card-success` | #d1e7dd | #198754 |
+| `stat-card-danger` | #f8d7da | #dc3545 |
 
 ---
 

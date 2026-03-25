@@ -51,11 +51,9 @@
 </tr>
 @empty
 <tr>
-    <td colspan="7" class="text-center py-4">
-        <div class="text-muted">
-            <i class="bi bi-clock-history d-block mb-2" style="font-size: 2rem;"></i>
-            No inventory history found
-        </div>
+    <td colspan="7" class="text-center py-5">
+        <i class="bi bi-clock-history text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mb-0 mt-2">No inventory history found</p>
     </td>
 </tr>
 @endforelse

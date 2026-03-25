@@ -36,7 +36,7 @@ Do you understand? Please confirm the scope and list the files you are about to 
 ----------------------------------------------------------------------------------------------------------------
 The e-commerce website development is done. I want to perform a QA (Quality Assurance) cross-check section by section.
 
-Current Task: Focus only on the Admin Panel > Products > Bulk Discount
+Current Task: Focus only on the Admin Panel > Delivery > Delivery Dashboard
 
 Instructions:
 

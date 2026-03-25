@@ -2,71 +2,6 @@
 
 @section('title', 'Delivery Dashboard')
 
-@push('styles')
-<style>
-    .stat-card {
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        transition: transform 0.3s ease;
-    }
-    .stat-card:hover {
-        transform: translateY(-5px);
-    }
-    .stat-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-    }
-    .delivery-tabs .nav-link {
-        border: none;
-        padding: 12px 20px;
-        color: #6c757d;
-        font-weight: 500;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-    }
-    .delivery-tabs .nav-link:hover {
-        background: #f8f9fa;
-        color: #667eea;
-    }
-    .delivery-tabs .nav-link.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-    .order-badge {
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-    .quick-action-btn {
-        padding: 8px 16px;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        transition: all 0.3s ease;
-    }
-    .quick-action-btn:hover {
-        transform: scale(1.05);
-    }
-    .table-action-btn {
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-    }
-    @media (max-width: 768px) {
-        .stat-card {
-            margin-bottom: 1rem;
-        }
-    }
-</style>
-@endpush
-
 @section('content')
 <div class="content-area">
     <!-- Page Header -->
@@ -96,81 +31,65 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row g-3 mb-4">
+    <div class="row g-3 mb-4" id="statsCards">
         <!-- Total Orders -->
-        <div class="col-lg-3 col-md-6">
-            <div class="card stat-card bg-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1 small">Total Orders</p>
-                            <h3 class="mb-0">{{ number_format($stats['total_orders']) }}</h3>
-                        </div>
-                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                            <i class="bi bi-bag-check"></i>
-                        </div>
-                    </div>
+        <div class="col">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-card-icon">
+                    <i class="bi bi-bag-check"></i>
+                </div>
+                <div class="stat-card-content">
+                    <span class="stat-card-label">Total Orders</span>
+                    <span class="stat-card-value">{{ number_format($stats['total_orders']) }}</span>
                 </div>
             </div>
         </div>
 
         <!-- Pending Shipments -->
-        <div class="col-lg-3 col-md-6">
-            <div class="card stat-card bg-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1 small">Pending Shipments</p>
-                            <h3 class="mb-0">{{ number_format($stats['pending_shipments']) }}</h3>
-                        </div>
-                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
-                            <i class="bi bi-hourglass-split"></i>
-                        </div>
-                    </div>
-                    @if($stats['pending_shipments'] > 0)
-                    <a href="{{ route('admin.orders.in-house') }}?status=pending" class="text-warning small text-decoration-none mt-2 d-inline-block">
-                        View pending orders <i class="bi bi-arrow-right"></i>
-                    </a>
-                    @endif
+        <div class="col">
+            <div class="stat-card stat-card-warning">
+                <div class="stat-card-icon">
+                    <i class="bi bi-hourglass-split"></i>
                 </div>
+                <div class="stat-card-content">
+                    <span class="stat-card-label">Pending Shipments</span>
+                    <span class="stat-card-value">{{ number_format($stats['pending_shipments']) }}</span>
+                </div>
+                @if($stats['pending_shipments'] > 0)
+                <a href="{{ route('admin.orders.in-house') }}?status=pending" class="stat-card-link">
+                    View pending <i class="bi bi-arrow-right"></i>
+                </a>
+                @endif
             </div>
         </div>
 
         <!-- In Transit -->
-        <div class="col-lg-3 col-md-6">
-            <div class="card stat-card bg-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1 small">In Transit</p>
-                            <h3 class="mb-0">{{ number_format($stats['in_transit']) }}</h3>
-                        </div>
-                        <div class="stat-icon bg-info bg-opacity-10 text-info">
-                            <i class="bi bi-truck"></i>
-                        </div>
-                    </div>
-                    @if($stats['in_transit'] > 0)
-                    <a href="{{ route('admin.delivery.tracking') }}" class="text-info small text-decoration-none mt-2 d-inline-block">
-                        Track shipments <i class="bi bi-arrow-right"></i>
-                    </a>
-                    @endif
+        <div class="col">
+            <div class="stat-card stat-card-info">
+                <div class="stat-card-icon">
+                    <i class="bi bi-truck"></i>
                 </div>
+                <div class="stat-card-content">
+                    <span class="stat-card-label">In Transit</span>
+                    <span class="stat-card-value">{{ number_format($stats['in_transit']) }}</span>
+                </div>
+                @if($stats['in_transit'] > 0)
+                <a href="{{ route('admin.delivery.tracking') }}" class="stat-card-link">
+                    Track <i class="bi bi-arrow-right"></i>
+                </a>
+                @endif
             </div>
         </div>
 
         <!-- Delivered -->
-        <div class="col-lg-3 col-md-6">
-            <div class="card stat-card bg-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1 small">Delivered</p>
-                            <h3 class="mb-0">{{ number_format($stats['delivered']) }}</h3>
-                        </div>
-                        <div class="stat-icon bg-success bg-opacity-10 text-success">
-                            <i class="bi bi-check-circle"></i>
-                        </div>
-                    </div>
+        <div class="col">
+            <div class="stat-card stat-card-success">
+                <div class="stat-card-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stat-card-content">
+                    <span class="stat-card-label">Delivered</span>
+                    <span class="stat-card-value">{{ number_format($stats['delivered']) }}</span>
                 </div>
             </div>
         </div>
@@ -179,72 +98,53 @@
     <!-- Performance Metrics -->
     <div class="row g-3 mb-4">
         <!-- Success Rate -->
-        <div class="col-lg-3 col-md-6">
-            <div class="card stat-card bg-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1 small">Success Rate</p>
-                            <h3 class="mb-0">{{ $stats['success_rate'] }}%</h3>
-                        </div>
-                        <div class="stat-icon bg-success bg-opacity-10 text-success">
-                            <i class="bi bi-graph-up-arrow"></i>
-                        </div>
-                    </div>
-                    <div class="progress mt-2" style="height: 6px;">
-                        <div class="progress-bar bg-success" style="width: {{ $stats['success_rate'] }}%"></div>
-                    </div>
+        <div class="col">
+            <div class="stat-card stat-card-success">
+                <div class="stat-card-icon">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <div class="stat-card-content">
+                    <span class="stat-card-label">Success Rate</span>
+                    <span class="stat-card-value">{{ $stats['success_rate'] }}%</span>
                 </div>
             </div>
         </div>
 
         <!-- Average Delivery Time -->
-        <div class="col-lg-3 col-md-6">
-            <div class="card stat-card bg-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1 small">Avg. Delivery Time</p>
-                            <h3 class="mb-0">{{ $stats['avg_delivery_time'] }} <small class="text-muted fs-6">days</small></h3>
-                        </div>
-                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                            <i class="bi bi-clock-history"></i>
-                        </div>
-                    </div>
+        <div class="col">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-card-icon">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <div class="stat-card-content">
+                    <span class="stat-card-label">Avg. Delivery Time</span>
+                    <span class="stat-card-value">{{ $stats['avg_delivery_time'] }} <small class="text-muted">days</small></span>
                 </div>
             </div>
         </div>
 
         <!-- Failed/Cancelled -->
-        <div class="col-lg-3 col-md-6">
-            <div class="card stat-card bg-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1 small">Failed/Cancelled</p>
-                            <h3 class="mb-0">{{ number_format($stats['failed']) }}</h3>
-                        </div>
-                        <div class="stat-icon bg-danger bg-opacity-10 text-danger">
-                            <i class="bi bi-x-circle"></i>
-                        </div>
-                    </div>
+        <div class="col">
+            <div class="stat-card stat-card-danger">
+                <div class="stat-card-icon">
+                    <i class="bi bi-x-circle"></i>
+                </div>
+                <div class="stat-card-content">
+                    <span class="stat-card-label">Failed/Cancelled</span>
+                    <span class="stat-card-value">{{ number_format($stats['failed']) }}</span>
                 </div>
             </div>
         </div>
 
         <!-- Shipping Revenue -->
-        <div class="col-lg-3 col-md-6">
-            <div class="card stat-card bg-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1 small">Shipping Revenue</p>
-                            <h3 class="mb-0">${{ number_format($stats['shipping_revenue'], 2) }}</h3>
-                        </div>
-                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
-                            <i class="bi bi-currency-dollar"></i>
-                        </div>
-                    </div>
+        <div class="col">
+            <div class="stat-card stat-card-warning">
+                <div class="stat-card-icon">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+                <div class="stat-card-content">
+                    <span class="stat-card-label">Shipping Revenue</span>
+                    <span class="stat-card-value">{{ config('app.currency_symbol', '৳') }}{{ number_format($stats['shipping_revenue'], 2) }}</span>
                 </div>
             </div>
         </div>
@@ -324,8 +224,8 @@
                     </div>
                     @else
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead>
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Order #</th>
                                     <th>Customer</th>
@@ -356,7 +256,7 @@
                                         </div>
                                     </td>
                                     <td>{{ $order->items->count() }} items</td>
-                                    <td>${{ number_format($order->total, 2) }}</td>
+                                    <td>{{ config('app.currency_symbol', '৳') }}{{ number_format($order->total, 2) }}</td>
                                     <td>
                                         <span class="badge {{ $order->payment_status_badge_class }}">
                                             {{ ucfirst($order->payment_status) }}
@@ -393,8 +293,8 @@
                     </div>
                     @else
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead>
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Order #</th>
                                     <th>Customer</th>
@@ -423,7 +323,7 @@
                                         <span class="text-muted">-</span>
                                         @endif
                                     </td>
-                                    <td>${{ number_format($order->total, 2) }}</td>
+                                    <td>{{ config('app.currency_symbol', '৳') }}{{ number_format($order->total, 2) }}</td>
                                     <td>{{ $order->updated_at->format('M d, Y') }}</td>
                                     <td>
                                         <div class="d-flex gap-1">
@@ -454,8 +354,8 @@
                     </div>
                     @else
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead>
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Order #</th>
                                     <th>Customer</th>
@@ -476,7 +376,7 @@
                                         <div class="fw-semibold">{{ $order->shipping_full_name }}</div>
                                         <small class="text-muted">{{ $order->shipping_phone }}</small>
                                     </td>
-                                    <td>${{ number_format($order->total, 2) }}</td>
+                                    <td>{{ config('app.currency_symbol', '৳') }}{{ number_format($order->total, 2) }}</td>
                                     <td>{{ $order->updated_at->format('M d, Y g:i A') }}</td>
                                     <td>
                                         <a href="{{ route('admin.orders.in-house.show', $order->id) }}" class="btn btn-sm btn-outline-secondary table-action-btn">
@@ -501,8 +401,8 @@
                     </div>
                     @else
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead>
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Order #</th>
                                     <th>Customer</th>
@@ -527,7 +427,7 @@
                                     <td>
                                         <span class="badge bg-danger">{{ ucfirst($order->status) }}</span>
                                     </td>
-                                    <td>${{ number_format($order->total, 2) }}</td>
+                                    <td>{{ config('app.currency_symbol', '৳') }}{{ number_format($order->total, 2) }}</td>
                                     <td>{{ $order->updated_at->format('M d, Y') }}</td>
                                     <td>
                                         <a href="{{ route('admin.orders.in-house.show', $order->id) }}" class="btn btn-sm btn-outline-secondary table-action-btn">
@@ -572,6 +472,73 @@
         </div>
     </div>
 </div>
+
+@push('styles')
+<style>
+.stat-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 20px 24px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.stat-card-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 22px;
+}
+.stat-card-primary .stat-card-icon { background: #e8f4fd; color: #0d6efd; }
+.stat-card-warning .stat-card-icon { background: #fff3cd; color: #ffc107; }
+.stat-card-info .stat-card-icon { background: #cff4fc; color: #0dcaf0; }
+.stat-card-success .stat-card-icon { background: #d1e7dd; color: #198754; }
+.stat-card-danger .stat-card-icon { background: #f8d7da; color: #dc3545; }
+.stat-card-warning .stat-card-value { color: #ffc107; }
+
+.stat-card-content {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+.stat-card-label {
+    font-size: 13px;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+.stat-card-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #212529;
+    line-height: 1.2;
+}
+.stat-card-link {
+    position: absolute;
+    right: 16px;
+    font-size: 12px;
+    text-decoration: none;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.stat-card-link:hover {
+    color: #212529;
+}
+.stat-card { position: relative; }
+</style>
+@endpush
 
 @push('scripts')
 <script>

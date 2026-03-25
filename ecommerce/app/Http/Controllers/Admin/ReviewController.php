@@ -42,7 +42,24 @@ class ReviewController extends Controller
 
         $reviews = $query->latest()->paginate(15)->appends($request->query());
 
-        return view('admin.reviews.index', compact('reviews'));
+        // Get statistics (single query for each stat)
+        $stats = [
+            'total' => Review::count(),
+            'pending' => Review::where('status', 'pending')->count(),
+            'approved' => Review::where('status', 'approved')->count(),
+            'avg_rating' => Review::avg('rating') ?? 0,
+        ];
+
+        // AJAX response
+        if ($request->ajax()) {
+            $html = view('admin.reviews.partials.table-rows', compact('reviews'))->render();
+            return response()->json([
+                'html' => $html,
+                'pagination' => $reviews->links()->toHtml(),
+            ]);
+        }
+
+        return view('admin.reviews.index', compact('reviews', 'stats'));
     }
 
     public function update(Request $request, Review $review)

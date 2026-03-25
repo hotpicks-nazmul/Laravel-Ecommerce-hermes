@@ -3,24 +3,13 @@
 @section('title', 'Stock Alerts')
 
 @section('content')
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-    .alert-badge {
-        font-size: 0.75rem;
-        padding: 0.25rem 0.5rem;
-    }
-</style>
-@endpush
 
 <!-- Stats Cards -->
 <div class="row mb-4">
     <div class="col-md-4 col-sm-6 mb-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Critical (0)</div>
+                <div class="text-muted small text-uppercase">Out of Stock</div>
                 <div class="h4 mb-0 text-danger">{{ $stats['critical'] ?? 0 }}</div>
             </div>
         </div>
@@ -28,7 +17,7 @@
     <div class="col-md-4 col-sm-6 mb-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Warning (1-5)</div>
+                <div class="text-muted small text-uppercase">Critical Low</div>
                 <div class="h4 mb-0 text-warning">{{ $stats['warning'] ?? 0 }}</div>
             </div>
         </div>
@@ -36,7 +25,7 @@
     <div class="col-md-4 col-sm-6 mb-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Notice (6-10)</div>
+                <div class="text-muted small text-uppercase">Low Stock</div>
                 <div class="h4 mb-0 text-info">{{ $stats['notice'] ?? 0 }}</div>
             </div>
         </div>
@@ -64,9 +53,9 @@
                     <label class="form-label small text-muted">Alert Level</label>
                     <select name="alert_type" id="filterAlertType" class="form-select form-select-sm">
                         <option value="">All Low Stock</option>
-                        <option value="critical" {{ request('alert_type') === 'critical' ? 'selected' : '' }}>Critical (0)</option>
-                        <option value="warning" {{ request('alert_type') === 'warning' ? 'selected' : '' }}>Warning (1-5)</option>
-                        <option value="notice" {{ request('alert_type') === 'notice' ? 'selected' : '' }}>Notice (6-10)</option>
+                        <option value="critical" {{ request('alert_type') === 'critical' ? 'selected' : '' }}>Out of Stock</option>
+                        <option value="warning" {{ request('alert_type') === 'warning' ? 'selected' : '' }}>Critical Low</option>
+                        <option value="notice" {{ request('alert_type') === 'notice' ? 'selected' : '' }}>Low Stock</option>
                     </select>
                 </div>
 
@@ -99,7 +88,7 @@
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
                         <th>Product</th>
@@ -115,16 +104,17 @@
                 </tbody>
             </table>
         </div>
-    </div>
-    <div class="card-footer bg-white">
-        <div class="d-flex justify-content-between align-items-center">
+        
+        @if($products->hasPages())
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div class="text-muted small">
-                Showing {{ $products->firstItem() ?? 0 }} to {{ $products->lastItem() ?? 0 }} of {{ $products->total() }} entries
+                Showing {{ $products->firstItem() ?? 0 }} - {{ $products->lastItem() ?? 0 }} of {{ $products->total() }} entries
             </div>
             <div>
                 {{ $products->appends(request()->query())->links() }}
             </div>
         </div>
+        @endif
     </div>
 </div>
 
@@ -172,6 +162,50 @@
     </div>
 </div>
 
+<!-- Threshold Modal -->
+<div class="modal fade" id="thresholdModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Set Low Stock Threshold</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="thresholdForm">
+                <div class="modal-body">
+                    <input type="hidden" id="thresholdProductId" name="product_id">
+                    <div class="mb-3">
+                        <label class="form-label">Product</label>
+                        <input type="text" id="thresholdProductName" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Low Stock Threshold <span class="text-danger">*</span></label>
+                        <input type="number" name="low_stock_threshold" id="thresholdValue" class="form-control" min="0" required>
+                        <div class="form-text">Product will be marked as "Low Stock" when quantity falls at or below this value.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i> Save Threshold
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+    .alert-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
     let searchTimeout;
@@ -211,6 +245,12 @@
             if (data.html) {
                 document.querySelector('#tableBody').innerHTML = data.html;
                 window.history.pushState({}, '', `{{ route('admin.inventory.stock-alerts') }}?${params.toString()}`);
+            }
+            if (data.pagination) {
+                const paginationContainer = document.querySelector('.card-footer');
+                if (paginationContainer) {
+                    paginationContainer.innerHTML = data.pagination;
+                }
             }
         })
         .catch(() => { searchSpinner.style.display = 'none'; document.getElementById('filterForm').submit(); });
@@ -262,6 +302,45 @@
             }
         })
         .catch(err => toastr.error('Failed to restock product'));
+    });
+
+    // Threshold Modal
+    function showThresholdModal(productId, currentThreshold) {
+        fetch(`{{ route('admin.inventory.product', ':id') }}`.replace(':id', productId))
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('thresholdProductId').value = data.product.id;
+                    document.getElementById('thresholdProductName').value = data.product.name;
+                    document.getElementById('thresholdValue').value = data.product.low_stock_threshold || 10;
+                    new bootstrap.Modal(document.getElementById('thresholdModal')).show();
+                }
+            });
+    }
+
+    // Threshold form submission
+    document.getElementById('thresholdForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        fetch('{{ route('admin.inventory.threshold') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('thresholdModal')).hide();
+                toastr.success(data.message);
+                setTimeout(() => window.location.reload(), 500);
+            }
+        })
+        .catch(err => toastr.error('Failed to update threshold'));
     });
 </script>
 @endpush

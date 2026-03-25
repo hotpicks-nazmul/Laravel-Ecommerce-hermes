@@ -32,6 +32,14 @@
     <div class="col-md-2 col-sm-4 col-6 mb-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">Confirmed</div>
+                <div class="h4 mb-0 text-secondary">{{ $stats['confirmed'] ?? 0 }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-4 col-6 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Shipped</div>
                 <div class="h4 mb-0 text-primary">{{ $stats['shipped'] ?? 0 }}</div>
             </div>
@@ -50,6 +58,14 @@
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Cancelled</div>
                 <div class="h4 mb-0 text-danger">{{ $stats['cancelled'] ?? 0 }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-4 col-6 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">Refunded</div>
+                <div class="h4 mb-0 text-purple" style="color: #6f42c1;">{{ $stats['refunded'] ?? 0 }}</div>
             </div>
         </div>
     </div>
@@ -356,6 +372,14 @@ function updateStats(stats) {
         <div class="col-md-2 col-sm-4 col-6 mb-3">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center py-3">
+                    <div class="text-muted small text-uppercase">Confirmed</div>
+                    <div class="h4 mb-0 text-secondary">${stats.confirmed || 0}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-3">
                     <div class="text-muted small text-uppercase">Shipped</div>
                     <div class="h4 mb-0 text-primary">${stats.shipped || 0}</div>
                 </div>
@@ -374,6 +398,14 @@ function updateStats(stats) {
                 <div class="card-body text-center py-3">
                     <div class="text-muted small text-uppercase">Cancelled</div>
                     <div class="h4 mb-0 text-danger">${stats.cancelled || 0}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-3">
+                    <div class="text-muted small text-uppercase">Refunded</div>
+                    <div class="h4 mb-0" style="color: #6f42c1;">${stats.refunded || 0}</div>
                 </div>
             </div>
         </div>

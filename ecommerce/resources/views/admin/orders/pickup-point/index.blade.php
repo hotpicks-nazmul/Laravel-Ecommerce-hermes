@@ -146,6 +146,31 @@
     </div>
 </div>
 
+<!-- Bulk Actions Bar -->
+<div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
+    <div class="card-body py-2">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted"><span id="selectedCount">0</span> selected</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="clearSelection()">
+                    Clear Selection
+                </button>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-primary" onclick="bulkStatusUpdate('processing')">
+                    <i class="bi bi-arrow-repeat me-1"></i> Mark Processing
+                </button>
+                <button type="button" class="btn btn-sm btn-success" onclick="bulkStatusUpdate('confirmed')">
+                    <i class="bi bi-check-circle me-1"></i> Mark Ready
+                </button>
+                <button type="button" class="btn btn-sm btn-danger" onclick="bulkStatusUpdate('cancelled')">
+                    <i class="bi bi-x-circle me-1"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Orders Table -->
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
@@ -153,6 +178,9 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
+                        </th>
                         <th>
                             <a href="{{ route('admin.orders.pickup-point', array_merge(request()->query(), ['sort' => 'order_number', 'direction' => request('sort') == 'order_number' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
                                 Order #
@@ -331,13 +359,26 @@ function updateStats(stats) {
         'cancelled': stats.cancelled ?? 0,
     };
     
-    // Update each stat card
-    Object.keys(statMappings).forEach(key => {
-        const card = document.querySelector(`#statsCards .text-uppercase:contains("${key.replace('_', ' ')}")`);
-        if (card) {
-            const valueElement = card.nextElementSibling;
-            if (valueElement) {
-                valueElement.textContent = statMappings[key];
+    // Get all stat card divs and update by matching text content
+    const statsCards = document.querySelectorAll('#statsCards .col-md-2');
+    statsCards.forEach(card => {
+        const label = card.querySelector('.text-uppercase');
+        if (label) {
+            const text = label.textContent.trim().toLowerCase();
+            let valueKey = null;
+            
+            if (text.includes('total')) valueKey = 'total';
+            else if (text.includes('pending')) valueKey = 'pending';
+            else if (text.includes('processing')) valueKey = 'processing';
+            else if (text.includes('ready')) valueKey = 'ready';
+            else if (text.includes('picked')) valueKey = 'picked_up';
+            else if (text.includes('cancelled')) valueKey = 'cancelled';
+            
+            if (valueKey !== null && statMappings[valueKey] !== undefined) {
+                const valueElement = card.querySelector('.h4');
+                if (valueElement) {
+                    valueElement.textContent = statMappings[valueKey];
+                }
             }
         }
     });
@@ -350,20 +391,100 @@ function changePerPage(perPage) {
     window.location.href = `${window.location.pathname}?${params.toString()}`;
 }
 
-// Helper for text content search (case insensitive)
-Element.prototype.matches = Element.prototype.matches || Element.prototype.msMatchesSelector;
-Document.prototype.querySelector = function(selector) {
-    if (selector.includes(':contains(')) {
-        const text = selector.match(/:contains\(["']?([^"']+)["']?\)/)[1].toLowerCase();
-        const elements = this.querySelectorAll('*');
-        for (let el of elements) {
-            if (el.textContent.toLowerCase().includes(text)) {
-                return el;
-            }
-        }
-        return null;
+// Change per page
+function changePerPage(perPage) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('per_page', perPage);
+    window.location.href = `${window.location.pathname}?${params.toString()}`;
+}
+
+// Bulk selection functionality
+let selectedItems = new Set();
+
+function updateBulkActions() {
+    const count = selectedItems.size;
+    document.getElementById('selectedCount').textContent = count;
+    document.getElementById('bulkActionsBar').style.display = count > 0 ? 'block' : 'none';
+}
+
+function clearSelection() {
+    selectedItems.clear();
+    document.querySelectorAll('.order-checkbox').forEach(cb => cb.checked = false);
+    document.getElementById('selectAllCheckbox').checked = false;
+    updateBulkActions();
+}
+
+function bulkStatusUpdate(status) {
+    if (selectedItems.size === 0) {
+        alert('Please select at least one order.');
+        return;
     }
-    return document.querySelector.call(this, selector);
-};
+    
+    if (!confirm(`Are you sure you want to update ${selectedItems.size} order(s) to ${status}?`)) return;
+    
+    fetch('{{ route('admin.orders.bulk-status') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            order_ids: Array.from(selectedItems),
+            status: status
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(err => {
+        console.error('Bulk update error:', err);
+        alert('An error occurred while updating orders.');
+    });
+}
+
+// Select all checkbox
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.order-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = this.checked;
+                if (this.checked) {
+                    selectedItems.add(cb.value);
+                } else {
+                    selectedItems.delete(cb.value);
+                }
+            });
+            updateBulkActions();
+        });
+    }
+    
+    // Individual checkbox change
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('order-checkbox')) {
+            if (e.target.checked) {
+                selectedItems.add(e.target.value);
+            } else {
+                selectedItems.delete(e.target.value);
+            }
+            
+            // Update select all checkbox
+            const allCheckboxes = document.querySelectorAll('.order-checkbox');
+            const checkedCheckboxes = document.querySelectorAll('.order-checkbox:checked');
+            const selectAll = document.getElementById('selectAllCheckbox');
+            if (selectAll) {
+                selectAll.checked = allCheckboxes.length > 0 && checkedCheckboxes.length === allCheckboxes.length;
+            }
+            
+            updateBulkActions();
+        }
+    });
+});
 </script>
 @endpush

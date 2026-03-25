@@ -132,7 +132,7 @@ class SubscriptionController extends Controller
             'description' => 'nullable|string|max:1000',
             'billing_frequency' => 'required|in:weekly,bi_weekly,monthly,quarterly,semi_annually,annually',
             'quantity' => 'required|integer|min:1',
-            'start_date' => 'required|date|after_or_equal:today',
+            'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
             'total_billing_cycles' => 'nullable|integer|min:1',
             'shipping_first_name' => 'required|string|max:255',
@@ -234,6 +234,7 @@ class SubscriptionController extends Controller
     public function update(Request $request, Subscription $subscription)
     {
         $request->validate([
+            'product_id' => 'required|exists:products,id',
             'plan_name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'billing_frequency' => 'required|in:weekly,bi_weekly,monthly,quarterly,semi_annually,annually',
@@ -241,7 +242,7 @@ class SubscriptionController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
             'total_billing_cycles' => 'nullable|integer|min:1',
-            'status' => 'required|in:active,paused,pending',
+            'status' => 'required|in:active,paused,pending,cancelled,expired',
             'shipping_first_name' => 'required|string|max:255',
             'shipping_last_name' => 'required|string|max:255',
             'shipping_email' => 'required|email|max:255',
@@ -254,9 +255,12 @@ class SubscriptionController extends Controller
             'notes' => 'nullable|string|max:2000',
         ]);
 
-        // Recalculate prices if quantity changed
-        if ($request->quantity != $subscription->quantity) {
-            $totalPrice = $subscription->unit_price * $request->quantity;
+        // Recalculate prices if product or quantity changed
+        $product = Product::find($request->product_id);
+        $unitPrice = $product->price;
+        
+        if ($request->product_id != $subscription->product_id || $request->quantity != $subscription->quantity) {
+            $totalPrice = $unitPrice * $request->quantity;
         } else {
             $totalPrice = $subscription->total_price;
         }
@@ -278,10 +282,12 @@ class SubscriptionController extends Controller
         }
 
         $subscription->update([
+            'product_id' => $request->product_id,
             'plan_name' => $request->plan_name,
             'description' => $request->description,
             'billing_frequency' => $request->billing_frequency,
             'quantity' => $request->quantity,
+            'unit_price' => $unitPrice,
             'total_price' => $totalPrice,
             'start_date' => $request->start_date,
             'next_billing_date' => $nextBillingDate,
@@ -520,6 +526,7 @@ class SubscriptionController extends Controller
                             'status' => 'cancelled',
                             'cancelled_at' => now(),
                             'cancelled_by' => Auth::id(),
+                            'cancellation_reason' => $request->cancellation_reason ?? 'Bulk cancellation',
                         ]);
                         $processed++;
                     }

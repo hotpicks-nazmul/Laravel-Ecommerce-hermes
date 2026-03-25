@@ -43,7 +43,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center py-3">
                     <div class="text-muted small text-uppercase">Total</div>
-                    <div class="h4 mb-0 text-primary">{{ $stats['total'] }}</div>
+                    <div class="h4 mb-0 text-primary" data-stat="total">{{ $stats['total'] }}</div>
                 </div>
             </div>
         </div>
@@ -51,7 +51,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center py-3">
                     <div class="text-muted small text-uppercase">Active</div>
-                    <div class="h4 mb-0 text-success">{{ $stats['active'] }}</div>
+                    <div class="h4 mb-0 text-success" data-stat="active">{{ $stats['active'] }}</div>
                 </div>
             </div>
         </div>
@@ -59,7 +59,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center py-3">
                     <div class="text-muted small text-uppercase">Inactive</div>
-                    <div class="h4 mb-0 text-danger">{{ $stats['inactive'] }}</div>
+                    <div class="h4 mb-0 text-danger" data-stat="inactive">{{ $stats['inactive'] }}</div>
                 </div>
             </div>
         </div>
@@ -67,7 +67,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center py-3">
                     <div class="text-muted small text-uppercase">In Use</div>
-                    <div class="h4 mb-0 text-info">{{ $stats['products'] }}</div>
+                    <div class="h4 mb-0 text-info" data-stat="products">{{ $stats['products'] }}</div>
                 </div>
             </div>
         </div>
@@ -97,7 +97,16 @@
                             <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
                         </select>
                     </div>
-                    <div class="col-lg-2 col-md-4 col-sm-8">
+                    <div class="col-lg-2 col-md-3 col-sm-4">
+                        <label class="form-label small text-muted">Per Page</label>
+                        <select name="per_page" id="filterPerPage" class="form-select form-select-sm">
+                            <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-3 col-sm-4">
                         <a href="{{ route('admin.colors.index') }}" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-x-lg me-1"></i> Reset
                         </a>
@@ -136,7 +145,7 @@
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
                             <th width="40">
@@ -144,25 +153,32 @@
                             </th>
                             <th width="60">Color</th>
                             <th>
-                                <a href="{{ route('admin.colors.index', array_merge(request()->all(), ['sort' => 'name', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                <a href="{{ route('admin.colors.index', array_merge(request()->all(), ['sort' => 'name', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc', 'per_page' => request('per_page')])) }}" class="text-decoration-none text-dark">
                                     Name <i class="bi bi-arrow-down-up"></i>
                                 </a>
                             </th>
                             <th>Code</th>
                             <th>Hex Code</th>
                             <th>
-                                <a href="{{ route('admin.colors.index', array_merge(request()->all(), ['sort' => 'display_order', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                <a href="{{ route('admin.colors.index', array_merge(request()->all(), ['sort' => 'display_order', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc', 'per_page' => request('per_page')])) }}" class="text-decoration-none text-dark">
                                     Order <i class="bi bi-arrow-down-up"></i>
                                 </a>
                             </th>
                             <th>Products</th>
                             <th>Status</th>
-                            <th width="150">Actions</th>
+                            <th width="120">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
                         @forelse($colors as $color)
-                        <tr data-id="{{ $color->id }}">
+                        @php
+                            $search = request('search');
+                            $isMatch = $search && (
+                                stripos($color->name, $search) !== false || 
+                                stripos($color->code, $search) !== false
+                            );
+                        @endphp
+                        <tr data-id="{{ $color->id }}" class="{{ $isMatch ? 'table-warning' : '' }}">
                             <td>
                                 <input type="checkbox" class="form-check-input item-checkbox" value="{{ $color->id }}">
                             </td>
@@ -221,14 +237,12 @@
             </div>
         </div>
         @if($colors->hasPages())
-        <div class="card-footer bg-white">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="text-muted small">
-                    Showing {{ $colors->firstItem() }} to {{ $colors->lastItem() }} of {{ $colors->total() }} colors
-                </div>
-                <div id="pagination">
-                    {{ $colors->links() }}
-                </div>
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="text-muted small">
+                Showing {{ $colors->firstItem() }} to {{ $colors->lastItem() }} of {{ $colors->total() }} colors
+            </div>
+            <div id="pagination">
+                {{ $colors->links() }}
             </div>
         </div>
         @endif
@@ -270,7 +284,7 @@
     });
 
     // Filter dropdowns
-    ['filterStatus'].forEach(id => {
+    ['filterStatus', 'filterPerPage'].forEach(id => {
         const select = document.getElementById(id);
         if (select) {
             select.addEventListener('change', function() {
@@ -286,6 +300,9 @@
         
         const status = document.getElementById('filterStatus').value;
         if (status) params.set('status', status);
+        
+        const perPage = document.getElementById('filterPerPage').value;
+        if (perPage) params.set('per_page', perPage);
         
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('sort')) params.set('sort', urlParams.get('sort'));
@@ -304,10 +321,26 @@
             if (data.html) {
                 document.querySelector('#tableBody').innerHTML = data.html;
                 
+                if (data.stats) {
+                    updateStats(data.stats);
+                }
+                
+                if (data.pagination) {
+                    document.querySelector('#pagination').innerHTML = data.pagination;
+                }
+                
                 const newUrl = `${window.location.pathname}?${params.toString()}`;
                 window.history.pushState({}, '', newUrl);
             }
         });
+    }
+
+    function updateStats(stats) {
+        document.querySelector('[data-stat="total"]').textContent = stats.total;
+        document.querySelector('[data-stat="active"]').textContent = stats.active;
+        document.querySelector('[data-stat="inactive"]').textContent = stats.inactive;
+        document.querySelector('[data-stat="products"]').textContent = stats.products;
+    }
     }
 
     // Select all

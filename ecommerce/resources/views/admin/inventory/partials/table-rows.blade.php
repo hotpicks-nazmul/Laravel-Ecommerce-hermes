@@ -1,4 +1,10 @@
 @forelse($products as $product)
+@php
+    $threshold = $product->low_stock_threshold ?? 10;
+    $isOutOfStock = $product->quantity <= 0;
+    $isLowStock = !$isOutOfStock && $product->quantity <= $threshold;
+    $isInStock = !$isOutOfStock && !$isLowStock;
+@endphp
 <tr>
     <td>
         <input type="checkbox" class="form-check-input product-checkbox" value="{{ $product->id }}" onchange="toggleItem(this)">
@@ -31,17 +37,17 @@
 </td>
     <td>{{ $product->category?->name ?? 'Uncategorized' }}</td>
     <td class="text-center">
-        <span class="fw-medium {{ $product->quantity <= 0 ? 'text-danger' : ($product->quantity <= 10 ? 'text-warning' : 'text-success') }}">
+        <span class="fw-medium {{ $isOutOfStock ? 'text-danger' : ($isLowStock ? 'text-warning' : 'text-success') }}">
             {{ $product->quantity }}
         </span>
-        @if($product->low_stock_threshold && $product->quantity <= $product->low_stock_threshold)
+        @if($product->low_stock_threshold)
         <small class="d-block text-muted">Min: {{ $product->low_stock_threshold }}</small>
         @endif
     </td>
     <td class="text-center">
-        @if($product->quantity <= 0)
+        @if($isOutOfStock)
         <span class="badge bg-danger">Out of Stock</span>
-        @elseif($product->quantity <= 10)
+        @elseif($isLowStock)
         <span class="badge bg-warning text-dark">Low Stock</span>
         @else
         <span class="badge bg-success">In Stock</span>
@@ -51,6 +57,9 @@
         <button type="button" class="btn btn-sm btn-outline-primary" onclick="showAdjustModal({{ $product->id }})" title="Adjust Stock">
             <i class="bi bi-plus-slash"></i> Adjust
         </button>
+        <button type="button" class="btn btn-sm btn-outline-info" onclick="showThresholdModal({{ $product->id }}, {{ $product->low_stock_threshold ?? 10 }})" title="Set Threshold">
+            <i class="bi bi-bell"></i>
+        </button>
         <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit Product">
             <i class="bi bi-pencil"></i>
         </a>
@@ -58,11 +67,9 @@
 </tr>
 @empty
 <tr>
-    <td colspan="7" class="text-center py-4">
-        <div class="text-muted">
-            <i class="bi bi-inbox d-block mb-2" style="font-size: 2rem;"></i>
-            No products found
-        </div>
+    <td colspan="7" class="text-center py-5">
+        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mb-0 mt-2">No products found</p>
     </td>
 </tr>
 @endforelse

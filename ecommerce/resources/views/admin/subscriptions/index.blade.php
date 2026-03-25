@@ -147,8 +147,28 @@
                         </select>
                     </div>
 
+                    <div class="col-lg-2 col-md-3 col-sm-6">
+                        <label class="form-label small text-muted">Date From</label>
+                        <input type="date" name="date_from" id="filterDateFrom" class="form-control form-select-sm" value="{{ request('date_from') }}">
+                    </div>
+
+                    <div class="col-lg-2 col-md-3 col-sm-6">
+                        <label class="form-label small text-muted">Date To</label>
+                        <input type="date" name="date_to" id="filterDateTo" class="form-control form-select-sm" value="{{ request('date_to') }}">
+                    </div>
+
                     <div class="col-lg-1 col-md-2 col-sm-6">
-                        <a href="{{ route('admin.subscriptions.index') }}" class="btn btn-sm btn-outline-secondary w-100">
+                        <label class="form-label small text-muted">Per Page</label>
+                        <select name="per_page" id="filterPerPage" class="form-select form-select-sm">
+                            <option value="10" {{ request('per_page') == '10' ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ request('per_page') == '25' ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ request('per_page') == '100' ? 'selected' : '' }}>100</option>
+                        </select>
+                    </div>
+
+                    <div class="col-lg-1 col-md-2 col-sm-6">
+                        <a href="{{ route('admin.subscriptions.index') }}" class="btn btn-sm btn-outline-secondary w-100 mt-4">
                             <i class="bi bi-x-lg"></i> Reset
                         </a>
                     </div>
@@ -161,7 +181,7 @@
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
                             <th width="40">
@@ -261,8 +281,11 @@
                         @empty
                         <tr>
                             <td colspan="10" class="text-center py-5">
-                                <i class="bi bi-inbox display-4 text-muted"></i>
+                                <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
                                 <p class="text-muted mt-2">No subscriptions found</p>
+                                <a href="{{ route('admin.subscriptions.create') }}" class="btn btn-sm btn-primary mt-1">
+                                    <i class="bi bi-plus-lg me-1"></i> Create First Subscription
+                                </a>
                             </td>
                         </tr>
                         @endforelse
@@ -271,8 +294,13 @@
             </div>
         </div>
         @if($subscriptions->hasPages())
-        <div class="card-footer bg-white">
-            {{ $subscriptions->links() }}
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="text-muted small">
+                Showing {{ $subscriptions->firstItem() }} - {{ $subscriptions->lastItem() }} of {{ $subscriptions->total() }} subscriptions
+            </div>
+            <div>
+                {{ $subscriptions->appends(request()->query())->links() }}
+            </div>
         </div>
         @endif
     </div>
@@ -316,7 +344,7 @@ searchInput.addEventListener('input', function() {
 });
 
 // Filter dropdowns trigger search on change
-const filterSelects = ['filterStatus', 'filterFrequency', 'filterPaymentStatus'];
+const filterSelects = ['filterStatus', 'filterFrequency', 'filterPaymentStatus', 'filterPerPage'];
 filterSelects.forEach(id => {
     const select = document.getElementById(id);
     if (select) {
@@ -325,6 +353,21 @@ filterSelects.forEach(id => {
         });
     }
 });
+
+// Date filters trigger search on change
+const filterDateFrom = document.getElementById('filterDateFrom');
+if (filterDateFrom) {
+    filterDateFrom.addEventListener('change', function() {
+        performLiveSearch(searchInput.value.trim());
+    });
+}
+
+const filterDateTo = document.getElementById('filterDateTo');
+if (filterDateTo) {
+    filterDateTo.addEventListener('change', function() {
+        performLiveSearch(searchInput.value.trim());
+    });
+}
 
 // Live search function
 function performLiveSearch(searchTerm) {
@@ -341,10 +384,18 @@ function performLiveSearch(searchTerm) {
     const paymentStatus = document.getElementById('filterPaymentStatus').value;
     if (paymentStatus) params.set('payment_status', paymentStatus);
     
-    // Keep existing sort and per_page
+    const dateFrom = document.getElementById('filterDateFrom').value;
+    if (dateFrom) params.set('date_from', dateFrom);
+    
+    const dateTo = document.getElementById('filterDateTo').value;
+    if (dateTo) params.set('date_to', dateTo);
+    
+    const perPage = document.getElementById('filterPerPage').value;
+    if (perPage) params.set('per_page', perPage);
+    
+    // Keep existing sort
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('sort')) params.set('sort', urlParams.get('sort'));
-    if (urlParams.get('per_page')) params.set('per_page', urlParams.get('per_page'));
     
     fetch(`{{ route('admin.subscriptions.index') }}?${params.toString()}&ajax=1`, {
         headers: {

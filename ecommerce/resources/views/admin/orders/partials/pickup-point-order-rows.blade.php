@@ -1,6 +1,9 @@
 @forelse($orders as $order)
 <tr>
     <td>
+        <input type="checkbox" class="form-check-input order-checkbox" value="{{ $order->id }}">
+    </td>
+    <td>
         <div class="fw-semibold">{{ $order->order_number }}</div>
         @if($order->pickupPointLocation)
             <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ $order->pickupPointLocation->city }}</small>
@@ -161,7 +164,7 @@
 </tr>
 @empty
 <tr>
-    <td colspan="8" class="text-center py-5">
+    <td colspan="9" class="text-center py-5">
         <i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
         <p class="mb-0 text-muted">No pick-up point orders found.</p>
         <small class="text-muted">Orders with pick-up point delivery will appear here.</small>

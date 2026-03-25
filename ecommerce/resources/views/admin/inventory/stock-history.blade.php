@@ -3,13 +3,6 @@
 @section('title', 'Stock History')
 
 @section('content')
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-</style>
-@endpush
 
 <!-- Stats Cards -->
 <div class="row mb-4">
@@ -102,7 +95,7 @@
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
                         <th>Date</th>
@@ -119,18 +112,27 @@
                 </tbody>
             </table>
         </div>
-    </div>
-    <div class="card-footer bg-white">
-        <div class="d-flex justify-content-between align-items-center">
+        
+        @if($history->hasPages())
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div class="text-muted small">
-                Showing {{ $history->firstItem() ?? 0 }} to {{ $history->lastItem() ?? 0 }} of {{ $history->total() }} entries
+                Showing {{ $history->firstItem() ?? 0 }} - {{ $history->lastItem() ?? 0 }} of {{ $history->total() }} entries
             </div>
             <div>
                 {{ $history->appends(request()->query())->links() }}
             </div>
         </div>
+        @endif
     </div>
 </div>
+
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>

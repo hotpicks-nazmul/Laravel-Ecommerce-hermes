@@ -37,10 +37,10 @@ class InventoryController extends Controller
         if ($request->stock_status) {
             switch ($request->stock_status) {
                 case 'in_stock':
-                    $query->where('quantity', '>', 10);
+                    $query->whereRaw('quantity > IFNULL(low_stock_threshold, 10)');
                     break;
                 case 'low_stock':
-                    $query->whereBetween('quantity', [1, 10]);
+                    $query->whereRaw('quantity > 0 AND quantity <= IFNULL(low_stock_threshold, 10)');
                     break;
                 case 'out_of_stock':
                     $query->where('quantity', '<=', 0);
@@ -60,12 +60,12 @@ class InventoryController extends Controller
         // Get categories for filter
         $categories = Category::orderBy('name')->get();
 
-        // Calculate stats
+        // Calculate stats using dynamic low_stock_threshold
         $stats = [
             'total_products' => Product::count(),
             'total_stock' => Product::sum('quantity'),
-            'in_stock' => Product::where('quantity', '>', 10)->count(),
-            'low_stock' => Product::whereBetween('quantity', [1, 10])->count(),
+            'in_stock' => Product::whereRaw('quantity > IFNULL(low_stock_threshold, 10)')->count(),
+            'low_stock' => Product::whereRaw('quantity > 0 AND quantity <= IFNULL(low_stock_threshold, 10)')->count(),
             'out_of_stock' => Product::where('quantity', '<=', 0)->count(),
             'total_value' => Product::sum(DB::raw('quantity * COALESCE(cost_price, price)')),
         ];
@@ -74,7 +74,7 @@ class InventoryController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('admin.inventory.partials.table-rows', compact('products'))->render(),
-                'pagination' => $products->links()->toHtml(),
+                'pagination' => $products->links('pagination::bootstrap-5')->toHtml(),
             ]);
         }
 
@@ -104,15 +104,15 @@ class InventoryController extends Controller
                     $query->where('quantity', '<=', 0);
                     break;
                 case 'warning':
-                    $query->whereBetween('quantity', [1, 5]);
+                    $query->whereRaw('quantity > 0 AND quantity <= FLOOR(IFNULL(low_stock_threshold, 10) * 0.5)');
                     break;
                 case 'notice':
-                    $query->whereBetween('quantity', [6, 10]);
+                    $query->whereRaw('quantity > FLOOR(IFNULL(low_stock_threshold, 10) * 0.5) AND quantity <= IFNULL(low_stock_threshold, 10)');
                     break;
             }
         } else {
             // Default: show all low stock
-            $query->where('quantity', '<=', 10);
+            $query->whereRaw('quantity <= IFNULL(low_stock_threshold, 10)');
         }
 
         // Sorting
@@ -123,17 +123,17 @@ class InventoryController extends Controller
         $perPage = $request->per_page ?? 25;
         $products = $query->paginate($perPage);
 
-        // Stats for alerts
+        // Stats for alerts using dynamic threshold
         $stats = [
             'critical' => Product::where('quantity', '<=', 0)->count(),
-            'warning' => Product::whereBetween('quantity', [1, 5])->count(),
-            'notice' => Product::whereBetween('quantity', [6, 10])->count(),
+            'warning' => Product::whereRaw('quantity > 0 AND quantity <= FLOOR(IFNULL(low_stock_threshold, 10) * 0.5)')->count(),
+            'notice' => Product::whereRaw('quantity > FLOOR(IFNULL(low_stock_threshold, 10) * 0.5) AND quantity <= IFNULL(low_stock_threshold, 10)')->count(),
         ];
 
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('admin.inventory.partials.alert-table-rows', compact('products'))->render(),
-                'pagination' => $products->links()->toHtml(),
+                'pagination' => $products->links('pagination::bootstrap-5')->toHtml(),
             ]);
         }
 
@@ -185,7 +185,7 @@ class InventoryController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('admin.inventory.partials.history-table-rows', compact('history'))->render(),
-                'pagination' => $history->links()->toHtml(),
+                'pagination' => $history->links('pagination::bootstrap-5')->toHtml(),
             ]);
         }
 
@@ -228,9 +228,10 @@ class InventoryController extends Controller
         }
 
         // Update product quantity
+        $threshold = $product->low_stock_threshold ?? 10;
         $product->update([
             'quantity' => $newQuantity,
-            'stock_status' => $newQuantity > 10 ? 'in_stock' : ($newQuantity > 0 ? 'low_stock' : 'out_of_stock'),
+            'stock_status' => $newQuantity > $threshold ? 'in_stock' : ($newQuantity > 0 ? 'low_stock' : 'out_of_stock'),
             'stock_update_date' => now(),
         ]);
 
@@ -295,9 +296,10 @@ class InventoryController extends Controller
                     break;
             }
 
+            $threshold = $product->low_stock_threshold ?? 10;
             $product->update([
                 'quantity' => $newQuantity,
-                'stock_status' => $newQuantity > 10 ? 'in_stock' : ($newQuantity > 0 ? 'low_stock' : 'out_of_stock'),
+                'stock_status' => $newQuantity > $threshold ? 'in_stock' : ($newQuantity > 0 ? 'low_stock' : 'out_of_stock'),
                 'stock_update_date' => now(),
             ]);
 
@@ -338,7 +340,7 @@ class InventoryController extends Controller
                 'name' => $product->name,
                 'sku' => $product->sku,
                 'quantity' => $product->quantity,
-                'low_stock_threshold' => $product->low_stock_threshold ?? 10,
+                'low_stock_threshold' => $product->low_stock_threshold,
                 'stock_status' => $product->stock_status,
             ],
         ]);

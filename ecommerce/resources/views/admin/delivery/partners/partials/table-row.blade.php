@@ -1,4 +1,13 @@
-<tr>
+<tr @if(request('search'))
+    @php
+        $search = request('search');
+        $isMatch = stripos($partner->name, $search) !== false || 
+                   stripos($partner->slug, $search) !== false ||
+                   stripos($partner->contact_person ?? '', $search) !== false ||
+                   stripos($partner->email ?? '', $search) !== false;
+    @endphp
+    class="{{ $isMatch ? 'table-warning' : '' }}"
+@endif>
     <td>
         <input type="checkbox" class="form-check-input partner-checkbox" value="{{ $partner->id }}" onclick="event.stopPropagation();">
     </td>

@@ -2,29 +2,6 @@
 
 @section('title', 'Create Inhouse Order')
 
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-    .product-select-card {
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    .product-select-card:hover {
-        border-color: #6c757d !important;
-    }
-    .product-select-card.selected {
-        border-color: #0d6efd !important;
-        background-color: #f0f7ff;
-    }
-    .order-summary {
-        position: sticky;
-        top: 100px;
-    }
-</style>
-@endpush
-
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -45,9 +22,21 @@
                     <h5 class="mb-0"><i class="bi bi-person me-2"></i>Customer Information</h5>
                 </div>
                 <div class="card-body">
+                    <!-- Customer Search -->
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" id="customerSearch" class="form-control" placeholder="Search customers by name, email or phone..." autocomplete="off">
+                            <button class="btn btn-outline-secondary" type="button" onclick="clearCustomerSelection()">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        <div id="customerSearchResults" class="list-group position-absolute w-50" style="z-index: 1000; max-height: 300px; overflow-y: auto; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></div>
+                    </div>
+
                     <div class="row g-3">
                         <div class="col-md-12">
-                            <label class="form-label">Select Customer <span class="text-danger">*</span></label>
+                            <label class="form-label">Selected Customer <span class="text-danger">*</span></label>
                             <select name="customer_id" id="customerSelect" class="form-select" onchange="loadCustomerDetails()">
                                 <option value="">-- Select a Customer --</option>
                                 @foreach($customers as $customer)
@@ -324,12 +313,171 @@
     </div>
 </form>
 
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+    .product-select-card {
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .product-select-card:hover {
+        border-color: #6c757d !important;
+    }
+    .product-select-card.selected {
+        border-color: #0d6efd !important;
+        background-color: #f0f7ff;
+    }
+    .order-summary {
+        position: sticky;
+        top: 100px;
+    }
+    #customerSearchResults {
+        border: 1px solid #dee2e6;
+        border-top: none;
+    }
+    #customerSearchResults .list-group-item {
+        border-radius: 0;
+    }
+    #customerSearchResults .list-group-item:first-child {
+        border-top: none;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 let orderItems = [];
 let subtotal = 0;
+let customerSearchTimeout;
 
-// Load customer details when customer is selected
+// Search customers via AJAX
+document.getElementById('customerSearch').addEventListener('input', function() {
+    clearTimeout(customerSearchTimeout);
+    const searchTerm = this.value.trim();
+    const resultsContainer = document.getElementById('customerSearchResults');
+    
+    if (searchTerm.length < 2) {
+        resultsContainer.style.display = 'none';
+        return;
+    }
+    
+    customerSearchTimeout = setTimeout(() => {
+        fetch(`{{ route('admin.orders.search-customers') }}?q=${encodeURIComponent(searchTerm)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.customers.length > 0) {
+                    let html = '';
+                    data.customers.forEach(customer => {
+                        html += `
+                            <button type="button" class="list-group-item list-group-item-action" 
+                                onclick="selectCustomer(${customer.id}, '${customer.name}', '${customer.email}', '${customer.phone || ''}')">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-medium">${customer.name}</div>
+                                        <small class="text-muted">${customer.email}</small>
+                                    </div>
+                                    <small class="text-muted">${customer.phone || ''}</small>
+                                </div>
+                            </button>
+                        `;
+                    });
+                    resultsContainer.innerHTML = html;
+                    resultsContainer.style.display = 'block';
+                } else {
+                    resultsContainer.innerHTML = '<div class="list-group-item text-muted">No customers found</div>';
+                    resultsContainer.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error searching customers:', error);
+                resultsContainer.style.display = 'none';
+            });
+    }, 300);
+});
+
+// Select customer from search results
+function selectCustomer(id, name, email, phone) {
+    const select = document.getElementById('customerSelect');
+    select.value = id;
+    
+    // Populate customer details (basic info - address fields need to be filled manually)
+    document.getElementById('billing_first_name').value = name.split(' ')[0];
+    document.getElementById('billing_last_name').value = name.split(' ').slice(1).join(' ') || '';
+    document.getElementById('billing_email').value = email;
+    document.getElementById('billing_phone').value = phone || '';
+    // Address fields left empty - user can fill them
+    document.getElementById('billing_address').value = '';
+    document.getElementById('billing_city').value = '';
+    document.getElementById('billing_state').value = '';
+    document.getElementById('billing_postcode').value = '';
+    document.getElementById('billing_country').value = 'Bangladesh';
+    
+    // Clear search
+    document.getElementById('customerSearch').value = '';
+    document.getElementById('customerSearchResults').style.display = 'none';
+    
+    // Show selected customer info
+    showSelectedCustomerInfo(name, email, phone);
+}
+
+// Show selected customer info
+function showSelectedCustomerInfo(name, email, phone) {
+    let infoDiv = document.getElementById('selectedCustomerInfo');
+    if (!infoDiv) {
+        const select = document.getElementById('customerSelect');
+        const label = select.parentElement;
+        infoDiv = document.createElement('div');
+        infoDiv.id = 'selectedCustomerInfo';
+        infoDiv.className = 'mt-2 p-2 bg-success bg-opacity-10 rounded border border-success';
+        label.parentElement.insertBefore(infoDiv, label.nextSibling);
+    }
+    infoDiv.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <strong>${name}</strong><br>
+                <small>${email} ${phone ? ' | ' + phone : ''}</small>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearCustomerSelection()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    `;
+}
+
+// Clear customer selection
+function clearCustomerSelection() {
+    document.getElementById('customerSelect').value = '';
+    document.getElementById('customerSearch').value = '';
+    document.getElementById('customerSearchResults').style.display = 'none';
+    
+    // Clear billing fields
+    document.getElementById('billing_first_name').value = '';
+    document.getElementById('billing_last_name').value = '';
+    document.getElementById('billing_email').value = '';
+    document.getElementById('billing_phone').value = '';
+    document.getElementById('billing_address').value = '';
+    document.getElementById('billing_city').value = '';
+    document.getElementById('billing_state').value = '';
+    document.getElementById('billing_postcode').value = '';
+    document.getElementById('billing_country').value = 'Bangladesh';
+    
+    // Remove selected customer info
+    const infoDiv = document.getElementById('selectedCustomerInfo');
+    if (infoDiv) infoDiv.remove();
+}
+
+// Close search results when clicking outside
+document.addEventListener('click', function(e) {
+    const searchInput = document.getElementById('customerSearch');
+    const resultsContainer = document.getElementById('customerSearchResults');
+    if (!searchInput.contains(e.target) && !resultsContainer.contains(e.target)) {
+        resultsContainer.style.display = 'none';
+    }
+});
+
+// Load customer details when customer is selected from dropdown
 function loadCustomerDetails() {
     const select = document.getElementById('customerSelect');
     const option = select.options[select.selectedIndex];
@@ -344,6 +492,10 @@ function loadCustomerDetails() {
         document.getElementById('billing_state').value = option.dataset.state || '';
         document.getElementById('billing_postcode').value = option.dataset.postal || '';
         document.getElementById('billing_country').value = option.dataset.country || 'Bangladesh';
+        
+        showSelectedCustomerInfo(option.dataset.name, option.dataset.email, option.dataset.phone);
+    } else {
+        clearCustomerSelection();
     }
 }
 

@@ -2,26 +2,6 @@
 
 @section('title', 'Create Color')
 
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-    .color-preview {
-        width: 80px;
-        height: 80px;
-        border-radius: 12px;
-        display: inline-block;
-        vertical-align: middle;
-        border: 2px solid #ddd;
-        transition: all 0.3s ease;
-    }
-    .color-preview:hover {
-        transform: scale(1.05);
-    }
-</style>
-@endpush
-
 @section('content')
 <div class="container-fluid">
     <!-- Page Header -->
@@ -168,7 +148,7 @@
                             <textarea name="description" class="form-control" rows="3" placeholder="Optional description for this color">{{ old('description') }}</textarea>
                         </div>
                         <div class="form-check">
-                            <input type="checkbox" name="is_active" class="form-check-input" id="isActive" checked>
+                            <input type="checkbox" name="is_active" class="form-check-input" id="isActive" value="1" checked>
                             <label class="form-check-label" for="isActive">Active</label>
                         </div>
                     </div>
@@ -277,8 +257,43 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+    .color-preview {
+        width: 80px;
+        height: 80px;
+        border-radius: 12px;
+        display: inline-block;
+        vertical-align: middle;
+        border: 2px solid #ddd;
+        transition: all 0.3s ease;
+    }
+    .color-preview:hover {
+        transform: scale(1.05);
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+
     const colorPicker = document.getElementById('colorPicker');
     const hexCode = document.getElementById('hexCode');
     const colorPreview = document.getElementById('colorPreview');

@@ -2,32 +2,6 @@
 
 @section('title', 'Create Attribute')
 
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-    .value-item {
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 10px;
-    }
-    .value-item:hover {
-        background: #f1f3f5;
-    }
-    .color-preview {
-        width: 30px;
-        height: 30px;
-        border-radius: 4px;
-        display: inline-block;
-        vertical-align: middle;
-        border: 1px solid #ddd;
-    }
-</style>
-@endpush
-
 @section('content')
 <div class="container-fluid">
     <!-- Page Header -->
@@ -62,7 +36,7 @@
                                 <label class="form-label">Slug</label>
                                 <input type="text" name="slug" class="form-control @error('slug') is-invalid @enderror" 
                                        value="{{ old('slug') }}" placeholder="Auto-generated from name">
-                                <small class="text-muted">Leave empty to auto-generate</small>
+                                <div class="form-text">Leave empty to auto-generate</div>
                                 @error('slug')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -77,22 +51,26 @@
                                 <label class="form-label">Display Order</label>
                                 <input type="number" name="display_order" class="form-control" 
                                        value="{{ old('display_order', 0) }}" min="0">
-                                <small class="text-muted">Lower numbers appear first</small>
+                                <div class="form-text">Lower numbers appear first</div>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">&nbsp;</label>
-                                <div class="form-check mt-2">
+                                <div class="form-check form-switch mt-2">
                                     <input type="checkbox" name="is_active" class="form-check-input" id="isActive" checked>
-                                    <label class="form-check-label" for="isActive">Active</label>
+                                    <label class="form-check-label" for="isActive">
+                                        <i class="bi bi-check-circle text-success me-1"></i> Active
+                                    </label>
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">&nbsp;</label>
-                                <div class="form-check mt-2">
+                                <div class="form-check form-switch mt-2">
                                     <input type="checkbox" name="is_filterable" class="form-check-input" id="isFilterable" checked>
-                                    <label class="form-check-label" for="isFilterable">Filterable</label>
+                                    <label class="form-check-label" for="isFilterable">
+                                        <i class="bi bi-funnel text-info me-1"></i> Filterable
+                                    </label>
                                 </div>
-                                <small class="text-muted">Show in frontend filters</small>
+                                <div class="form-text">Show in frontend filters</div>
                             </div>
                         </div>
                     </div>
@@ -189,6 +167,32 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+    .value-item {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+    }
+    .value-item:hover {
+        background: #f1f3f5;
+    }
+    .color-preview {
+        width: 30px;
+        height: 30px;
+        border-radius: 4px;
+        display: inline-block;
+        vertical-align: middle;
+        border: 1px solid #ddd;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
     let valueIndex = 0;
@@ -216,7 +220,7 @@
                                value="${colorCode}" placeholder="#000000" maxlength="7"
                                onchange="this.previousElementSibling.querySelector('input[type=color]').value = this.value">
                     </div>
-                    <small class="text-muted">Optional color</small>
+                    <div class="form-text small">Optional color</div>
                 </div>
                 <div class="col-md-2 mb-2 mb-md-0">
                     <input type="number" name="values[${valueIndex}][display_order]" class="form-control form-control-sm" 

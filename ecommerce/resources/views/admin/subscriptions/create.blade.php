@@ -33,7 +33,7 @@
                                 <option value="">Choose a customer...</option>
                                 @foreach($customers as $customer)
                                     <option value="{{ $customer->id }}" data-email="{{ $customer->email }}" data-phone="{{ $customer->phone }}">
-                                        {{ $customer->name }} ({{ $customer->email }})
+                                        {{ $customer->name }} - {{ $customer->phone }} ({{ $customer->email }})
                                     </option>
                                 @endforeach
                             </select>

@@ -47,7 +47,7 @@ class ColorController extends Controller
             'total' => Color::count(),
             'active' => Color::where('is_active', true)->count(),
             'inactive' => Color::where('is_active', false)->count(),
-            'products' => \DB::table('product_colors')->distinct('color_id')->count('color_id'),
+            'products' => \DB::table('product_colors')->count(),
         ];
 
         // AJAX response
@@ -56,6 +56,7 @@ class ColorController extends Controller
                 'html' => view('admin.colors.partials.table-rows', compact('colors'))->render(),
                 'pagination' => $colors->links()->toHtml(),
                 'stats' => $stats,
+                'search' => $request->search,
             ]);
         }
 

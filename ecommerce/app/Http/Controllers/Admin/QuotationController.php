@@ -78,16 +78,19 @@ class QuotationController extends Controller
         // Get stats
         $stats = $this->getStats();
 
+        // Get search term for highlighting
+        $search = $request->get('search');
+
         // AJAX response
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('admin.quotations.partials.table-rows', compact('quotations'))->render(),
+                'html' => view('admin.quotations.partials.table-rows', compact('quotations', 'search'))->render(),
                 'pagination' => $quotations->links()->toHtml(),
                 'stats' => $stats
             ]);
         }
 
-        return view('admin.quotations.index', compact('quotations', 'stats'));
+        return view('admin.quotations.index', compact('quotations', 'stats', 'search'));
     }
 
     /**
@@ -457,20 +460,38 @@ class QuotationController extends Controller
         try {
             switch ($action) {
                 case 'delete':
-                    Quotation::whereIn('id', $ids)
-                             ->where('status', '!=', 'converted')
-                             ->delete();
-                    $message = 'Selected quotations deleted successfully.';
+                    $convertedCount = Quotation::whereIn('id', $ids)
+                                               ->where('status', 'converted')
+                                               ->count();
+                    
+                    if ($convertedCount > 0) {
+                        return back()->with('error', "Cannot delete {$convertedCount} converted quotation(s). Only non-converted quotations can be deleted.");
+                    }
+                    
+                    $deleted = Quotation::whereIn('id', $ids)
+                                        ->where('status', '!=', 'converted')
+                                        ->delete();
+                    
+                    if ($deleted > 0) {
+                        $message = "{$deleted} quotation(s) deleted successfully.";
+                    } else {
+                        $message = 'No quotations were deleted.';
+                    }
                     break;
 
                 case 'mark_sent':
-                    Quotation::whereIn('id', $ids)
-                             ->whereIn('status', ['pending'])
-                             ->update([
-                                 'status' => 'sent',
-                                 'sent_at' => now(),
-                             ]);
-                    $message = 'Selected quotations marked as sent.';
+                    $updated = Quotation::whereIn('id', $ids)
+                                        ->whereIn('status', ['pending'])
+                                        ->update([
+                                            'status' => 'sent',
+                                            'sent_at' => now(),
+                                        ]);
+                    
+                    if ($updated > 0) {
+                        $message = "{$updated} quotation(s) marked as sent.";
+                    } else {
+                        $message = 'No quotations were updated. Only pending quotations can be marked as sent.';
+                    }
                     break;
 
                 default:

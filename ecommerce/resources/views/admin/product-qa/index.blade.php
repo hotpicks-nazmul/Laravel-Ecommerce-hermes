@@ -75,7 +75,7 @@
 
     <!-- Statistics Cards -->
     <div class="row mb-4">
-        <div class="col-md-3 col-sm-6 mb-3">
+        <div class="col-md-2 col-sm-4 col-6 mb-3">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center py-3">
                     <div class="text-muted small text-uppercase">Total</div>
@@ -83,7 +83,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
+        <div class="col-md-2 col-sm-4 col-6 mb-3">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center py-3">
                     <div class="text-muted small text-uppercase">Pending</div>
@@ -91,7 +91,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
+        <div class="col-md-2 col-sm-4 col-6 mb-3">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center py-3">
                     <div class="text-muted small text-uppercase">Answered</div>
@@ -99,7 +99,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
+        <div class="col-md-2 col-sm-4 col-6 mb-3">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center py-3">
                     <div class="text-muted small text-uppercase">Published</div>
@@ -208,8 +208,8 @@
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="bg-light">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
                         <tr>
                             <th width="40">
                                 <input type="checkbox" class="form-check-input" id="selectAll">
@@ -231,8 +231,14 @@
                             </td>
                             <td>
                                 <div class="product-info">
-                                    @if($qa->product && $qa->product->thumbnail)
-                                        <img src="{{ asset('storage/' . $qa->product->thumbnail) }}" alt="{{ $qa->product->name }}">
+                                    @php
+                                        $imageUrl = $qa->product?->thumbnail;
+                                        if($imageUrl && !str_starts_with($imageUrl, '/storage/') && !str_starts_with($imageUrl, 'http')) {
+                                            $imageUrl = '/storage/' . $imageUrl;
+                                        }
+                                    @endphp
+                                    @if($imageUrl)
+                                        <img src="{{ $imageUrl }}" alt="{{ $qa->product?->name }}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
                                     @else
                                         <div class="bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 4px;">
                                             <i class="bi bi-box text-muted"></i>
@@ -302,8 +308,8 @@
                         @empty
                         <tr>
                             <td colspan="8" class="text-center py-5">
-                                <i class="bi bi-question-circle display-4 text-muted"></i>
-                                <p class="text-muted mt-2">No Q&A entries found</p>
+                                <i class="bi bi-question-circle text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-2 mb-0">No Q&A entries found</p>
                             </td>
                         </tr>
                         @endforelse
@@ -314,12 +320,12 @@
         
         <!-- Pagination -->
         @if($qaEntries->hasPages())
-        <div class="card-footer bg-white">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="text-muted small">
-                    Showing {{ $qaEntries->firstItem() }} to {{ $qaEntries->lastItem() }} of {{ $qaEntries->total() }} entries
-                </div>
-                {{ $qaEntries->links() }}
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="text-muted small">
+                Showing {{ $qaEntries->firstItem() }} - {{ $qaEntries->lastItem() }} of {{ $qaEntries->total() }} entries
+            </div>
+            <div>
+                {{ $qaEntries->appends(request()->query())->links() }}
             </div>
         </div>
         @endif

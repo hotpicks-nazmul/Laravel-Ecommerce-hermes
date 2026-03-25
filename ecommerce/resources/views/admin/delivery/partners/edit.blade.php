@@ -308,11 +308,29 @@
     .image-upload-preview img {
         border: 2px solid #dee2e6;
     }
+    .content-area {
+        padding-bottom: 100px !important;
+    }
 </style>
 @endpush
 
 @push('scripts')
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+    
     // Logo preview
     function previewLogo(input) {
         const preview = document.getElementById('logoPreview');

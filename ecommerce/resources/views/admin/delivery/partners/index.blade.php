@@ -231,6 +231,13 @@
 
 @push('scripts')
 <script>
+function showToast(message, type = 'info') {
+    const title = type === 'success' ? 'Success' : 
+                  type === 'error' ? 'Error' : 
+                  type === 'warning' ? 'Warning' : 'Info';
+    adminToast(type, title, message);
+}
+
 let selectedPartners = new Set();
 
 // Toggle select all
@@ -323,7 +330,12 @@ function initStatusToggles() {
                     this.classList.toggle('btn-outline-secondary', !data.is_active);
                     showToast(data.message, 'success');
                     updateStats();
+                } else {
+                    showToast(data.message || 'Failed to update status', 'error');
                 }
+            })
+            .catch(error => {
+                showToast('An error occurred while updating status', 'error');
             });
         });
     });
@@ -351,7 +363,12 @@ function initFeaturedToggles() {
                     this.classList.toggle('btn-outline-secondary', !data.is_featured);
                     showToast(data.message, 'success');
                     updateStats();
+                } else {
+                    showToast(data.message || 'Failed to update featured status', 'error');
                 }
+            })
+            .catch(error => {
+                showToast('An error occurred while updating featured status', 'error');
             });
         });
     });

@@ -4,6 +4,10 @@
 
 @push('styles')
 <style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+    
     .question-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -200,8 +204,14 @@
             <!-- Product Info -->
             <div class="card border-0 shadow-sm mb-3 product-card">
                 @if($product_qa->product)
-                    @if($product_qa->product->thumbnail)
-                        <img src="{{ asset('storage/' . $product_qa->product->thumbnail) }}" alt="{{ $product_qa->product->name }}">
+                    @php
+                        $imageUrl = $product_qa->product->thumbnail;
+                        if($imageUrl && !str_starts_with($imageUrl, '/storage/') && !str_starts_with($imageUrl, 'http')) {
+                            $imageUrl = '/storage/' . $imageUrl;
+                        }
+                    @endphp
+                    @if($imageUrl)
+                        <img src="{{ $imageUrl }}" alt="{{ $product_qa->product->name }}">
                     @else
                         <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
                             <i class="bi bi-box display-4 text-muted"></i>

@@ -2,15 +2,6 @@
 
 @section('title', 'Wishlist Management')
 
-@push('styles')
-<style>
-    /* Add padding at bottom to prevent floating button overlap */
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-</style>
-@endpush
-
 @section('content')
 <div class="content-area">
     <!-- Page Header -->
@@ -210,6 +201,14 @@
     <input type="hidden" name="action" id="bulkActionInput">
     <input type="hidden" name="ids" id="bulkIdsInput">
 </form>
+
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>

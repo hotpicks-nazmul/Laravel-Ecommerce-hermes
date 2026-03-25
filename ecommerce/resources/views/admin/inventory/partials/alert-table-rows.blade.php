@@ -1,5 +1,12 @@
 @forelse($products as $product)
-<tr class="{{ $product->quantity <= 0 ? 'table-danger' : ($product->quantity <= 5 ? 'table-warning' : '') }}">
+@php
+    $threshold = $product->low_stock_threshold ?? 10;
+    $criticalThreshold = floor($threshold * 0.5);
+    $isOutOfStock = $product->quantity <= 0;
+    $isCriticalLow = !$isOutOfStock && $product->quantity <= $criticalThreshold;
+    $isLowStock = !$isOutOfStock && !$isCriticalLow;
+@endphp
+<tr class="{{ $isOutOfStock ? 'table-danger' : ($isCriticalLow ? 'table-warning' : '') }}">
     <td>
         @php
             $imageUrl = $product->featured_image;
@@ -25,7 +32,7 @@
     </div>
 </td>
     <td class="text-center">
-        <span class="fw-bold {{ $product->quantity <= 0 ? 'text-danger' : 'text-warning' }}">
+        <span class="fw-bold {{ $isOutOfStock ? 'text-danger' : 'text-warning' }}">
             {{ $product->quantity }}
         </span>
     </td>
@@ -33,17 +40,20 @@
         {{ $product->low_stock_threshold ?? 10 }}
     </td>
     <td class="text-center">
-        @if($product->quantity <= 0)
-        <span class="badge bg-danger alert-badge">Critical</span>
-        @elseif($product->quantity <= 5)
-        <span class="badge bg-warning text-dark alert-badge">Warning</span>
+        @if($isOutOfStock)
+        <span class="badge bg-danger alert-badge">Out of Stock</span>
+        @elseif($isCriticalLow)
+        <span class="badge bg-warning text-dark alert-badge">Critical Low</span>
         @else
-        <span class="badge bg-info text-dark alert-badge">Notice</span>
+        <span class="badge bg-info text-dark alert-badge">Low Stock</span>
         @endif
     </td>
     <td class="text-center">
         <button type="button" class="btn btn-sm btn-success" onclick="showRestockModal({{ $product->id }})" title="Restock">
             <i class="bi bi-plus-lg"></i> Restock
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-info" onclick="showThresholdModal({{ $product->id }}, {{ $product->low_stock_threshold ?? 10 }})" title="Set Threshold">
+            <i class="bi bi-bell"></i>
         </button>
         <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
             <i class="bi bi-pencil"></i>
@@ -52,11 +62,9 @@
 </tr>
 @empty
 <tr>
-    <td colspan="6" class="text-center py-4">
-        <div class="text-muted">
-            <i class="bi bi-check-circle d-block mb-2 text-success" style="font-size: 2rem;"></i>
-            No low stock products! All items are well-stocked.
-        </div>
+    <td colspan="6" class="text-center py-5">
+        <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+        <p class="text-muted mb-0 mt-2">No low stock products! All items are well-stocked.</p>
     </td>
 </tr>
 @endforelse

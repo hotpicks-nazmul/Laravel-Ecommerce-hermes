@@ -170,7 +170,7 @@
                         <th>
                             <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['sort' => 'created_at', 'direction' => request('sort') == 'created_at' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
                                 Date
-                                @if(request('sort') == 'created_at' || !request('sort'))
+                                @if(request('sort') == 'created_at')
                                     <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
                                 @endif
                             </a>
@@ -187,8 +187,8 @@
         <!-- Pagination & Per Page -->
         @if(isset($orders) && method_exists($orders, 'hasPages') && $orders->hasPages())
         <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div class="d-flex align2">
-                <span class="text-items-center gap--muted small">Show:</span>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">Show:</span>
                 <select class="form-select form-select-sm" style="width: auto;" onchange="changePerPage(this.value)">
                     <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
                     <option value="25" {{ request('per_page') == 25 || !request('per_page') ? 'selected' : '' }}>25</option>

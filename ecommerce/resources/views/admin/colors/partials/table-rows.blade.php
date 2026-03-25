@@ -1,5 +1,12 @@
 @forelse($colors as $color)
-<tr data-id="{{ $color->id }}">
+@php
+    $search = isset($search) ? $search : request('search');
+    $isMatch = $search && (
+        stripos($color->name, $search) !== false || 
+        stripos($color->code, $search) !== false
+    );
+@endphp
+<tr data-id="{{ $color->id }}" class="{{ $isMatch ? 'table-warning' : '' }}">
     <td>
         <input type="checkbox" class="form-check-input item-checkbox" value="{{ $color->id }}">
     </td>

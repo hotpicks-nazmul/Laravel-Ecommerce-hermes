@@ -576,7 +576,7 @@
             <!-- PRODUCTS -->
             @if(Auth::user()->hasPermission('products'))
             <div class="menu-category">
-                <a class="menu-category-header {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlists.*') || request()->routeIs('admin.inventory.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuProducts" role="button" aria-expanded="{{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlist-management.*') || request()->routeIs('admin.inventory.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlists.*') || request()->routeIs('admin.inventory.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuProducts" role="button" aria-expanded="{{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlists.*') || request()->routeIs('admin.inventory.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-box-seam menu-icon"></i>
                         <span class="menu-category-title">Products</span>
@@ -661,8 +661,18 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.inventory.*') ? 'active' : '' }}" href="{{ route('admin.inventory.index') }}">
-                                <i class="bi bi-boxes"></i> Inventory Management
+                            <a class="nav-link {{ request()->routeIs('admin.inventory.index') ? 'active' : '' }}" href="{{ route('admin.inventory.index') }}">
+                                <i class="bi bi-boxes me-2"></i>Inventory Overview
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.inventory.stock-alerts') ? 'active' : '' }}" href="{{ route('admin.inventory.stock-alerts') }}">
+                                <i class="bi bi-exclamation-triangle me-2"></i>Stock Alerts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.inventory.stock-history') ? 'active' : '' }}" href="{{ route('admin.inventory.stock-history') }}">
+                                <i class="bi bi-clock-history me-2"></i>Stock History
                             </a>
                         </li>
                     </ul>
