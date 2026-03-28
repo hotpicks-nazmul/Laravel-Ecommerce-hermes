@@ -41,7 +41,11 @@
         </div>
     </td>
     <td>
-        {{ $zone->estimated_days }} days
+        @if($zone->estimated_days > 0)
+            {{ $zone->estimated_days }} days
+        @else
+            <span class="text-muted">N/A</span>
+        @endif
     </td>
     <td>
         @if($zone->is_active)
@@ -66,6 +70,14 @@
             <button class="btn btn-sm btn-outline-info" title="Default Zone" disabled>
                 <i class="bi bi-star"></i>
             </button>
+            @endif
+            
+            @if(!$zone->is_default)
+            <a href="{{ route('admin.delivery.zones.toggle-default', $zone->id) }}" 
+               class="btn btn-sm btn-outline-warning toggle-default"
+               title="Set as Default">
+                <i class="bi bi-star"></i>
+            </a>
             @endif
             
             <form action="{{ route('admin.delivery.zones.destroy', $zone->id) }}" method="POST" class="d-inline">

@@ -2,285 +2,312 @@
 
 @section('title', 'Courier Integration')
 
+@push('styles')
+<style>
+    .courier-card {
+        transition: all 0.2s ease;
+    }
+    .courier-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .courier-card.border-success {
+        background-color: rgba(25, 135, 84, 0.02);
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="content-area">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-1"><i class="bi bi-truck me-2"></i>Courier Integration</h4>
-            <p class="text-muted mb-0">Manage and integrate Bangladeshi courier services</p>
-        </div>
-        <a href="{{ route('admin.delivery.carriers.index') }}" class="btn btn-outline-primary">
-            <i class="bi bi-gear me-1"></i> Manage Carriers
-        </a>
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-truck me-2"></i>Courier Integration</h4>
+        <p class="text-muted mb-0 d-none d-md-block">Manage and integrate Bangladeshi courier services</p>
     </div>
+    <a href="{{ route('admin.delivery.carriers.index') }}" class="btn btn-outline-primary">
+        <i class="bi bi-gear me-1"></i><span class="d-none d-sm-inline">Manage Carriers</span>
+    </a>
+</div>
 
-    <!-- Statistics Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
-                            <i class="bi bi-truck text-primary fs-4"></i>
-                        </div>
-                        <div>
-                            <p class="text-muted mb-0 small">Total Couriers</p>
-                            <h4 class="mb-0">{{ $stats['total'] }}</h4>
-                        </div>
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-truck text-primary fs-4"></i>
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
-                            <i class="bi bi-check-circle text-success fs-4"></i>
-                        </div>
-                        <div>
-                            <p class="text-muted mb-0 small">Active Couriers</p>
-                            <h4 class="mb-0">{{ $stats['active'] }}</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
-                            <i class="bi bi-key text-warning fs-4"></i>
-                        </div>
-                        <div>
-                            <p class="text-muted mb-0 small">API Configured</p>
-                            <h4 class="mb-0">{{ $stats['api_configured'] }}</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
-                            <i class="bi bi-cash-coin text-info fs-4"></i>
-                        </div>
-                        <div>
-                            <p class="text-muted mb-0 small">COD Support</p>
-                            <h4 class="mb-0">{{ $stats['supports_cod'] }}</h4>
-                        </div>
+                    <div>
+                        <p class="text-muted mb-0 small">Total Couriers</p>
+                        <h4 class="mb-0">{{ $stats['total'] }}</h4>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Active Couriers Section -->
-    @if($activeCarriers->count() > 0)
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white">
-            <h6 class="mb-0"><i class="bi bi-check2-circle text-success me-2"></i>Active Couriers</h6>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Courier</th>
-                            <th>Type</th>
-                            <th>Services</th>
-                            <th>API Status</th>
-                            <th>Base Rate</th>
-                            <th>Tracking</th>
-                            <th>COD</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($activeCarriers as $carrier)
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-light rounded p-2 me-2">
-                                        <i class="bi bi-truck"></i>
-                                    </div>
-                                    <div>
-                                        <strong>{{ $carrier->name }}</strong>
-                                        @if($carrier->is_featured)
-                                        <span class="badge bg-warning bg-opacity-10 text-warning ms-1">Featured</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge bg-light text-dark">{{ $carrier->carrier_type_label }}</span>
-                            </td>
-                            <td>
-                                <span class="badge bg-light text-dark">{{ $carrier->service_type_label }}</span>
-                            </td>
-                            <td>
-                                @if($carrier->is_api_configured)
-                                <span class="badge bg-success bg-opacity-10 text-success">
-                                    <i class="bi bi-check-circle-fill me-1"></i> Configured
-                                </span>
-                                @else
-                                <span class="badge bg-warning bg-opacity-10 text-warning">
-                                    <i class="bi bi-exclamation-circle-fill me-1"></i> Not Configured
-                                </span>
-                                @endif
-                            </td>
-                            <td>৳{{ number_format($carrier->base_rate, 0) }}</td>
-                            <td>
-                                @if($carrier->supports_tracking)
-                                <i class="bi bi-check-circle-fill text-success"></i>
-                                @else
-                                <i class="bi bi-x-circle-fill text-muted"></i>
-                                @endif
-                            </td>
-                            <td>
-                                @if($carrier->supports_cod)
-                                <i class="bi bi-check-circle-fill text-success"></i>
-                                @else
-                                <i class="bi bi-x-circle-fill text-muted"></i>
-                                @endif
-                            </td>
-                            <td class="text-end">
-                                <a href="{{ route('admin.delivery.carriers.edit', $carrier->id) }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-pencil"></i> Edit
-                                </a>
-                                <form action="{{ route('admin.delivery.carriers.toggle-status', $carrier->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('POST')
-                                    <button type="submit" class="btn btn-sm btn-outline-{{ $carrier->is_active ? 'warning' : 'success' }}">
-                                        <i class="bi bi-{{ $carrier->is_active ? 'pause' : 'play' }}-fill"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    <!-- Available Bangladeshi Couriers -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white">
-            <h6 class="mb-0"><i class="bi bi-grid me-2"></i>Popular Bangladeshi Couriers</h6>
-        </div>
-        <div class="card-body">
-            <p class="text-muted mb-3">Click on a courier to add it to your system. You can configure API settings after adding.</p>
-            <div class="row g-3">
-                @foreach($bangladeshiCouriers as $courier)
-                @php
-                    $isAdded = $carriers->where('slug', $courier['slug'])->first();
-                @endphp
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="card border {{ $isAdded ? 'border-success' : 'border' }} h-100 courier-card" style="cursor: pointer;" 
-                         onclick="handleCourierClick('{{ $courier['name'] }}', {{ $isAdded ? 'true' : 'false' }}, '{{ $isAdded ? route('admin.delivery.carriers.edit', $isAdded->id) : '' }}')">
-                        <div class="card-body text-center">
-                            <div class="rounded-circle bg-light p-3 d-inline-block mb-3">
-                                <i class="bi bi-truck fs-4 text-primary"></i>
-                            </div>
-                            <h6 class="mb-1">{{ $courier['name'] }}</h6>
-                            <p class="text-muted small mb-2">{{ $courier['description'] }}</p>
-                            <div class="d-flex justify-content-center gap-2 flex-wrap mb-2">
-                                @if($courier['supports_cod'])
-                                <span class="badge bg-success bg-opacity-10 text-success small">COD</span>
-                                @endif
-                                @if($courier['supports_tracking'])
-                                <span class="badge bg-info bg-opacity-10 text-info small">Tracking</span>
-                                @endif
-                                <span class="badge bg-light text-dark small">{{ $courier['estimated_delivery_days'] }} days</span>
-                            </div>
-                            <div class="mt-2">
-                                @if($isAdded)
-                                <span class="badge bg-success">
-                                    <i class="bi bi-check-circle me-1"></i> Added
-                                </span>
-                                <a href="{{ route('admin.delivery.carriers.edit', $isAdded->id) }}" class="btn btn-sm btn-outline-primary mt-2">
-                                    <i class="bi bi-pencil me-1"></i> Configure
-                                </a>
-                                @else
-                                <button type="button" class="btn btn-sm btn-primary mt-2" onclick="event.stopPropagation(); addCourier('{{ $courier['name'] }}')">
-                                    <i class="bi bi-plus-lg me-1"></i> Add Courier
-                                </button>
-                                @endif
-                            </div>
-                        </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-check-circle text-success fs-4"></i>
                     </div>
-                </div>
-                @endforeach
-            </div>
-        </div>
-    </div>
-
-    <!-- API Configuration Info -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white">
-            <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>API Configuration Guide</h6>
-        </div>
-        <div class="card-body">
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <h6 class="fw-bold">How to Configure Courier API</h6>
-                    <ol class="text-muted small">
-                        <li class="mb-2">Click "Add Courier" to add a courier service</li>
-                        <li class="mb-2">Click "Configure" on the courier card</li>
-                        <li class="mb-2">Enter your API credentials (API Key, Secret, Token)</li>
-                        <li class="mb-2">Set the API mode (Sandbox/Production)</li>
-                        <li class="mb-2">Save the configuration</li>
-                    </ol>
-                </div>
-                <div class="col-md-6">
-                    <h6 class="fw-bold">Features</h6>
-                    <ul class="list-unstyled text-muted small">
-                        <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Automatic tracking number generation</li>
-                        <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Real-time tracking status updates</li>
-                        <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Cash on Delivery (COD) support</li>
-                        <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Shipping rate calculation</li>
-                        <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Bulk shipment booking</li>
-                    </ul>
+                    <div>
+                        <p class="text-muted mb-0 small">Active Couriers</p>
+                        <h4 class="mb-0">{{ $stats['active'] }}</h4>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Add Courier Modal -->
-    <div class="modal fade" id="addCourierModal" tabindex="-1" aria-labelledby="addCourierModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addCourierModalLabel">Add Courier</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-key text-warning fs-4"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0 small">API Configured</p>
+                        <h4 class="mb-0">{{ $stats['api_configured'] }}</h4>
+                    </div>
                 </div>
-                <form action="{{ route('admin.delivery.courier-integration.add') }}" method="POST">
-                    @csrf
-                    <div class="modal-body">
-                        <p>You are about to add the following courier service:</p>
-                        <div class="alert alert-info">
-                            <strong id="selectedCourierName"></strong>
-                        </div>
-                        <p class="text-muted small">After adding, you can configure the API credentials from the carriers management page.</p>
-                        <input type="hidden" name="courier_name" id="courierNameInput">
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-cash-coin text-info fs-4"></i>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-plus-lg me-1"></i> Add Courier
-                        </button>
+                    <div>
+                        <p class="text-muted mb-0 small">COD Support</p>
+                        <h4 class="mb-0">{{ $stats['supports_cod'] }}</h4>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Active Couriers Section -->
+@if($activeCarriers->count() > 0)
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-check2-circle text-success me-2"></i>Active Couriers</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Courier</th>
+                        <th>Type</th>
+                        <th>Services</th>
+                        <th>API Status</th>
+                        <th>Base Rate</th>
+                        <th>Tracking</th>
+                        <th>COD</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($activeCarriers as $carrier)
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light rounded p-2 me-2">
+                                    <i class="bi bi-truck"></i>
+                                </div>
+                                <div>
+                                    <strong>{{ $carrier->name }}</strong>
+                                    @if($carrier->is_featured)
+                                    <span class="badge bg-warning bg-opacity-10 text-warning ms-1">Featured</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark">{{ $carrier->carrier_type_label }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark">{{ $carrier->service_type_label }}</span>
+                        </td>
+                        <td>
+                            @if($carrier->is_api_configured)
+                            <span class="badge bg-success bg-opacity-10 text-success">
+                                <i class="bi bi-check-circle-fill me-1"></i> Configured
+                            </span>
+                            @else
+                            <span class="badge bg-warning bg-opacity-10 text-warning">
+                                <i class="bi bi-exclamation-circle-fill me-1"></i> Not Configured
+                            </span>
+                            @endif
+                        </td>
+                        <td>৳{{ number_format($carrier->base_rate, 0) }}</td>
+                        <td>
+                            @if($carrier->supports_tracking)
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            @else
+                            <i class="bi bi-x-circle-fill text-muted"></i>
+                            @endif
+                        </td>
+                        <td>
+                            @if($carrier->supports_cod)
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            @else
+                            <i class="bi bi-x-circle-fill text-muted"></i>
+                            @endif
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ route('admin.delivery.carriers.edit', $carrier->id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            <form action="{{ route('admin.delivery.carriers.toggle-status', $carrier->id) }}" method="POST" class="d-inline">
+                                @csrf
+                                @method('POST')
+                                <button type="submit" class="btn btn-sm btn-outline-{{ $carrier->is_active ? 'warning' : 'success' }}">
+                                    <i class="bi bi-{{ $carrier->is_active ? 'pause' : 'play' }}-fill"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@else
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-check2-circle text-success me-2"></i>Active Couriers</h6>
+    </div>
+    <div class="card-body text-center py-5">
+        <i class="bi bi-truck text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mb-2 mt-2">No active couriers yet</p>
+        <a href="#available-couriers" class="btn btn-sm btn-primary mt-1">
+            <i class="bi bi-plus-lg me-1"></i> Add Your First Courier
+        </a>
+    </div>
+</div>
+@endif
+
+<!-- Available Bangladeshi Couriers -->
+<div class="card border-0 shadow-sm mb-4" id="available-couriers">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-grid me-2"></i>Popular Bangladeshi Couriers</h6>
+    </div>
+    <div class="card-body">
+        <p class="text-muted mb-3 d-none d-md-block">Click on a courier to add it to your system. You can configure API settings after adding.</p>
+        <div class="row g-3">
+            @foreach($bangladeshiCouriers as $courier)
+            @php
+                $isAdded = $carriers->where('slug', $courier['slug'])->first();
+            @endphp
+            <div class="col-6 col-lg-3 col-md-4 col-sm-6">
+                <div class="card border {{ $isAdded ? 'border-success' : 'border' }} h-100 courier-card" style="cursor: pointer;" 
+                     onclick="handleCourierClick('{{ $courier['name'] }}', {{ $isAdded ? 'true' : 'false' }}, '{{ $isAdded ? route('admin.delivery.carriers.edit', $isAdded->id) : '' }}')">
+                    <div class="card-body text-center">
+                        <div class="rounded-circle bg-light p-3 d-inline-block mb-3">
+                            <i class="bi bi-truck fs-4 text-primary"></i>
+                        </div>
+                        <h6 class="mb-1">{{ $courier['name'] }}</h6>
+                        <p class="text-muted small mb-2">{{ $courier['description'] }}</p>
+                        <div class="d-flex justify-content-center gap-2 flex-wrap mb-2">
+                            @if($courier['supports_cod'])
+                            <span class="badge bg-success bg-opacity-10 text-success small">COD</span>
+                            @endif
+                            @if($courier['supports_tracking'])
+                            <span class="badge bg-info bg-opacity-10 text-info small">Tracking</span>
+                            @endif
+                            <span class="badge bg-light text-dark small">{{ $courier['estimated_delivery_days'] }} days</span>
+                        </div>
+                        <div class="mt-2">
+                            @if($isAdded)
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle me-1"></i> Added
+                            </span>
+                            <a href="{{ route('admin.delivery.carriers.edit', $isAdded->id) }}" class="btn btn-sm btn-outline-primary mt-2">
+                                <i class="bi bi-pencil me-1"></i> Configure
+                            </a>
+                            @else
+                            <button type="button" class="btn btn-sm btn-primary mt-2" onclick="event.stopPropagation(); addCourier('{{ $courier['name'] }}')">
+                                <i class="bi bi-plus-lg me-1"></i> Add Courier
+                            </button>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+
+<!-- API Configuration Info -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>API Configuration Guide</h6>
+    </div>
+    <div class="card-body">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <h6 class="fw-bold">How to Configure Courier API</h6>
+                <ol class="text-muted small">
+                    <li class="mb-2">Click "Add Courier" to add a courier service</li>
+                    <li class="mb-2">Click "Configure" on the courier card</li>
+                    <li class="mb-2">Enter your API credentials (API Key, Secret, Token)</li>
+                    <li class="mb-2">Set the API mode (Sandbox/Production)</li>
+                    <li class="mb-2">Save the configuration</li>
+                </ol>
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-bold">Features</h6>
+                <ul class="list-unstyled text-muted small">
+                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Automatic tracking number generation</li>
+                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Real-time tracking status updates</li>
+                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Cash on Delivery (COD) support</li>
+                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Shipping rate calculation</li>
+                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Bulk shipment booking</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Courier Modal -->
+<div class="modal fade" id="addCourierModal" tabindex="-1" aria-labelledby="addCourierModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCourierModalLabel">Add Courier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('admin.delivery.courier-integration.add') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <p>You are about to add the following courier service:</p>
+                    <div class="alert alert-info">
+                        <strong id="selectedCourierName"></strong>
+                    </div>
+                    <p class="text-muted small">After adding, you can configure the API credentials from the carriers management page.</p>
+                    <input type="hidden" name="courier_name" id="courierNameInput">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i> Add Courier
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection
 
 @push('scripts')
 <script>
@@ -298,17 +325,3 @@
     }
 </script>
 @endpush
-
-<style>
-    .courier-card {
-        transition: all 0.2s ease;
-    }
-    .courier-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .courier-card.border-success {
-        background-color: rgba(25, 135, 84, 0.02);
-    }
-</style>
-@endsection

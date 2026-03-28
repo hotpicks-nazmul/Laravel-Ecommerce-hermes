@@ -20,6 +20,10 @@
         top: 5px;
         right: 5px;
     }
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
 </style>
 @endpush
 
@@ -158,7 +162,7 @@
                 
                 <div class="mb-3">
                     <label for="api_secret" class="form-label">API Secret</label>
-                    <input type="password" class="form-control @error('api_secret') is-invalid @enderror" id="api_secret" name="api_secret" value="{{ old('api_secret', $carrier->api_secret) }}" placeholder="Enter API secret (leave empty to keep current)" form="carrierForm">
+                    <input type="password" class="form-control @error('api_secret') is-invalid @enderror" id="api_secret" name="api_secret" value="" placeholder="Enter API secret (leave empty to keep current)" form="carrierForm">
                     @error('api_secret')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -422,7 +426,7 @@
                             </button>
                         </div>
                     @endif
-                    <input type="file" class="form-control @error('logo') is-invalid @enderror" id="logo" name="logo" accept="image/*" onchange="previewLogo(event)">
+                    <input type="file" class="form-control @error('logo') is-invalid @enderror" id="logo" name="logo" accept="image/*" onchange="previewLogo(event)" form="carrierForm">
                     @error('logo')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -476,18 +480,18 @@
             </div>
         </div>
         
-        <!-- Actions -->
-        <div class="d-grid gap-2">
-            <button type="submit" form="carrierForm" class="btn btn-primary">
-                <i class="bi bi-check-lg me-1"></i> Update Carrier
-            </button>
-            <a href="{{ route('admin.delivery.carriers.index') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-x-lg me-1"></i> Cancel
-            </a>
-            <button type="button" class="btn btn-outline-danger" onclick="deleteCarrier()">
-                <i class="bi bi-trash me-1"></i> Delete Carrier
-            </button>
-        </div>
+        <!-- Floating Save Buttons -->
+<div class="floating-save-container">
+    <a href="{{ route('admin.delivery.carriers.index') }}" class="btn btn-secondary floating-reset-btn">
+        <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
+    <a href="#" class="btn btn-outline-danger floating-reset-btn" onclick="deleteCarrier(); return false;">
+        <i class="bi bi-trash me-1"></i> Delete
+    </a>
+    <button type="submit" form="carrierForm" class="btn btn-primary floating-save-btn">
+        <i class="bi bi-check-lg me-1"></i> Update Carrier
+    </button>
+</div>
     </div>
 </div>
 

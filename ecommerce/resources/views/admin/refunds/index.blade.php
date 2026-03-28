@@ -1,13 +1,15 @@
 @extends('admin.layouts.app')
 
+@section('title', 'All Refunds')
+
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0">All Refunds</h4>
 </div>
 
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+<div class="row g-2 mb-4">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Total</div>
@@ -15,7 +17,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Pending</div>
@@ -23,7 +25,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Approved</div>
@@ -31,7 +33,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Rejected</div>
@@ -39,7 +41,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Processed</div>
@@ -122,13 +124,41 @@
                 <thead class="table-light">
                     <tr>
                         <th style="width: 50px;">#</th>
-                        <th>Refund Details</th>
+                        <th>
+                            <a href="{{ route('admin.refunds.index', array_merge(request()->query(), ['sort' => 'refund_number', 'direction' => request('sort') == 'refund_number' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Refund Details
+                                @if(request('sort') == 'refund_number')
+                                    <i class="bi bi-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </a>
+                        </th>
                         <th>Order</th>
                         <th>Customer</th>
                         <th>Reason</th>
-                        <th class="text-end">Amount</th>
-                        <th>Status</th>
-                        <th>Date</th>
+                        <th class="text-end">
+                            <a href="{{ route('admin.refunds.index', array_merge(request()->query(), ['sort' => 'refund_amount', 'direction' => request('sort') == 'refund_amount' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Amount
+                                @if(request('sort') == 'refund_amount')
+                                    <i class="bi bi-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ route('admin.refunds.index', array_merge(request()->query(), ['sort' => 'status', 'direction' => request('sort') == 'status' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Status
+                                @if(request('sort') == 'status')
+                                    <i class="bi bi-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ route('admin.refunds.index', array_merge(request()->query(), ['sort' => 'created_at', 'direction' => request('sort') == 'created_at' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Date
+                                @if(request('sort') == 'created_at')
+                                    <i class="bi bi-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </a>
+                        </th>
                         <th style="width: 120px;">Actions</th>
                     </tr>
                 </thead>
@@ -226,6 +256,55 @@
                     const paginationContainer = document.querySelector('.card-footer div:last-child');
                     if (paginationContainer) {
                         paginationContainer.innerHTML = data.pagination;
+                    }
+                }
+                
+                // Update statistics cards
+                if (data.stats) {
+                    const statsContainer = document.querySelector('.row.g-2');
+                    if (statsContainer) {
+                        statsContainer.innerHTML = `
+                            <div class="col-md col-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-muted small text-uppercase">Total</div>
+                                        <div class="h4 mb-0 text-primary">${data.stats.total ?? 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md col-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-muted small text-uppercase">Pending</div>
+                                        <div class="h4 mb-0 text-warning">${data.stats.pending ?? 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md col-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-muted small text-uppercase">Approved</div>
+                                        <div class="h4 mb-0 text-info">${data.stats.approved ?? 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md col-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-muted small text-uppercase">Rejected</div>
+                                        <div class="h4 mb-0 text-danger">${data.stats.rejected ?? 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md col-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-muted small text-uppercase">Processed</div>
+                                        <div class="h4 mb-0 text-success">${data.stats.processed ?? 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                     }
                 }
                 

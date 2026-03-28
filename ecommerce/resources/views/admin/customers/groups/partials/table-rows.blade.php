@@ -14,7 +14,7 @@
         @if($customerGroup->discount_percentage > 0)
         <span class="badge bg-info">{{ $customerGroup->discount_percentage }}%</span>
         @else
-        <span class="text-muted">-</span>
+        <span class="text-muted">0%</span>
         @endif
     </td>
     <td>

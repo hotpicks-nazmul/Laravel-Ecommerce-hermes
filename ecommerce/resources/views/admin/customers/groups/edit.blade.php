@@ -2,14 +2,6 @@
 
 @section('title', 'Edit Customer Group')
 
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-</style>
-@endpush
-
 @section('content')
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -179,15 +171,23 @@
     @csrf
     @method('DELETE')
 </form>
+@endsection
+
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>
-    // Auto-generate slug from name if not modified
     const nameInput = document.getElementById('name');
     const slugInput = document.getElementById('slug');
-    let slugModified = {{ $customerGroup->slug !== '' ? 'true' : 'false' }};
+    let slugModified = {{ !empty($customerGroup->slug) ? 'true' : 'false' }};
     
-    nameInput.addEventListener('blur', function() {
+    nameInput.addEventListener('input', function() {
         if (!slugModified && slugInput.value === '') {
             slugInput.value = this.value.toLowerCase()
                 .replace(/[^a-z0-9\s-]/g, '')
@@ -202,4 +202,3 @@
     });
 </script>
 @endpush
-@endsection

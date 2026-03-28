@@ -21,8 +21,8 @@ class CustomerWalletController extends Controller
         if ($request->search) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', "%{$request->search}%")
-                  ->orWhere('email', 'like', "%{$request->search}%")
-                  ->orWhere('phone', 'like', "%{$request->search}%");
+                    ->orWhere('email', 'like', "%{$request->search}%")
+                    ->orWhere('phone', 'like', "%{$request->search}%");
             });
         }
 
@@ -47,13 +47,13 @@ class CustomerWalletController extends Controller
         // Sorting
         $sort = $request->sort ?? 'wallet_balance';
         $direction = $request->direction ?? 'desc';
-        
+
         // Validate sort field
         $allowedSorts = ['wallet_balance', 'wallet_points', 'name', 'email', 'created_at'];
-        if (!in_array($sort, $allowedSorts)) {
+        if (! in_array($sort, $allowedSorts)) {
             $sort = 'wallet_balance';
         }
-        
+
         $query->orderBy($sort, $direction);
 
         $customers = $query->paginate(25)->appends($request->query());
@@ -113,8 +113,8 @@ class CustomerWalletController extends Controller
         if ($request->search) {
             $query->whereHas('user', function ($q) use ($request) {
                 $q->where('name', 'like', "%{$request->search}%")
-                  ->orWhere('email', 'like', "%{$request->search}%")
-                  ->orWhere('phone', 'like', "%{$request->search}%");
+                    ->orWhere('email', 'like', "%{$request->search}%")
+                    ->orWhere('phone', 'like', "%{$request->search}%");
             });
         }
 
@@ -204,7 +204,7 @@ class CustomerWalletController extends Controller
         // Check if customer has enough balance
         if ($customer->wallet_balance < $request->amount) {
             return redirect()->back()
-                ->with('error', 'Insufficient wallet balance. Current balance: ' . number_format($customer->wallet_balance, 2));
+                ->with('error', 'Insufficient wallet balance. Current balance: '.number_format($customer->wallet_balance, 2));
         }
 
         DB::transaction(function () use ($customer, $request) {
@@ -240,8 +240,8 @@ class CustomerWalletController extends Controller
         $customers = User::where('role', 'customer')
             ->where(function ($q) use ($request) {
                 $q->where('name', 'like', "%{$request->q}%")
-                  ->orWhere('email', 'like', "%{$request->q}%")
-                  ->orWhere('phone', 'like', "%{$request->q}%");
+                    ->orWhere('email', 'like', "%{$request->q}%")
+                    ->orWhere('phone', 'like', "%{$request->q}%");
             })
             ->select('id', 'name', 'email', 'phone', 'wallet_balance')
             ->limit(10)

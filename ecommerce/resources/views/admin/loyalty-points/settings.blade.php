@@ -1,17 +1,15 @@
 @extends('admin.layouts.app')
 
 @section('content')
-<div class="content-area">
-    <div class="container-fluid pt-4">
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="mb-0">Loyalty Points Settings</h4>
             <a href="{{ route('admin.customers.loyalty.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Back to Loyalty Points
             </a>
         </div>
 
-        <form method="POST" action="{{ route('admin.customers.loyalty.settings.update') }}">
+        <form id="settingsForm" method="POST" action="{{ route('admin.customers.loyalty.settings.update') }}">
             @csrf
             <div class="row">
                 <!-- Main Settings -->
@@ -23,7 +21,7 @@
                         </div>
                         <div class="card-body">
                             <div class="form-check form-switch mb-4">
-                                <input class="form-check-input" type="checkbox" id="is_enabled" name="is_enabled" 
+                                <input class="form-check-input" type="checkbox" id="is_enabled" name="is_enabled" form="settingsForm"
                                        {{ $settings['is_enabled'] ? 'checked' : '' }}>
                                 <label class="form-check-label" for="is_enabled">
                                     <i class="bi bi-check-circle text-success me-1"></i> Enable Loyalty Program
@@ -36,7 +34,7 @@
                                     <label class="form-label">Points Per Currency <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text">1 $ = </span>
-                                        <input type="number" name="points_per_currency" class="form-control" 
+                                        <input type="number" name="points_per_currency" form="settingsForm" class="form-control" 
                                                value="{{ $settings['points_per_currency'] }}" min="0" step="0.01" required>
                                         <span class="input-group-text">points</span>
                                     </div>
@@ -47,7 +45,7 @@
                                     <label class="form-label">Currency Value Per Points <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text">1 point = </span>
-                                        <input type="number" name="currency_per_points" class="form-control" 
+                                        <input type="number" name="currency_per_points" form="settingsForm" class="form-control" 
                                                value="{{ $settings['currency_per_points'] }}" min="0" step="0.01" required>
                                         <span class="input-group-text">$</span>
                                     </div>
@@ -58,7 +56,7 @@
                                     <label class="form-label">Minimum Spend to Earn <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
-                                        <input type="number" name="minimum_spend" class="form-control" 
+                                        <input type="number" name="minimum_spend" form="settingsForm" class="form-control" 
                                                value="{{ $settings['minimum_spend'] }}" min="0" step="0.01" required>
                                     </div>
                                     <div class="form-text">Minimum order amount to earn points</div>
@@ -67,7 +65,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label">Points Expiry (Days) <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <input type="number" name="points_expiry_days" class="form-control" 
+                                        <input type="number" name="points_expiry_days" form="settingsForm" class="form-control" 
                                                value="{{ $settings['points_expiry_days'] }}" min="0" required>
                                         <span class="input-group-text">days</span>
                                     </div>
@@ -77,7 +75,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label">New Customer Bonus Points</label>
                                     <div class="input-group">
-                                        <input type="number" name="new_customer_bonus" class="form-control" 
+                                        <input type="number" name="new_customer_bonus" form="settingsForm" class="form-control" 
                                                value="{{ $settings['new_customer_bonus'] }}" min="0" required>
                                         <span class="input-group-text">points</span>
                                     </div>
@@ -90,19 +88,6 @@
 
                 <!-- Sidebar -->
                 <div class="col-lg-4">
-                    <!-- Save Card -->
-                    <div class="card border-0 shadow-sm mb-3">
-                        <div class="card-header bg-white">
-                            <h6 class="mb-0">Save Settings</h6>
-                        </div>
-                        <div class="card-body">
-                            <p class="text-muted small">Click the button below to save your loyalty program settings.</p>
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="bi bi-check-lg me-1"></i> Save Settings
-                            </button>
-                        </div>
-                    </div>
-
                     <!-- Quick Stats -->
                     <div class="card border-0 shadow-sm mb-3">
                         <div class="card-header bg-white">
@@ -122,6 +107,16 @@
                 </div>
             </div>
         </form>
+
+        <!-- Floating Save Container -->
+        <div class="floating-save-container">
+            <a href="{{ route('admin.customers.loyalty.index') }}" class="btn btn-secondary floating-reset-btn">
+                <i class="bi bi-x-lg me-1"></i> Cancel
+            </a>
+            <button type="submit" form="settingsForm" class="btn btn-primary floating-save-btn">
+                <i class="bi bi-check-lg me-1"></i> Save Settings
+            </button>
+        </div>
 
         <!-- Rewards Section -->
         <div class="card border-0 shadow-sm mt-4">
@@ -218,7 +213,8 @@
                             <i class="bi bi-plus-lg me-1"></i> Create First Reward
                         </button>
                     </div>
-                @endif
+                    @endif
+                </div>
             </div>
         </div>
     </div>
@@ -282,6 +278,12 @@
                     <div class="mb-3">
                         <label class="form-label">Max Redemptions</label>
                         <input type="number" name="max_redemptions" class="form-control" min="1" placeholder="Unlimited if empty">
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="create_is_active" name="is_active" checked>
+                        <label class="form-check-label" for="create_is_active">
+                            <i class="bi bi-check-circle text-success me-1"></i> Active
+                        </label>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -386,12 +388,4 @@
     </div>
 </div>
 @endforeach
-
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px;
-    }
-</style>
-@endpush
 @endsection

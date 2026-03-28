@@ -2,6 +2,14 @@
 
 @section('title', 'Add Pick-up Point')
 
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="row">
     <div class="col-lg-8">
@@ -176,14 +184,6 @@
     </button>
 </div>
 @endsection
-
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-</style>
-@endpush
 
 @push('scripts')
 <script>

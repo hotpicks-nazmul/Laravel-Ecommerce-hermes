@@ -15,7 +15,7 @@
     <div class="col-md-3 col-sm-6 mb-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Pending Requests</div>
+                <div class="text-muted small text-uppercase">Pending & Approved</div>
                 <div class="h4 mb-0 text-warning">{{ $stats['pending'] ?? 0 }}</div>
             </div>
         </div>
@@ -68,7 +68,7 @@
                 <div class="col-lg-3 col-md-4 col-sm-6">
                     <label class="form-label small text-muted">Status</label>
                     <select name="status" id="filterStatus" class="form-select form-select-sm">
-                        <option value="">Pending & Approved</option>
+                        <option value="pending_approved" {{ request('status') === 'pending_approved' ? 'selected' : '' }}>Pending & Approved</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
                         <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Approved</option>
                         <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option>
@@ -196,6 +196,9 @@
                         </td>
                         <td>
                             <div class="d-flex gap-1">
+                                <a href="{{ route('admin.sellers.payouts.show', $payout->id) }}" class="btn btn-sm btn-outline-secondary" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
                                 @if($payout->status === 'pending' || $payout->status === 'approved')
                                     <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#approveModal{{ $payout->id }}" title="Approve">
                                         <i class="bi bi-check-lg"></i>
@@ -281,11 +284,11 @@
         
         <!-- Pagination inside card-body -->
         @if($payouts->hasPages())
-        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div class="text-muted small">
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2" id="paginationFooter">
+            <div class="text-muted small" id="paginationInfo">
                 Showing {{ $payouts->firstItem() }} - {{ $payouts->lastItem() }} of {{ $payouts->total() }} requests
             </div>
-            <div>
+            <div id="paginationLinks">
                 {{ $payouts->appends(request()->query())->links() }}
             </div>
         </div>
@@ -336,6 +339,17 @@
             
             if (data.html) {
                 document.querySelector('#tableBody').innerHTML = data.html;
+                
+                // Update pagination info
+                if (data.pagination_info) {
+                    document.getElementById('paginationInfo').innerHTML = data.pagination_info;
+                }
+                
+                // Update pagination links
+                if (data.pagination) {
+                    document.getElementById('paginationLinks').innerHTML = data.pagination;
+                }
+                
                 const newUrl = `${window.location.pathname}?${params.toString()}`;
                 window.history.pushState({}, '', newUrl);
             }
@@ -345,5 +359,35 @@
             console.error('Search error:', error);
         });
     }
+
+    // Handle pagination clicks via AJAX
+    document.addEventListener('click', function(e) {
+        const paginationLink = e.target.closest('.pagination a');
+        if (paginationLink && document.querySelector('#tableBody')) {
+            e.preventDefault();
+            const url = paginationLink.getAttribute('href');
+            if (url) {
+                fetch(url + (url.includes('?') ? '&' : '?') + 'ajax=1', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.html) {
+                        document.querySelector('#tableBody').innerHTML = data.html;
+                        if (data.pagination_info) {
+                            document.getElementById('paginationInfo').innerHTML = data.pagination_info;
+                        }
+                        if (data.pagination) {
+                            document.getElementById('paginationLinks').innerHTML = data.pagination;
+                        }
+                        window.history.pushState({}, '', url);
+                    }
+                });
+            }
+        }
+    });
 </script>
 @endpush

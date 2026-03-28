@@ -22,8 +22,8 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+<div class="row g-2 mb-4">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Total</div>
@@ -31,7 +31,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Active</div>
@@ -39,7 +39,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Inactive</div>
@@ -47,7 +47,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Featured</div>
@@ -55,7 +55,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">API Configured</div>
@@ -145,9 +145,9 @@
                 <!-- Buttons -->
                 <div class="col-lg-2 col-md-4 col-sm-6">
                     <div class="d-flex gap-1">
-                        <a href="{{ route('admin.delivery.carriers.index') }}" class="btn btn-sm btn-outline-secondary flex-grow-1" id="resetFilters">
+                        <button type="button" class="btn btn-sm btn-outline-secondary flex-grow-1" id="resetFilters" onclick="resetFilters()">
                             <i class="bi bi-x-lg me-1"></i> Reset
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -391,6 +391,29 @@ function toggleFeatured(carrierId) {
 let searchTimeout;
 const searchInput = document.getElementById('liveSearch');
 const searchSpinner = document.getElementById('searchSpinner');
+
+// Reset filters function
+function resetFilters() {
+    // Clear search input
+    if (searchInput) searchInput.value = '';
+    
+    // Reset dropdowns
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterCarrierType').value = '';
+    document.getElementById('filterServiceType').value = '';
+    document.getElementById('perPage').value = '25';
+    
+    // Clear selection
+    selectedCarriers.clear();
+    updateBulkActions();
+    
+    // Reset URL and reload
+    const baseUrl = window.location.pathname;
+    window.history.pushState({}, '', baseUrl);
+    
+    // Trigger search with empty values
+    performLiveSearch('');
+}
 
 if (searchInput) {
     searchInput.addEventListener('input', function() {

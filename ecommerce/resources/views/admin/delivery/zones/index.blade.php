@@ -199,6 +199,19 @@
 
 @push('scripts')
 <script>
+    // Helper function to show alerts
+    function showAlert(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+        alertDiv.style.zIndex = '9999';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        setTimeout(() => alertDiv.remove(), 3000);
+    }
+    
     // Live Search
     let searchTimeout;
     const searchInput = document.getElementById('liveSearch');
@@ -268,6 +281,11 @@
                 // Re-attach event listeners
                 attachEventListeners();
             }
+        })
+        .catch(error => {
+            searchSpinner.style.display = 'none';
+            console.error('Search error:', error);
+            showAlert('danger', 'Failed to load data. Please try again.');
         });
     }
 
@@ -381,18 +399,12 @@
             if (data.success) {
                 clearSelection();
                 performLiveSearch(searchInput.value.trim());
-                
-                // Show success message
-                const alertDiv = document.createElement('div');
-                alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3';
-                alertDiv.style.zIndex = '9999';
-                alertDiv.innerHTML = `
-                    ${data.message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                `;
-                document.body.appendChild(alertDiv);
-                setTimeout(() => alertDiv.remove(), 3000);
+                showAlert('success', data.message);
             }
+        })
+        .catch(error => {
+            console.error('Bulk action error:', error);
+            showAlert('danger', 'Failed to perform bulk action. Please try again.');
         });
     }
 </script>

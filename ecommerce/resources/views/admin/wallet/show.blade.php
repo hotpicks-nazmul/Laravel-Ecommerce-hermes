@@ -1,10 +1,8 @@
 @extends('admin.layouts.app')
 
 @section('content')
-<div class="content-area">
-    <div class="container-fluid mt-5">
-        <div class="row">
-            <div class="col-lg-12">
+<div class="row">
+    <div class="col-lg-12">
                 <!-- Page Title with Back Button -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="mb-0">Customer Wallet Details</h4>
@@ -19,7 +17,7 @@
                         <div class="row align-items-center">
                             <div class="col-md-8">
                                 <div class="d-flex align-items-center">
-                                    <div class="avatar-circle bg-primary text-white me-3" style="width: 60px; height: 60px; font-size: 20px;">
+                                    <div class="avatar-circle avatar-circle-lg bg-primary text-white me-3">
                                         {{ strtoupper(substr($customer->name, 0, 1)) }}
                                     </div>
                                     <div>
@@ -43,11 +41,11 @@
                             <div class="col-md-4 text-md-end">
                                 <div class="mb-2">
                                     <div class="text-muted small">Wallet Balance</div>
-                                    <div class="h3 mb-0 text-success">{{ number_format($customer->wallet_balance, 2) }}</div>
+                                    <div class="h3 mb-0 text-success">৳{{ number_format($customer->wallet_balance, 2) }}</div>
                                 </div>
                                 <div>
                                     <div class="text-muted small">Points</div>
-                                    <div class="h4 mb-0 text-warning">{{ number_format($customer->wallet_points ?? 0, 2) }}</div>
+                                    <div class="h4 mb-0 text-warning">{{ number_format($customer->wallet_points ?? 0, 2) }} PTS</div>
                                 </div>
                             </div>
                         </div>
@@ -59,13 +57,13 @@
                     <div class="col-md-6">
                         <!-- Add Balance Modal -->
                         <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#addBalanceModal">
-                            <i class="bi bi-plus-circle me-1"></i> Add Balance
+                            <i class="bi bi-plus-lg me-1"></i> Add Balance
                         </button>
                     </div>
                     <div class="col-md-6">
                         <!-- Deduct Balance Modal -->
                         <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#deductBalanceModal">
-                            <i class="bi bi-dash-circle me-1"></i> Deduct Balance
+                            <i class="bi bi-dash-lg me-1"></i> Deduct Balance
                         </button>
                     </div>
                 </div>
@@ -142,9 +140,9 @@
                                             @endif
                                         </td>
                                         <td class="{{ $transaction->type === 'credit' ? 'text-success' : 'text-danger' }} fw-medium">
-                                            {{ $transaction->type === 'credit' ? '+' : '-' }}{{ number_format($transaction->amount, 2) }}
+                                            {{ $transaction->type === 'credit' ? '+' : '-' }}৳{{ number_format($transaction->amount, 2) }}
                                         </td>
-                                        <td>{{ number_format($transaction->balance_after, 2) }}</td>
+                                        <td>৳{{ number_format($transaction->balance_after, 2) }}</td>
                                         <td>
                                             <span class="badge bg-secondary">{{ ucfirst($transaction->source) }}</span>
                                         </td>
@@ -178,8 +176,6 @@
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
 <!-- Add Balance Modal -->
 <div class="modal fade" id="addBalanceModal" tabindex="-1" aria-labelledby="addBalanceModalLabel" aria-hidden="true">
@@ -228,7 +224,7 @@
                 <div class="modal-body">
                     <div class="alert alert-warning">
                         <i class="bi bi-exclamation-triangle me-2"></i>
-                        Current Balance: <strong>{{ number_format($customer->wallet_balance, 2) }}</strong>
+                        Current Balance: <strong>৳{{ number_format($customer->wallet_balance, 2) }}</strong>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Customer</label>
@@ -238,7 +234,7 @@
                     <div class="mb-3">
                         <label class="form-label">Amount <span class="text-danger">*</span></label>
                         <input type="number" name="amount" class="form-control" step="0.01" min="0.01" max="{{ $customer->wallet_balance }}" required placeholder="0.00">
-                        <div class="form-text">Maximum: {{ number_format($customer->wallet_balance, 2) }}</div>
+                        <div class="form-text">Maximum: ৳{{ number_format($customer->wallet_balance, 2) }}</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Description</label>
@@ -267,6 +263,11 @@
         font-weight: 600;
         font-size: 14px;
     }
+    .avatar-circle-lg {
+        width: 60px;
+        height: 60px;
+        font-size: 20px;
+    }
 </style>
 @endpush
 
@@ -274,7 +275,7 @@
 <script>
     // Filter dropdowns trigger search on change
     const filterSelects = ['filterType', 'filterSource'];
-    filterSelects.forEach(id => {
+    filterSelects.forEach(function(id) {
         const select = document.getElementById(id);
         if (select) {
             select.addEventListener('change', function() {
@@ -282,5 +283,18 @@
             });
         }
     });
+
+    // Deduct modal validation
+    const deductForm = document.querySelector('#deductBalanceModal form');
+    if (deductForm) {
+        deductForm.addEventListener('submit', function(e) {
+            const amountInput = this.querySelector('input[name="amount"]');
+            const maxBalance = parseFloat('{{ $customer->wallet_balance }}');
+            if (parseFloat(amountInput.value) > maxBalance) {
+                e.preventDefault();
+                alert('Amount cannot exceed current balance of ৳' + maxBalance.toFixed(2));
+            }
+        });
+    }
 </script>
 @endpush

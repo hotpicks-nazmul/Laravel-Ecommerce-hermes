@@ -235,6 +235,8 @@ Route::prefix('customers/wallet')->name('customers.wallet.')->group(function () 
 Route::resource('customers', CustomerController::class)->only(['index', 'show', 'update', 'destroy'])->middleware('permission:customers');
 Route::get('/customers/{customer}/orders', [CustomerController::class, 'orders'])->name('customers.orders');
 Route::post('/customers/{customer}/login-as', [CustomerController::class, 'loginAs'])->name('customers.login-as');
+Route::post('/customers/{customer}/toggle-status', [CustomerController::class, 'toggleStatus'])->name('customers.toggle-status');
+Route::post('/customers/bulk-action', [CustomerController::class, 'bulkAction'])->name('customers.bulk-action');
 
 // Coupons Management
 Route::post('/coupons/{coupon}/toggle', [CouponController::class, 'toggle'])->name('coupons.toggle');
@@ -546,6 +548,7 @@ Route::prefix('delivery')->middleware('permission:delivery')->name('delivery.')-
     Route::post('/tracking/{order}/update-status', [\App\Http\Controllers\Admin\DeliveryController::class, 'updateTrackingStatus'])->name('tracking.update-status');
     Route::post('/tracking/{order}/generate-number', [\App\Http\Controllers\Admin\DeliveryController::class, 'generateTrackingNumber'])->name('tracking.generate-number');
     Route::post('/tracking/bulk-action', [\App\Http\Controllers\Admin\DeliveryController::class, 'bulkTrackingAction'])->name('bulk-tracking-action');
+    Route::post('/tracking/bulk-update-status', [\App\Http\Controllers\Admin\DeliveryController::class, 'bulkUpdateStatus'])->name('tracking.bulk-update-status');
     Route::get('/zones', [\App\Http\Controllers\Admin\DeliveryController::class, 'zones'])->name('zones.index');
     Route::get('/zones/create', [\App\Http\Controllers\Admin\DeliveryController::class, 'createZone'])->name('zones.create');
     Route::post('/zones', [\App\Http\Controllers\Admin\DeliveryController::class, 'storeZone'])->name('zones.store');
@@ -629,6 +632,7 @@ Route::prefix('refunds')->middleware('permission:refund')->name('refunds.')->gro
     Route::get('/rejected', [\App\Http\Controllers\Admin\RefundController::class, 'rejected'])->name('rejected');
     Route::get('/configuration', [\App\Http\Controllers\Admin\RefundController::class, 'configuration'])->name('configuration');
     Route::post('/configuration', [\App\Http\Controllers\Admin\RefundController::class, 'updateConfiguration'])->name('configuration.update');
+    Route::post('/bulk', [\App\Http\Controllers\Admin\RefundController::class, 'bulk'])->name('bulk');
     Route::get('/{id}', [\App\Http\Controllers\Admin\RefundController::class, 'show'])->name('show');
     Route::post('/{id}/approve', [\App\Http\Controllers\Admin\RefundController::class, 'approve'])->name('approve');
     Route::post('/{id}/reject', [\App\Http\Controllers\Admin\RefundController::class, 'reject'])->name('reject');
@@ -1085,6 +1089,7 @@ Route::prefix('affiliate')->middleware('permission:affiliate')->name('affiliate.
     Route::prefix('withdrawals')->name('withdrawals.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\AffiliateWithdrawalController::class, 'index'])->name('index');
         Route::get('/{id}', [\App\Http\Controllers\Admin\AffiliateWithdrawalController::class, 'show'])->name('show');
+        Route::post('/bulk', [\App\Http\Controllers\Admin\AffiliateWithdrawalController::class, 'bulk'])->name('bulk');
         Route::post('/{id}/approve', [\App\Http\Controllers\Admin\AffiliateWithdrawalController::class, 'approve'])->name('approve');
         Route::post('/{id}/reject', [\App\Http\Controllers\Admin\AffiliateWithdrawalController::class, 'reject'])->name('reject');
     });

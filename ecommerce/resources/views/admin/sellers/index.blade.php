@@ -4,8 +4,8 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-2 col-sm-6 mb-3">
+<div class="row g-3 mb-4">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Total Sellers</div>
@@ -13,7 +13,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Active</div>
@@ -21,7 +21,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Inactive</div>
@@ -29,7 +29,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Verified</div>
@@ -37,7 +37,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Pending</div>
@@ -45,7 +45,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Rejected</div>
@@ -238,9 +238,12 @@
                 // Update pagination
                 const paginationContainer = document.querySelector('.card-footer');
                 if (paginationContainer && data.pagination) {
+                    const firstItem = data.pagination_info.firstItem || 0;
+                    const lastItem = data.pagination_info.lastItem || 0;
+                    const total = data.pagination_info.total || 0;
                     paginationContainer.innerHTML = `
                         <div class="text-muted small">
-                            Showing {{ $sellers->firstItem() }} - {{ $sellers->lastItem() }} of {{ $sellers->total() }} sellers
+                            Showing ${firstItem} - ${lastItem} of ${total} sellers
                         </div>
                         <div>${data.pagination}</div>
                     `;

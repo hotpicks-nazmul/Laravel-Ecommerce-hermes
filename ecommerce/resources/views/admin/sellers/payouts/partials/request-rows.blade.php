@@ -88,6 +88,9 @@
     </td>
     <td>
         <div class="d-flex gap-1">
+            <a href="{{ route('admin.sellers.payouts.show', $payout->id) }}" class="btn btn-sm btn-outline-secondary" title="View Details">
+                <i class="bi bi-eye"></i>
+            </a>
             @if($payout->status === 'pending' || $payout->status === 'approved')
                 <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#approveModal{{ $payout->id }}" title="Approve">
                     <i class="bi bi-check-lg"></i>

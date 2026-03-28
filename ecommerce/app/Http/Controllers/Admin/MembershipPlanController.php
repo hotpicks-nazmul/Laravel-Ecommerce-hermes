@@ -70,11 +70,14 @@ class MembershipPlanController extends Controller
                 'html' => $html,
                 'stats' => $stats,
                 'pagination' => $plans->links()->toHtml(),
-                'total' => $plans->total()
+                'total' => $plans->total(),
+                'plans_firstitem' => $plans->firstItem(),
+                'plans_lastitem' => $plans->lastItem(),
+                'search' => $search,
             ]);
         }
 
-        return view('admin.customers.membership.index', compact('plans', 'stats'));
+        return view('admin.customers.membership.index', compact('plans', 'stats', 'search'));
     }
 
     /**
@@ -147,8 +150,8 @@ class MembershipPlanController extends Controller
     public function update(Request $request, MembershipPlan $membershipPlan)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:membership_plans,name,' . $membershipPlan->id,
-            'slug' => 'nullable|string|max:255|unique:membership_plans,slug,' . $membershipPlan->id,
+            'name' => 'required|string|max:255|unique:membership_plans,name,'.$membershipPlan->id,
+            'slug' => 'nullable|string|max:255|unique:membership_plans,slug,'.$membershipPlan->id,
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'duration_days' => 'required|integer|min:1',
@@ -197,6 +200,7 @@ class MembershipPlanController extends Controller
         // Check if plan has members
         if ($membershipPlan->members_count > 0) {
             flash()->error('Cannot delete membership plan with active members. Please remove members first.');
+
             return back();
         }
 
@@ -213,7 +217,7 @@ class MembershipPlanController extends Controller
     public function toggleStatus(MembershipPlan $membershipPlan)
     {
         $membershipPlan->update([
-            'is_active' => !$membershipPlan->is_active
+            'is_active' => ! $membershipPlan->is_active,
         ]);
 
         $status = $membershipPlan->is_active ? 'activated' : 'deactivated';
@@ -228,7 +232,7 @@ class MembershipPlanController extends Controller
     public function toggleFeatured(MembershipPlan $membershipPlan)
     {
         $membershipPlan->update([
-            'is_featured' => !$membershipPlan->is_featured
+            'is_featured' => ! $membershipPlan->is_featured,
         ]);
 
         $status = $membershipPlan->is_featured ? 'featured' : 'unfeatured';

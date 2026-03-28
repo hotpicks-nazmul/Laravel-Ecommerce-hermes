@@ -1,10 +1,8 @@
 @extends('admin.layouts.app')
 
 @section('content')
-<div class="content-area">
-    <div class="container-fluid mt-5">
-        <div class="row">
-            <div class="col-lg-12">
+<div class="row">
+    <div class="col-lg-12">
                 <!-- Page Title -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="mb-0">Customer Wallet</h4>
@@ -14,8 +12,8 @@
                 </div>
 
                 <!-- Statistics Cards -->
-                <div class="row mb-4">
-                    <div class="col-md-2 col-sm-4 col-6 mb-3">
+                <div class="row g-2 mb-4">
+                    <div class="col-md col-6">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body text-center py-3">
                                 <div class="text-muted small text-uppercase">Total Customers</div>
@@ -23,15 +21,15 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2 col-sm-4 col-6 mb-3">
+                    <div class="col-md col-6">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body text-center py-3">
                                 <div class="text-muted small text-uppercase">Total Balance</div>
-                                <div class="h4 mb-0 text-success">{{ number_format($stats['total_wallet_balance'], 2) }}</div>
+                                <div class="h4 mb-0 text-success">৳{{ number_format($stats['total_wallet_balance'], 2) }}</div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2 col-sm-4 col-6 mb-3">
+                    <div class="col-md col-6">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body text-center py-3">
                                 <div class="text-muted small text-uppercase">Total Points</div>
@@ -39,7 +37,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2 col-sm-4 col-6 mb-3">
+                    <div class="col-md col-6">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body text-center py-3">
                                 <div class="text-muted small text-uppercase">With Balance</div>
@@ -47,7 +45,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2 col-sm-4 col-6 mb-3">
+                    <div class="col-md col-6">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body text-center py-3">
                                 <div class="text-muted small text-uppercase">With Points</div>
@@ -139,12 +137,12 @@
                                         <td>{{ $customer->phone ?? '-' }}</td>
                                         <td class="text-end">
                                             <span class="text-success fw-medium">
-                                                {{ number_format($customer->wallet_balance, 2) }}
+                                                ৳{{ number_format($customer->wallet_balance, 2) }}
                                             </span>
                                         </td>
                                         <td class="text-end">
                                             <span class="text-warning fw-medium">
-                                                {{ number_format($customer->wallet_points ?? 0, 2) }}
+                                                {{ number_format($customer->wallet_points ?? 0, 2) }} PTS
                                             </span>
                                         </td>
                                         <td>{{ $customer->created_at->format('d M Y') }}</td>
@@ -158,7 +156,7 @@
                                     @empty
                                     <tr>
                                         <td colspan="6" class="text-center py-5">
-                                            <i class="bi bi-wallet2 text-muted" style="font-size: 3rem;"></i>
+                                            <i class="bi bi-wallet text-muted" style="font-size: 3rem;"></i>
                                             <p class="text-muted mb-2 mt-2">No customers found</p>
                                         </td>
                                     </tr>
@@ -214,7 +212,7 @@
                                             @endif
                                         </td>
                                         <td class="{{ $transaction->type === 'credit' ? 'text-success' : 'text-danger' }}">
-                                            {{ $transaction->type === 'credit' ? '+' : '-' }}{{ number_format($transaction->amount, 2) }}
+                                            {{ $transaction->type === 'credit' ? '+' : '-' }}৳{{ number_format($transaction->amount, 2) }}
                                         </td>
                                         <td>
                                             <span class="badge bg-secondary">{{ ucfirst($transaction->source) }}</span>
@@ -236,8 +234,6 @@
                 </div>
             </div>
         </div>
-    </div>
-</div>
 @endsection
 
 @push('styles')

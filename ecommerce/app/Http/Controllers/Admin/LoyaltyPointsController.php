@@ -231,9 +231,21 @@ class LoyaltyPointsController extends Controller
             'max_redemptions' => 'nullable|integer|min:1',
             'valid_from' => 'nullable|date',
             'valid_until' => 'nullable|date|after:valid_from',
+            'is_active' => 'nullable|boolean',
         ]);
 
-        LoyaltyReward::create($request->all());
+        LoyaltyReward::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'points_required' => $request->points_required,
+            'discount_value' => $request->discount_value,
+            'reward_type' => $request->reward_type,
+            'code' => $request->code,
+            'max_redemptions' => $request->max_redemptions,
+            'valid_from' => $request->valid_from,
+            'valid_until' => $request->valid_until,
+            'is_active' => $request->has('is_active'),
+        ]);
 
         return back()->with('success', 'Reward created successfully.');
     }

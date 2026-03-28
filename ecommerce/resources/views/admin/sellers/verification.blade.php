@@ -4,36 +4,48 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Pending Verification</div>
-                <div class="h4 mb-0 text-warning" id="stat-pending">{{ $stats['pending'] ?? 0 }}</div>
+<div class="row g-3 mb-4">
+    <div class="col-md col-6">
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Pending Verification</span>
+                <span class="stat-card-value" id="stat-pending">{{ $stats['pending'] ?? 0 }}</span>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Rejected</div>
-                <div class="h4 mb-0 text-danger" id="stat-rejected">{{ $stats['rejected'] ?? 0 }}</div>
+    <div class="col-md col-6">
+        <div class="stat-card stat-card-danger">
+            <div class="stat-card-icon">
+                <i class="bi bi-x-circle"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Rejected</span>
+                <span class="stat-card-value" id="stat-rejected">{{ $stats['rejected'] ?? 0 }}</span>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Verified</div>
-                <div class="h4 mb-0 text-success" id="stat-verified">{{ $stats['verified'] ?? 0 }}</div>
+    <div class="col-md col-6">
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Verified</span>
+                <span class="stat-card-value" id="stat-verified">{{ $stats['verified'] ?? 0 }}</span>
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Sellers</div>
-                <div class="h4 mb-0 text-primary" id="stat-total">{{ $stats['total'] ?? 0 }}</div>
+    <div class="col-md col-6">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Sellers</span>
+                <span class="stat-card-value" id="stat-total">{{ $stats['total'] ?? 0 }}</span>
             </div>
         </div>
     </div>
@@ -279,16 +291,15 @@
         </div>
 
         <!-- Pagination inside card-body -->
-        @if($sellers->hasPages())
-        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+        @php $hasPages = $sellers->hasPages(); @endphp
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 pagination-container" @if(!$hasPages) style="display: none;" @endif>
             <div class="text-muted small">
-                Showing {{ $sellers->firstItem() }} - {{ $sellers->lastItem() }} of {{ $sellers->total() }} requests
+                Showing {{ $sellers->firstItem() ?? 0 }} - {{ $sellers->lastItem() ?? 0 }} of {{ $sellers->total() }} requests
             </div>
-            <div>
+            <div class="pagination-links">
                 {{ $sellers->appends(request()->query())->links() }}
             </div>
         </div>
-        @endif
     </div>
 </div>
 @endsection
@@ -301,6 +312,52 @@
         border-radius: 4px;
         object-fit: cover;
         background-color: #f8f9fa;
+    }
+    .stat-card {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        padding: 20px 24px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        border: 1px solid #f0f0f0;
+        transition: all 0.2s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .stat-card-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        font-size: 22px;
+    }
+    .stat-card-primary .stat-card-icon { background: #e8f4fd; color: #0d6efd; }
+    .stat-card-warning .stat-card-icon { background: #fff3cd; color: #ffc107; }
+    .stat-card-success .stat-card-icon { background: #d1e7dd; color: #198754; }
+    .stat-card-danger .stat-card-icon { background: #f8d7da; color: #dc3545; }
+
+    .stat-card-content {
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+    }
+    .stat-card-label {
+        font-size: 13px;
+        color: #6c757d;
+        margin-bottom: 2px;
+    }
+    .stat-card-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #212529;
+        line-height: 1.2;
     }
 </style>
 @endpush
@@ -329,9 +386,38 @@
             })
             .then(response => response.json())
             .then(data => {
-                // For now, just reload the page with new params
-                // In production, you'd update the table body via AJAX
-                window.location.href = '{{ route("admin.sellers.verification") }}?' + params.toString();
+                // Update table body
+                document.querySelector('#tableBody').innerHTML = data.html;
+                
+                // Update pagination
+                const paginationContainer = document.querySelector('.card-footer');
+                if (data.pagination) {
+                    if (paginationContainer) {
+                        paginationContainer.innerHTML = data.pagination;
+                    } else {
+                        // Create pagination container if it doesn't exist
+                        const cardBody = document.querySelector('.card-body');
+                        const paginationDiv = document.createElement('div');
+                        paginationDiv.className = 'card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2';
+                        paginationDiv.innerHTML = data.pagination;
+                        cardBody.appendChild(paginationDiv);
+                    }
+                }
+
+                // Update stats
+                if (data.stats) {
+                    document.getElementById('stat-pending').textContent = data.stats.pending;
+                    document.getElementById('stat-rejected').textContent = data.stats.rejected;
+                    document.getElementById('stat-verified').textContent = data.stats.verified;
+                    document.getElementById('stat-total').textContent = data.stats.total;
+                }
+
+                // Update URL without reload
+                const newUrl = '{{ route("admin.sellers.verification") }}?' + params.toString();
+                window.history.pushState({}, '', newUrl);
+
+                // Re-initialize tooltips
+                initTooltips();
             })
             .catch(error => console.error('Error:', error))
             .finally(() => {
@@ -339,6 +425,57 @@
             });
         }, 500);
     }
+
+    function initTooltips() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    }
+
+    // Handle pagination clicks via AJAX
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('.pagination a');
+        if (link) {
+            e.preventDefault();
+            const url = link.getAttribute('href');
+            if (url) {
+                searchSpinner.style.display = 'block';
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelector('#tableBody').innerHTML = data.html;
+                    
+                    const paginationContainer = document.querySelector('.pagination-container');
+                    if (data.pagination) {
+                        paginationContainer.style.display = 'flex';
+                        paginationContainer.innerHTML = data.pagination;
+                    } else {
+                        paginationContainer.style.display = 'none';
+                    }
+
+                    if (data.stats) {
+                        document.getElementById('stat-pending').textContent = data.stats.pending;
+                        document.getElementById('stat-rejected').textContent = data.stats.rejected;
+                        document.getElementById('stat-verified').textContent = data.stats.verified;
+                        document.getElementById('stat-total').textContent = data.stats.total;
+                    }
+
+                    window.history.pushState({}, '', url);
+                    initTooltips();
+                })
+                .catch(error => console.error('Error:', error))
+                .finally(() => {
+                    searchSpinner.style.display = 'none';
+                });
+            }
+        }
+    });
 
     // Search input event
     if (searchInput) {
@@ -350,9 +487,6 @@
     document.getElementById('filterSellerType')?.addEventListener('change', fetchResults);
 
     // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
+    initTooltips();
 </script>
 @endpush

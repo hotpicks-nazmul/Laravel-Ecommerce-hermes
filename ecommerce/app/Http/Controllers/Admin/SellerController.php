@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\SellerPayout;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class SellerController extends Controller
@@ -62,6 +62,11 @@ class SellerController extends Controller
                 'html' => view('admin.sellers.partials.table-rows', compact('sellers'))->render(),
                 'stats' => $stats,
                 'pagination' => $sellers->links()->toHtml(),
+                'pagination_info' => [
+                    'firstItem' => $sellers->firstItem(),
+                    'lastItem' => $sellers->lastItem(),
+                    'total' => $sellers->total(),
+                ],
             ]);
         }
 
@@ -121,7 +126,7 @@ class SellerController extends Controller
             'verification_status' => 'required|in:pending,verified,rejected',
         ]);
 
-        $seller = new User();
+        $seller = new User;
         $seller->name = $request->name;
         $seller->email = $request->email;
         $seller->phone = $request->phone;
@@ -151,7 +156,7 @@ class SellerController extends Controller
         // Handle shop logo upload
         if ($request->hasFile('shop_logo')) {
             $logo = $request->file('shop_logo');
-            $logoName = time() . '_' . $logo->getClientOriginalName();
+            $logoName = time().'_'.$logo->getClientOriginalName();
             $logo->move(public_path('uploads/shop_logos'), $logoName);
             $seller->shop_logo = $logoName;
         }
@@ -159,7 +164,7 @@ class SellerController extends Controller
         // Handle shop banner upload
         if ($request->hasFile('shop_banner')) {
             $banner = $request->file('shop_banner');
-            $bannerName = time() . '_' . $banner->getClientOriginalName();
+            $bannerName = time().'_'.$banner->getClientOriginalName();
             $banner->move(public_path('uploads/shop_banners'), $bannerName);
             $seller->shop_banner = $bannerName;
         }
@@ -209,6 +214,7 @@ class SellerController extends Controller
     public function edit($id)
     {
         $seller = User::sellers()->findOrFail($id);
+
         return view('admin.sellers.edit', compact('seller'));
     }
 
@@ -268,34 +274,34 @@ class SellerController extends Controller
         $seller->bank_account_name = $request->bank_account_name;
         $seller->bank_routing_code = $request->bank_routing_code;
         $seller->commission_rate = $request->commission_rate ?? 10.00;
-        
+
         if ($request->has('wallet_balance')) {
             $seller->wallet_balance = $request->wallet_balance;
         }
-        
+
         $seller->status = $request->status;
-        
+
         // Handle verification status changes
         $oldVerificationStatus = $seller->verification_status;
         $newVerificationStatus = $request->verification_status;
-        
+
         if ($newVerificationStatus === 'verified' && $oldVerificationStatus !== 'verified') {
             $seller->verified_at = now();
         } elseif ($newVerificationStatus !== 'verified') {
             $seller->verified_at = null;
         }
-        
+
         $seller->verification_status = $newVerificationStatus;
         $seller->verification_notes = $request->verification_notes;
 
         // Handle shop logo upload
         if ($request->hasFile('shop_logo')) {
             // Delete old logo
-            if ($seller->shop_logo && File::exists(public_path('uploads/shop_logos/' . $seller->shop_logo))) {
-                File::delete(public_path('uploads/shop_logos/' . $seller->shop_logo));
+            if ($seller->shop_logo && File::exists(public_path('uploads/shop_logos/'.$seller->shop_logo))) {
+                File::delete(public_path('uploads/shop_logos/'.$seller->shop_logo));
             }
             $logo = $request->file('shop_logo');
-            $logoName = time() . '_' . $logo->getClientOriginalName();
+            $logoName = time().'_'.$logo->getClientOriginalName();
             $logo->move(public_path('uploads/shop_logos'), $logoName);
             $seller->shop_logo = $logoName;
         }
@@ -303,11 +309,11 @@ class SellerController extends Controller
         // Handle shop banner upload
         if ($request->hasFile('shop_banner')) {
             // Delete old banner
-            if ($seller->shop_banner && File::exists(public_path('uploads/shop_banners/' . $seller->shop_banner))) {
-                File::delete(public_path('uploads/shop_banners/' . $seller->shop_banner));
+            if ($seller->shop_banner && File::exists(public_path('uploads/shop_banners/'.$seller->shop_banner))) {
+                File::delete(public_path('uploads/shop_banners/'.$seller->shop_banner));
             }
             $banner = $request->file('shop_banner');
-            $bannerName = time() . '_' . $banner->getClientOriginalName();
+            $bannerName = time().'_'.$banner->getClientOriginalName();
             $banner->move(public_path('uploads/shop_banners'), $bannerName);
             $seller->shop_banner = $bannerName;
         }
@@ -326,17 +332,17 @@ class SellerController extends Controller
         $seller = User::sellers()->findOrFail($id);
 
         // Delete associated files
-        if ($seller->shop_logo && File::exists(public_path('uploads/shop_logos/' . $seller->shop_logo))) {
-            File::delete(public_path('uploads/shop_logos/' . $seller->shop_logo));
+        if ($seller->shop_logo && File::exists(public_path('uploads/shop_logos/'.$seller->shop_logo))) {
+            File::delete(public_path('uploads/shop_logos/'.$seller->shop_logo));
         }
-        if ($seller->shop_banner && File::exists(public_path('uploads/shop_banners/' . $seller->shop_banner))) {
-            File::delete(public_path('uploads/shop_banners/' . $seller->shop_banner));
+        if ($seller->shop_banner && File::exists(public_path('uploads/shop_banners/'.$seller->shop_banner))) {
+            File::delete(public_path('uploads/shop_banners/'.$seller->shop_banner));
         }
 
         // Update products to remove seller association
         Product::where('seller_id', $seller->id)->update([
             'seller_id' => null,
-            'product_source' => 'in_house'
+            'product_source' => 'in_house',
         ]);
 
         $seller->delete();
@@ -351,7 +357,7 @@ class SellerController extends Controller
     public function approve(Request $request, $id)
     {
         $seller = User::sellers()->findOrFail($id);
-        
+
         $seller->verification_status = 'verified';
         $seller->verified_at = now();
         $seller->status = 'active';
@@ -371,7 +377,7 @@ class SellerController extends Controller
         ]);
 
         $seller = User::sellers()->findOrFail($id);
-        
+
         $seller->verification_status = 'rejected';
         $seller->verification_notes = $request->verification_notes;
         $seller->save();
@@ -386,7 +392,7 @@ class SellerController extends Controller
     public function suspend(Request $request, $id)
     {
         $seller = User::sellers()->findOrFail($id);
-        
+
         $seller->status = 'inactive';
         $seller->save();
 
@@ -400,7 +406,7 @@ class SellerController extends Controller
     public function activate($id)
     {
         $seller = User::sellers()->findOrFail($id);
-        
+
         $seller->status = 'active';
         $seller->save();
 
@@ -414,10 +420,10 @@ class SellerController extends Controller
     public function payouts(Request $request)
     {
         $stats = $this->getPayoutStats();
-        
+
         $query = SellerPayout::with('seller')
             ->select('seller_payouts.*');
-        
+
         // Search
         if ($request->search) {
             $search = $request->search;
@@ -427,17 +433,17 @@ class SellerController extends Controller
                     ->orWhere('shop_name', 'like', "%{$search}%");
             });
         }
-        
+
         // Filter by status
         if ($request->status) {
             $query->where('status', $request->status);
         }
-        
+
         // Filter by payment method
         if ($request->payment_method) {
             $query->where('payment_method', $request->payment_method);
         }
-        
+
         // Date range filter
         if ($request->date_from) {
             $query->whereDate('created_at', '>=', $request->date_from);
@@ -445,28 +451,29 @@ class SellerController extends Controller
         if ($request->date_to) {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
-        
+
         // Sort
         $sortBy = $request->sort_by ?? 'created_at';
         $sortOrder = $request->sort_order ?? 'desc';
         $query->orderBy($sortBy, $sortOrder);
-        
+
         // Paginate
         $perPage = $request->per_page ?? 25;
         $payouts = $query->paginate($perPage);
-        
+
         // AJAX response
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('admin.sellers.payouts.partials.table-rows', compact('payouts'))->render(),
                 'stats' => $stats,
                 'pagination' => $payouts->links()->toHtml(),
+                'pagination_info' => 'Showing '.$payouts->firstItem().' - '.$payouts->lastItem().' of '.$payouts->total().' payouts',
             ]);
         }
-        
+
         return view('admin.sellers.payouts.index', compact('payouts', 'stats'));
     }
-    
+
     /**
      * Get payout statistics.
      */
@@ -475,30 +482,32 @@ class SellerController extends Controller
         return [
             'total_payouts' => SellerPayout::count(),
             'total_amount' => SellerPayout::where('status', 'completed')->sum('amount'),
-            'pending' => SellerPayout::where('status', 'pending')->count(),
-            'pending_amount' => SellerPayout::where('status', 'pending')->sum('amount'),
+            'pending' => SellerPayout::whereIn('status', ['pending', 'approved'])->count(),
+            'pending_amount' => SellerPayout::whereIn('status', ['pending', 'approved'])->sum('amount'),
+            'pending_only' => SellerPayout::where('status', 'pending')->count(),
+            'approved' => SellerPayout::where('status', 'approved')->count(),
             'completed' => SellerPayout::where('status', 'completed')->count(),
             'rejected' => SellerPayout::where('status', 'rejected')->count(),
         ];
     }
-    
+
     /**
      * Display seller payout requests (pending payouts).
      */
     public function payoutRequests(Request $request)
     {
         $stats = $this->getPayoutStats();
-        
+
         $query = SellerPayout::with('seller')
             ->select('seller_payouts.*');
-        
+
         // Filter by status - default to pending
-        if ($request->status) {
-            $query->where('status', $request->status);
-        } else {
+        if ($request->status === 'pending_approved' || ! $request->status) {
             $query->whereIn('status', ['pending', 'approved']);
+        } elseif ($request->status) {
+            $query->where('status', $request->status);
         }
-        
+
         // Search
         if ($request->search) {
             $search = $request->search;
@@ -508,47 +517,48 @@ class SellerController extends Controller
                     ->orWhere('shop_name', 'like', "%{$search}%");
             });
         }
-        
+
         // Sort
         $sortBy = $request->sort_by ?? 'created_at';
         $sortOrder = $request->sort_order ?? 'desc';
         $query->orderBy($sortBy, $sortOrder);
-        
+
         // Paginate
         $perPage = $request->per_page ?? 25;
         $payouts = $query->paginate($perPage);
-        
+
         // AJAX response
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('admin.sellers.payouts.partials.request-rows', compact('payouts'))->render(),
                 'stats' => $stats,
                 'pagination' => $payouts->links()->toHtml(),
+                'pagination_info' => 'Showing '.$payouts->firstItem().' - '.$payouts->lastItem().' of '.$payouts->total().' requests',
             ]);
         }
-        
+
         return view('admin.sellers.payout-requests', compact('payouts', 'stats'));
     }
-    
+
     /**
      * Show create payout form for a seller.
      */
     public function createPayout(Request $request, $id)
     {
         $seller = User::sellers()->findOrFail($id);
-        
+
         return view('admin.sellers.payouts.create', compact('seller'));
     }
-    
+
     /**
      * Store a new payout for a seller.
      */
     public function storePayout(Request $request, $id)
     {
         $seller = User::sellers()->findOrFail($id);
-        
+
         $request->validate([
-            'amount' => 'required|numeric|min:1|max:' . ($seller->wallet_balance + $seller->pending_balance),
+            'amount' => 'required|numeric|min:1|max:'.($seller->wallet_balance + $seller->pending_balance),
             'payment_method' => 'required|in:bank_transfer,cash,mobile_banking,cheque,other',
             'transaction_id' => 'nullable|string|max:100',
             'bank_name' => 'nullable|string|max:255',
@@ -556,15 +566,15 @@ class SellerController extends Controller
             'account_name' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
         ]);
-        
+
         // Calculate commission
         $commissionRate = $seller->commission_rate ?? 10;
         $amount = $request->amount;
         $commission = ($amount * $commissionRate) / 100;
         $netAmount = $amount - $commission;
-        
+
         // Create payout record
-        $payout = new SellerPayout();
+        $payout = new SellerPayout;
         $payout->seller_id = $seller->id;
         $payout->amount = $amount;
         $payout->commission = $commission;
@@ -580,7 +590,7 @@ class SellerController extends Controller
         $payout->processed_at = now();
         $payout->approved_at = now();
         $payout->save();
-        
+
         // Deduct from seller's wallet
         if ($request->from_wallet) {
             $seller->wallet_balance = max(0, $seller->wallet_balance - $amount);
@@ -588,11 +598,11 @@ class SellerController extends Controller
             $seller->pending_balance = max(0, $seller->pending_balance - $amount);
         }
         $seller->save();
-        
+
         return redirect()->route('admin.sellers.payouts')
-            ->with('success', 'Payout of BDT ' . number_format($amount, 2) . ' processed successfully for ' . ($seller->shop_name ?? $seller->name));
+            ->with('success', 'Payout of BDT '.number_format($amount, 2).' processed successfully for '.($seller->shop_name ?? $seller->name));
     }
-    
+
     /**
      * Approve a payout request.
      */
@@ -602,10 +612,19 @@ class SellerController extends Controller
             'admin_notes' => 'nullable|string',
             'transaction_id' => 'nullable|string|max:100',
         ]);
-        
+
         $payout = SellerPayout::findOrFail($id);
         $seller = $payout->seller;
-        
+
+        if ($seller->pending_balance < $payout->amount) {
+            return redirect()->back()
+                ->with('error', 'Insufficient pending balance. Seller has BDT '.number_format($seller->pending_balance, 2).' but payout amount is BDT '.number_format($payout->amount, 2));
+        }
+
+        // Deduct from seller's pending balance
+        $seller->pending_balance = max(0, $seller->pending_balance - $payout->amount);
+        $seller->save();
+
         // Update payout status
         $payout->status = 'completed';
         $payout->admin_notes = $request->admin_notes;
@@ -614,11 +633,11 @@ class SellerController extends Controller
         $payout->processed_at = now();
         $payout->approved_at = now();
         $payout->save();
-        
+
         return redirect()->back()
             ->with('success', 'Payout approved and completed successfully.');
     }
-    
+
     /**
      * Reject a payout request.
      */
@@ -627,32 +646,32 @@ class SellerController extends Controller
         $request->validate([
             'admin_notes' => 'required|string',
         ]);
-        
+
         $payout = SellerPayout::findOrFail($id);
         $seller = $payout->seller;
-        
+
         // Update payout status
         $payout->status = 'rejected';
         $payout->admin_notes = $request->admin_notes;
         $payout->processed_by = auth()->id();
         $payout->rejected_at = now();
         $payout->save();
-        
+
         // Restore seller's balance
         $seller->pending_balance = $seller->pending_balance + $payout->amount;
         $seller->save();
-        
+
         return redirect()->back()
             ->with('success', 'Payout rejected. Seller balance has been restored.');
     }
-    
+
     /**
      * Show payout details.
      */
     public function showPayout($id)
     {
         $payout = SellerPayout::with('seller', 'processedBy')->findOrFail($id);
-        
+
         return view('admin.sellers.payouts.show', compact('payout'));
     }
 
@@ -663,21 +682,21 @@ class SellerController extends Controller
     {
         // Get default commission rate (from first seller or default)
         $defaultCommission = User::sellers()->avg('commission_rate') ?? 10.00;
-        
+
         // Build query
         $query = User::sellers()
             ->select('id', 'name', 'shop_name', 'email', 'commission_rate', 'wallet_balance', 'pending_balance', 'status');
-        
+
         // Search filter
         if ($request->search) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('shop_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('shop_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
-        
+
         // Commission range filter
         if ($request->commission_range) {
             $range = $request->commission_range;
@@ -685,17 +704,17 @@ class SellerController extends Controller
                 $query->where('commission_rate', '>=', 20);
             } elseif (strpos($range, '-') !== false) {
                 [$min, $max] = explode('-', $range);
-                $query->whereBetween('commission_rate', [(float)$min, (float)$max]);
+                $query->whereBetween('commission_rate', [(float) $min, (float) $max]);
             }
         }
-        
+
         // Status filter
         if ($request->status) {
             $query->where('status', $request->status);
         }
-        
+
         $sellers = $query->orderBy('shop_name')->paginate(20);
-        
+
         // Calculate stats
         $stats = [
             'total_sellers' => User::sellers()->count(),
@@ -720,9 +739,9 @@ class SellerController extends Controller
             $seller = User::sellers()->findOrFail($request->seller_id);
             $seller->commission_rate = $request->commission_rate;
             $seller->save();
-            
+
             return redirect()->route('admin.sellers.commission')
-                ->with('success', 'Commission rate updated for ' . ($seller->shop_name ?? $seller->name));
+                ->with('success', 'Commission rate updated for '.($seller->shop_name ?? $seller->name));
         }
 
         // Update all sellers (bulk)
@@ -739,13 +758,13 @@ class SellerController extends Controller
     {
         // Get statistics
         $stats = $this->getVerificationStats();
-        
+
         $query = User::sellers()->whereIn('verification_status', ['pending', 'rejected']);
 
         if ($request->verification_status) {
             $query->where('verification_status', $request->verification_status);
         }
-        
+
         // Filter by seller type
         if ($request->seller_type) {
             $query->where('seller_type', $request->seller_type);
@@ -765,16 +784,25 @@ class SellerController extends Controller
 
         $sellers = $query->orderBy('created_at', 'desc')->paginate(20);
 
+        // AJAX response
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('admin.sellers.partials.verification-rows', compact('sellers'))->render(),
+                'pagination' => $sellers->links()->toHtml(),
+                'stats' => $stats,
+            ]);
+        }
+
         return view('admin.sellers.verification', compact('sellers', 'stats'));
     }
-    
+
     /**
      * Get verification statistics.
      */
     protected function getVerificationStats()
     {
         $sellers = User::sellers();
-        
+
         return [
             'pending' => (clone $sellers)->where('verification_status', 'pending')->count(),
             'rejected' => (clone $sellers)->where('verification_status', 'rejected')->count(),
@@ -825,14 +853,14 @@ class SellerController extends Controller
         ]);
 
         User::sellers()->whereIn('id', $request->seller_ids)->update([
-            'status' => $request->status
+            'status' => $request->status,
         ]);
 
         $count = count($request->seller_ids);
-        
+
         return response()->json([
             'success' => true,
-            'message' => "{$count} seller(s) status updated to {$request->status}"
+            'message' => "{$count} seller(s) status updated to {$request->status}",
         ]);
     }
 
@@ -849,17 +877,17 @@ class SellerController extends Controller
 
         foreach ($sellers as $seller) {
             // Delete associated files
-            if ($seller->shop_logo && File::exists(public_path('uploads/shop_logos/' . $seller->shop_logo))) {
-                File::delete(public_path('uploads/shop_logos/' . $seller->shop_logo));
+            if ($seller->shop_logo && File::exists(public_path('uploads/shop_logos/'.$seller->shop_logo))) {
+                File::delete(public_path('uploads/shop_logos/'.$seller->shop_logo));
             }
-            if ($seller->shop_banner && File::exists(public_path('uploads/shop_banners/' . $seller->shop_banner))) {
-                File::delete(public_path('uploads/shop_banners/' . $seller->shop_banner));
+            if ($seller->shop_banner && File::exists(public_path('uploads/shop_banners/'.$seller->shop_banner))) {
+                File::delete(public_path('uploads/shop_banners/'.$seller->shop_banner));
             }
 
             // Update products
             Product::where('seller_id', $seller->id)->update([
                 'seller_id' => null,
-                'product_source' => 'in_house'
+                'product_source' => 'in_house',
             ]);
 
             $seller->delete();
@@ -869,7 +897,7 @@ class SellerController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "{$count} seller(s) deleted successfully"
+            'message' => "{$count} seller(s) deleted successfully",
         ]);
     }
 }

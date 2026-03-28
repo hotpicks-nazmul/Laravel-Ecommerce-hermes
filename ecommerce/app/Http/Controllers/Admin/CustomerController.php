@@ -5,23 +5,64 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Order;
 
 class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::where('role', 'customer');
+        $query = User::where('role', 'customer')
+            ->withCount('orders')
+            ->withSum('orders as total_spent', 'total');
 
         if ($request->search) {
-            $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', "%{$request->search}%")
-                  ->orWhere('email', 'like', "%{$request->search}%");
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
-        $customers = $query->latest()->paginate(15);
+        if ($request->status !== null && $request->status !== '') {
+            $query->where('status', $request->status);
+        }
 
-        return view('admin.customers.index', compact('customers'));
+        $sort = $request->sort ?? 'created_at';
+        $direction = $request->direction ?? 'desc';
+        $allowedSorts = ['name', 'email', 'orders_count', 'total_spent', 'created_at'];
+        
+        if (in_array($sort, $allowedSorts)) {
+            if ($sort === 'total_spent') {
+                $query->orderBySub(function ($q) {
+                    $q->selectRaw('COALESCE(SUM(`total`), 0)')
+                        ->from('orders')
+                        ->whereColumn('orders.user_id', 'users.id');
+                }, $direction);
+            } else {
+                $query->orderBy($sort, $direction);
+            }
+        }
+
+        $perPage = $request->per_page ?? 25;
+        $customers = $query->paginate($perPage);
+
+        $stats = [
+            'total' => User::where('role', 'customer')->count(),
+            'active' => User::where('role', 'customer')->where('status', 'active')->count(),
+            'inactive' => User::where('role', 'customer')->where('status', 'inactive')->count(),
+        ];
+
+        if ($request->ajax()) {
+            $html = view('admin.customers.partials.table-rows', compact('customers'))->render();
+            return response()->json([
+                'html' => $html,
+                'pagination' => $customers->links()->toHtml(),
+                'stats' => $stats,
+            ]);
+        }
+
+        return view('admin.customers.index', compact('customers', 'stats'));
     }
 
     public function show(User $customer)
@@ -36,10 +77,15 @@ class CustomerController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $customer->id,
             'phone' => 'nullable|string|max:20',
-            'is_active' => 'boolean',
+            'status' => 'nullable|string|in:active,inactive',
         ]);
 
-        $customer->update($request->all());
+        $data = $request->except(['status']);
+        if ($request->has('status')) {
+            $data['status'] = $request->status;
+        }
+
+        $customer->update($data);
 
         return back()->with('success', 'Customer updated successfully.');
     }
@@ -60,5 +106,53 @@ class CustomerController extends Controller
     {
         auth()->login($customer);
         return redirect()->route('home');
+    }
+
+    public function toggleStatus(User $customer)
+    {
+        $customer->status = $customer->status === 'active' ? 'inactive' : 'active';
+        $customer->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => $customer->status === 'active' ? 'Customer activated successfully.' : 'Customer deactivated successfully.',
+            'is_active' => $customer->status === 'active',
+        ]);
+    }
+
+    public function bulkAction(Request $request)
+    {
+        $request->validate([
+            'action' => 'required|string',
+            'ids' => 'required|json',
+        ]);
+
+        $action = $request->action;
+        $ids = json_decode($request->ids);
+
+        if (empty($ids)) {
+            return back()->with('error', 'No customers selected.');
+        }
+
+        $customers = User::where('role', 'customer')->whereIn('id', $ids);
+
+        switch ($action) {
+            case 'activate':
+                $customers->update(['status' => 'active']);
+                $message = count($ids) . ' customer(s) activated successfully.';
+                break;
+            case 'deactivate':
+                $customers->update(['status' => 'inactive']);
+                $message = count($ids) . ' customer(s) deactivated successfully.';
+                break;
+            case 'delete':
+                $customers->delete();
+                $message = count($ids) . ' customer(s) deleted successfully.';
+                break;
+            default:
+                return back()->with('error', 'Invalid action.');
+        }
+
+        return back()->with('success', $message);
     }
 }

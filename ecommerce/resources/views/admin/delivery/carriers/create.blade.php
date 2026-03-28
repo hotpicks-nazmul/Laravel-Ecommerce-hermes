@@ -20,6 +20,10 @@
         top: 5px;
         right: 5px;
     }
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
 </style>
 @endpush
 
@@ -400,7 +404,7 @@
                             <i class="bi bi-x-lg"></i>
                         </button>
                     </div>
-                    <input type="file" class="form-control @error('logo') is-invalid @enderror" id="logo" name="logo" accept="image/*" onchange="previewLogo(event)">
+                    <input type="file" class="form-control @error('logo') is-invalid @enderror" id="logo" name="logo" accept="image/*" onchange="previewLogo(event)" form="carrierForm">
                     @error('logo')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -448,15 +452,15 @@
             </div>
         </div>
         
-        <!-- Actions -->
-        <div class="d-grid gap-2">
-            <button type="submit" form="carrierForm" class="btn btn-primary">
-                <i class="bi bi-check-lg me-1"></i> Create Carrier
-            </button>
-            <a href="{{ route('admin.delivery.carriers.index') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-x-lg me-1"></i> Cancel
-            </a>
-        </div>
+        <!-- Floating Save Buttons -->
+<div class="floating-save-container">
+    <a href="{{ route('admin.delivery.carriers.index') }}" class="btn btn-secondary floating-reset-btn">
+        <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
+    <button type="submit" form="carrierForm" class="btn btn-primary floating-save-btn">
+        <i class="bi bi-check-lg me-1"></i> Create Carrier
+    </button>
+</div>
     </div>
 </div>
 

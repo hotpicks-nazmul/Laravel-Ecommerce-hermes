@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0"><i class="bi bi-person-plus me-2"></i>Edit Delivery Boy</h4>
+    <h4 class="mb-0"><i class="bi bi-person-check me-2"></i>Edit Delivery Boy</h4>
     <a href="{{ route('admin.delivery.delivery-boys.index') }}" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left me-1"></i> Back to Delivery Boys
     </a>
@@ -175,7 +175,7 @@
                     <div class="col-md-6 mb-3">
                         <label for="salary" class="form-label">Monthly Salary</label>
                         <div class="input-group">
-                            <span class="input-group-text">$</span>
+                            <span class="input-group-text">{{ config('app.currency_symbol', '৳') }}</span>
                             <input type="number" step="0.01" min="0" class="form-control @error('salary') is-invalid @enderror" id="salary" name="salary" value="{{ old('salary', $deliveryBoy->salary) }}" placeholder="0.00" form="deliveryBoyForm">
                         </div>
                         @error('salary')
@@ -365,6 +365,22 @@
 
 @push('scripts')
 <script>
+    // Auto-scroll to first error field
+    document.addEventListener('DOMContentLoaded', function() {
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+
     // Photo preview
     function previewPhoto(input) {
         const preview = document.getElementById('photoPreview');
@@ -386,4 +402,12 @@
         document.getElementById('photoPreview').style.display = 'none';
     }
 </script>
+@endpush
+
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
 @endpush

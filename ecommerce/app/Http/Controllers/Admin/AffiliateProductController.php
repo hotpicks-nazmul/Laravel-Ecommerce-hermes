@@ -16,9 +16,19 @@ class AffiliateProductController extends Controller
      * 
      * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
         $products = AffiliateProduct::with('category')
+            ->when($request->search, function($query) use ($request) {
+                $query->where('name', 'like', '%' . $request->search . '%')
+                      ->orWhere('description', 'like', '%' . $request->search . '%');
+            })
+            ->when($request->status, function($query) use ($request) {
+                $query->where('status', $request->status);
+            })
+            ->when($request->category, function($query) use ($request) {
+                $query->where('category_id', $request->category);
+            })
             ->orderBy('created_at', 'desc')
             ->paginate(15);
         

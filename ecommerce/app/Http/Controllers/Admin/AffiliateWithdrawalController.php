@@ -12,15 +12,26 @@ class AffiliateWithdrawalController extends Controller
     /**
      * Display list of affiliate withdrawals
      * 
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->get('search');
+        
         $withdrawals = AffiliateWithdrawal::with('affiliate.user')
+            ->when($search, function ($query) use ($search) {
+                $query->whereHas('affiliate.user', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                })
+                ->orWhere('id', 'like', "%{$search}%")
+                ->orWhere('amount', 'like', "%{$search}%");
+            })
             ->orderBy('created_at', 'desc')
             ->paginate(15);
         
-        return view('admin.affiliate.withdrawals.index', compact('withdrawals'));
+        return view('admin.affiliate.withdrawals.index', compact('withdrawals', 'search'));
     }
 
     /**
@@ -92,5 +103,55 @@ class AffiliateWithdrawalController extends Controller
         });
 
         return redirect()->back()->with('success', 'Withdrawal rejected successfully.');
+    }
+    
+    /**
+     * Bulk action on withdrawals
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function bulk(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'action' => 'required|string|in:approve,reject',
+        ]);
+        
+        $ids = json_decode($request->get('ids'), true);
+        $action = $request->get('action');
+        
+        $withdrawals = AffiliateWithdrawal::whereIn('id', $ids)->where('status', 'pending')->get();
+        
+        if ($withdrawals->isEmpty()) {
+            return redirect()->back()->with('error', 'No pending withdrawals selected.');
+        }
+        
+        \DB::transaction(function () use ($withdrawals, $action) {
+            foreach ($withdrawals as $withdrawal) {
+                if ($action === 'approve') {
+                    $withdrawal->update([
+                        'status' => 'approved',
+                        'processed_at' => now(),
+                    ]);
+                    $withdrawal->affiliate->decrement('balance', $withdrawal->amount);
+                } else {
+                    $withdrawal->update([
+                        'status' => 'rejected',
+                        'processed_at' => now(),
+                    ]);
+                    $affiliate = $withdrawal->affiliate;
+                    $affiliate->increment('balance', $withdrawal->amount);
+                    $affiliate->decrement('pending_balance', $withdrawal->amount);
+                }
+            }
+        });
+        
+        $count = $withdrawals->count();
+        $message = $action === 'approve' 
+            ? "{$count} withdrawal(s) approved successfully."
+            : "{$count} withdrawal(s) rejected successfully.";
+            
+        return redirect()->back()->with('success', $message);
     }
 }

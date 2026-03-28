@@ -63,8 +63,8 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="row mb-4 g-2">
+        <div class="col-md col-6 mb-2">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center py-3">
                     <div class="text-muted small text-uppercase">Total Shipments</div>
@@ -72,7 +72,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
+        <div class="col-md col-6 mb-2">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center py-3">
                     <div class="text-muted small text-uppercase">Pending</div>
@@ -80,7 +80,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
+        <div class="col-md col-6 mb-2">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center py-3">
                     <div class="text-muted small text-uppercase">In Transit</div>
@@ -88,7 +88,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
+        <div class="col-md col-6 mb-2">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center py-3">
                     <div class="text-muted small text-uppercase">Delivered</div>
@@ -96,7 +96,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
+        <div class="col-md col-6 mb-2">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center py-3">
                     <div class="text-muted small text-uppercase">Cancelled</div>
@@ -135,6 +135,17 @@
                             <option value="shipped" {{ request('status') == 'shipped' ? 'selected' : '' }}>Shipped</option>
                             <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
                             <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Carrier Filter -->
+                    <div class="col-lg-2 col-md-3 col-sm-6">
+                        <label class="form-label small text-muted">Carrier</label>
+                        <select name="carrier" id="filterCarrier" class="form-select form-select-sm">
+                            <option value="">All Carriers</option>
+                            @foreach($carriers ?? [] as $carrier)
+                                <option value="{{ $carrier->name }}" {{ request('carrier') == $carrier->name ? 'selected' : '' }}>{{ $carrier->name }}</option>
+                            @endforeach
                         </select>
                     </div>
                     
@@ -295,7 +306,7 @@
     }
 
     // Filter dropdowns trigger search on change
-    const filterSelects = ['filterStatus', 'filterPaymentStatus', 'filterDateRange'];
+    const filterSelects = ['filterStatus', 'filterPaymentStatus', 'filterDateRange', 'filterCarrier'];
     filterSelects.forEach(id => {
         const select = document.getElementById(id);
         if (select) {
@@ -314,6 +325,9 @@
         // Add filter values
         const status = document.getElementById('filterStatus').value;
         if (status && status !== 'all') params.set('status', status);
+        
+        const carrier = document.getElementById('filterCarrier').value;
+        if (carrier) params.set('carrier', carrier);
         
         const paymentStatus = document.getElementById('filterPaymentStatus').value;
         if (paymentStatus && paymentStatus !== 'all') params.set('payment_status', paymentStatus);
@@ -343,6 +357,11 @@
                 // Update URL without reload
                 const newUrl = `${window.location.pathname}?${params.toString()}`;
                 window.history.pushState({}, '', newUrl);
+            }
+            
+            // Update stats if provided
+            if (data.stats) {
+                updateStatsCards(data.stats);
             }
         })
         .catch(error => {
@@ -383,6 +402,26 @@
         document.getElementById('selectedCount').textContent = count;
         document.getElementById('bulkActionsBar').style.display = count > 0 ? 'block' : 'none';
     }
+    
+    // Update stats cards after AJAX filtering
+    function updateStatsCards(stats) {
+        if (stats.total !== undefined) {
+            document.querySelector('.text-primary').textContent = stats.total;
+        }
+        const statCards = document.querySelectorAll('.card-body .h4');
+        if (stats.pending !== undefined && statCards[1]) {
+            statCards[1].textContent = stats.pending;
+        }
+        if (stats.in_transit !== undefined && statCards[2]) {
+            statCards[2].textContent = stats.in_transit;
+        }
+        if (stats.delivered !== undefined && statCards[3]) {
+            statCards[3].textContent = stats.delivered;
+        }
+        if (stats.returned !== undefined && statCards[4]) {
+            statCards[4].textContent = stats.returned;
+        }
+    }
 
     function clearSelection() {
         selectedItems.clear();
@@ -393,7 +432,7 @@
         updateBulkActions();
     }
 
-    // Bulk action function
+    // Bulk action function - batch update
     function bulkStatusUpdate(status) {
         if (selectedItems.size === 0) {
             alert('Please select at least one shipment.');
@@ -402,22 +441,29 @@
         
         if (!confirm(`Are you sure you want to update ${selectedItems.size} shipment(s) to ${status}?`)) return;
         
-        // Update each selected item via AJAX
-        const promises = Array.from(selectedItems).map(id => {
-            return fetch(`/admin/delivery/tracking/${id}/update-status`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ status: status })
-            });
-        });
-        
-        Promise.all(promises).then(() => {
-            alert('Shipments updated successfully!');
-            clearSelection();
-            performLiveSearch(searchInput ? searchInput.value.trim() : '');
+        // Use batch API instead of individual calls
+        fetch('{{ route('admin.delivery.tracking.bulk-update-status') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ 
+                status: status,
+                ids: Array.from(selectedItems)
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                clearSelection();
+                performLiveSearch(searchInput ? searchInput.value.trim() : '');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to update shipments. Please try again.');
         });
     }
 

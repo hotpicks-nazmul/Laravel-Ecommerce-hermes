@@ -19,11 +19,31 @@ class AffiliateController extends Controller
      * 
      * @return \Illuminate\View\View
      */
-    public function users()
+    public function users(Request $request)
     {
-        $affiliates = Affiliate::with('user')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $query = Affiliate::with('user');
+        
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('affiliate_code', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+        
+        $affiliates = $query->orderBy('created_at', 'desc')->paginate(15);
+        
+        if ($request->ajax()) {
+            $html = view('admin.affiliate.users.partials.table-rows', compact('affiliates'))->render();
+            return response()->json(['html' => $html]);
+        }
         
         return view('admin.affiliate.users.index', compact('affiliates'));
     }
@@ -284,40 +304,97 @@ class AffiliateController extends Controller
     /**
      * Display affiliate reports
      * 
+     * @param Request $request
      * @return \Illuminate\View\View
      */
-    public function reports()
+    public function reports(Request $request)
     {
-        $stats = [
-            'total_affiliates' => Affiliate::count(),
-            'total_sales' => AffiliateSale::sum('sale_amount'),
-            'total_commissions' => AffiliateSale::sum('commission_amount'),
-            'total_clicks' => DB::table('affiliate_clicks')->count(),
-        ];
-
-        $affiliates = Affiliate::with('user')
+        $query = Affiliate::with('user')
             ->withCount(['clicks', 'sales'])
             ->withSum('sales as total_sales', 'sale_amount')
-            ->withSum('sales as total_commission', 'commission_amount')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
-
+            ->withSum('sales as total_commission', 'commission_amount');
+        
+        // Search by affiliate code or user name/email
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('affiliate_code', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        // Filter by status
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+        
+        // Sorting
+        $sort = $request->sort ?? 'created_at';
+        $direction = $request->direction ?? 'desc';
+        $query->orderBy($sort, $direction);
+        
+        $affiliates = $query->paginate(15);
+        
+        // Calculate stats based on filters
+        $statsQuery = Affiliate::query();
+        if ($request->search) {
+            $search = $request->search;
+            $statsQuery->where(function($q) use ($search) {
+                $q->where('affiliate_code', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+        if ($request->status) {
+            $statsQuery->where('status', $request->status);
+        }
+        
+        $stats = [
+            'total_affiliates' => $statsQuery->count(),
+            'total_sales' => (clone $statsQuery)->withSum('sales as total_sales', 'sale_amount')->get()->sum('total_sales') ?? 0,
+            'total_commissions' => (clone $statsQuery)->withSum('sales as total_commission', 'commission_amount')->get()->sum('total_commission') ?? 0,
+            'total_clicks' => (clone $statsQuery)->withCount('clicks')->get()->sum('clicks_count'),
+        ];
+        
+        // AJAX response for live search
+        if ($request->ajax()) {
+            $html = view('admin.affiliate.reports.partials.table-rows', compact('affiliates'))->render();
+            return response()->json([
+                'html' => $html,
+                'stats' => $stats
+            ]);
+        }
+        
         return view('admin.affiliate.reports', compact('stats', 'affiliates'));
     }
 
     /**
      * Export affiliate reports
      * 
+     * @param Request $request
      * @return \Symfony\Component\HttpFoundation\StreamedResponse
      */
     public function exportReports(Request $request)
     {
-        $affiliates = Affiliate::with('user')
+        $query = Affiliate::with('user')
             ->withCount(['clicks', 'sales'])
             ->withSum('sales as total_sales', 'sale_amount')
-            ->withSum('sales as total_commission', 'commission_amount')
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->withSum('sales as total_commission', 'commission_amount');
+        
+        // Handle bulk export with selected IDs
+        if ($request->has('ids')) {
+            $ids = $request->input('ids');
+            if (is_array($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+        
+        $affiliates = $query->orderBy('created_at', 'desc')->get();
 
         $csvData = "ID,User Name,User Email,Affiliate Code,Status,Commission Rate,Balance,Total Earnings,Total Clicks,Total Sales,Total Commission,Joined Date\n";
         

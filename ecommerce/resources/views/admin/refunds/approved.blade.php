@@ -9,8 +9,8 @@
 </div>
 
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+<div class="row g-2 mb-4" id="statsCards">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Total</div>
@@ -18,7 +18,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Pending</div>
@@ -26,7 +26,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Approved</div>
@@ -34,7 +34,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Rejected</div>
@@ -42,7 +42,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Processed</div>
@@ -58,7 +58,7 @@
         <form method="GET" id="filterForm">
             <div class="row g-2 align-items-end">
                 <!-- Search Input -->
-                <div class="col-lg-4 col-md-6 col-sm-6">
+                <div class="col-lg-3 col-md-4 col-sm-6">
                     <label class="form-label small text-muted">Search</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -70,6 +70,19 @@
                     </div>
                 </div>
                 
+                <!-- Reason Filter -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Reason</label>
+                    <select name="reason" id="filterReason" class="form-select form-select-sm">
+                        <option value="">All Reasons</option>
+                        @foreach(App\Models\Refund::getReasonOptions() as $value => $label)
+                            <option value="{{ $value }}" {{ request('reason') == $value ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <!-- Per Page -->
                 <div class="col-lg-2 col-md-3 col-sm-6">
                     <label class="form-label small text-muted">Per Page</label>
@@ -82,13 +95,35 @@
                 </div>
                 
                 <!-- Reset Button -->
-                <div class="col-lg-2 col-md-3 col-sm-8">
+                <div class="col-lg-2 col-md-4 col-sm-8">
                     <a href="{{ route('admin.refunds.approved') }}" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-x-lg me-1"></i> Reset
                     </a>
                 </div>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Bulk Actions Bar -->
+<div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
+    <div class="card-body py-2">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted"><span id="selectedCount">0</span> selected</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="clearSelection()">
+                    Clear Selection
+                </button>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-success" onclick="bulkAction('approve')">
+                    <i class="bi bi-check-circle me-1"></i> Approve
+                </button>
+                <button type="button" class="btn btn-sm btn-danger" onclick="bulkAction('reject')">
+                    <i class="bi bi-x-circle me-1"></i> Reject
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -99,14 +134,44 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 50px;">#</th>
-                        <th>Refund Details</th>
+                        <th style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
+                        </th>
+                        <th>
+                            <a href="{{ route('admin.refunds.approved', array_merge(request()->query(), ['sort' => 'refund_number', 'direction' => request('sort') == 'refund_number' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Refund Details
+                                @if(request('sort') == 'refund_number')
+                                    <i class="bi bi-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </a>
+                        </th>
                         <th>Order</th>
                         <th>Customer</th>
                         <th>Reason</th>
-                        <th class="text-end">Amount</th>
-                        <th>Status</th>
-                        <th>Date</th>
+                        <th class="text-end">
+                            <a href="{{ route('admin.refunds.approved', array_merge(request()->query(), ['sort' => 'refund_amount', 'direction' => request('sort') == 'refund_amount' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Amount
+                                @if(request('sort') == 'refund_amount')
+                                    <i class="bi bi-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ route('admin.refunds.approved', array_merge(request()->query(), ['sort' => 'status', 'direction' => request('sort') == 'status' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Status
+                                @if(request('sort') == 'status')
+                                    <i class="bi bi-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ route('admin.refunds.approved', array_merge(request()->query(), ['sort' => 'created_at', 'direction' => request('sort') == 'created_at' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Date
+                                @if(request('sort') == 'created_at')
+                                    <i class="bi bi-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </a>
+                        </th>
                         <th style="width: 120px;">Actions</th>
                     </tr>
                 </thead>
@@ -132,6 +197,91 @@
 
 @push('scripts')
 <script>
+    // Bulk selection
+    let selectedItems = new Set();
+
+    function updateBulkActions() {
+        const count = selectedItems.size;
+        const bulkBar = document.getElementById('bulkActionsBar');
+        if (bulkBar) {
+            const countSpan = document.getElementById('selectedCount');
+            if (countSpan) countSpan.textContent = count;
+            bulkBar.style.display = count > 0 ? 'block' : 'none';
+        }
+    }
+
+    function toggleSelection(refundId, checkbox) {
+        if (checkbox.checked) {
+            selectedItems.add(refundId);
+        } else {
+            selectedItems.delete(refundId);
+        }
+        updateBulkActions();
+    }
+
+    function clearSelection() {
+        selectedItems.clear();
+        document.querySelectorAll('.refund-checkbox').forEach(cb => cb.checked = false);
+        const selectAll = document.getElementById('selectAllCheckbox');
+        if (selectAll) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+        }
+        updateBulkActions();
+    }
+
+    function bulkAction(action) {
+        if (selectedItems.size === 0) {
+            alert('Please select at least one item.');
+            return;
+        }
+        
+        if (!confirm(`Are you sure you want to ${action} ${selectedItems.size} refund(s)?`)) return;
+        
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `{{ route('admin.refunds.bulk') }}`;
+        
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = action;
+        form.appendChild(actionInput);
+        
+        const idsInput = document.createElement('input');
+        idsInput.type = 'hidden';
+        idsInput.name = 'ids';
+        idsInput.value = JSON.stringify(Array.from(selectedItems));
+        form.appendChild(idsInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.refund-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = this.checked;
+                const refundId = cb.value;
+                if (this.checked) {
+                    selectedItems.add(refundId);
+                } else {
+                    selectedItems.delete(refundId);
+                }
+            });
+            updateBulkActions();
+        });
+    }
+
     // Debounced live search
     let searchTimeout;
     const searchInput = document.getElementById('liveSearch');
@@ -149,7 +299,7 @@
     }
 
     // Filter dropdowns trigger search on change
-    const filterSelects = ['filterPerPage'];
+    const filterSelects = ['filterReason', 'filterPerPage'];
     filterSelects.forEach(id => {
         const select = document.getElementById(id);
         if (select) {
@@ -164,6 +314,9 @@
         const params = new URLSearchParams();
         
         if (searchTerm) params.set('search', searchTerm);
+        
+        const reason = document.getElementById('filterReason')?.value;
+        if (reason) params.set('reason', reason);
         
         const perPage = document.getElementById('filterPerPage')?.value;
         if (perPage) params.set('per_page', perPage);
@@ -191,6 +344,58 @@
                         paginationContainer.innerHTML = data.pagination;
                     }
                 }
+                
+                // Update statistics cards
+                if (data.stats) {
+                    const statsContainer = document.querySelector('#statsCards');
+                    if (statsContainer) {
+                        statsContainer.innerHTML = `
+                            <div class="col-md col-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-muted small text-uppercase">Total</div>
+                                        <div class="h4 mb-0 text-primary">${data.stats.total ?? 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md col-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-muted small text-uppercase">Pending</div>
+                                        <div class="h4 mb-0 text-warning">${data.stats.pending ?? 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md col-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-muted small text-uppercase">Approved</div>
+                                        <div class="h4 mb-0 text-info">${data.stats.approved ?? 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md col-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-muted small text-uppercase">Rejected</div>
+                                        <div class="h4 mb-0 text-danger">${data.stats.rejected ?? 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md col-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-muted small text-uppercase">Processed</div>
+                                        <div class="h4 mb-0 text-success">${data.stats.processed ?? 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                // Reset bulk selection
+                clearSelection();
                 
                 const newUrl = `${window.location.pathname}?${params.toString()}`;
                 window.history.pushState({}, '', newUrl);

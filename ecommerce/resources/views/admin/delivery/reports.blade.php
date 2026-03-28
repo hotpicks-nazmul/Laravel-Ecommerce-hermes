@@ -2,50 +2,6 @@
 
 @section('title', 'Delivery Reports')
 
-@push('styles')
-<style>
-    .stat-card {
-        border: none;
-        border-radius: 12px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .stat-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    .stat-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
-    }
-    .chart-container {
-        position: relative;
-        height: 300px;
-    }
-    .table-card {
-        border: none;
-        border-radius: 12px;
-    }
-    .status-badge {
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-    .progress-thin {
-        height: 8px;
-        border-radius: 4px;
-    }
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-</style>
-@endpush
-
 @section('content')
 <div class="content-area">
     <!-- Header -->
@@ -294,9 +250,9 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>Name</th>
+                                    <th class="text-center">Zone</th>
                                     <th class="text-center">Deliveries</th>
                                     <th class="text-center">Success Rate</th>
-                                    <th class="text-center">Avg Hours</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -313,13 +269,15 @@
                                             </div>
                                         </div>
                                     </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">{{ $boy['zone_name'] ?? 'N/A' }}</span>
+                                    </td>
                                     <td class="text-center">{{ number_format($boy['total_deliveries']) }}</td>
                                     <td class="text-center">
                                         <span class="badge {{ $boy['success_rate'] >= 80 ? 'bg-success' : ($boy['success_rate'] >= 50 ? 'bg-warning' : 'bg-danger') }}">
                                             {{ $boy['success_rate'] }}%
                                         </span>
                                     </td>
-                                    <td class="text-center">{{ $boy['avg_delivery_hours'] }}h</td>
                                 </tr>
                                 @empty
                                 <tr>
@@ -346,9 +304,15 @@
                     <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Delivery Time Analysis</h6>
                 </div>
                 <div class="card-body">
+                    @if($deliveryTimeAnalysis['total_delivered'] == 0)
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-clock-history d-block mb-2" style="font-size: 2rem;"></i>
+                        No delivered orders in the selected period
+                    </div>
+                    @else
                     <div class="row text-center">
                         <div class="col-6 mb-3">
-                            <div class="h4 text-success mb-1">{{ $deliveryTimeAnalysis['avg_hours'] }}h</div>
+                            <div class="h4 text-success mb-1">{{ $deliveryTimeAnalysis['avg_hours'] > 0 ? $deliveryTimeAnalysis['avg_hours'] . 'h' : 'N/A' }}</div>
                             <small class="text-muted">Average Delivery Time</small>
                         </div>
                         <div class="col-6 mb-3">
@@ -390,6 +354,7 @@
                             <div class="progress-bar bg-danger" style="width: {{ $deliveryTimeAnalysis['over_72h_percent'] }}%"></div>
                         </div>
                     </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -490,6 +455,50 @@
     </div>
     @endif
 </div>
+
+@push('styles')
+<style>
+    .stat-card {
+        border: none;
+        border-radius: 12px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+    .table-card {
+        border: none;
+        border-radius: 12px;
+    }
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .progress-thin {
+        height: 8px;
+        border-radius: 4px;
+    }
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

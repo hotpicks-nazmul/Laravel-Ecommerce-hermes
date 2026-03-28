@@ -52,10 +52,16 @@
                     <i class="bi {{ $schedule->is_active ? 'bi-x-circle' : 'bi-check-circle' }}"></i>
                 </button>
             </form>
-            <button type="button" class="btn btn-sm btn-outline-danger" 
-                    onclick="deleteSchedule({{ $schedule->id }}, '{{ $schedule->name }}')" title="Delete">
+            <a href="{{ route('admin.delivery.schedules.destroy', $schedule->id) }}" 
+               class="btn btn-sm btn-outline-danger" 
+               title="Delete"
+               onclick="event.preventDefault(); if(confirm('Are you sure you want to delete &quot;{{ $schedule->name }}&quot;?')) { document.getElementById('delete-form-{{ $schedule->id }}').submit(); }">
                 <i class="bi bi-trash"></i>
-            </button>
+            </a>
+            <form id="delete-form-{{ $schedule->id }}" method="POST" action="{{ route('admin.delivery.schedules.destroy', $schedule->id) }}" style="display: none;">
+                @csrf
+                @method('DELETE')
+            </form>
         </div>
     </td>
 </tr>

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\CustomerGroup;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class CustomerGroupController extends Controller
@@ -63,7 +63,7 @@ class CustomerGroupController extends Controller
                 'html' => $html,
                 'stats' => $stats,
                 'pagination' => $customerGroups->links()->toHtml(),
-                'total' => $customerGroups->total()
+                'total' => $customerGroups->total(),
             ]);
         }
 
@@ -120,8 +120,8 @@ class CustomerGroupController extends Controller
     public function update(Request $request, CustomerGroup $customerGroup)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:customer_groups,name,' . $customerGroup->id,
-            'slug' => 'nullable|string|max:255|unique:customer_groups,slug,' . $customerGroup->id,
+            'name' => 'required|string|max:255|unique:customer_groups,name,'.$customerGroup->id,
+            'slug' => 'nullable|string|max:255|unique:customer_groups,slug,'.$customerGroup->id,
             'description' => 'nullable|string',
             'discount_percentage' => 'nullable|numeric|min:0|max:100',
             'sort_order' => 'nullable|integer|min:0',
@@ -150,6 +150,7 @@ class CustomerGroupController extends Controller
         // Check if group has customers
         if ($customerGroup->users()->count() > 0) {
             flash()->error('Cannot delete customer group with assigned customers. Please reassign customers first.');
+
             return back();
         }
 
@@ -166,7 +167,7 @@ class CustomerGroupController extends Controller
     public function toggleStatus(CustomerGroup $customerGroup)
     {
         $customerGroup->update([
-            'is_active' => !$customerGroup->is_active
+            'is_active' => ! $customerGroup->is_active,
         ]);
 
         $status = $customerGroup->is_active ? 'activated' : 'deactivated';

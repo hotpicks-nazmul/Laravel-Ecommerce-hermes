@@ -9,8 +9,8 @@
 </div>
 
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+<div class="row g-2 mb-4" id="statsCards">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Total</div>
@@ -18,7 +18,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Pending</div>
@@ -26,7 +26,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Approved</div>
@@ -34,7 +34,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Rejected</div>
@@ -42,7 +42,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Processed</div>
@@ -58,7 +58,7 @@
         <form method="GET" id="filterForm">
             <div class="row g-2 align-items-end">
                 <!-- Search Input -->
-                <div class="col-lg-4 col-md-6 col-sm-6">
+                <div class="col-lg-3 col-md-4 col-sm-6">
                     <label class="form-label small text-muted">Search</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -70,6 +70,19 @@
                     </div>
                 </div>
                 
+                <!-- Reason Filter -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Reason</label>
+                    <select name="reason" id="filterReason" class="form-select form-select-sm">
+                        <option value="">All Reasons</option>
+                        @foreach(App\Models\Refund::getReasonOptions() as $value => $label)
+                            <option value="{{ $value }}" {{ request('reason') == $value ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <!-- Per Page -->
                 <div class="col-lg-2 col-md-3 col-sm-6">
                     <label class="form-label small text-muted">Per Page</label>
@@ -82,7 +95,7 @@
                 </div>
                 
                 <!-- Reset Button -->
-                <div class="col-lg-2 col-md-3 col-sm-8">
+                <div class="col-lg-2 col-md-4 col-sm-8">
                     <a href="{{ route('admin.refunds.rejected') }}" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-x-lg me-1"></i> Reset
                     </a>
@@ -99,15 +112,45 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 50px;">#</th>
-                        <th>Refund Details</th>
+                        <th style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAllCheckbox" disabled>
+                        </th>
+                        <th>
+                            <a href="{{ route('admin.refunds.rejected', array_merge(request()->query(), ['sort' => 'refund_number', 'direction' => request('sort') == 'refund_number' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Refund Details
+                                @if(request('sort') == 'refund_number')
+                                    <i class="bi bi-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </a>
+                        </th>
                         <th>Order</th>
                         <th>Customer</th>
                         <th>Reason</th>
-                        <th class="text-end">Amount</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                        <th style="width: 80px;">Actions</th>
+                        <th class="text-end">
+                            <a href="{{ route('admin.refunds.rejected', array_merge(request()->query(), ['sort' => 'refund_amount', 'direction' => request('sort') == 'refund_amount' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Amount
+                                @if(request('sort') == 'refund_amount')
+                                    <i class="bi bi-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ route('admin.refunds.rejected', array_merge(request()->query(), ['sort' => 'status', 'direction' => request('sort') == 'status' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Status
+                                @if(request('sort') == 'status')
+                                    <i class="bi bi-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ route('admin.refunds.rejected', array_merge(request()->query(), ['sort' => 'created_at', 'direction' => request('sort') == 'created_at' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Date
+                                @if(request('sort') == 'created_at')
+                                    <i class="bi bi-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </a>
+                        </th>
+                        <th style="width: 120px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -149,7 +192,7 @@
     }
 
     // Filter dropdowns trigger search on change
-    const filterSelects = ['filterPerPage'];
+    const filterSelects = ['filterReason', 'filterPerPage'];
     filterSelects.forEach(id => {
         const select = document.getElementById(id);
         if (select) {
@@ -165,13 +208,19 @@
         
         if (searchTerm) params.set('search', searchTerm);
         
+        // Add filter values
+        const reason = document.getElementById('filterReason')?.value;
+        if (reason) params.set('reason', reason);
+        
         const perPage = document.getElementById('filterPerPage')?.value;
         if (perPage) params.set('per_page', perPage);
         
+        // Keep existing sort
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('sort')) params.set('sort', urlParams.get('sort'));
         if (urlParams.get('direction')) params.set('direction', urlParams.get('direction'));
         
+        // AJAX request
         fetch(`{{ route('admin.refunds.rejected') }}?${params.toString()}&ajax=1`, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
@@ -183,8 +232,10 @@
             if (searchSpinner) searchSpinner.style.display = 'none';
             
             if (data.html) {
+                // Update table body
                 document.querySelector('#tableBody').innerHTML = data.html;
                 
+                // Update pagination if needed
                 if (data.pagination) {
                     const paginationContainer = document.querySelector('.card-footer div:last-child');
                     if (paginationContainer) {
@@ -192,12 +243,64 @@
                     }
                 }
                 
+                // Update statistics cards
+                if (data.stats) {
+                    const statsContainer = document.querySelector('#statsCards');
+                    if (statsContainer) {
+                        statsContainer.innerHTML = `
+                            <div class="col-md col-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-muted small text-uppercase">Total</div>
+                                        <div class="h4 mb-0 text-primary">${data.stats.total ?? 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md col-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-muted small text-uppercase">Pending</div>
+                                        <div class="h4 mb-0 text-warning">${data.stats.pending ?? 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md col-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-muted small text-uppercase">Approved</div>
+                                        <div class="h4 mb-0 text-info">${data.stats.approved ?? 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md col-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-muted small text-uppercase">Rejected</div>
+                                        <div class="h4 mb-0 text-danger">${data.stats.rejected ?? 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md col-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-muted small text-uppercase">Processed</div>
+                                        <div class="h4 mb-0 text-success">${data.stats.processed ?? 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                // Update URL without reload
                 const newUrl = `${window.location.pathname}?${params.toString()}`;
                 window.history.pushState({}, '', newUrl);
             }
         })
         .catch(error => {
             if (searchSpinner) searchSpinner.style.display = 'none';
+            console.error('Search error:', error);
+            // Fallback to regular form submission
             document.getElementById('filterForm').submit();
         });
     }

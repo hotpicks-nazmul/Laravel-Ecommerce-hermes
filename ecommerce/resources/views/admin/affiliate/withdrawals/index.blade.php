@@ -3,34 +3,74 @@
 @section('title', 'Affiliate Withdrawals')
 
 @section('content')
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Affiliate Withdrawals</h1>
-    </div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Affiliate Withdrawals</h4>
+</div>
 
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
 
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
 
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">All Withdrawal Requests</h5>
+<!-- Filters Card -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-3">
+        <form method="GET" id="filterForm">
+            <div class="row g-2 align-items-end">
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <label class="form-label small text-muted">Search</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" id="liveSearch" class="form-control" placeholder="Search by name..." value="{{ $search ?? '' }}">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bulk Actions Bar -->
+<div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
+    <div class="card-body py-2">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted"><span id="selectedCount">0</span> selected</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="clearSelection()">
+                    Clear Selection
+                </button>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-success" onclick="bulkAction('approve')">
+                    <i class="bi bi-check-circle me-1"></i> Approve
+                </button>
+                <button type="button" class="btn btn-sm btn-danger" onclick="bulkAction('reject')">
+                    <i class="bi bi-x-circle me-1"></i> Reject
+                </button>
+            </div>
         </div>
-        <div class="card-body">
-            @if($withdrawals->count() > 0)
-            <table class="table table-striped" id="affiliateWithdrawalsTable">
-                <thead>
+    </div>
+</div>
+
+<!-- Table Card -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        @if($withdrawals->count() > 0)
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="affiliateWithdrawalsTable">
+                <thead class="table-light">
                     <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
+                        </th>
                         <th>ID</th>
                         <th>Affiliate</th>
                         <th>Amount</th>
@@ -38,12 +78,15 @@
                         <th>Account Details</th>
                         <th>Status</th>
                         <th>Requested At</th>
-                        <th>Actions</th>
+                        <th style="width: 120px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($withdrawals as $withdrawal)
                     <tr>
+                        <td>
+                            <input type="checkbox" class="form-check-input row-checkbox" value="{{ $withdrawal->id }}">
+                        </td>
                         <td>{{ $withdrawal->id }}</td>
                         <td>{{ $withdrawal->affiliate->user->name ?? '-' }}</td>
                         <td>${{ number_format($withdrawal->amount, 2) }}</td>
@@ -88,18 +131,31 @@
                     @endforeach
                 </tbody>
             </table>
-            
-            <div class="d-flex justify-content-center mt-4">
-                {{ $withdrawals->links() }}
-            </div>
-            @else
-            <div class="text-center py-5">
-                <i class="bi bi-wallet2 text-muted" style="font-size: 4rem;"></i>
-                <h5 class="mt-3 text-muted">No withdrawals found</h5>
-                <p class="text-muted">Withdrawal requests will appear here once affiliates request payouts.</p>
-            </div>
-            @endif
         </div>
+        
+        @if($withdrawals->hasPages())
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="text-muted small">
+                Showing {{ $withdrawals->firstItem() }} - {{ $withdrawals->lastItem() }} of {{ $withdrawals->total() }} withdrawals
+            </div>
+            <div>
+                {{ $withdrawals->appends(request()->query())->links() }}
+            </div>
+        </div>
+        @endif
+        @else
+        <table class="table table-hover align-middle mb-0">
+            <tbody>
+                <tr>
+                    <td colspan="9" class="text-center py-5">
+                        <i class="bi bi-wallet2 text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mb-2 mt-2">No withdrawals found</p>
+                        <p class="text-muted small">Withdrawal requests will appear here once affiliates request payouts.</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        @endif
     </div>
 </div>
 
@@ -124,13 +180,98 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
+        // Initialize DataTable
         $('#affiliateWithdrawalsTable').DataTable({
             pageLength: 15,
-            order: [[6, 'desc']],
+            order: [[7, 'desc']], // Sort by Requested At column
             columnDefs: [
-                { orderable: false, targets: [4, 7] }
+                { orderable: false, targets: [0, 5, 8] } // Checkbox, Account Details, Actions
             ]
         });
+        
+        // Live search with debounce
+        let searchTimeout;
+        $('#liveSearch').on('keyup', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                $('#filterForm').submit();
+            }, 300);
+        });
+        
+        // Handle select all checkbox
+        $('#selectAllCheckbox').on('change', function() {
+            $('.row-checkbox').prop('checked', $(this).prop('checked'));
+            updateBulkActionsBar();
+        });
+        
+        // Handle individual row checkbox
+        $(document).on('change', '.row-checkbox', function() {
+            updateBulkActionsBar();
+        });
+        
+        function updateBulkActionsBar() {
+            const selectedCount = $('.row-checkbox:checked').length;
+            if (selectedCount > 0) {
+                $('#bulkActionsBar').show();
+                $('#selectedCount').text(selectedCount);
+            } else {
+                $('#bulkActionsBar').hide();
+            }
+        }
+        
+        // Clear selection function
+        window.clearSelection = function() {
+            $('.row-checkbox').prop('checked', false);
+            $('#selectAllCheckbox').prop('checked', false);
+            $('#bulkActionsBar').hide();
+        };
+        
+        // Bulk action function
+        window.bulkAction = function(action) {
+            const selectedIds = $('.row-checkbox:checked').map(function() {
+                return $(this).val();
+            }).get();
+            
+            if (selectedIds.length === 0) {
+                alert('Please select at least one withdrawal');
+                return;
+            }
+            
+            const confirmMessage = action === 'approve' 
+                ? 'Are you sure you want to approve ' + selectedIds.length + ' withdrawal(s)?'
+                : 'Are you sure you want to reject ' + selectedIds.length + ' withdrawal(s)?';
+            
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+            
+            // Create and submit a form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route('admin.affiliate.withdrawals.bulk') }}';
+            
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = action;
+            form.appendChild(actionInput);
+            
+            const idsInput = document.createElement('input');
+            idsInput.type = 'hidden';
+            idsInput.name = 'ids';
+            idsInput.value = JSON.stringify(selectedIds);
+            form.appendChild(idsInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        };
     });
 </script>
 @endpush

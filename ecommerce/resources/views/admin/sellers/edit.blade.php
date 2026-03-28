@@ -2,21 +2,6 @@
 
 @section('title', 'Edit Seller')
 
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-    .current-logo, .current-banner {
-        max-width: 150px;
-        max-height: 150px;
-        object-fit: contain;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-    }
-</style>
-@endpush
-
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0">Edit Seller</h4>
@@ -377,3 +362,18 @@
     </button>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+    .current-logo, .current-banner {
+        max-width: 150px;
+        max-height: 150px;
+        object-fit: contain;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+    }
+</style>
+@endpush

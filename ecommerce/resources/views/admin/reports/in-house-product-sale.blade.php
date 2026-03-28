@@ -112,6 +112,19 @@
                            value="{{ $endDate }}">
                 </div>
                 
+                <!-- Category Filter -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Category</label>
+                    <select name="category" class="form-select form-select-sm">
+                        <option value="">All Categories</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ $categoryId == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                
                 <!-- Sort By -->
                 <div class="col-lg-2 col-md-3 col-sm-6">
                     <label class="form-label small text-muted">Sort By</label>
@@ -253,10 +266,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     searchSpinner.style.display = 'none';
                 }
                 // Auto-submit form on search
-                // filterForm.submit();
+                filterForm.submit();
             }, 500);
         });
     }
+    
+    // Filter dropdown changes trigger auto-submit
+    const filterSelects = filterForm.querySelectorAll('select[name="category"], select[name="sort"]');
+    filterSelects.forEach(function(select) {
+        select.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    });
+    
+    // Date inputs trigger auto-submit on change
+    const dateInputs = filterForm.querySelectorAll('input[type="date"]');
+    dateInputs.forEach(function(input) {
+        input.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    });
     
     // Quick date presets
     document.querySelectorAll('.date-preset').forEach(function(btn) {

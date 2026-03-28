@@ -4,8 +4,8 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 col-sm-6 mb-3">
+<div class="row g-2 mb-4">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Total Groups</div>
@@ -13,7 +13,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Active</div>
@@ -21,7 +21,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Inactive</div>
@@ -29,7 +29,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
+    <div class="col-md col-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">With Discount</div>
@@ -53,7 +53,7 @@
         <form method="GET" id="filterForm">
             <div class="row g-2 align-items-end">
                 <!-- Search -->
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-3 col-md-4 col-sm-6">
                     <label class="form-label small text-muted">Search</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -76,6 +76,17 @@
                     </select>
                 </div>
 
+                <!-- Sort -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Sort By</label>
+                    <select name="sort" id="filterSort" class="form-select form-select-sm">
+                        <option value="sort_order" {{ request('sort', 'sort_order') == 'sort_order' ? 'selected' : '' }}>Sort Order</option>
+                        <option value="name" {{ request('sort') == 'name' ? 'selected' : '' }}>Name</option>
+                        <option value="discount_percentage" {{ request('sort') == 'discount_percentage' ? 'selected' : '' }}>Discount</option>
+                        <option value="created_at" {{ request('sort') == 'created_at' ? 'selected' : '' }}>Created</option>
+                    </select>
+                </div>
+
                 <!-- Per Page -->
                 <div class="col-lg-2 col-md-3 col-sm-6">
                     <label class="form-label small text-muted">Per Page</label>
@@ -88,7 +99,7 @@
                 </div>
 
                 <!-- Reset Button -->
-                <div class="col-lg-2 col-md-3 col-sm-6">
+                <div class="col-lg-1 col-md-3 col-sm-6">
                     <a href="{{ route('admin.customers.groups.index') }}" class="btn btn-outline-secondary btn-sm w-100">
                         <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
                     </a>
@@ -165,16 +176,25 @@
                 document.getElementById('stat-inactive').textContent = data.stats.inactive;
                 document.getElementById('stat-with-discount').textContent = data.stats.with_discount;
                 
-                // Update pagination
+                // Update pagination with dynamic values
                 const paginationContainer = document.querySelector('.card-footer');
+                const perPage = new URLSearchParams(formData).get('per_page') || 25;
+                const currentPage = new URLSearchParams(formData).get('page') || 1;
+                const from = (currentPage - 1) * perPage + 1;
+                const to = Math.min(currentPage * perPage, data.total);
+                
                 if (paginationContainer) {
                     paginationContainer.innerHTML = `
                         <div class="text-muted small">
-                            Showing ${data.total > 0 ? '{{ $customerGroups->firstItem() }}' : 0} - ${data.total > 0 ? '{{ $customerGroups->lastItem() }}' : 0} of ${data.total} groups
+                            Showing ${data.total > 0 ? from : 0} - ${data.total > 0 ? to : 0} of ${data.total} groups
                         </div>
                         <div>${data.pagination}</div>
                     `;
                 }
+                
+                // Update URL without reload
+                const newUrl = window.location.pathname + '?' + params.toString();
+                window.history.pushState({}, '', newUrl);
             })
             .catch(error => console.error('Error:', error))
             .finally(() => {
@@ -190,6 +210,7 @@
 
     // Filter change events
     document.getElementById('filterStatus')?.addEventListener('change', fetchResults);
+    document.getElementById('filterSort')?.addEventListener('change', fetchResults);
     document.getElementById('perPage')?.addEventListener('change', () => {
         filterForm.submit();
     });

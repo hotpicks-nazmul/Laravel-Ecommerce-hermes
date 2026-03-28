@@ -3,8 +3,8 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0">Refund Details</h4>
-    <a href="{{ URL::previous() }}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> Back
+    <a href="{{ route('admin.refunds.requests') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to Requests
     </a>
 </div>
 

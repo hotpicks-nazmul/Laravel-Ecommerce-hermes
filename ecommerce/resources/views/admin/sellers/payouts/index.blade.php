@@ -11,12 +11,12 @@
 </div>
 
 <!-- Statistics Cards -->
-<div class="row mb-4">
+<div class="row mb-4" id="statsCards">
     <div class="col-md-2 col-sm-4 col-6 mb-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Total Payouts</div>
-                <div class="h4 mb-0 text-primary">{{ $stats['total_payouts'] ?? 0 }}</div>
+                <div class="h4 mb-0 text-primary" id="statTotalPayouts">{{ $stats['total_payouts'] ?? 0 }}</div>
             </div>
         </div>
     </div>
@@ -24,7 +24,7 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Total Amount</div>
-                <div class="h4 mb-0 text-success">৳{{ number_format($stats['total_amount'] ?? 0, 2) }}</div>
+                <div class="h4 mb-0 text-success" id="statTotalAmount">৳{{ number_format($stats['total_amount'] ?? 0, 2) }}</div>
             </div>
         </div>
     </div>
@@ -32,7 +32,7 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Pending</div>
-                <div class="h4 mb-0 text-warning">{{ $stats['pending'] ?? 0 }}</div>
+                <div class="h4 mb-0 text-warning" id="statPending">{{ $stats['pending'] ?? 0 }}</div>
             </div>
         </div>
     </div>
@@ -40,7 +40,7 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Pending Amount</div>
-                <div class="h4 mb-0 text-warning">৳{{ number_format($stats['pending_amount'] ?? 0, 2) }}</div>
+                <div class="h4 mb-0 text-warning" id="statPendingAmount">৳{{ number_format($stats['pending_amount'] ?? 0, 2) }}</div>
             </div>
         </div>
     </div>
@@ -48,7 +48,7 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Completed</div>
-                <div class="h4 mb-0 text-success">{{ $stats['completed'] ?? 0 }}</div>
+                <div class="h4 mb-0 text-success" id="statCompleted">{{ $stats['completed'] ?? 0 }}</div>
             </div>
         </div>
     </div>
@@ -56,7 +56,7 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Rejected</div>
-                <div class="h4 mb-0 text-danger">{{ $stats['rejected'] ?? 0 }}</div>
+                <div class="h4 mb-0 text-danger" id="statRejected">{{ $stats['rejected'] ?? 0 }}</div>
             </div>
         </div>
     </div>
@@ -153,11 +153,11 @@
         
         <!-- Pagination inside card-body -->
         @if($payouts->hasPages())
-        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div class="text-muted small">
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2" id="paginationFooter">
+            <div class="text-muted small" id="paginationInfo">
                 Showing {{ $payouts->firstItem() }} - {{ $payouts->lastItem() }} of {{ $payouts->total() }} payouts
             </div>
-            <div>
+            <div id="paginationLinks">
                 {{ $payouts->appends(request()->query())->links() }}
             </div>
         </div>
@@ -244,6 +244,16 @@
             if (data.html) {
                 // Update table body
                 document.querySelector('#tableBody').innerHTML = data.html;
+                
+                // Update pagination info
+                if (data.pagination_info) {
+                    document.getElementById('paginationInfo').innerHTML = data.pagination_info;
+                }
+                
+                // Update pagination links
+                if (data.pagination) {
+                    document.getElementById('paginationLinks').innerHTML = data.pagination;
+                }
                 
                 // Update URL without reload
                 const newUrl = `${window.location.pathname}?${params.toString()}`;

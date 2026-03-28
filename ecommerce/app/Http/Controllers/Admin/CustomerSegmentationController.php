@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\CustomerGroup;
 use App\Models\CustomerSegment;
 use App\Models\User;
-use App\Models\CustomerGroup;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class CustomerSegmentationController extends Controller
 {
@@ -46,7 +45,7 @@ class CustomerSegmentationController extends Controller
     public function create()
     {
         $customerGroups = CustomerGroup::where('is_active', true)->get();
-        
+
         return view('admin.customers.segmentation.create', compact('customerGroups'));
     }
 
@@ -123,7 +122,7 @@ class CustomerSegmentationController extends Controller
         $segment->updateCustomerCount();
 
         return redirect()->route('admin.customers.segmentation.index')
-            ->with('success', 'Segment "' . $segment->name . '" created successfully with ' . $segment->customer_count . ' customers.');
+            ->with('success', 'Segment "'.$segment->name.'" created successfully with '.$segment->customer_count.' customers.');
     }
 
     /**
@@ -132,7 +131,7 @@ class CustomerSegmentationController extends Controller
     public function show(CustomerSegment $segment)
     {
         $segment->load('creator');
-        
+
         // Get customers in this segment
         $customers = User::where('role', 'customer')
             ->whereHas('customerSegments', function ($q) use ($segment) {
@@ -150,7 +149,7 @@ class CustomerSegmentationController extends Controller
     public function edit(CustomerSegment $segment)
     {
         $customerGroups = CustomerGroup::where('is_active', true)->get();
-        
+
         return view('admin.customers.segmentation.edit', compact('segment', 'customerGroups'));
     }
 
@@ -160,7 +159,7 @@ class CustomerSegmentationController extends Controller
     public function update(Request $request, CustomerSegment $segment)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:customer_segments,name,' . $segment->id,
+            'name' => 'required|string|max:255|unique:customer_segments,name,'.$segment->id,
             'description' => 'nullable|string|max:1000',
             'conditions' => 'required|array|min:1',
             'is_active' => 'boolean',
@@ -226,7 +225,7 @@ class CustomerSegmentationController extends Controller
         $segment->updateCustomerCount();
 
         return redirect()->route('admin.customers.segmentation.index')
-            ->with('success', 'Segment "' . $segment->name . '" updated successfully. Now includes ' . $segment->customer_count . ' customers.');
+            ->with('success', 'Segment "'.$segment->name.'" updated successfully. Now includes '.$segment->customer_count.' customers.');
     }
 
     /**
@@ -245,11 +244,11 @@ class CustomerSegmentationController extends Controller
      */
     public function toggleStatus(CustomerSegment $segment)
     {
-        $segment->update(['is_active' => !$segment->is_active]);
+        $segment->update(['is_active' => ! $segment->is_active]);
 
         $status = $segment->is_active ? 'activated' : 'deactivated';
-        
-        return back()->with('success', 'Segment ' . $status . ' successfully.');
+
+        return back()->with('success', 'Segment '.$status.' successfully.');
     }
 
     /**
@@ -301,7 +300,7 @@ class CustomerSegmentationController extends Controller
 
         // Create temporary segment to use its applyConditions method
         $tempSegment = new CustomerSegment(['conditions' => $conditions]);
-        
+
         // Get matching customers with pagination
         $customers = $tempSegment->applyConditions()
             ->select('users.id', 'users.name', 'users.email', 'users.phone', 'users.created_at')
@@ -315,7 +314,7 @@ class CustomerSegmentationController extends Controller
                 'last_page' => $customers->lastPage(),
                 'per_page' => $customers->perPage(),
                 'total' => $customers->total(),
-            ]
+            ],
         ]);
     }
 
@@ -325,25 +324,25 @@ class CustomerSegmentationController extends Controller
     public function export(CustomerSegment $segment)
     {
         $customers = $segment->applyConditions()->get();
-        
-        $filename = 'segment_' . $segment->id . '_' . date('Y-m-d') . '.csv';
-        
+
+        $filename = 'segment_'.$segment->id.'_'.date('Y-m-d').'.csv';
+
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ];
 
-        $callback = function() use ($customers) {
+        $callback = function () use ($customers) {
             $file = fopen('php://output', 'w');
-            
+
             // Header row
             fputcsv($file, ['ID', 'Name', 'Email', 'Phone', 'Customer Group', 'Registration Date', 'Total Orders', 'Total Spent']);
-            
+
             foreach ($customers as $customer) {
                 $ordersCount = $customer->orders()->count();
                 $totalSpent = $customer->orders()->sum('grand_total');
                 $groupName = $customer->customerGroup ? $customer->customerGroup->name : 'N/A';
-                
+
                 fputcsv($file, [
                     $customer->id,
                     $customer->name,
@@ -352,10 +351,10 @@ class CustomerSegmentationController extends Controller
                     $groupName,
                     $customer->created_at->format('Y-m-d'),
                     $ordersCount,
-                    number_format($totalSpent, 2)
+                    number_format($totalSpent, 2),
                 ]);
             }
-            
+
             fclose($file);
         };
 

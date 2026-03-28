@@ -120,7 +120,12 @@ class DeliveryBoy extends Model
     public function getPhotoUrlAttribute()
     {
         if ($this->photo) {
-            return asset('storage/' . $this->photo);
+            // Check if it's already a full URL (from ImageHelper)
+            if (str_starts_with($this->photo, 'http')) {
+                return $this->photo;
+            }
+            // Otherwise, it's a filename in the delivery-boys directory
+            return asset('storage/delivery-boys/' . $this->photo);
         }
         return asset('images/default-delivery-boy.png');
     }

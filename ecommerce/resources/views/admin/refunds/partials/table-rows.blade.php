@@ -1,7 +1,11 @@
 @forelse($refunds as $refund)
 <tr>
-    <td>
-        <span class="text-muted">{{ $loop->iteration + ($refunds->currentPage() - 1) * $refunds->perPage() }}</span>
+    <td style="width: 40px;">
+        @if(in_array($refund->status, ['pending', 'approved']))
+        <input type="checkbox" class="form-check-input refund-checkbox" value="{{ $refund->id }}" onchange="toggleSelection('{{ $refund->id }}', this)">
+        @else
+        <span class="text-muted">-</span>
+        @endif
     </td>
     <td>
         <div class="fw-medium">{{ $refund->refund_number }}</div>
@@ -60,8 +64,8 @@
             @endif
         </div>
 
-        <!-- Approve Modal -->
         @if($refund->status === 'pending')
+        <!-- Approve Modal -->
         <div class="modal fade" id="approveModal{{ $refund->id }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
                 <form action="{{ route('admin.refunds.approve', $refund->id) }}" method="POST">
@@ -86,8 +90,8 @@
                                 </div>
                             </div>
                             <div class="mt-3">
-                                <label for="admin_note" class="form-label">Note (Optional)</label>
-                                <textarea name="admin_note" id="admin_note" class="form-control" rows="2" 
+                                <label for="approve_note_{{ $refund->id }}" class="form-label">Note (Optional)</label>
+                                <textarea name="admin_note" id="approve_note_{{ $refund->id }}" class="form-control" rows="2" 
                                           placeholder="Add a note about this approval..."></textarea>
                             </div>
                         </div>
@@ -127,8 +131,8 @@
                                 </div>
                             </div>
                             <div class="mt-3">
-                                <label for="admin_note" class="form-label">Reason for Rejection <span class="text-danger">*</span></label>
-                                <textarea name="admin_note" id="admin_note" class="form-control" rows="3" 
+                                <label for="reject_note_{{ $refund->id }}" class="form-label">Reason for Rejection <span class="text-danger">*</span></label>
+                                <textarea name="admin_note" id="reject_note_{{ $refund->id }}" class="form-control" rows="3" 
                                           placeholder="Explain why this refund is being rejected..." required></textarea>
                             </div>
                         </div>
@@ -144,8 +148,8 @@
         </div>
         @endif
 
-        <!-- Process Modal -->
         @if($refund->status === 'approved')
+        <!-- Process Modal -->
         <div class="modal fade" id="processModal{{ $refund->id }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
                 <form action="{{ route('admin.refunds.process', $refund->id) }}" method="POST">
@@ -170,8 +174,8 @@
                                 </div>
                             </div>
                             <div class="mt-3">
-                                <label for="admin_note" class="form-label">Additional Note (Optional)</label>
-                                <textarea name="admin_note" id="admin_note" class="form-control" rows="2" 
+                                <label for="process_note_{{ $refund->id }}" class="form-label">Additional Note (Optional)</label>
+                                <textarea name="admin_note" id="process_note_{{ $refund->id }}" class="form-control" rows="2" 
                                           placeholder="Add any additional notes..."></textarea>
                             </div>
                         </div>

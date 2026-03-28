@@ -15,11 +15,25 @@ class AffiliateLinkController extends Controller
      * 
      * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        $links = AffiliateLink::with(['affiliate.user', 'product'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $query = AffiliateLink::with(['affiliate.user', 'product']);
+        
+        // Search functionality
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', "%{$request->search}%")
+                  ->orWhere('affiliate_code', 'like', "%{$request->search}%")
+                  ->orWhere('description', 'like', "%{$request->search}%");
+            });
+        }
+        
+        // Status filter
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+        
+        $links = $query->orderBy('created_at', 'desc')->paginate(15);
         
         return view('admin.affiliate.links.index', compact('links'));
     }

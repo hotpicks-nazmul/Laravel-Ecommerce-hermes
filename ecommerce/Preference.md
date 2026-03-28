@@ -13,7 +13,7 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 5. **Form Controls** - Required fields, help text, validation errors
 6. **Search & Filter Functionality** - Live search, filters, AJAX updates
 7. **Bulk Actions** - Selection management and bulk operations
-8. **Statistics Cards** - Full-width centered cards with icon backgrounds
+8. **Statistics Cards** - Full-width centered cards and compact card style
 9. **Important Implementation Rule** - Admin Panel + Frontend Integration Rule
 10. **Route Conflict Prevention** - Avoid placeholder routes conflicting with actual implementations
 11. **Sidebar Navigation State** - Keep menu expanded when child item is active
@@ -26,6 +26,7 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 18. **Bootstrap Modal Popup** - Reusable modal for showing messages/info without page reload
 19. **Form Validation Errors** - Input field tooltips with auto-scroll and modal for non-input errors
 20. **Image Upload Functionality** - Complete solution for uploading and processing images in admin panel
+21. **Content Area & Extra Padding** - Fix for double padding/wrappers in admin pages
 
 ---
 
@@ -997,6 +998,71 @@ This style displays cards that cover the full width of the container with center
     </div>
 </div>
 ```
+
+### Compact Card Style
+
+For a simpler, more compact stats card layout without custom CSS, use standard Bootstrap cards:
+
+```html
+<!-- Statistics Cards - Compact Style -->
+<div class="row g-2 mb-4">
+    <div class="col-md col-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">Total Shipments</div>
+                <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md col-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">Pending</div>
+                <div class="h4 mb-0 text-warning">{{ $stats['pending'] ?? 0 }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md col-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">In Transit</div>
+                <div class="h4 mb-0 text-primary">{{ $stats['in_transit'] ?? 0 }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md col-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">Delivered</div>
+                <div class="h4 mb-0 text-success">{{ $stats['delivered'] ?? 0 }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md col-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">Cancelled</div>
+                <div class="h4 mb-0 text-danger">{{ $stats['returned'] ?? 0 }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+### Key Points for Statistics Cards
+
+| Feature | Full-Width Style | Compact Style |
+|---------|-----------------|--------------|
+| **Column Class** | `col` (equal width) | `col-md col-6` |
+| **Custom CSS** | Required | Not required |
+| **Responsive** | Auto-adjusts | Mobile: 2 columns |
+| **Icon** | With icon backgrounds | Simple text only |
+| **Gap** | `g-3` | `g-2` |
+
+### When to Use Each Style
+
+- **Full-Width Style**: Use when you want visually prominent cards with icons and hover effects
+- **Compact Style**: Use for simpler pages or when you want to avoid custom CSS
 
 ### CSS Styles
 
@@ -2023,6 +2089,106 @@ Schema::create('products', function (Blueprint $table) {
 5. **Quality tradeoff** - Higher quality (90+) = larger file size, Lower (70-) = more compression
 6. **Max file size** - Validation should allow up to 5MB (5120KB) for high-quality images
 7. **Storage directory** - Use descriptive directory names (e.g., `products`, `categories`, `brands`)
+
+---
+
+## 21. Content Area & Extra Padding
+
+### Problem
+
+Admin pages may display with extra padding, margin, or double-wrapped content areas, causing inconsistent layout compared to other admin pages like Customer Segmentation.
+
+**Common symptoms:**
+- Content appears lower than other pages
+- Double padding on top/bottom
+- Extra spacing around content
+- Inconsistent spacing compared to Customer Segmentation page
+
+### Root Cause
+
+The issue occurs when pages include unnecessary wrappers that conflict with the layout's existing structure:
+
+1. **Duplicate content-area wrapper** - Adding `<div class="content-area">` when the layout already provides it
+2. **Extra container-fluid wrapper** - Adding `<div class="container-fluid">` unnecessarily
+3. **Extra padding classes** - Adding `pt-4` or similar padding classes
+4. **Unnecessary custom CSS** - Adding `padding-bottom: 100px` without floating buttons
+
+### Solution
+
+The admin layout (`admin/layouts/app.blade.php`) already wraps content with:
+```html
+<div class="content-area">
+    @yield('content')
+</div>
+```
+
+And provides `padding: 20px` via CSS to `.content-area`.
+
+**Correct Page Structure:**
+
+```html
+@extends('admin.layouts.app')
+
+@section('content')
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Page Title</h4>
+    <a href="..." class="btn btn-primary">Add New</a>
+</div>
+
+<!-- Content -->
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Cards -->
+    </div>
+</div>
+@endsection
+```
+
+### What NOT to Do
+
+```html
+<!-- WRONG - Don't add these -->
+@section('content')
+<div class="content-area">           <!-- Layout already provides this -->
+    <div class="container-fluid pt-4">  <!-- Extra wrapper + padding -->
+        <!-- Content -->
+    </div>
+</div>
+@endsection
+
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px;    /* Only needed if floating buttons exist */
+    }
+</style>
+@endpush
+```
+
+### When to Use Custom Padding
+
+Only add `padding-bottom: 100px` via `@push('styles')` when the page has **floating save buttons**:
+```html
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px;
+    }
+</style>
+@endpush
+```
+
+Note: The layout automatically adds `has-floating-save` class when `floating-save-container` is detected.
+
+### Key Points
+
+| Element | Correct Usage |
+|---------|---------------|
+| `.content-area` | Don't add - layout provides it |
+| `.container-fluid` | Don't add - not needed |
+| `pt-4` / `mt-4` | Don't add - layout provides spacing |
+| `padding-bottom: 100px` | Only with floating buttons |
 
 ---
 

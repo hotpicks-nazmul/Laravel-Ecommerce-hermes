@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\ImageHelper;
 use App\Models\DeliverySchedule;
 use App\Models\DeliveryPartner;
 use App\Models\DeliveryZone;
@@ -409,7 +410,7 @@ class DeliveryController extends Controller
         
         DeliveryPartner::create($data);
         
-        return redirect()->route('admin.delivery.partners')
+        return redirect()->route('admin.delivery.partners.index')
             ->with('success', 'Delivery partner created successfully.');
     }
 
@@ -461,6 +462,7 @@ class DeliveryController extends Controller
         // Handle checkbox values
         $data['is_active'] = $request->has('is_active');
         $data['is_featured'] = $request->has('is_featured');
+        $data['sort_order'] = $data['sort_order'] ?? 0;
         
         // Upload new logo
         if ($request->hasFile('logo')) {
@@ -479,7 +481,7 @@ class DeliveryController extends Controller
         
         $partner->update($data);
         
-        return redirect()->route('admin.delivery.partners')
+        return redirect()->route('admin.delivery.partners.index')
             ->with('success', 'Delivery partner updated successfully.');
     }
 
@@ -495,7 +497,7 @@ class DeliveryController extends Controller
         
         $partner->delete();
         
-        return redirect()->route('admin.delivery.partners')
+        return redirect()->route('admin.delivery.partners.index')
             ->with('success', 'Delivery partner deleted successfully.');
     }
 
@@ -825,6 +827,13 @@ class DeliveryController extends Controller
         // Check if API is configured
         $data['is_api_configured'] = !empty($data['api_key']) || !empty($data['api_token']);
         
+        // Only update API secret if a new value is provided
+        if (!empty($request->api_secret)) {
+            $data['api_secret'] = $request->api_secret;
+        } else {
+            unset($data['api_secret']);
+        }
+        
         // Upload new logo
         if ($request->hasFile('logo')) {
             // Delete old logo
@@ -1076,6 +1085,14 @@ class DeliveryController extends Controller
      */
     public function generateTrackingNumber(Request $request, Order $order)
     {
+        // Check if order is paid before generating tracking number
+        if (!in_array($order->payment_status, ['paid'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order must be paid before generating tracking number.'
+            ], 400);
+        }
+        
         $trackingNumber = 'TRK' . strtoupper(uniqid()) . rand(1000, 9999);
         
         $order->update([
@@ -1091,7 +1108,28 @@ class DeliveryController extends Controller
     }
     
     /**
-     * Bulk tracking action.
+     * Bulk update tracking status via AJAX.
+     */
+    public function bulkUpdateStatus(Request $request)
+    {
+        $request->validate([
+            'status' => 'required|in:pending,processing,confirmed,shipped,delivered,cancelled',
+            'ids' => 'required|array',
+            'ids.*' => 'exists:orders,id',
+        ]);
+        
+        $count = Order::whereIn('id', $request->ids)->update([
+            'status' => $request->status
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => "{$count} shipments updated successfully."
+        ]);
+    }
+    
+    /**
+     * Bulk tracking action (form submission).
      */
     public function bulkTrackingAction(Request $request)
     {
@@ -1208,8 +1246,8 @@ class DeliveryController extends Controller
             'min_order_amount' => 'nullable|numeric|min:0',
             'max_order_weight' => 'nullable|numeric|min:0',
             'estimated_days' => 'nullable|integer|min:1|max:30',
-            'delivery_time_start' => 'nullable|string|max:50',
-            'delivery_time_end' => 'nullable|string|max:50',
+            'delivery_time_start' => 'nullable|string|max:50|regex:/^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](\s)?(AM|PM|am|pm)?$/',
+            'delivery_time_end' => 'nullable|string|max:50|regex:/^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](\s)?(AM|PM|am|pm)?$/',
             'is_active' => 'boolean',
             'is_default' => 'boolean',
             'sort_order' => 'nullable|integer|min:0',
@@ -1282,8 +1320,8 @@ class DeliveryController extends Controller
             'min_order_amount' => 'nullable|numeric|min:0',
             'max_order_weight' => 'nullable|numeric|min:0',
             'estimated_days' => 'nullable|integer|min:1|max:30',
-            'delivery_time_start' => 'nullable|string|max:50',
-            'delivery_time_end' => 'nullable|string|max:50',
+            'delivery_time_start' => 'nullable|string|max:50|regex:/^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](\s)?(AM|PM|am|pm)?$/',
+            'delivery_time_end' => 'nullable|string|max:50|regex:/^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9](\s)?(AM|PM|am|pm)?$/',
             'is_active' => 'boolean',
             'is_default' => 'boolean',
             'sort_order' => 'nullable|integer|min:0',
@@ -1829,9 +1867,16 @@ class DeliveryController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        // Handle file upload
+        // Handle file upload with ImageHelper
         if ($request->hasFile('photo')) {
-            $validated['photo'] = $request->file('photo')->store('delivery-boys', 'public');
+            $result = ImageHelper::processImage(
+                $request->file('photo'),
+                'delivery-boys',
+                800,
+                300,
+                85
+            );
+            $validated['photo'] = $result['filename'];
         }
 
         // Set defaults
@@ -1888,9 +1933,22 @@ class DeliveryController extends Controller
         if ($request->hasFile('photo')) {
             // Delete old photo
             if ($deliveryBoy->photo) {
-                Storage::disk('public')->delete($deliveryBoy->photo);
+                ImageHelper::deleteImage($deliveryBoy->photo);
             }
-            $validated['photo'] = $request->file('photo')->store('delivery-boys', 'public');
+            $result = ImageHelper::processImage(
+                $request->file('photo'),
+                'delivery-boys',
+                800,
+                300,
+                85
+            );
+            $validated['photo'] = $result['filename'];
+        }
+
+        // Handle remove photo
+        if ($request->has('remove_photo') && $request->remove_photo == 1 && $deliveryBoy->photo) {
+            ImageHelper::deleteImage($deliveryBoy->photo);
+            $validated['photo'] = null;
         }
 
         $validated['is_active'] = $request->has('is_active');
@@ -1907,9 +1965,9 @@ class DeliveryController extends Controller
      */
     public function destroyDeliveryBoy(DeliveryBoy $deliveryBoy)
     {
-        // Delete photo
+        // Delete photo using ImageHelper
         if ($deliveryBoy->photo) {
-            Storage::disk('public')->delete($deliveryBoy->photo);
+            ImageHelper::deleteImage($deliveryBoy->photo);
         }
 
         $deliveryBoy->delete();
@@ -1972,10 +2030,10 @@ class DeliveryController extends Controller
                 return back()->with('success', "{$count} delivery boys have been marked as unavailable!");
 
             case 'delete':
-                // Delete photos
+                // Delete photos using ImageHelper
                 $deliveryBoys->each(function ($boy) {
                     if ($boy->photo) {
-                        Storage::disk('public')->delete($boy->photo);
+                        ImageHelper::deleteImage($boy->photo);
                     }
                 });
                 $deliveryBoys->delete();
@@ -2011,8 +2069,9 @@ class DeliveryController extends Controller
         }
         
         // Sorting
-        $sort = $request->sort ?? 'created_at';
-        $direction = $request->direction ?? 'desc';
+        $validSorts = ['created_at', 'updated_at', 'name', 'type', 'day_of_week', 'start_time', 'additional_fee', 'is_active', 'sort_order'];
+        $sort = in_array($request->sort, $validSorts) ? $request->sort : 'created_at';
+        $direction = in_array($request->direction, ['asc', 'desc']) ? $request->direction : 'desc';
         $query->orderBy($sort, $direction);
         
         // Pagination
@@ -2061,13 +2120,28 @@ class DeliveryController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'day_of_week' => 'nullable|integer|min:0|max:7',
-            'start_time' => 'required',
-            'end_time' => 'required|after:start_time',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i',
             'type' => 'required|in:same_day,next_day,express,scheduled',
             'max_orders' => 'nullable|integer|min:1',
             'additional_fee' => 'nullable|numeric|min:0',
             'min_order_amount' => 'nullable|numeric|min:0',
+            'sort_order' => 'nullable|integer|min:0',
         ]);
+        
+        // Validate end_time: allow if after start_time OR if it's an overnight schedule (end_time < start_time)
+        $startTime = $request->start_time;
+        $endTime = $request->end_time;
+        
+        // Allow overnight schedules (end_time < start_time means it spans past midnight)
+        // Also allow same time (for full-day schedules) or end_time after start_time
+        if ($startTime === $endTime) {
+            // Same time allowed for full-day schedules
+        } elseif ($endTime > $startTime) {
+            // Normal schedule (e.g., 9 AM to 5 PM)
+        } else {
+            // Overnight schedule (e.g., 10 PM to 2 AM) - allowed
+        }
         
         $schedule = DeliverySchedule::create([
             'name' => $request->name,
@@ -2084,6 +2158,7 @@ class DeliveryController extends Controller
             'delivery_zones' => $request->delivery_zones ?? [],
             'available_from' => $request->available_from,
             'available_to' => $request->available_to,
+            'sort_order' => $request->sort_order ?? 0,
         ]);
         
         return redirect()->route('admin.delivery.schedules.index')
@@ -2110,12 +2185,13 @@ class DeliveryController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'day_of_week' => 'nullable|integer|min:0|max:7',
-            'start_time' => 'required',
-            'end_time' => 'required|after:start_time',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i',
             'type' => 'required|in:same_day,next_day,express,scheduled',
             'max_orders' => 'nullable|integer|min:1',
             'additional_fee' => 'nullable|numeric|min:0',
             'min_order_amount' => 'nullable|numeric|min:0',
+            'sort_order' => 'nullable|integer|min:0',
         ]);
         
         $schedule->update([
@@ -2133,6 +2209,7 @@ class DeliveryController extends Controller
             'delivery_zones' => $request->delivery_zones ?? [],
             'available_from' => $request->available_from,
             'available_to' => $request->available_to,
+            'sort_order' => $request->sort_order ?? 0,
         ]);
         
         return redirect()->route('admin.delivery.schedules.index')
@@ -2363,8 +2440,8 @@ class DeliveryController extends Controller
      */
     private function getDeliveryBoyPerformance($startDate, $endDate)
     {
-        // Since orders don't have delivery_boy_id, we use the stored stats from DeliveryBoy model
         $deliveryBoys = DeliveryBoy::active()
+            ->with('zone')
             ->get()
             ->map(function($boy) {
                 $total = $boy->total_deliveries ?? 0;
@@ -2375,11 +2452,12 @@ class DeliveryController extends Controller
                     'id' => $boy->id,
                     'name' => $boy->name,
                     'phone' => $boy->phone,
+                    'zone_name' => $boy->zone ? $boy->zone->name : 'Unassigned',
                     'total_deliveries' => $total,
                     'successful_deliveries' => $delivered,
                     'failed_deliveries' => $failed,
                     'success_rate' => $total > 0 ? round(($delivered / $total) * 100, 1) : 0,
-                    'avg_delivery_hours' => 0, // Not available without order linkage
+                    'avg_delivery_hours' => 'N/A',
                     'rating' => $boy->rating ?? 0,
                     'is_available' => $boy->is_available,
                 ];
@@ -2442,24 +2520,54 @@ class DeliveryController extends Controller
      */
     private function getDeliveryTimeAnalysis($startDate, $endDate)
     {
-        // Since orders don't have delivered_at column, we'll show delivered count
-        // and use estimated/default values for time analysis
-        $deliveredCount = Order::whereBetween('created_at', [$startDate, $endDate])
+        $deliveredOrders = Order::whereBetween('created_at', [$startDate, $endDate])
+            ->where('status', 'delivered')
+            ->whereNotNull('picked_up_at')
+            ->get();
+        
+        $totalDelivered = Order::whereBetween('created_at', [$startDate, $endDate])
             ->where('status', 'delivered')
             ->count();
         
-        // Without delivery time tracking, return basic stats
+        $within24h = 0;
+        $within48h = 0;
+        $within72h = 0;
+        $over72h = 0;
+        $totalHours = 0;
+        $ordersWithPickup = 0;
+        
+        foreach ($deliveredOrders as $order) {
+            $pickupDate = $order->picked_up_at;
+            $deliveredDate = $order->updated_at;
+            
+            $hours = $pickupDate->diffInHours($deliveredDate);
+            $totalHours += $hours;
+            $ordersWithPickup++;
+            
+            if ($hours < 24) {
+                $within24h++;
+            } elseif ($hours < 48) {
+                $within48h++;
+            } elseif ($hours < 72) {
+                $within72h++;
+            } else {
+                $over72h++;
+            }
+        }
+        
+        $avgHours = $ordersWithPickup > 0 ? round($totalHours / $ordersWithPickup, 1) : 0;
+        
         return [
-            'avg_hours' => 0, // Not available without delivery time tracking
-            'total_delivered' => $deliveredCount,
-            'within_24h' => 0,
-            'within_48h' => 0,
-            'within_72h' => 0,
-            'over_72h' => 0,
-            'within_24h_percent' => 0,
-            'within_48h_percent' => 0,
-            'within_72h_percent' => 0,
-            'over_72h_percent' => 0,
+            'avg_hours' => $avgHours,
+            'total_delivered' => $totalDelivered,
+            'within_24h' => $within24h,
+            'within_48h' => $within48h,
+            'within_72h' => $within72h,
+            'over_72h' => $over72h,
+            'within_24h_percent' => $ordersWithPickup > 0 ? round(($within24h / $ordersWithPickup) * 100, 1) : 0,
+            'within_48h_percent' => $ordersWithPickup > 0 ? round(($within48h / $ordersWithPickup) * 100, 1) : 0,
+            'within_72h_percent' => $ordersWithPickup > 0 ? round(($within72h / $ordersWithPickup) * 100, 1) : 0,
+            'over_72h_percent' => $ordersWithPickup > 0 ? round(($over72h / $ordersWithPickup) * 100, 1) : 0,
         ];
     }
     

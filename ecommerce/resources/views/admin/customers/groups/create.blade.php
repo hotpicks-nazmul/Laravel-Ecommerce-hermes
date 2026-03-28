@@ -2,14 +2,6 @@
 
 @section('title', 'Add Customer Group')
 
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-</style>
-@endpush
-
 @section('content')
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -147,13 +139,21 @@
     </button>
 </div>
 
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
-    // Auto-generate slug from name
+    // Auto-generate slug from name on input
     const nameInput = document.getElementById('name');
     const slugInput = document.getElementById('slug');
     
-    nameInput.addEventListener('blur', function() {
+    nameInput.addEventListener('input', function() {
         if (!slugInput.dataset.modified && slugInput.value === '') {
             slugInput.value = this.value.toLowerCase()
                 .replace(/[^a-z0-9\s-]/g, '')

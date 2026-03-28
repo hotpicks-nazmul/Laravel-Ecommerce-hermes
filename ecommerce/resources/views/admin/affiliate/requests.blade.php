@@ -3,34 +3,37 @@
 @section('title', 'Affiliate Requests')
 
 @section('content')
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Affiliate Requests</h1>
-    </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Affiliate Requests</h4>
+</div>
 
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
 
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
 
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">All Affiliate Registration Requests</h5>
-        </div>
-        <div class="card-body">
-            @if($requests->count() > 0)
-            <table class="table table-striped" id="affiliateRequestsTable">
-                <thead>
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="bi bi-inbox me-2"></i>All Affiliate Registration Requests</h6>
+    </div>
+    <div class="card-body p-0">
+        @if($requests->count() > 0)
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="affiliateRequestsTable">
+                <thead class="table-light">
                     <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
+                        </th>
                         <th>ID</th>
                         <th>Name</th>
                         <th>Email</th>
@@ -38,12 +41,15 @@
                         <th>Promotion Methods</th>
                         <th>Requested At</th>
                         <th>Status</th>
-                        <th>Actions</th>
+                        <th style="width: 120px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($requests as $request)
                     <tr>
+                        <td>
+                            <input type="checkbox" class="form-check-input row-checkbox" value="{{ $request->id }}">
+                        </td>
                         <td>{{ $request->id }}</td>
                         <td>{{ $request->user->name ?? '-' }}</td>
                         <td>{{ $request->user->email ?? '-' }}</td>
@@ -89,18 +95,25 @@
                     @endforeach
                 </tbody>
             </table>
-            
-            <div class="d-flex justify-content-center mt-4">
-                {{ $requests->links() }}
-            </div>
-            @else
-            <div class="text-center py-5">
-                <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
-                <h5 class="mt-3 text-muted">No requests found</h5>
-                <p class="text-muted">Affiliate registration requests will appear here.</p>
-            </div>
-            @endif
         </div>
+        
+        @if($requests->hasPages())
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="text-muted small">
+                Showing {{ $requests->firstItem() }} - {{ $requests->lastItem() }} of {{ $requests->total() }} requests
+            </div>
+            <div>
+                {{ $requests->appends(request()->query())->links() }}
+            </div>
+        </div>
+        @endif
+        @else
+        <div class="text-center py-5">
+            <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+            <h5 class="mt-3 text-muted">No requests found</h5>
+            <p class="text-muted">Affiliate registration requests will appear here.</p>
+        </div>
+        @endif
     </div>
 </div>
 @endsection
@@ -108,11 +121,17 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
+        // Initialize select all checkbox
+        $('#selectAllCheckbox').on('change', function() {
+            $('.row-checkbox').prop('checked', $(this).prop('checked'));
+        });
+
+        // Initialize DataTable
         $('#affiliateRequestsTable').DataTable({
             pageLength: 15,
-            order: [[5, 'desc']],
+            order: [[6, 'desc']],
             columnDefs: [
-                { orderable: false, targets: [7] }
+                { orderable: false, targets: [0, 8] }
             ]
         });
     });

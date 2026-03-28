@@ -26,7 +26,11 @@
         @endif
     </td>
     <td>
-        {{ $order->shipping_company ?? 'N/A' }}
+        @if($order->shipping_company)
+            {{ $order->shipping_company }}
+        @else
+            <span class="text-muted">In House</span>
+        @endif
     </td>
     <td>
         <span class="badge {{ $order->status_badge_class }}">

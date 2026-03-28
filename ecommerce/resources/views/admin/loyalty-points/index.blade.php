@@ -1,10 +1,8 @@
 @extends('admin.layouts.app')
 
 @section('content')
-<div class="content-area">
-    <div class="container-fluid pt-4">
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="mb-0">Loyalty Points</h4>
             <div class="d-flex gap-2">
                 <a href="{{ route('admin.customers.loyalty.settings') }}" class="btn btn-outline-primary">
@@ -213,6 +211,10 @@
                                                 @csrf
                                                 <input type="hidden" name="user_id" value="{{ $customer->id }}">
                                                 <div class="modal-body">
+                                                    <div class="alert alert-info">
+                                                        <i class="bi bi-info-circle me-2"></i>
+                                                        Current Balance: <strong>{{ number_format($customer->loyalty_points) }} points</strong>
+                                                    </div>
                                                     <div class="mb-3">
                                                         <label class="form-label">Points <span class="text-danger">*</span></label>
                                                         <input type="number" name="points" class="form-control" min="1" required>
@@ -360,39 +362,37 @@
             </div>
         </div>
         @endif
-    </div>
-</div>
 
-<style>
-.avatar-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 14px;
-}
-</style>
+        <style>
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        </style>
 
-<script>
-// Auto-submit form on filter change
-document.querySelectorAll('#filterForm select, #filterForm input[type="number"]').forEach(element => {
-    element.addEventListener('change', function() {
-        document.getElementById('filterForm').submit();
-    });
-});
+        <script>
+        // Auto-submit form on filter change
+        document.querySelectorAll('#filterForm select, #filterForm input[type="number"]').forEach(element => {
+            element.addEventListener('change', function() {
+                document.getElementById('filterForm').submit();
+            });
+        });
 
-// Live search with debounce
-let searchTimeout;
-const searchInput = document.getElementById('liveSearch');
+        // Live search with debounce
+        let searchTimeout;
+        const searchInput = document.getElementById('liveSearch');
 
-searchInput.addEventListener('input', function() {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(function() {
-        document.getElementById('filterForm').submit();
-    }, 500);
-});
-</script>
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                document.getElementById('filterForm').submit();
+            }, 500);
+        });
+        </script>
 @endsection

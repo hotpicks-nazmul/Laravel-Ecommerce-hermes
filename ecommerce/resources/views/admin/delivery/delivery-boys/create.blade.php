@@ -174,7 +174,7 @@
                     <div class="col-md-6 mb-3">
                         <label for="salary" class="form-label">Monthly Salary</label>
                         <div class="input-group">
-                            <span class="input-group-text">$</span>
+                            <span class="input-group-text">{{ config('app.currency_symbol', '৳') }}</span>
                             <input type="number" step="0.01" min="0" class="form-control @error('salary') is-invalid @enderror" id="salary" name="salary" value="{{ old('salary', 0) }}" placeholder="0.00" form="deliveryBoyForm">
                         </div>
                         @error('salary')
@@ -312,6 +312,22 @@
 
 @push('scripts')
 <script>
+    // Auto-scroll to first error field
+    document.addEventListener('DOMContentLoaded', function() {
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+
     // Photo preview
     function previewPhoto(input) {
         const preview = document.getElementById('photoPreview');
@@ -333,4 +349,12 @@
         document.getElementById('photoPreview').style.display = 'none';
     }
 </script>
+@endpush
+
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
 @endpush

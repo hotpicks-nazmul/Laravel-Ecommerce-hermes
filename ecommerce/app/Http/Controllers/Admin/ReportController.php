@@ -570,9 +570,17 @@ class ReportController extends Controller
             ->where('payment_status', 'paid')
             ->pluck('id');
 
+        // Base order items query
+        $orderItemsQuery = OrderItem::whereIn('order_id', $orderIds);
+
+        // Apply category filter
+        if ($categoryId) {
+            $productIds = Product::where('category_id', $categoryId)->pluck('id');
+            $orderItemsQuery = $orderItemsQuery->whereIn('product_id', $productIds);
+        }
+
         // Get product sales data
-        $productSales = OrderItem::whereIn('order_id', $orderIds)
-            ->select(
+        $productSales = $orderItemsQuery->select(
                 'product_id',
                 'product_name',
                 DB::raw('SUM(quantity) as total_qty'),
@@ -599,11 +607,16 @@ class ReportController extends Controller
 
         $productSales = $productSales->paginate(20);
 
-        // Calculate summary statistics
-        $totalQtySold = OrderItem::whereIn('order_id', $orderIds)->sum('quantity');
-        $totalSales = OrderItem::whereIn('order_id', $orderIds)->sum('total');
-        $totalOrders = $orderIds->count();
-        $uniqueProducts = OrderItem::whereIn('order_id', $orderIds)->distinct('product_id')->count('product_id');
+        // Calculate summary statistics using filtered order items
+        $filteredOrderItemsQuery = OrderItem::whereIn('order_id', $orderIds);
+        if ($categoryId) {
+            $productIds = Product::where('category_id', $categoryId)->pluck('id');
+            $filteredOrderItemsQuery = $filteredOrderItemsQuery->whereIn('product_id', $productIds);
+        }
+        $totalQtySold = (clone $filteredOrderItemsQuery)->sum('quantity');
+        $totalSales = (clone $filteredOrderItemsQuery)->sum('total');
+        $totalOrders = (clone $filteredOrderItemsQuery)->distinct('order_id')->count('order_id');
+        $uniqueProducts = (clone $filteredOrderItemsQuery)->distinct('product_id')->count('product_id');
 
         // Get categories for filter
         $categories = Category::where('status', 1)->orderBy('name')->get();
@@ -957,6 +970,8 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? now()->subDays(30)->format('Y-m-d');
         $endDate = $request->end_date ?? now()->format('Y-m-d');
         $search = $request->search ?? '';
+        $categoryId = $request->category ?? '';
+        $sortBy = $request->sort ?? 'qty_desc';
 
         // Get order IDs
         $orderIds = Order::where('order_type', 'inhouse')
@@ -964,9 +979,17 @@ class ReportController extends Controller
             ->where('payment_status', 'paid')
             ->pluck('id');
 
+        // Build base order items query
+        $orderItemsQuery = OrderItem::whereIn('order_id', $orderIds);
+        
+        // Apply category filter
+        if ($categoryId) {
+            $productIds = Product::where('category_id', $categoryId)->pluck('id');
+            $orderItemsQuery = $orderItemsQuery->whereIn('product_id', $productIds);
+        }
+
         // Get product sales data
-        $productSales = OrderItem::whereIn('order_id', $orderIds)
-            ->select(
+        $productSales = $orderItemsQuery->select(
                 'product_id',
                 'product_name',
                 DB::raw('SUM(quantity) as total_qty'),
@@ -974,9 +997,24 @@ class ReportController extends Controller
                 DB::raw('COUNT(DISTINCT order_id) as order_count'),
                 DB::raw('AVG(price) as avg_price')
             )
-            ->groupBy('product_id', 'product_name')
-            ->orderBy('total_qty', 'desc')
-            ->get();
+            ->groupBy('product_id', 'product_name');
+        
+        // Apply search filter
+        if ($search) {
+            $productSales = $productSales->where('product_name', 'like', "%{$search}%");
+        }
+        
+        // Apply sorting
+        $productSales = match($sortBy) {
+            'qty_asc' => $productSales->orderBy('total_qty', 'asc'),
+            'sales_desc' => $productSales->orderBy('total_sales', 'desc'),
+            'sales_asc' => $productSales->orderBy('total_sales', 'asc'),
+            'name_asc' => $productSales->orderBy('product_name', 'asc'),
+            'name_desc' => $productSales->orderBy('product_name', 'desc'),
+            default => $productSales->orderBy('total_qty', 'desc'),
+        };
+        
+        $productSales = $productSales->get();
 
         // Generate CSV
         $filename = 'in-house-product-sales-' . date('Y-m-d') . '.csv';

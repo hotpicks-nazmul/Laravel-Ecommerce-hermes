@@ -3,37 +3,85 @@
 @section('title', 'Affiliate Products')
 
 @section('content')
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Affiliate Products</h1>
-        <a href="{{ route('admin.affiliate.products.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-2"></i>Add New Product
-        </a>
-    </div>
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Affiliate Products</h4>
+    <a href="{{ route('admin.affiliate.products.create') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Add New Product
+    </a>
+</div>
 
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
 
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
 
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">All Affiliate Products</h5>
-        </div>
-        <div class="card-body">
-            @if($products->count() > 0)
-            <table class="table table-striped" id="affiliateProductsTable">
-                <thead>
+<!-- Filters Card -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-3">
+        <form method="GET" id="filterForm">
+            <div class="row g-2 align-items-end">
+                <!-- Search -->
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <label class="form-label small text-muted">Search</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" id="liveSearch" class="form-control" placeholder="Search products..." value="{{ request('search') }}">
+                    </div>
+                </div>
+                
+                <!-- Status Filter -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Status</label>
+                    <select name="status" id="filterStatus" class="form-select form-select-sm">
+                        <option value="">All Status</option>
+                        <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
+                        <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                    </select>
+                </div>
+                
+                <!-- Category Filter -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Category</label>
+                    <select name="category" id="filterCategory" class="form-select form-select-sm">
+                        <option value="">All Categories</option>
+                        @foreach(\App\Models\AffiliateCategory::where('status', 'active')->get() as $cat)
+                        <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                <!-- Clear Filters -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <a href="{{ route('admin.affiliate.products.index') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-x-circle me-1"></i>Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if($products->count() > 0)
+<!-- Table Card -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="affiliateProductsTable">
+                <thead class="table-light">
                     <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
+                        </th>
                         <th>ID</th>
                         <th>Image</th>
                         <th>Product Name</th>
@@ -43,12 +91,15 @@
                         <th>Clicks</th>
                         <th>Conversions</th>
                         <th>Status</th>
-                        <th>Actions</th>
+                        <th style="width: 120px;">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tableBody">
                     @foreach($products as $product)
                     <tr>
+                        <td>
+                            <input type="checkbox" class="form-check-input row-checkbox" value="{{ $product->id }}">
+                        </td>
                         <td>{{ $product->id }}</td>
                         <td>
                             @if($product->image)
@@ -97,34 +148,60 @@
                     @endforeach
                 </tbody>
             </table>
-            
-            <div class="d-flex justify-content-center mt-4">
-                {{ $products->links() }}
-            </div>
-            @else
-            <div class="text-center py-5">
-                <i class="bi bi-box text-muted" style="font-size: 4rem;"></i>
-                <h5 class="mt-3 text-muted">No products found</h5>
-                <p class="text-muted">Start by creating a new affiliate product.</p>
-                <a href="{{ route('admin.affiliate.products.create') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-2"></i>Add New Product
-                </a>
-            </div>
-            @endif
         </div>
     </div>
 </div>
+
+<!-- Pagination -->
+<div class="d-flex justify-content-center mt-4">
+    {{ $products->links() }}
+</div>
+@else
+<!-- Empty State -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-box text-muted" style="font-size: 4rem;"></i>
+        <h5 class="mt-3 text-muted">No products found</h5>
+        <p class="text-muted">Start by creating a new affiliate product.</p>
+        <a href="{{ route('admin.affiliate.products.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Add New Product
+        </a>
+    </div>
+</div>
+@endif
 @endsection
 
 @push('scripts')
 <script>
     $(document).ready(function() {
-        $('#affiliateProductsTable').DataTable({
-            pageLength: 15,
-            order: [[0, 'desc']],
-            columnDefs: [
-                { orderable: false, targets: [1, 9] }
-            ]
+        // Initialize DataTable only if table has data
+        if ($('#affiliateProductsTable').length > 0) {
+            $('#affiliateProductsTable').DataTable({
+                pageLength: 15,
+                order: [[1, 'desc']],
+                columnDefs: [
+                    { orderable: false, targets: [0, 2, 10] }
+                ]
+            });
+        }
+        
+        // Select all checkbox
+        $('#selectAllCheckbox').on('change', function() {
+            $('.row-checkbox').prop('checked', $(this).prop('checked'));
+        });
+        
+        // Filter form submission
+        $('#filterForm').on('change', 'select', function() {
+            $('#filterForm').submit();
+        });
+        
+        // Live search with debounce
+        let searchTimeout;
+        $('#liveSearch').on('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                $('#filterForm').submit();
+            }, 500);
         });
     });
 </script>

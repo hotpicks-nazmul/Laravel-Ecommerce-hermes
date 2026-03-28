@@ -2,14 +2,6 @@
 
 @section('title', 'Edit Delivery Schedule')
 
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-</style>
-@endpush
-
 @section('content')
 <div class="content-area">
     <!-- Header -->
@@ -65,6 +57,17 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @else
                                 <div class="form-text">Choose the type of delivery schedule</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="sort_order" class="form-label">Sort Order</label>
+                            <input type="number" id="sort_order" name="sort_order" class="form-control @error('sort_order') is-invalid @enderror"
+                                   value="{{ old('sort_order', $schedule->sort_order ?? 0) }}" min="0" placeholder="0">
+                            @error('sort_order')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @else
+                                <div class="form-text">Display order (higher values appear first)</div>
                             @enderror
                         </div>
                     </div>
@@ -295,3 +298,11 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush

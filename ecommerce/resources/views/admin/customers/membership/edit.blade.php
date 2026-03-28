@@ -2,42 +2,6 @@
 
 @section('title', 'Edit Membership Plan')
 
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-    .color-option {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        cursor: pointer;
-        border: 2px solid transparent;
-        display: inline-block;
-    }
-    .color-option.selected {
-        border-color: #000;
-        transform: scale(1.1);
-    }
-    .icon-option {
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        cursor: pointer;
-        border: 2px solid transparent;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        background: #f8f9fa;
-    }
-    .icon-option.selected {
-        border-color: #0d6efd;
-        background: #e7f1ff;
-    }
-</style>
-@endpush
-
 @section('content')
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -384,5 +348,41 @@
         });
     });
 </script>
+@endpush
+
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+    .color-option {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+        display: inline-block;
+    }
+    .color-option.selected {
+        border-color: #000;
+        transform: scale(1.1);
+    }
+    .icon-option {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        background: #f8f9fa;
+    }
+    .icon-option.selected {
+        border-color: #0d6efd;
+        background: #e7f1ff;
+    }
+</style>
 @endpush
 @endsection

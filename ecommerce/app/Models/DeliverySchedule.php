@@ -24,6 +24,7 @@ class DeliverySchedule extends Model
         'delivery_zones', // JSON array of zone IDs
         'available_from',
         'available_to',
+        'sort_order',
     ];
 
     protected $casts = [
@@ -34,6 +35,7 @@ class DeliverySchedule extends Model
         'delivery_zones' => 'array',
         'available_from' => 'datetime',
         'available_to' => 'datetime',
+        'sort_order' => 'integer',
     ];
 
     /**

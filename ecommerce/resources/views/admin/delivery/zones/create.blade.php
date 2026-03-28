@@ -281,6 +281,24 @@
 
 @push('scripts')
 <script>
+    // Auto-generate slug from name
+    const nameInput = document.getElementById('name');
+    const slugInput = document.getElementById('slug');
+    
+    nameInput.addEventListener('input', function() {
+        if (!slugInput.dataset.manual) {
+            slugInput.value = this.value.toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .trim();
+        }
+    });
+    
+    slugInput.addEventListener('input', function() {
+        this.dataset.manual = 'true';
+    });
+    
     // Toggle shipping cost field based on type
     document.getElementById('shipping_cost_type').addEventListener('change', function() {
         const costField = document.getElementById('shippingCostField');

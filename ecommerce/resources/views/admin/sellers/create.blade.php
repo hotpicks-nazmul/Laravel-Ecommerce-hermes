@@ -2,14 +2,6 @@
 
 @section('title', 'Add New Seller')
 
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-</style>
-@endpush
-
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0">Add New Seller</h4>
@@ -292,3 +284,11 @@
     </button>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush

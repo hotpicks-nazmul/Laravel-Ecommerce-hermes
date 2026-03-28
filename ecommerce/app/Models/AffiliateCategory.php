@@ -55,6 +55,17 @@ class AffiliateCategory extends Model
     }
 
     /**
+     * Get the image URL for the category.
+     */
+    public function getImageUrlAttribute()
+    {
+        if ($this->image) {
+            return asset('storage/' . $this->image);
+        }
+        return null;
+    }
+
+    /**
      * Auto-generate slug from name.
      */
     protected static function boot()

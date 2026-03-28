@@ -16,52 +16,70 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Total</div>
-                    <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
+    <div class="row g-3 mb-4">
+        <div class="col">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-card-icon">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="stat-card-content">
+                    <span class="stat-card-label">Total Schedules</span>
+                    <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
                 </div>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Active</div>
-                    <div class="h4 mb-0 text-success">{{ $stats['active'] ?? 0 }}</div>
+        <div class="col">
+            <div class="stat-card stat-card-success">
+                <div class="stat-card-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stat-card-content">
+                    <span class="stat-card-label">Active</span>
+                    <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
                 </div>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Same Day</div>
-                    <div class="h4 mb-0 text-info">{{ $stats['same_day'] ?? 0 }}</div>
+        <div class="col">
+            <div class="stat-card stat-card-info">
+                <div class="stat-card-icon">
+                    <i class="bi bi-lightning-charge"></i>
+                </div>
+                <div class="stat-card-content">
+                    <span class="stat-card-label">Same Day</span>
+                    <span class="stat-card-value">{{ number_format($stats['same_day'] ?? 0) }}</span>
                 </div>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Next Day</div>
-                    <div class="h4 mb-0 text-warning">{{ $stats['next_day'] ?? 0 }}</div>
+        <div class="col">
+            <div class="stat-card stat-card-warning">
+                <div class="stat-card-icon">
+                    <i class="bi bi-arrow-right-circle"></i>
+                </div>
+                <div class="stat-card-content">
+                    <span class="stat-card-label">Next Day</span>
+                    <span class="stat-card-value">{{ number_format($stats['next_day'] ?? 0) }}</span>
                 </div>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Express</div>
-                    <div class="h4 mb-0 text-danger">{{ $stats['express'] ?? 0 }}</div>
+        <div class="col">
+            <div class="stat-card stat-card-danger">
+                <div class="stat-card-icon">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="stat-card-content">
+                    <span class="stat-card-label">Express</span>
+                    <span class="stat-card-value">{{ number_format($stats['express'] ?? 0) }}</span>
                 </div>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Scheduled</div>
-                    <div class="h4 mb-0 text-secondary">{{ $stats['scheduled'] ?? 0 }}</div>
+        <div class="col">
+            <div class="stat-card">
+                <div class="stat-card-icon" style="background: #e2e8f0; color: #64748b;">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
+                <div class="stat-card-content">
+                    <span class="stat-card-label">Scheduled</span>
+                    <span class="stat-card-value">{{ number_format($stats['scheduled'] ?? 0) }}</span>
                 </div>
             </div>
         </div>
@@ -104,6 +122,17 @@
                             <option value="">All Status</option>
                             <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                             <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Per Page -->
+                    <div class="col-lg-2 col-md-3 col-sm-6">
+                        <label class="form-label small text-muted">Per Page</label>
+                        <select name="per_page" id="filterPerPage" class="form-select form-select-sm">
+                            <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
                         </select>
                     </div>
                     
@@ -153,12 +182,54 @@
                             <th style="width: 40px;">
                                 <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
                             </th>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Schedule</th>
-                            <th>Time</th>
-                            <th>Fee</th>
-                            <th>Status</th>
+                            <th>
+                                <a href="javascript:void(0)" class="text-decoration-none text-dark" onclick="sortBy('name')">
+                                    Name
+                                    @if(request('sort') == 'name')
+                                        <i class="bi bi-arrow-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th>
+                                <a href="javascript:void(0)" class="text-decoration-none text-dark" onclick="sortBy('type')">
+                                    Type
+                                    @if(request('sort') == 'type')
+                                        <i class="bi bi-arrow-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th>
+                                <a href="javascript:void(0)" class="text-decoration-none text-dark" onclick="sortBy('day_of_week')">
+                                    Schedule
+                                    @if(request('sort') == 'day_of_week')
+                                        <i class="bi bi-arrow-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th>
+                                <a href="javascript:void(0)" class="text-decoration-none text-dark" onclick="sortBy('start_time')">
+                                    Time
+                                    @if(request('sort') == 'start_time')
+                                        <i class="bi bi-arrow-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th>
+                                <a href="javascript:void(0)" class="text-decoration-none text-dark" onclick="sortBy('additional_fee')">
+                                    Fee
+                                    @if(request('sort') == 'additional_fee')
+                                        <i class="bi bi-arrow-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th>
+                                <a href="javascript:void(0)" class="text-decoration-none text-dark" onclick="sortBy('is_active')">
+                                    Status
+                                    @if(request('sort') == 'is_active')
+                                        <i class="bi bi-arrow-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
+                                    @endif
+                                </a>
+                            </th>
                             <th style="width: 120px;">Actions</th>
                         </tr>
                     </thead>
@@ -190,6 +261,58 @@
     <input type="hidden" name="ids" id="bulkIdsInput">
 </form>
 
+@push('styles')
+<style>
+.stat-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 20px 24px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.stat-card-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 22px;
+}
+.stat-card-primary .stat-card-icon { background: #e8f4fd; color: #0d6efd; }
+.stat-card-warning .stat-card-icon { background: #fff3cd; color: #ffc107; }
+.stat-card-info .stat-card-icon { background: #cff4fc; color: #0dcaf0; }
+.stat-card-success .stat-card-icon { background: #d1e7dd; color: #198754; }
+.stat-card-danger .stat-card-icon { background: #f8d7da; color: #dc3545; }
+
+.stat-card-content {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+.stat-card-label {
+    font-size: 13px;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+.stat-card-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #212529;
+    line-height: 1.2;
+}
+</style>
+@endpush
+
 @push('scripts')
 <script>
     let selectedItems = new Set();
@@ -213,7 +336,7 @@
     }
 
     // Filter dropdowns trigger search on change
-    const filterSelects = ['filterType', 'filterStatus'];
+    const filterSelects = ['filterType', 'filterStatus', 'filterPerPage'];
     filterSelects.forEach(id => {
         const select = document.getElementById(id);
         if (select) {
@@ -233,6 +356,9 @@
         
         const status = document.getElementById('filterStatus')?.value;
         if (status) params.set('status', status);
+        
+        const perPage = document.getElementById('filterPerPage')?.value;
+        if (perPage) params.set('per_page', perPage);
         
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('sort')) params.set('sort', urlParams.get('sort'));
@@ -260,6 +386,56 @@
             console.error('Search error:', err);
             // Fallback to regular page load
             document.getElementById('filterForm').submit();
+        });
+    }
+
+    // Sorting
+    function sortBy(column) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentSort = urlParams.get('sort');
+        const currentDirection = urlParams.get('direction', 'desc');
+        
+        let newDirection = 'desc';
+        if (currentSort === column && currentDirection === 'desc') {
+            newDirection = 'asc';
+        }
+        
+        const params = new URLSearchParams();
+        
+        const searchTerm = document.getElementById('liveSearch')?.value?.trim();
+        if (searchTerm) params.set('search', searchTerm);
+        
+        const type = document.getElementById('filterType')?.value;
+        if (type) params.set('type', type);
+        
+        const status = document.getElementById('filterStatus')?.value;
+        if (status) params.set('status', status);
+        
+        const perPage = document.getElementById('filterPerPage')?.value;
+        if (perPage) params.set('per_page', perPage);
+        
+        params.set('sort', column);
+        params.set('direction', newDirection);
+        
+        // If AJAX is supported, use it
+        fetch(`{{ route('admin.delivery.schedules.index') }}?${params.toString()}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.html) {
+                document.querySelector('#tableBody').innerHTML = data.html;
+                const newUrl = `${window.location.pathname}?${params.toString()}`;
+                window.history.pushState({}, '', newUrl);
+            } else {
+                window.location.search = params.toString();
+            }
+        })
+        .catch(() => {
+            window.location.search = params.toString();
         });
     }
 

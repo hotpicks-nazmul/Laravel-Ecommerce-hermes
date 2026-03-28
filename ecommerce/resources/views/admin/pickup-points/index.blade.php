@@ -4,8 +4,8 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="row mb-4" id="statsCards">
-    <div class="col-md-4 col-sm-4 col-12 mb-3">
+<div class="row g-3 mb-4" id="statsCards">
+    <div class="col-6 col-md-4">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Total Locations</div>
@@ -13,7 +13,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4 col-sm-4 col-12 mb-3">
+    <div class="col-6 col-md-4">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Active</div>
@@ -21,7 +21,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4 col-sm-4 col-12 mb-3">
+    <div class="col-6 col-md-4">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
                 <div class="text-muted small text-uppercase">Inactive</div>
