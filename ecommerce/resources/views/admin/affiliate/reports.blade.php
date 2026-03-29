@@ -19,49 +19,33 @@
 @endif
 
 <!-- Statistics Cards -->
-<div class="row g-3 mb-4" id="statsCards">
-    <div class="col">
-        <div class="stat-card stat-card-primary">
-            <div class="stat-card-icon">
-                <i class="bi bi-people"></i>
-            </div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">Total Affiliates</span>
-                <span class="stat-card-value" id="statTotalAffiliates">{{ number_format($stats['total_affiliates']) }}</span>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-people"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Affiliates</span>
+            <span class="stat-card-value" id="statTotalAffiliates">{{ number_format($stats['total_affiliates']) }}</span>
         </div>
     </div>
-    <div class="col">
-        <div class="stat-card stat-card-success">
-            <div class="stat-card-icon">
-                <i class="bi bi-currency-dollar"></i>
-            </div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">Total Sales</span>
-                <span class="stat-card-value" id="statTotalSales">${{ number_format($stats['total_sales'], 2) }}</span>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Sales</span>
+            <span class="stat-card-value" id="statTotalSales">${{ number_format($stats['total_sales'], 2) }}</span>
         </div>
     </div>
-    <div class="col">
-        <div class="stat-card stat-card-info">
-            <div class="stat-card-icon">
-                <i class="bi bi-graph-up"></i>
-            </div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">Total Commissions</span>
-                <span class="stat-card-value" id="statTotalCommissions">${{ number_format($stats['total_commissions'], 2) }}</span>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-graph-up"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Commissions</span>
+            <span class="stat-card-value" id="statTotalCommissions">${{ number_format($stats['total_commissions'], 2) }}</span>
         </div>
     </div>
-    <div class="col">
-        <div class="stat-card stat-card-warning">
-            <div class="stat-card-icon">
-                <i class="bi bi-cursor"></i>
-            </div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">Total Clicks</span>
-                <span class="stat-card-value" id="statTotalClicks">{{ number_format($stats['total_clicks']) }}</span>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-cursor"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Clicks</span>
+            <span class="stat-card-value" id="statTotalClicks">{{ number_format($stats['total_clicks']) }}</span>
         </div>
     </div>
 </div>

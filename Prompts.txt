@@ -37,7 +37,7 @@ Do you understand? Please confirm the scope and list the files you are about to 
 
 The e-commerce website development is done. I want to perform a QA (Quality Assurance) cross-check section by section.
 
-Current Task: Focus only on the Admin Panel > REPORTS > In-House Product Sale Report
+Current Task: Focus only on the Admin Panel > REPORTS > Seller Products Sale
 
 Instructions:
 
@@ -131,5 +131,22 @@ Instructions:
    - Reference specific Preference.md sections for deviations
    - Provide clear reproduction steps for any bugs found
    - Verify compliance with Important Implementation Rule (Admin Panel + Frontend Integration)
+
+
+
+-------------------------------------------------------------------
+I want to implement global css (global-styles.blade.php) to every admin pages
+
+this page implementade well so use this page as a reference: http://127.0.0.1:8000/admin/products
+
+but these pages below is not implementade well.
+Refund
+    Refund Requests
+    Approved Refunds
+    Rejected Refunds
+
+
+so implement carefully
+
 
 

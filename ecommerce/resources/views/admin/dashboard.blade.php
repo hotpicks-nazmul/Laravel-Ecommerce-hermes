@@ -3,117 +3,60 @@
 @section('title', 'Dashboard')
 
 @section('content')
-<!-- Stats Cards with Growth Indicators -->
-<div class="row mb-4">
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
     <!-- Total Sales -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card h-100 border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1 small text-uppercase fw-semibold">Total Sales</p>
-                        <h3 class="mb-1 fw-bold">৳{{ number_format($totalSales, 2) }}</h3>
-                        <div class="d-flex align-items-center mt-2">
-                            @if($salesGrowth >= 0)
-                                <span class="badge bg-success-subtle text-success me-1">
-                                    <i class="bi bi-arrow-up-short"></i>{{ abs($salesGrowth) }}%
-                                </span>
-                            @else
-                                <span class="badge bg-danger-subtle text-danger me-1">
-                                    <i class="bi bi-arrow-down-short"></i>{{ abs($salesGrowth) }}%
-                                </span>
-                            @endif
-                            <span class="text-muted small">vs last month</span>
-                        </div>
-                    </div>
-                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                        <i class="bi bi-wallet2"></i>
-                    </div>
-                </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Sales</span>
+                <span class="stat-card-value">৳{{ number_format($totalSales, 2) }}</span>
             </div>
         </div>
     </div>
     
     <!-- Today's Sales -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card h-100 border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1 small text-uppercase fw-semibold">Today's Sales</p>
-                        <h3 class="mb-1 fw-bold">৳{{ number_format($todaySales, 2) }}</h3>
-                        <div class="d-flex align-items-center mt-2">
-                            <span class="badge bg-info-subtle text-info me-1">
-                                {{ $todayOrders }} orders
-                            </span>
-                            <span class="text-muted small">today</span>
-                        </div>
-                    </div>
-                    <div class="stat-icon bg-success bg-opacity-10 text-success">
-                        <i class="bi bi-graph-up-arrow"></i>
-                    </div>
-                </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Today's Sales</span>
+                <span class="stat-card-value">৳{{ number_format($todaySales, 2) }}</span>
             </div>
         </div>
     </div>
     
     <!-- Total Orders -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card h-100 border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1 small text-uppercase fw-semibold">Total Orders</p>
-                        <h3 class="mb-1 fw-bold">{{ $totalOrders }}</h3>
-                        <div class="d-flex align-items-center mt-2">
-                            @if($orderGrowth >= 0)
-                                <span class="badge bg-success-subtle text-success me-1">
-                                    <i class="bi bi-arrow-up-short"></i>{{ abs($orderGrowth) }}%
-                                </span>
-                            @else
-                                <span class="badge bg-danger-subtle text-danger me-1">
-                                    <i class="bi bi-arrow-down-short"></i>{{ abs($orderGrowth) }}%
-                                </span>
-                            @endif
-                            <span class="text-muted small">vs last month</span>
-                        </div>
-                    </div>
-                    <div class="stat-icon bg-info bg-opacity-10 text-info">
-                        <i class="bi bi-cart-check"></i>
-                    </div>
-                </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon">
+                <i class="bi bi-cart-check"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Orders</span>
+                <span class="stat-card-value">{{ $totalOrders }}</span>
             </div>
         </div>
     </div>
     
     <!-- Total Customers -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card h-100 border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1 small text-uppercase fw-semibold">Total Customers</p>
-                        <h3 class="mb-1 fw-bold">{{ $totalCustomers }}</h3>
-                        <div class="d-flex align-items-center mt-2">
-                            @if($customerGrowth >= 0)
-                                <span class="badge bg-success-subtle text-success me-1">
-                                    <i class="bi bi-arrow-up-short"></i>{{ abs($customerGrowth) }}%
-                                </span>
-                            @else
-                                <span class="badge bg-danger-subtle text-danger me-1">
-                                    <i class="bi bi-arrow-down-short"></i>{{ abs($customerGrowth) }}%
-                                </span>
-                            @endif
-                            <span class="text-muted small">vs last month</span>
-                        </div>
-                    </div>
-                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
-                        <i class="bi bi-people"></i>
-                    </div>
-                </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Customers</span>
+                <span class="stat-card-value">{{ $totalCustomers }}</span>
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <!-- Main Charts Row -->

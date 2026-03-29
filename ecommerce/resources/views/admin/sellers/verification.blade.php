@@ -346,7 +346,7 @@
     .stat-card-content {
         display: flex;
         flex-direction: column;
-        text-align: center;
+        text-align: left;
     }
     .stat-card-label {
         font-size: 13px;

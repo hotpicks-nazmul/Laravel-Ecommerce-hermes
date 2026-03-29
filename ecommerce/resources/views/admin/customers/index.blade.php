@@ -4,38 +4,26 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="row g-3 mb-4" id="statsCards">
-    <div class="col">
-        <div class="stat-card stat-card-primary">
-            <div class="stat-card-icon">
-                <i class="bi bi-people"></i>
-            </div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">Total Customers</span>
-                <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-people"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Customers</span>
+            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
         </div>
     </div>
-    <div class="col">
-        <div class="stat-card stat-card-success">
-            <div class="stat-card-icon">
-                <i class="bi bi-check-circle"></i>
-            </div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">Active Customers</span>
-                <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active Customers</span>
+            <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
         </div>
     </div>
-    <div class="col">
-        <div class="stat-card stat-card-secondary">
-            <div class="stat-card-icon">
-                <i class="bi bi-pause-circle"></i>
-            </div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">Inactive Customers</span>
-                <span class="stat-card-value">{{ number_format($stats['inactive'] ?? 0) }}</span>
-            </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-pause-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Inactive Customers</span>
+            <span class="stat-card-value">{{ number_format($stats['inactive'] ?? 0) }}</span>
         </div>
     </div>
 </div>
@@ -202,51 +190,6 @@
 
 @push('styles')
 <style>
-.stat-card {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    padding: 20px 24px;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    border: 1px solid #f0f0f0;
-    transition: all 0.2s ease;
-}
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.stat-card-icon {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    font-size: 22px;
-}
-.stat-card-primary .stat-card-icon { background: #e8f4fd; color: #0d6efd; }
-.stat-card-success .stat-card-icon { background: #d1e7dd; color: #198754; }
-.stat-card-secondary .stat-card-icon { background: #e2e3e5; color: #6c757d; }
-
-.stat-card-content {
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-}
-.stat-card-label {
-    font-size: 13px;
-    color: #6c757d;
-    margin-bottom: 2px;
-}
-.stat-card-value {
-    font-size: 24px;
-    font-weight: 700;
-    color: #212529;
-    line-height: 1.2;
-}
 .table > :not(caption) > * > * {
     padding: 0.75rem 0.5rem;
 }

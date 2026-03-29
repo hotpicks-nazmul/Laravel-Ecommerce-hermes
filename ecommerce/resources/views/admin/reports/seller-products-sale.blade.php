@@ -9,72 +9,48 @@
 </div>
 
 <!-- Summary Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-primary bg-opacity-10 rounded p-3">
-                            <i class="bi bi-cart-plus text-primary fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Products Sold</p>
-                        <h4 class="mb-0">{{ number_format($totalQtySold) }}</h4>
-                    </div>
-                </div>
+<div class="row g-3 mb-4">
+    <div class="col">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon">
+                <i class="bi bi-cart-plus"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Products Sold</span>
+                <span class="stat-card-value">{{ number_format($totalQtySold) }}</span>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-success bg-opacity-10 rounded p-3">
-                            <i class="bi bi-currency-dollar text-success fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Sales</p>
-                        <h4 class="mb-0">৳{{ number_format($totalSales, 2) }}</h4>
-                    </div>
-                </div>
+    <div class="col">
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Sales</span>
+                <span class="stat-card-value">৳{{ number_format($totalSales, 2) }}</span>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-warning bg-opacity-10 rounded p-3">
-                            <i class="bi bi-receipt text-warning fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Orders</p>
-                        <h4 class="mb-0">{{ number_format($totalOrders) }}</h4>
-                    </div>
-                </div>
+    <div class="col">
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon">
+                <i class="bi bi-receipt"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Orders</span>
+                <span class="stat-card-value">{{ number_format($totalOrders) }}</span>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-info bg-opacity-10 rounded p-3">
-                            <i class="bi bi-box-seam text-info fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Unique Products</p>
-                        <h4 class="mb-0">{{ number_format($uniqueProducts) }}</h4>
-                    </div>
-                </div>
+    <div class="col">
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Unique Products</span>
+                <span class="stat-card-value">{{ number_format($uniqueProducts) }}</span>
             </div>
         </div>
     </div>
@@ -147,9 +123,6 @@
                         <a href="{{ route('admin.reports.seller-sales') }}" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-x-lg me-1"></i> Reset
                         </a>
-                        <a href="{{ route('admin.reports.seller-sales.export', request()->query()) }}" class="btn btn-sm btn-outline-success">
-                            <i class="bi bi-download me-1"></i> Export
-                        </a>
                     </div>
                 </div>
             </div>
@@ -160,8 +133,13 @@
 <!-- Data Table Card -->
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-        <h6 class="mb-0"><i class="bi bi-table me-2"></i>Product Sales Details</h6>
-        <span class="text-muted small">Showing {{ $productSales->firstItem() ?? 0 }} - {{ $productSales->lastItem() ?? 0 }} of {{ $productSales->total() }} products</span>
+        <div class="d-flex align-items-center gap-2">
+            <h6 class="mb-0"><i class="bi bi-table me-2"></i>Product Sales Details</h6>
+            <span class="text-muted small">Showing {{ $productSales->firstItem() ?? 0 }} - {{ $productSales->lastItem() ?? 0 }} of {{ $productSales->total() }} products</span>
+        </div>
+        <a href="{{ route('admin.reports.seller-sales.export', request()->query()) }}" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-download me-1"></i> Export
+        </a>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -179,7 +157,10 @@
                 </thead>
                 <tbody id="tableBody">
                     @forelse($productSales as $index => $item)
-                    <tr>
+                    @php
+                        $isMatch = $search && stripos($item->product_name, $search) !== false;
+                    @endphp
+                    <tr class="{{ $isMatch ? 'table-warning' : '' }}">
                         <td>{{ $productSales->firstItem() + $index }}</td>
                         <td>
                             <div class="fw-medium">{{ $item->product_name }}</div>
@@ -246,6 +227,53 @@
     .badge {
         font-weight: 500;
     }
+    .stat-card {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        padding: 20px 24px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        border: 1px solid #f0f0f0;
+        transition: all 0.2s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .stat-card-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        font-size: 22px;
+    }
+    .stat-card-primary .stat-card-icon { background: #e8f4fd; color: #0d6efd; }
+    .stat-card-warning .stat-card-icon { background: #fff3cd; color: #ffc107; }
+    .stat-card-info .stat-card-icon { background: #cff4fc; color: #0dcaf0; }
+    .stat-card-success .stat-card-icon { background: #d1e7dd; color: #198754; }
+    .stat-card-danger .stat-card-icon { background: #f8d7da; color: #dc3545; }
+
+    .stat-card-content {
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+    }
+    .stat-card-label {
+        font-size: 13px;
+        color: #6c757d;
+        margin-bottom: 2px;
+    }
+    .stat-card-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #212529;
+        line-height: 1.2;
+    }
 </style>
 @endpush
 
@@ -270,11 +298,46 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Debounce - wait 500ms after user stops typing
             searchTimeout = setTimeout(() => {
-                if (searchSpinner) {
-                    searchSpinner.style.display = 'none';
-                }
+                performLiveSearch(searchTerm);
             }, 500);
         });
+    }
+    
+    // Filter dropdowns trigger search on change
+    const sellerSelect = document.querySelector('select[name="seller"]');
+    const startDateInput = document.querySelector('input[name="start_date"]');
+    const endDateInput = document.querySelector('input[name="end_date"]');
+    const sortSelect = document.querySelector('select[name="sort"]');
+    
+    if (sellerSelect) {
+        sellerSelect.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    }
+    
+    if (startDateInput) {
+        startDateInput.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    }
+    
+    if (endDateInput) {
+        endDateInput.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    }
+    
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    }
+    
+    function performLiveSearch(searchTerm) {
+        if (searchSpinner) {
+            searchSpinner.style.display = 'none';
+        }
+        filterForm.submit();
     }
 });
 </script>

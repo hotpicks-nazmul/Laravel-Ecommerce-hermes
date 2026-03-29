@@ -30,65 +30,33 @@
 </div>
 
 <!-- Statistics Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
-                        <i class="bi bi-truck text-primary fs-4"></i>
-                    </div>
-                    <div>
-                        <p class="text-muted mb-0 small">Total Couriers</p>
-                        <h4 class="mb-0">{{ $stats['total'] }}</h4>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-truck"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Couriers</span>
+            <span class="stat-card-value">{{ $stats['total'] }}</span>
         </div>
     </div>
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
-                        <i class="bi bi-check-circle text-success fs-4"></i>
-                    </div>
-                    <div>
-                        <p class="text-muted mb-0 small">Active Couriers</p>
-                        <h4 class="mb-0">{{ $stats['active'] }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active Couriers</span>
+            <span class="stat-card-value">{{ $stats['active'] }}</span>
         </div>
     </div>
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
-                        <i class="bi bi-key text-warning fs-4"></i>
-                    </div>
-                    <div>
-                        <p class="text-muted mb-0 small">API Configured</p>
-                        <h4 class="mb-0">{{ $stats['api_configured'] }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-key"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">API Configured</span>
+            <span class="stat-card-value">{{ $stats['api_configured'] }}</span>
         </div>
     </div>
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
-                        <i class="bi bi-cash-coin text-info fs-4"></i>
-                    </div>
-                    <div>
-                        <p class="text-muted mb-0 small">COD Support</p>
-                        <h4 class="mb-0">{{ $stats['supports_cod'] }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-cash-coin"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">COD Support</span>
+            <span class="stat-card-value">{{ $stats['supports_cod'] }}</span>
         </div>
     </div>
 </div>
@@ -219,12 +187,12 @@
                         <p class="text-muted small mb-2">{{ $courier['description'] }}</p>
                         <div class="d-flex justify-content-center gap-2 flex-wrap mb-2">
                             @if($courier['supports_cod'])
-                            <span class="badge bg-success bg-opacity-10 text-success small">COD</span>
+                            <span class="badge bg-success text-white small">COD</span>
                             @endif
                             @if($courier['supports_tracking'])
-                            <span class="badge bg-info bg-opacity-10 text-info small">Tracking</span>
+                            <span class="badge bg-info text-white small">Tracking</span>
                             @endif
-                            <span class="badge bg-light text-dark small">{{ $courier['estimated_delivery_days'] }} days</span>
+                            <span class="badge bg-secondary text-white small">{{ $courier['estimated_delivery_days'] }} days</span>
                         </div>
                         <div class="mt-2">
                             @if($isAdded)

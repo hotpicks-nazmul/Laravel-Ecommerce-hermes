@@ -9,73 +9,41 @@
 </div>
 
 <!-- Summary Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-primary bg-opacity-10 rounded p-3">
-                            <i class="bi bi-cart-plus text-primary fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Products Sold</p>
-                        <h4 class="mb-0">{{ number_format($totalQtySold) }}</h4>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon">
+            <i class="bi bi-cart-plus"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Products Sold</span>
+            <span class="stat-card-value">{{ number_format($totalQtySold) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-success bg-opacity-10 rounded p-3">
-                            <i class="bi bi-currency-dollar text-success fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Sales</p>
-                        <h4 class="mb-0">৳{{ number_format($totalSales, 2) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon">
+            <i class="bi bi-currency-dollar"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Sales</span>
+            <span class="stat-card-value">৳{{ number_format($totalSales, 2) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-warning bg-opacity-10 rounded p-3">
-                            <i class="bi bi-receipt text-warning fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Orders</p>
-                        <h4 class="mb-0">{{ number_format($totalOrders) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon">
+            <i class="bi bi-receipt"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Orders</span>
+            <span class="stat-card-value">{{ number_format($totalOrders) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-info bg-opacity-10 rounded p-3">
-                            <i class="bi bi-box-seam text-info fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Unique Products</p>
-                        <h4 class="mb-0">{{ number_format($uniqueProducts) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon">
+            <i class="bi bi-box-seam"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Unique Products</span>
+            <span class="stat-card-value">{{ number_format($uniqueProducts) }}</span>
         </div>
     </div>
 </div>

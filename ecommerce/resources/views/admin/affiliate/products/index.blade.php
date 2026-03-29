@@ -3,6 +3,38 @@
 @section('title', 'Affiliate Products')
 
 @section('content')
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-box"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Products</span>
+            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Inactive</span>
+            <span class="stat-card-value">{{ number_format($stats['inactive'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Avg. Price</span>
+            <span class="stat-card-value">${{ number_format($stats['avg_price'] ?? 0, 2) }}</span>
+        </div>
+    </div>
+</div>
+
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">Affiliate Products</h4>

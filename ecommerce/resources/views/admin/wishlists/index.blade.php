@@ -18,53 +18,20 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted mb-1 small">Total Wishlist Items</p>
-                            <h4 class="mb-0" id="stat-total">{{ $stats['total_wishlists'] }}</h4>
-                        </div>
-                        <div class="icon-box bg-primary bg-opacity-10 rounded p-3">
-                            <i class="bi bi-heart-fill text-primary fs-4"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted mb-1 small">Unique Products</p>
-                            <h4 class="mb-0" id="stat-products">{{ $stats['unique_products'] }}</h4>
-                        </div>
-                        <div class="icon-box bg-success bg-opacity-10 rounded p-3">
-                            <i class="bi bi-box-seam text-success fs-4"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted mb-1 small">Active Customers</p>
-                            <h4 class="mb-0" id="stat-users">{{ $stats['unique_users'] }}</h4>
-                        </div>
-                        <div class="icon-box bg-info bg-opacity-10 rounded p-3">
-                            <i class="bi bi-people-fill text-info fs-4"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-heart-fill"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Total Wishlist Items</span><span class="stat-card-value" id="stat-total">{{ $stats['total_wishlists'] }}</span></div>
     </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-box-seam"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Unique Products</span><span class="stat-card-value" id="stat-products">{{ $stats['unique_products'] }}</span></div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Active Customers</span><span class="stat-card-value" id="stat-users">{{ $stats['unique_users'] }}</span></div>
+    </div>
+</div>
 
     <!-- Filter Card -->
     <div class="card border-0 shadow-sm mb-3">

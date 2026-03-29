@@ -3,6 +3,58 @@
 @section('title', 'Analytics')
 
 @section('content')
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2 col-sm-4 col-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">Sales</div>
+                <div class="h4 mb-0 text-primary">{{ number_format($currentSales) }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-4 col-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">Growth</div>
+                <div class="h4 mb-0 {{ $salesGrowth >= 0 ? 'text-success' : 'text-danger' }}">{{ number_format($salesGrowth, 1) }}%</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-4 col-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">Orders</div>
+                <div class="h4 mb-0 text-info">{{ number_format($currentOrders) }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-4 col-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">Customers</div>
+                <div class="h4 mb-0 text-warning">{{ number_format($currentCustomers) }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-4 col-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">Products</div>
+                <div class="h4 mb-0 text-dark">{{ number_format($totalProducts) }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 col-sm-4 col-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-3">
+                <div class="text-muted small text-uppercase">Out of Stock</div>
+                <div class="h4 mb-0 text-danger">{{ number_format($outOfStockProducts) }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Page Header -->
 @if(session('error'))
 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -62,119 +114,55 @@
 </div>
 
 <!-- Key Metrics Cards -->
-<div class="row mb-4">
+<div class="row g-3 mb-4">
     <!-- Total Revenue -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card h-100 border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1 small text-uppercase fw-semibold">Total Revenue</p>
-                        <h3 class="mb-1 fw-bold">৳{{ number_format($currentSales, 2) }}</h3>
-                        <div class="d-flex align-items-center mt-2">
-                            @if($salesGrowth >= 0)
-                                <span class="badge bg-success-subtle text-success me-1">
-                                    <i class="bi bi-arrow-up-short"></i>{{ abs($salesGrowth) }}%
-                                </span>
-                            @else
-                                <span class="badge bg-danger-subtle text-danger me-1">
-                                    <i class="bi bi-arrow-down-short"></i>{{ abs($salesGrowth) }}%
-                                </span>
-                            @endif
-                            <span class="text-muted small">vs previous period</span>
-                        </div>
-                    </div>
-                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                        <i class="bi bi-currency-dollar"></i>
-                    </div>
-                </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Revenue</span>
+                <span class="stat-card-value">৳{{ number_format($currentSales, 2) }}</span>
             </div>
         </div>
     </div>
     
     <!-- Total Orders -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card h-100 border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1 small text-uppercase fw-semibold">Total Orders</p>
-                        <h3 class="mb-1 fw-bold">{{ number_format($currentOrders) }}</h3>
-                        <div class="d-flex align-items-center mt-2">
-                            @if($orderGrowth >= 0)
-                                <span class="badge bg-success-subtle text-success me-1">
-                                    <i class="bi bi-arrow-up-short"></i>{{ abs($orderGrowth) }}%
-                                </span>
-                            @else
-                                <span class="badge bg-danger-subtle text-danger me-1">
-                                    <i class="bi bi-arrow-down-short"></i>{{ abs($orderGrowth) }}%
-                                </span>
-                            @endif
-                            <span class="text-muted small">vs previous period</span>
-                        </div>
-                    </div>
-                    <div class="stat-icon bg-success bg-opacity-10 text-success">
-                        <i class="bi bi-cart-check"></i>
-                    </div>
-                </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon">
+                <i class="bi bi-cart-check"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Orders</span>
+                <span class="stat-card-value">{{ number_format($currentOrders) }}</span>
             </div>
         </div>
     </div>
     
     <!-- Average Order Value -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card h-100 border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1 small text-uppercase fw-semibold">Avg. Order Value</p>
-                        <h3 class="mb-1 fw-bold">৳{{ number_format($avgOrderValue, 2) }}</h3>
-                        <div class="d-flex align-items-center mt-2">
-                            @if($avgGrowth >= 0)
-                                <span class="badge bg-success-subtle text-success me-1">
-                                    <i class="bi bi-arrow-up-short"></i>{{ abs($avgGrowth) }}%
-                                </span>
-                            @else
-                                <span class="badge bg-danger-subtle text-danger me-1">
-                                    <i class="bi bi-arrow-down-short"></i>{{ abs($avgGrowth) }}%
-                                </span>
-                            @endif
-                            <span class="text-muted small">vs previous period</span>
-                        </div>
-                    </div>
-                    <div class="stat-icon bg-info bg-opacity-10 text-info">
-                        <i class="bi bi-receipt"></i>
-                    </div>
-                </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon">
+                <i class="bi bi-receipt"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Avg. Order Value</span>
+                <span class="stat-card-value">৳{{ number_format($avgOrderValue, 2) }}</span>
             </div>
         </div>
     </div>
     
     <!-- New Customers -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stat-card h-100 border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1 small text-uppercase fw-semibold">New Customers</p>
-                        <h3 class="mb-1 fw-bold">{{ number_format($currentCustomers) }}</h3>
-                        <div class="d-flex align-items-center mt-2">
-                            @if($customerGrowth >= 0)
-                                <span class="badge bg-success-subtle text-success me-1">
-                                    <i class="bi bi-arrow-up-short"></i>{{ abs($customerGrowth) }}%
-                                </span>
-                            @else
-                                <span class="badge bg-danger-subtle text-danger me-1">
-                                    <i class="bi bi-arrow-down-short"></i>{{ abs($customerGrowth) }}%
-                                </span>
-                            @endif
-                            <span class="text-muted small">vs previous period</span>
-                        </div>
-                    </div>
-                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
-                        <i class="bi bi-people"></i>
-                    </div>
-                </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">New Customers</span>
+                <span class="stat-card-value">{{ number_format($currentCustomers) }}</span>
             </div>
         </div>
     </div>

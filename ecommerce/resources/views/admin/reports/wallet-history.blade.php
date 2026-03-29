@@ -9,122 +9,72 @@
 </div>
 
 <!-- Summary Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-success bg-opacity-10 rounded p-3">
-                            <i class="bi bi-plus-circle text-success fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Recharges</p>
-                        <h4 class="mb-0">{{ number_format($totalRecharges) }}</h4>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon">
+            <i class="bi bi-plus-circle"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Recharges</span>
+            <span class="stat-card-value">{{ number_format($totalRecharges) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-success bg-opacity-10 rounded p-3">
-                            <i class="bi bi-currency-dollar text-success fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Recharge Amount</p>
-                        <h4 class="mb-0">৳{{ number_format($totalRechargeAmount, 2) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon">
+            <i class="bi bi-currency-dollar"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Recharge Amount</span>
+            <span class="stat-card-value">৳{{ number_format($totalRechargeAmount, 2) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-danger bg-opacity-10 rounded p-3">
-                            <i class="bi bi-dash-circle text-danger fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Debits</p>
-                        <h4 class="mb-0">৳{{ number_format($totalDebitAmount, 2) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon">
+            <i class="bi bi-dash-circle"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Debits</span>
+            <span class="stat-card-value">৳{{ number_format($totalDebitAmount, 2) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-primary bg-opacity-10 rounded p-3">
-                            <i class="bi bi-wallet2 text-primary fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Net Amount</p>
-                        <h4 class="mb-0">৳{{ number_format($netAmount, 2) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon">
+            <i class="bi bi-wallet2"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Net Amount</span>
+            <span class="stat-card-value">৳{{ number_format($netAmount, 2) }}</span>
         </div>
     </div>
 </div>
 
 <!-- Additional Stats -->
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted small mb-0">Unique Users</p>
-                        <h4 class="mb-0">{{ number_format($totalUsers) }}</h4>
-                    </div>
-                    <div class="bg-primary bg-opacity-10 rounded p-3">
-                        <i class="bi bi-people text-primary fs-4"></i>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon">
+            <i class="bi bi-people"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Unique Users</span>
+            <span class="stat-card-value">{{ number_format($totalUsers) }}</span>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted small mb-0">Debit Transactions</p>
-                        <h4 class="mb-0 text-danger">{{ number_format($totalDebits) }}</h4>
-                    </div>
-                    <div class="bg-danger bg-opacity-10 rounded p-3">
-                        <i class="bi bi-arrow-down-circle text-danger fs-4"></i>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon">
+            <i class="bi bi-arrow-down-circle"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Debit Transactions</span>
+            <span class="stat-card-value">{{ number_format($totalDebits) }}</span>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted small mb-0">Sources</p>
-                        <h4 class="mb-0">{{ $sourceCounts->count() }}</h4>
-                    </div>
-                    <div class="bg-info bg-opacity-10 rounded p-3">
-                        <i class="bi bi-collection text-info fs-4"></i>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon">
+            <i class="bi bi-collection"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Sources</span>
+            <span class="stat-card-value">{{ $sourceCounts->count() }}</span>
         </div>
     </div>
 </div>

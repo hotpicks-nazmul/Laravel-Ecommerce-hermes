@@ -10,63 +10,43 @@
 </div>
 
 <!-- Statistics Cards -->
-<div class="row g-3 mb-4" id="statsCards">
-            <div class="col">
-                <div class="stat-card stat-card-primary">
-                    <div class="stat-card-icon">
-                        <i class="bi bi-card-checklist"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <span class="stat-card-label">Total Plans</span>
-                        <span class="stat-card-value">{{ number_format($stats['total']) }}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="stat-card stat-card-success">
-                    <div class="stat-card-icon">
-                        <i class="bi bi-check-circle"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <span class="stat-card-label">Active</span>
-                        <span class="stat-card-value">{{ number_format($stats['active']) }}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="stat-card stat-card-secondary">
-                    <div class="stat-card-icon">
-                        <i class="bi bi-pause-circle"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <span class="stat-card-label">Inactive</span>
-                        <span class="stat-card-value">{{ number_format($stats['inactive']) }}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="stat-card stat-card-warning">
-                    <div class="stat-card-icon">
-                        <i class="bi bi-star"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <span class="stat-card-label">Featured</span>
-                        <span class="stat-card-value">{{ number_format($stats['featured']) }}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="stat-card stat-card-info">
-                    <div class="stat-card-icon">
-                        <i class="bi bi-people"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <span class="stat-card-label">Total Members</span>
-                        <span class="stat-card-value">{{ number_format($stats['total_members']) }}</span>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-card-checklist"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Plans</span>
+            <span class="stat-card-value">{{ number_format($stats['total']) }}</span>
         </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ number_format($stats['active']) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-pause-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Inactive</span>
+            <span class="stat-card-value">{{ number_format($stats['inactive']) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-star"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Featured</span>
+            <span class="stat-card-value">{{ number_format($stats['featured']) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-people"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Members</span>
+            <span class="stat-card-value">{{ number_format($stats['total_members']) }}</span>
+        </div>
+    </div>
+</div>
 
         <!-- Filters Card -->
         <div class="card border-0 shadow-sm mb-3">
@@ -235,7 +215,7 @@
 .stat-card-content {
     display: flex;
     flex-direction: column;
-    text-align: center;
+    text-align: left;
 }
 .stat-card-label {
     font-size: 13px;

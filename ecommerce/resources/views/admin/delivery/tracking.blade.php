@@ -63,48 +63,36 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4 g-2">
-        <div class="col-md col-6 mb-2">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Total Shipments</div>
-                    <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md col-6 mb-2">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Pending</div>
-                    <div class="h4 mb-0 text-warning">{{ $stats['pending'] ?? 0 }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md col-6 mb-2">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">In Transit</div>
-                    <div class="h4 mb-0 text-primary">{{ $stats['in_transit'] ?? 0 }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md col-6 mb-2">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Delivered</div>
-                    <div class="h4 mb-0 text-success">{{ $stats['delivered'] ?? 0 }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md col-6 mb-2">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Cancelled</div>
-                    <div class="h4 mb-0 text-danger">{{ $stats['returned'] ?? 0 }}</div>
-                </div>
-            </div>
+    <div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-box-seam"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Shipments</span>
+            <span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span>
         </div>
     </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Pending</span>
+            <span class="stat-card-value">{{ $stats['pending'] ?? 0 }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-truck"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">In Transit</span>
+            <span class="stat-card-value">{{ $stats['in_transit'] ?? 0 }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Delivered</span>
+            <span class="stat-card-value">{{ $stats['delivered'] ?? 0 }}</span>
+        </div>
+    </div>
+</div>
 
     <!-- Filter Form -->
     <div class="card border-0 shadow-sm mb-3">

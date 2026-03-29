@@ -4,37 +4,33 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="row g-2 mb-4">
-    <div class="col-md col-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Groups</div>
-                <div class="h4 mb-0 text-primary" id="stat-total">{{ $stats['total'] ?? 0 }}</div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-collection"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Groups</span>
+            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
         </div>
     </div>
-    <div class="col-md col-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Active</div>
-                <div class="h4 mb-0 text-success" id="stat-active">{{ $stats['active'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
         </div>
     </div>
-    <div class="col-md col-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Inactive</div>
-                <div class="h4 mb-0 text-secondary" id="stat-inactive">{{ $stats['inactive'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-pause-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Inactive</span>
+            <span class="stat-card-value">{{ number_format($stats['inactive'] ?? 0) }}</span>
         </div>
     </div>
-    <div class="col-md col-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">With Discount</div>
-                <div class="h4 mb-0 text-info" id="stat-with-discount">{{ $stats['with_discount'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-percent"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">With Discount</span>
+            <span class="stat-card-value">{{ number_format($stats['with_discount'] ?? 0) }}</span>
         </div>
     </div>
 </div>

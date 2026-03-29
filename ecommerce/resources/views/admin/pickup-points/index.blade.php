@@ -4,29 +4,26 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="row g-3 mb-4" id="statsCards">
-    <div class="col-6 col-md-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Locations</div>
-                <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-geo-alt"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Locations</span>
+            <span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span>
         </div>
     </div>
-    <div class="col-6 col-md-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Active</div>
-                <div class="h4 mb-0 text-success">{{ $stats['active'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ $stats['active'] ?? 0 }}</span>
         </div>
     </div>
-    <div class="col-6 col-md-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Inactive</div>
-                <div class="h4 mb-0 text-secondary">{{ $stats['inactive'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-pause-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Inactive</span>
+            <span class="stat-card-value">{{ $stats['inactive'] ?? 0 }}</span>
         </div>
     </div>
 </div>

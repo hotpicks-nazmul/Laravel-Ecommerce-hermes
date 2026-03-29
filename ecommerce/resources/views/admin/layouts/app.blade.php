@@ -267,26 +267,279 @@
             padding: 20px;
         }
         
+        /* Statistics Card - Universal Global Style */
+        /* Use this class on any page for consistent stats cards */
+        .stat-card-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-card-grid > .stat-card-item {
+            flex: 1 1 calc(20% - 0.5rem);
+            min-width: 140px;
+            max-width: 100%;
+        }
+        
+        .stat-card-grid .stat-card-item .card {
+            height: 100%;
+            border: 0;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .stat-card-grid .stat-card-item .card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .stat-card-grid .stat-card-item .card-body {
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        /* GLOBAL: Same font/label style for ALL pages */
+        .stat-card-grid .stat-card-item .card-body .stat-label {
+            font-size: 0.75rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+        
+        /* GLOBAL: Same font/value style for ALL pages */
+        .stat-card-grid .stat-card-item .card-body .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0;
+        }
+        
+        /* Colors */
+        .stat-card-grid .stat-card-item .card-body .stat-value.text-primary { color: #0d6efd; }
+        .stat-card-grid .stat-card-item .card-body .stat-value.text-success { color: #198754; }
+        .stat-card-grid .stat-card-item .card-body .stat-value.text-warning { color: #ffc107; }
+        .stat-card-grid .stat-card-item .card-body .stat-value.text-danger { color: #dc3545; }
+        .stat-card-grid .stat-card-item .card-body .stat-value.text-info { color: #0dcaf0; }
+        .stat-card-grid .stat-card-item .card-body .stat-value.text-secondary { color: #6c757d; }
+        .stat-card-grid .stat-card-item .card-body .stat-value.text-dark { color: #212529; }
+        
+        /* =====================================================
+        GLOBAL: Make ALL Statistics Cards look consistent
+        This CSS applies to ALL pages without changes
+        ===================================================== */
+        
+        /* Make all row-based stat cards consistent */
+        #statsCards,
+        .stat-card-grid,
+        .row.mb-4,
+        .row.g-2.mb-4,
+        .row.g-3.mb-4,
+        .row.g-4.mb-4 {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        #statsCards > [class*="col-"],
+        .stat-card-grid > [class*="col-"],
+        .stat-card-grid > .stat-card-item,
+        .row.mb-4 > [class*="col-"],
+        .row.g-2.mb-4 > [class*="col-"],
+        .row.g-3.mb-4 > [class*="col-"],
+        .row.g-4.mb-4 > [class*="col-"] {
+            flex: 1 1 calc(20% - 0.5rem);
+            min-width: 140px;
+            max-width: 100%;
+            margin-bottom: 0 !important;
+        }
+        
+        /* Make all stat cards consistent styling */
+        #statsCards .card,
+        .stat-card-grid .card,
+        .stat-card-grid .stat-card-item .card,
+        .row.mb-4 .card,
+        .row.g-2.mb-4 .card,
+        .row.g-3.mb-4 .card,
+        .row.g-4.mb-4 .card {
+            height: 100%;
+            border: 0;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+        
+        #statsCards .card:hover,
+        .stat-card-grid .card:hover,
+        .stat-card-grid .stat-card-item .card:hover,
+        .row.mb-4 .card:hover,
+        .row.g-2.mb-4 .card:hover,
+        .row.g-3.mb-4 .card:hover,
+        .row.g-4.mb-4 .card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* Make all card-bodies consistent */
+        #statsCards .card-body,
+        .stat-card-grid .card-body,
+        .stat-card-grid .stat-card-item .card-body,
+        .row.mb-4 .card-body,
+        .row.g-2.mb-4 .card-body,
+        .row.g-3.mb-4 .card-body,
+        .row.g-4.mb-4 .card-body {
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        /* Make all labels consistent */
+        #statsCards .card-body .text-muted,
+        .stat-card-grid .card-body .text-muted,
+        .row.mb-4 .card-body .text-muted,
+        .row.g-2.mb-4 .card-body .text-muted,
+        .row.g-3.mb-4 .card-body .text-muted,
+        .row.g-4.mb-4 .card-body .text-muted,
+        #statsCards .card-body .small,
+        .stat-card-grid .card-body .small,
+        .row.mb-4 .card-body .small,
+        .row.g-2.mb-4 .card-body .small,
+        .row.g-3.mb-4 .card-body .small,
+        .row.g-4.mb-4 .card-body .small {
+            font-size: 0.75rem !important;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6c757d !important;
+            margin-bottom: 0.25rem;
+        }
+        
+        /* Make all values consistent */
+        #statsCards .card-body .h4,
+        .stat-card-grid .card-body .h4,
+        .row.mb-4 .card-body .h4,
+        .row.g-2.mb-4 .card-body .h4,
+        .row.g-3.mb-4 .card-body .h4,
+        .row.g-4.mb-4 .card-body .h4 {
+            font-size: 1.5rem !important;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0;
+        }
+        
+        /* Responsive: 2 columns on mobile */
+        @media (max-width: 576px) {
+            .stat-card-grid > .stat-card-item,
+            #statsCards > [class*="col-"],
+            .stat-card-grid > [class*="col-"],
+            .row.mb-4 > [class*="col-"] {
+                flex: 1 1 calc(50% - 0.5rem);
+            }
+        }
+        
         /* Cards */
         .stat-card {
             border: none;
             border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
         }
         
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
         }
         
-        .stat-card .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
+        .stat-card .stat-icon,
+        .stat-card .stat-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        
+        .stat-card .stat-card-icon i::before {
+            display: inline-block;
+        }
+        
+        /* Stat Card Variants */
+        .stat-card-primary .stat-card-icon { background: #e8f4fd; color: #0d6efd; }
+        .stat-card-success .stat-card-icon { background: #d1e7dd; color: #198754; }
+        .stat-card-info .stat-card-icon { background: #cff4fc; color: #0dcaf0; }
+        .stat-card-warning .stat-card-icon { background: #fff3cd; color: #ffc107; }
+        .stat-card-danger .stat-card-icon { background: #f8d7da; color: #dc3545; }
+        .stat-card-secondary .stat-card-icon { background: #e2e3e5; color: #6c757d; }
+        
+        /* Stat Card Row - Always 4 Columns */
+        .stat-card-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .stat-card-row-6 {
+            grid-template-columns: repeat(6, 1fr);
+        }
+
+        .stat-card-row .stat-card {
+            min-height: 80px;
+            align-items: stretch;
+        }
+
+        @media (max-width: 992px) {
+            .stat-card-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .stat-card-row-6 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stat-card-row-6 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stat-card-row {
+                grid-template-columns: 1fr;
+            }
+            .stat-card-row-6 {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #212529;
+        }
+        .stat-card-warning .stat-card-value { color: #ffc107; }
+        
+        .stat-card-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 22px;
         }
         
         /* Responsive */
@@ -535,6 +788,7 @@
         }
     </style>
     
+    @include('partials.global-styles')
     @stack('styles')
 </head>
 <body>

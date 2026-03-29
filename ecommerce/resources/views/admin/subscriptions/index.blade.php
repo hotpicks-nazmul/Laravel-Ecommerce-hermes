@@ -16,54 +16,30 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Total</div>
-                    <div class="h4 mb-0 text-primary" id="statTotal">{{ $stats['total'] ?? 0 }}</div>
-                </div>
-            </div>
+    <div class="stat-card-row mb-4">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon"><i class="bi bi-arrow-repeat"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Total</span><span class="stat-card-value" id="statTotal">{{ $stats['total'] ?? 0 }}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Active</div>
-                    <div class="h4 mb-0 text-success" id="statActive">{{ $stats['active'] ?? 0 }}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Active</span><span class="stat-card-value" id="statActive">{{ $stats['active'] ?? 0 }}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Pending</div>
-                    <div class="h4 mb-0 text-warning" id="statPending">{{ $stats['pending'] ?? 0 }}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon"><i class="bi bi-clock"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Pending</span><span class="stat-card-value" id="statPending">{{ $stats['pending'] ?? 0 }}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Paused</div>
-                    <div class="h4 mb-0 text-info" id="statPaused">{{ $stats['paused'] ?? 0 }}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon"><i class="bi bi-pause-circle"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Paused</span><span class="stat-card-value" id="statPaused">{{ $stats['paused'] ?? 0 }}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Cancelled</div>
-                    <div class="h4 mb-0 text-danger" id="statCancelled">{{ $stats['cancelled'] ?? 0 }}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-danger">
+            <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Cancelled</span><span class="stat-card-value" id="statCancelled">{{ $stats['cancelled'] ?? 0 }}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Due for Billing</div>
-                    <div class="h4 mb-0 text-dark" id="statDue">{{ $stats['due_for_billing'] ?? 0 }}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-secondary">
+            <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Due for Billing</span><span class="stat-card-value" id="statDue">{{ $stats['due_for_billing'] ?? 0 }}</span></div>
         </div>
     </div>
 

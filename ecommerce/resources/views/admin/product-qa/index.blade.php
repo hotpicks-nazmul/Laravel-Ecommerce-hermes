@@ -4,11 +4,6 @@
 
 @push('styles')
 <style>
-    /* Add padding at bottom to prevent floating button overlap */
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-    
     .qa-question {
         max-width: 300px;
         overflow: hidden;
@@ -64,8 +59,7 @@
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    <!-- Page Header -->
+<!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="mb-1"><i class="bi bi-question-circle me-2"></i>Product Q&A</h4>
@@ -73,43 +67,27 @@
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Total</div>
-                    <div class="h4 mb-0 text-primary">{{ $stats['total'] }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Pending</div>
-                    <div class="h4 mb-0 text-warning">{{ $stats['pending'] }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Answered</div>
-                    <div class="h4 mb-0 text-info">{{ $stats['answered'] }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Published</div>
-                    <div class="h4 mb-0 text-success">{{ $stats['published'] }}</div>
-                </div>
-            </div>
-        </div>
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-chat-left-text"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Total</span><span class="stat-card-value" id="statTotal">{{ $stats['total'] }}</span></div>
     </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Pending</span><span class="stat-card-value" id="statPending">{{ $stats['pending'] }}</span></div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-check-lg"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Answered</span><span class="stat-card-value" id="statAnswered">{{ $stats['answered'] }}</span></div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-send"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Published</span><span class="stat-card-value" id="statPublished">{{ $stats['published'] }}</span></div>
+    </div>
+</div>
 
-    <!-- Filters -->
+<!-- Filters -->
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-body py-3">
             <form method="GET" id="filterForm">

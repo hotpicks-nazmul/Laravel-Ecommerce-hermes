@@ -9,111 +9,63 @@
 </div>
 
 <!-- Summary Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-primary bg-opacity-10 rounded p-3">
-                            <i class="bi bi-box-seam text-primary fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Products</p>
-                        <h4 class="mb-0">{{ number_format($totalProducts) }}</h4>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon">
+            <i class="bi bi-box-seam"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Products</span>
+            <span class="stat-card-value">{{ number_format($totalProducts) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-success bg-opacity-10 rounded p-3">
-                            <i class="bi bi-check-circle text-success fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">In Stock</p>
-                        <h4 class="mb-0 text-success">{{ number_format($inStockCount) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">In Stock</span>
+            <span class="stat-card-value">{{ number_format($inStockCount) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-warning bg-opacity-10 rounded p-3">
-                            <i class="bi bi-exclamation-triangle text-warning fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Low Stock</p>
-                        <h4 class="mb-0 text-warning">{{ number_format($lowStockCount) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon">
+            <i class="bi bi-exclamation-triangle"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Low Stock</span>
+            <span class="stat-card-value">{{ number_format($lowStockCount) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-danger bg-opacity-10 rounded p-3">
-                            <i class="bi bi-x-circle text-danger fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Out of Stock</p>
-                        <h4 class="mb-0 text-danger">{{ number_format($outOfStockCount) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon">
+            <i class="bi bi-x-circle"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Out of Stock</span>
+            <span class="stat-card-value">{{ number_format($outOfStockCount) }}</span>
         </div>
     </div>
 </div>
 
 <!-- Stock Value Summary -->
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-info bg-opacity-10 rounded p-3">
-                            <i class="bi bi-currency-dollar text-info fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Stock Quantity</p>
-                        <h4 class="mb-0">{{ number_format($totalStockQty) }} units</h4>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon">
+            <i class="bi bi-currency-dollar"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Stock Quantity</span>
+            <span class="stat-card-value">{{ number_format($totalStockQty) }} units</span>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-secondary bg-opacity-10 rounded p-3">
-                            <i class="bi bi-graph-up-arrow text-secondary fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Stock Value (Cost)</p>
-                        <h4 class="mb-0">৳{{ number_format($totalStockValue, 2) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon">
+            <i class="bi bi-graph-up-arrow"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Stock Value (Cost)</span>
+            <span class="stat-card-value">৳{{ number_format($totalStockValue, 2) }}</span>
         </div>
     </div>
 </div>

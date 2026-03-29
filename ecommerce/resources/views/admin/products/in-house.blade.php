@@ -4,54 +4,22 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-lg-2 col-md-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total</div>
-                <div class="h4 mb-0 text-primary" id="statTotal">{{ $stats['total'] ?? 0 }}</div>
-            </div>
-        </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-grid-3x3-gap"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Total</span><span class="stat-card-value" id="statTotal">{{ $stats['total'] ?? 0 }}</span></div>
     </div>
-    <div class="col-lg-2 col-md-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Active</div>
-                <div class="h4 mb-0 text-success" id="statActive">{{ $stats['active'] ?? 0 }}</div>
-            </div>
-        </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Active</span><span class="stat-card-value" id="statActive">{{ $stats['active'] ?? 0 }}</span></div>
     </div>
-    <div class="col-lg-2 col-md-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100 {{ ($stats['low_stock'] ?? 0) > 0 ? 'border-warning' : '' }}">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Low Stock</div>
-                <div class="h4 mb-0 text-warning" id="statLowStock">{{ $stats['low_stock'] ?? 0 }}</div>
-            </div>
-        </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Low Stock</span><span class="stat-card-value" id="statLowStock">{{ $stats['low_stock'] ?? 0 }}</span></div>
     </div>
-    <div class="col-lg-2 col-md-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100 {{ ($stats['out_of_stock'] ?? 0) > 0 ? 'border-danger' : '' }}">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Out of Stock</div>
-                <div class="h4 mb-0 text-danger" id="statOutOfStock">{{ $stats['out_of_stock'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-2 col-md-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Stock Value</div>
-                <div class="h6 mb-0 text-info" id="statStockValue">৳{{ number_format($stats['total_stock_value'] ?? 0, 0) }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-2 col-md-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Retail Value</div>
-                <div class="h6 mb-0 text-primary" id="statRetailValue">৳{{ number_format($stats['total_retail_value'] ?? 0, 0) }}</div>
-            </div>
-        </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Out of Stock</span><span class="stat-card-value" id="statOutOfStock">{{ $stats['out_of_stock'] ?? 0 }}</span></div>
     </div>
 </div>
 

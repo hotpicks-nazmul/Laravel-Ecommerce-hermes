@@ -31,7 +31,17 @@ class AffiliateWithdrawalController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
         
-        return view('admin.affiliate.withdrawals.index', compact('withdrawals', 'search'));
+        // Statistics for stat cards
+        $stats = [
+            'total' => AffiliateWithdrawal::count(),
+            'pending' => AffiliateWithdrawal::where('status', 'pending')->count(),
+            'approved' => AffiliateWithdrawal::where('status', 'approved')->count(),
+            'rejected' => AffiliateWithdrawal::where('status', 'rejected')->count(),
+            'total_amount' => AffiliateWithdrawal::where('status', 'approved')->sum('amount'),
+            'pending_amount' => AffiliateWithdrawal::where('status', 'pending')->sum('amount'),
+        ];
+        
+        return view('admin.affiliate.withdrawals.index', compact('withdrawals', 'search', 'stats'));
     }
 
     /**

@@ -475,6 +475,191 @@
         font-size: 5rem;
         color: #6c757d;
     }
+    
+    /* ============================================
+       CONSISTENT TABLE STYLES
+       ============================================ */
+    .table {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    
+    .table thead th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        color: #495057;
+        padding: 0.75rem 0.5rem;
+        white-space: nowrap;
+    }
+    
+    .table tbody tr {
+        transition: background-color 0.15s ease-in-out;
+    }
+    
+    .table tbody tr:hover {
+        background-color: rgba(13, 110, 253, 0.04);
+    }
+    
+    .table td {
+        vertical-align: middle;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    /* ============================================
+       CONSISTENT PAGINATION STYLES
+       ============================================ */
+    .card-footer {
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .pagination {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+    
+    .pagination .page-item .page-link {
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        color: #495057;
+        background-color: #fff;
+        transition: all 0.15s ease;
+    }
+    
+    .pagination .page-item .page-link:hover {
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+        color: #0d6efd;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: #fff;
+    }
+    
+    .pagination .page-item.disabled .page-link {
+        color: #6c757d;
+        background-color: #fff;
+        border-color: #dee2e6;
+        cursor: not-allowed;
+    }
+    
+    /* ============================================
+       CONSISTENT CARD STYLES
+       ============================================ */
+    .card {
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        transition: box-shadow 0.2s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        padding: 1rem 1.25rem;
+    }
+    
+    .card-body {
+        padding: 1.25rem;
+    }
+    
+    .card-footer {
+        background-color: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+        padding: 1rem 1.25rem;
+    }
+    
+    /* ============================================
+       STAT CARD ROW STYLES (Available for use)
+       ============================================ */
+    .stat-card-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+    
+    .stat-card-row .stat-card {
+        min-height: 80px;
+        align-items: stretch;
+    }
+    
+    .stat-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card .stat-card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+    
+    .stat-card-primary .stat-card-icon { background: #e8f4fd; color: #0d6efd; }
+    .stat-card-success .stat-card-icon { background: #d1e7dd; color: #198754; }
+    .stat-card-info .stat-card-icon { background: #cff4fc; color: #0dcaf0; }
+    .stat-card-warning .stat-card-icon { background: #fff3cd; color: #ffc107; }
+    .stat-card-danger .stat-card-icon { background: #f8d7da; color: #dc3545; }
+    .stat-card-secondary .stat-card-icon { background: #e2e3e5; color: #6c757d; }
+    
+    .stat-card-content {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+    
+    .stat-card-label {
+        font-size: 13px;
+        color: #6c757d;
+        margin-bottom: 2px;
+    }
+    
+    .stat-card-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #212529;
+    }
+    
+    @media (max-width: 992px) {
+        .stat-card-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .stat-card-row {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 @endpush
 

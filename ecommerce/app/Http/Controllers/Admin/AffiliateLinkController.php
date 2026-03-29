@@ -35,7 +35,16 @@ class AffiliateLinkController extends Controller
         
         $links = $query->orderBy('created_at', 'desc')->paginate(15);
         
-        return view('admin.affiliate.links.index', compact('links'));
+        // Statistics for stat cards
+        $stats = [
+            'total' => AffiliateLink::count(),
+            'active' => AffiliateLink::where('status', 'active')->count(),
+            'inactive' => AffiliateLink::where('status', 'inactive')->count(),
+            'total_clicks' => AffiliateLink::sum('clicks'),
+            'total_conversions' => AffiliateLink::sum('conversions'),
+        ];
+        
+        return view('admin.affiliate.links.index', compact('links', 'stats'));
     }
 
     /**

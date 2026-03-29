@@ -56,105 +56,47 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-lg-2 col-md-4 col-6 mb-3">
-            <div class="card stat-card bg-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="text-muted small text-uppercase">Total Orders</div>
-                            <div class="h3 mb-0">{{ number_format($stats['total_orders']) }}</div>
-                        </div>
-                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                            <i class="bi bi-box-seam"></i>
-                        </div>
-                    </div>
-                </div>
+    <div class="stat-card-row mb-4">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon"><i class="bi bi-box-seam"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Orders</span>
+                <span class="stat-card-value">{{ number_format($stats['total_orders']) }}</span>
             </div>
         </div>
-        
-        <div class="col-lg-2 col-md-4 col-6 mb-3">
-            <div class="card stat-card bg-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="text-muted small text-uppercase">Delivered</div>
-                            <div class="h3 mb-0 text-success">{{ number_format($stats['delivered']) }}</div>
-                        </div>
-                        <div class="stat-icon bg-success bg-opacity-10 text-success">
-                            <i class="bi bi-check-circle"></i>
-                        </div>
-                    </div>
-                </div>
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Delivered</span>
+                <span class="stat-card-value">{{ number_format($stats['delivered']) }}</span>
             </div>
         </div>
-        
-        <div class="col-lg-2 col-md-4 col-6 mb-3">
-            <div class="card stat-card bg-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="text-muted small text-uppercase">In Transit</div>
-                            <div class="h3 mb-0 text-info">{{ number_format($stats['in_transit']) }}</div>
-                        </div>
-                        <div class="stat-icon bg-info bg-opacity-10 text-info">
-                            <i class="bi bi-truck"></i>
-                        </div>
-                    </div>
-                </div>
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon"><i class="bi bi-truck"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">In Transit</span>
+                <span class="stat-card-value">{{ number_format($stats['in_transit']) }}</span>
             </div>
         </div>
-        
-        <div class="col-lg-2 col-md-4 col-6 mb-3">
-            <div class="card stat-card bg-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="text-muted small text-uppercase">Pending</div>
-                            <div class="h3 mb-0 text-warning">{{ number_format($stats['pending']) }}</div>
-                        </div>
-                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
-                            <i class="bi bi-clock"></i>
-                        </div>
-                    </div>
-                </div>
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon"><i class="bi bi-clock"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Pending</span>
+                <span class="stat-card-value">{{ number_format($stats['pending']) }}</span>
             </div>
         </div>
-        
-        <div class="col-lg-2 col-md-4 col-6 mb-3">
-            <div class="card stat-card bg-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="text-muted small text-uppercase">Success Rate</div>
-                            <div class="h3 mb-0 {{ $stats['success_rate'] >= 80 ? 'text-success' : ($stats['success_rate'] >= 50 ? 'text-warning' : 'text-danger') }}">{{ $stats['success_rate'] }}%</div>
-                        </div>
-                        <div class="stat-icon {{ $stats['success_rate'] >= 80 ? 'bg-success' : ($stats['success_rate'] >= 50 ? 'bg-warning' : 'bg-danger') }} bg-opacity-10 text-{{ $stats['success_rate'] >= 80 ? 'success' : ($stats['success_rate'] >= 50 ? 'warning' : 'danger') }}">
-                            <i class="bi bi-graph-up-arrow"></i>
-                        </div>
-                    </div>
-                    <div class="mt-2">
-                        <div class="progress progress-thin">
-                            <div class="progress-bar bg-success" style="width: {{ $stats['success_rate'] }}%"></div>
-                        </div>
-                    </div>
-                </div>
+        <div class="stat-card stat-card-danger">
+            <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Cancelled</span>
+                <span class="stat-card-value">{{ number_format($stats['cancelled']) }}</span>
             </div>
         </div>
-        
-        <div class="col-lg-2 col-md-4 col-6 mb-3">
-            <div class="card stat-card bg-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="text-muted small text-uppercase">Shipping Revenue</div>
-                            <div class="h3 mb-0">${{ number_format($stats['total_shipping_revenue'], 2) }}</div>
-                        </div>
-                        <div class="stat-icon bg-secondary bg-opacity-10 text-secondary">
-                            <i class="bi bi-currency-dollar"></i>
-                        </div>
-                    </div>
-                </div>
+        <div class="stat-card stat-card-secondary">
+            <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Shipping Revenue</span>
+                <span class="stat-card-value">৳{{ number_format($stats['total_shipping_revenue'], 2) }}</span>
             </div>
         </div>
     </div>

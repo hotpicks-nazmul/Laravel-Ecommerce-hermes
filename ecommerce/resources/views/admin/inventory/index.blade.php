@@ -4,54 +4,30 @@
 
 @section('content')
 
-<div class="row mb-4">
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Products</div>
-                <div class="h4 mb-0 text-primary">{{ $stats['total_products'] ?? 0 }}</div>
-            </div>
-        </div>
+<div class="stat-card-row stat-card-row-6 mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-box"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Total Products</span><span class="stat-card-value" id="statTotalProducts">{{ $stats['total_products'] ?? 0 }}</span></div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Stock</div>
-                <div class="h4 mb-0 text-success">{{ number_format($stats['total_stock'] ?? 0) }}</div>
-            </div>
-        </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-stack"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Total Stock</span><span class="stat-card-value" id="statTotalStock">{{ number_format($stats['total_stock'] ?? 0) }}</span></div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">In Stock</div>
-                <div class="h4 mb-0 text-success">{{ $stats['in_stock'] ?? 0 }}</div>
-            </div>
-        </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">In Stock</span><span class="stat-card-value" id="statInStock">{{ $stats['in_stock'] ?? 0 }}</span></div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Low Stock</div>
-                <div class="h4 mb-0 text-warning">{{ $stats['low_stock'] ?? 0 }}</div>
-            </div>
-        </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Low Stock</span><span class="stat-card-value" id="statLowStock">{{ $stats['low_stock'] ?? 0 }}</span></div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Out of Stock</div>
-                <div class="h4 mb-0 text-danger">{{ $stats['out_of_stock'] ?? 0 }}</div>
-            </div>
-        </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Out of Stock</span><span class="stat-card-value" id="statOutStock">{{ $stats['out_of_stock'] ?? 0 }}</span></div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Stock Value</div>
-                <div class="h4 mb-0 text-primary">${{ number_format($stats['total_value'] ?? 0, 2) }}</div>
-            </div>
-        </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Stock Value</span><span class="stat-card-value" id="statValue">${{ number_format($stats['total_value'] ?? 0, 2) }}</span></div>
     </div>
 </div>
 

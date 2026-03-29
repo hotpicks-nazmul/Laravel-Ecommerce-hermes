@@ -4,53 +4,40 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total</div>
-                <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-box-seam"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Products</span>
+            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Active</div>
-                <div class="h4 mb-0 text-success">{{ $stats['active'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Inactive</div>
-                <div class="h4 mb-0 text-secondary">{{ $stats['inactive'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Inactive</span>
+            <span class="stat-card-value">{{ number_format($stats['inactive'] ?? 0) }}</span>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Featured</div>
-                <div class="h4 mb-0 text-info">{{ $stats['featured'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-star"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Featured</span>
+            <span class="stat-card-value">{{ number_format($stats['featured'] ?? 0) }}</span>
         </div>
     </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100 {{ ($stats['low_stock'] ?? 0) > 0 ? 'border-warning' : '' }}">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Low Stock</div>
-                <div class="h4 mb-0 text-warning">{{ $stats['low_stock'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2 col-sm-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100 {{ ($stats['out_of_stock'] ?? 0) > 0 ? 'border-danger' : '' }}">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Out of Stock</div>
-                <div class="h4 mb-0 text-danger">{{ $stats['out_of_stock'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Low Stock</span>
+            <span class="stat-card-value">{{ number_format($stats['low_stock'] ?? 0) }}</span>
         </div>
     </div>
 </div>

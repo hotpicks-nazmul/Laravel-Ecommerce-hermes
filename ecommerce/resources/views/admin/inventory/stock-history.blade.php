@@ -5,30 +5,18 @@
 @section('content')
 
 <!-- Stats Cards -->
-<div class="row mb-4">
-    <div class="col-md-4 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Stock In</div>
-                <div class="h4 mb-0 text-success">+{{ number_format($stats['total_in'] ?? 0) }}</div>
-            </div>
-        </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-arrow-down-circle"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Total Stock In</span><span class="stat-card-value" id="statTotalIn">+{{ number_format($stats['total_in'] ?? 0) }}</span></div>
     </div>
-    <div class="col-md-4 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Stock Out</div>
-                <div class="h4 mb-0 text-danger">{{ number_format($stats['total_out'] ?? 0) }}</div>
-            </div>
-        </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-arrow-up-circle"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Total Stock Out</span><span class="stat-card-value" id="statTotalOut">{{ number_format($stats['total_out'] ?? 0) }}</span></div>
     </div>
-    <div class="col-md-4 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Adjustments</div>
-                <div class="h4 mb-0 text-primary">{{ number_format($stats['adjustments'] ?? 0) }}</div>
-            </div>
-        </div>
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-arrow-repeat"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Adjustments</span><span class="stat-card-value" id="statAdjustments">{{ number_format($stats['adjustments'] ?? 0) }}</span></div>
     </div>
 </div>
 

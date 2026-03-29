@@ -9,73 +9,41 @@
 </div>
 
 <!-- Summary Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-danger bg-opacity-10 rounded p-3">
-                            <i class="bi bi-heart-fill text-danger fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Wishlists</p>
-                        <h4 class="mb-0">{{ number_format($totalWishlists) }}</h4>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon">
+            <i class="bi bi-heart-fill"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Wishlists</span>
+            <span class="stat-card-value">{{ number_format($totalWishlists) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-primary bg-opacity-10 rounded p-3">
-                            <i class="bi bi-box-seam text-primary fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Unique Products</p>
-                        <h4 class="mb-0">{{ number_format($uniqueProducts) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon">
+            <i class="bi bi-box-seam"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Unique Products</span>
+            <span class="stat-card-value">{{ number_format($uniqueProducts) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-success bg-opacity-10 rounded p-3">
-                            <i class="bi bi-people text-success fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Unique Users</p>
-                        <h4 class="mb-0">{{ number_format($uniqueUsers) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon">
+            <i class="bi bi-people"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Unique Users</span>
+            <span class="stat-card-value">{{ number_format($uniqueUsers) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-warning bg-opacity-10 rounded p-3">
-                            <i class="bi bi-graph-up text-warning fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Avg. Wishlists/Product</p>
-                        <h4 class="mb-0">{{ $avgWishlistPerProduct }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon">
+            <i class="bi bi-graph-up"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Avg. Wishlists/Product</span>
+            <span class="stat-card-value">{{ $avgWishlistPerProduct }}</span>
         </div>
     </div>
 </div>

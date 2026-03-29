@@ -4,53 +4,33 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-lg-2 col-md-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total</div>
-                <div class="h4 mb-0 text-primary" id="statTotal">{{ $stats['total'] ?? 0 }}</div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-collection"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total</span>
+            <span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span>
         </div>
     </div>
-    <div class="col-lg-2 col-md-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Active</div>
-                <div class="h4 mb-0 text-success" id="statActive">{{ $stats['active'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ $stats['active'] ?? 0 }}</span>
         </div>
     </div>
-    <div class="col-lg-2 col-md-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Sales</div>
-                <div class="h4 mb-0 text-info" id="statSales">{{ $stats['total_sales'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-graph-up"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Sales</span>
+            <span class="stat-card-value">{{ $stats['total_sales'] ?? 0 }}</span>
         </div>
     </div>
-    <div class="col-lg-2 col-md-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Downloads</div>
-                <div class="h4 mb-0 text-warning" id="statDownloads">{{ $stats['total_downloads'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-2 col-md-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Revenue</div>
-                <div class="h6 mb-0 text-primary" id="statRevenue">৳{{ number_format($stats['total_revenue'] ?? 0, 0) }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-2 col-md-4 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Available Licenses</div>
-                <div class="h4 mb-0 text-secondary" id="statLicenses">{{ $stats['available_licenses'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Inactive</span>
+            <span class="stat-card-value">{{ $stats['inactive'] ?? 0 }}</span>
         </div>
     </div>
 </div>

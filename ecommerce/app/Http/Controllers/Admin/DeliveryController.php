@@ -1814,6 +1814,7 @@ class DeliveryController extends Controller
             'total' => DeliveryBoy::count(),
             'active' => DeliveryBoy::where('status', 'active')->count(),
             'available' => DeliveryBoy::where('is_available', true)->where('status', 'active')->count(),
+            'on_delivery' => DeliveryBoy::where('status', 'on_delivery')->count(),
             'on_leave' => DeliveryBoy::where('status', 'on_leave')->count(),
             'inactive' => DeliveryBoy::where('status', 'inactive')->count(),
         ];
@@ -2348,6 +2349,11 @@ class DeliveryController extends Controller
             ->count();
         
         // Failed/Cancelled/Refunded
+        $cancelled = Order::whereBetween('created_at', [$startDate, $endDate])
+            ->where('status', 'cancelled')
+            ->where('shipping_cost', '>', 0)
+            ->count();
+        
         $failed = Order::whereBetween('created_at', [$startDate, $endDate])
             ->whereIn('status', ['cancelled', 'refunded', 'returned'])
             ->where('shipping_cost', '>', 0)
@@ -2374,6 +2380,7 @@ class DeliveryController extends Controller
             'delivered' => $delivered,
             'in_transit' => $inTransit,
             'pending' => $pending,
+            'cancelled' => $cancelled,
             'failed' => $failed,
             'success_rate' => $successRate,
             'total_shipping_revenue' => round($totalShippingRevenue, 2),

@@ -19,37 +19,33 @@
 @endif
 
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Sellers</div>
-                <div class="h4 mb-0 text-primary">{{ $stats['total_sellers'] ?? 0 }}</div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Sellers</span>
+            <span class="stat-card-value">{{ $stats['total_sellers'] ?? 0 }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Default Commission</div>
-                <div class="h4 mb-0 text-info">{{ $defaultCommission ?? 0 }}%</div>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-percent"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Default Commission</span>
+            <span class="stat-card-value">{{ $defaultCommission ?? 0 }}%</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Avg. Commission</div>
-                <div class="h4 mb-0 text-success">{{ $stats['avg_commission'] ?? 0 }}%</div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-graph-up"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Avg. Commission</span>
+            <span class="stat-card-value">{{ $stats['avg_commission'] ?? 0 }}%</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Revenue</div>
-                <div class="h4 mb-0 text-warning">৳{{ number_format($stats['total_revenue'] ?? 0, 2) }}</div>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Revenue</span>
+            <span class="stat-card-value">৳{{ number_format($stats['total_revenue'] ?? 0, 0) }}</span>
         </div>
     </div>
 </div>

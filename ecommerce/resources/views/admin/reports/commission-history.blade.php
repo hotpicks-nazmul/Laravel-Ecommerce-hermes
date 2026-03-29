@@ -9,122 +9,72 @@
 </div>
 
 <!-- Summary Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-primary bg-opacity-10 rounded p-3">
-                            <i class="bi bi-receipt text-primary fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Payouts</p>
-                        <h4 class="mb-0">{{ number_format($totalPayouts) }}</h4>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon">
+            <i class="bi bi-receipt"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Payouts</span>
+            <span class="stat-card-value">{{ number_format($totalPayouts) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-success bg-opacity-10 rounded p-3">
-                            <i class="bi bi-currency-dollar text-success fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Amount</p>
-                        <h4 class="mb-0">৳{{ number_format($totalAmount, 2) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon">
+            <i class="bi bi-currency-dollar"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Amount</span>
+            <span class="stat-card-value">৳{{ number_format($totalAmount, 2) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-warning bg-opacity-10 rounded p-3">
-                            <i class="bi bi-percent text-warning fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Commission</p>
-                        <h4 class="mb-0">৳{{ number_format($totalCommission, 2) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon">
+            <i class="bi bi-percent"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Commission</span>
+            <span class="stat-card-value">৳{{ number_format($totalCommission, 2) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-info bg-opacity-10 rounded p-3">
-                            <i class="bi bi-graph-up text-info fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Avg. Commission Rate</p>
-                        <h4 class="mb-0">{{ number_format($avgCommissionRate, 2) }}%</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon">
+            <i class="bi bi-graph-up"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Avg. Commission Rate</span>
+            <span class="stat-card-value">{{ number_format($avgCommissionRate, 2) }}%</span>
         </div>
     </div>
 </div>
 
 <!-- Status Summary Cards -->
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted small mb-0">Pending</p>
-                        <h4 class="mb-0 text-warning">{{ number_format($pendingCount) }}</h4>
-                    </div>
-                    <div class="bg-warning bg-opacity-10 rounded p-3">
-                        <i class="bi bi-clock text-warning fs-4"></i>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon">
+            <i class="bi bi-clock"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Pending</span>
+            <span class="stat-card-value">{{ number_format($pendingCount) }}</span>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted small mb-0">Completed</p>
-                        <h4 class="mb-0 text-success">{{ number_format($completedCount) }}</h4>
-                    </div>
-                    <div class="bg-success bg-opacity-10 rounded p-3">
-                        <i class="bi bi-check-circle text-success fs-4"></i>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Completed</span>
+            <span class="stat-card-value">{{ number_format($completedCount) }}</span>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <p class="text-muted small mb-0">Rejected</p>
-                        <h4 class="mb-0 text-danger">{{ number_format($rejectedCount) }}</h4>
-                    </div>
-                    <div class="bg-danger bg-opacity-10 rounded p-3">
-                        <i class="bi bi-x-circle text-danger fs-4"></i>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon">
+            <i class="bi bi-x-circle"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Rejected</span>
+            <span class="stat-card-value">{{ number_format($rejectedCount) }}</span>
         </div>
     </div>
 </div>

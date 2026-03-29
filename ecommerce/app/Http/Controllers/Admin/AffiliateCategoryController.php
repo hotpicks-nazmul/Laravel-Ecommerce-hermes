@@ -22,7 +22,16 @@ class AffiliateCategoryController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
         
-        return view('admin.affiliate.categories.index', compact('categories'));
+        // Statistics for stat cards
+        $stats = [
+            'total' => AffiliateCategory::count(),
+            'active' => AffiliateCategory::where('status', 'active')->count(),
+            'inactive' => AffiliateCategory::where('status', 'inactive')->count(),
+            'total_products' => AffiliateProduct::count(),
+            'avg_commission' => AffiliateCategory::avg('commission_rate') ?? 0,
+        ];
+        
+        return view('admin.affiliate.categories.index', compact('categories', 'stats'));
     }
 
     /**

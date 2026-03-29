@@ -16,54 +16,30 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Total</div>
-                    <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
-                </div>
-            </div>
+    <div class="stat-card-row mb-4">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon"><i class="bi bi-file-earmark-text"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Total</span><span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Pending</div>
-                    <div class="h4 mb-0 text-warning">{{ $stats['pending'] ?? 0 }}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon"><i class="bi bi-clock"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Pending</span><span class="stat-card-value">{{ $stats['pending'] ?? 0 }}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Sent</div>
-                    <div class="h4 mb-0 text-info">{{ $stats['sent'] ?? 0 }}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon"><i class="bi bi-send"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Sent</span><span class="stat-card-value">{{ $stats['sent'] ?? 0 }}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Accepted</div>
-                    <div class="h4 mb-0 text-success">{{ $stats['accepted'] ?? 0 }}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon"><i class="bi bi-check2-circle"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Accepted</span><span class="stat-card-value">{{ $stats['accepted'] ?? 0 }}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Converted</div>
-                    <div class="h4 mb-0 text-primary">{{ $stats['converted'] ?? 0 }}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon"><i class="bi bi-arrow-repeat"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Converted</span><span class="stat-card-value">{{ $stats['converted'] ?? 0 }}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Expired</div>
-                    <div class="h4 mb-0 text-secondary">{{ $stats['expired'] ?? 0 }}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-secondary">
+            <div class="stat-card-icon"><i class="bi bi-calendar-x"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Expired</span><span class="stat-card-value">{{ $stats['expired'] ?? 0 }}</span></div>
         </div>
     </div>
 

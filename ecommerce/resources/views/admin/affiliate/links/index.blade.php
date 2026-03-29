@@ -3,6 +3,38 @@
 @section('title', 'Affiliate Links')
 
 @section('content')
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-link"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Links</span>
+            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-cursor"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Clicks</span>
+            <span class="stat-card-value">{{ number_format($stats['total_clicks'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-graph-up"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Conversions</span>
+            <span class="stat-card-value">{{ number_format($stats['total_conversions'] ?? 0) }}</span>
+        </div>
+    </div>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">Affiliate Links</h4>
     <a href="{{ route('admin.affiliate.links.create') }}" class="btn btn-primary">

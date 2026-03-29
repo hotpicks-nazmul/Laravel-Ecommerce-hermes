@@ -16,7 +16,7 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row g-3 mb-4">
+    <div class="stat-card-row mb-4">
         <div class="col">
             <div class="stat-card stat-card-primary">
                 <div class="stat-card-icon">
@@ -73,8 +73,8 @@
             </div>
         </div>
         <div class="col">
-            <div class="stat-card">
-                <div class="stat-card-icon" style="background: #e2e8f0; color: #64748b;">
+            <div class="stat-card stat-card-secondary">
+                <div class="stat-card-icon">
                     <i class="bi bi-calendar-event"></i>
                 </div>
                 <div class="stat-card-content">

@@ -10,50 +10,26 @@
 </div>
 
 <!-- Statistics Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-lg-4 col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1 small">Total Segments</p>
-                        <h4 class="mb-0">{{ $stats['total_segments'] }}</h4>
-                    </div>
-                    <div class="bg-primary bg-opacity-10 rounded p-3">
-                        <i class="bi bi-diagram-3 text-primary" style="font-size: 1.5rem;"></i>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-diagram-3"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Segments</span>
+            <span class="stat-card-value">{{ number_format($stats['total_segments']) }}</span>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1 small">Active Segments</p>
-                        <h4 class="mb-0">{{ $stats['active_segments'] }}</h4>
-                    </div>
-                    <div class="bg-success bg-opacity-10 rounded p-3">
-                        <i class="bi bi-check-circle text-success" style="font-size: 1.5rem;"></i>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active Segments</span>
+            <span class="stat-card-value">{{ number_format($stats['active_segments']) }}</span>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1 small">Total Customers Segmented</p>
-                        <h4 class="mb-0">{{ number_format($stats['total_customers_segmented']) }}</h4>
-                    </div>
-                    <div class="bg-info bg-opacity-10 rounded p-3">
-                        <i class="bi bi-people text-info" style="font-size: 1.5rem;"></i>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-people"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Customers Segmented</span>
+            <span class="stat-card-value">{{ number_format($stats['total_customers_segmented']) }}</span>
         </div>
     </div>
 </div>

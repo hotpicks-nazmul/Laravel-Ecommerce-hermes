@@ -3,6 +3,38 @@
 @section('title', 'Affiliate Requests')
 
 @section('content')
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-inbox"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Requests</span>
+            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Pending</span>
+            <span class="stat-card-value">{{ number_format($stats['pending'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Approved</span>
+            <span class="stat-card-value">{{ number_format($stats['approved'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Rejected</span>
+            <span class="stat-card-value">{{ number_format($stats['rejected'] ?? 0) }}</span>
+        </div>
+    </div>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0">Affiliate Requests</h4>
 </div>

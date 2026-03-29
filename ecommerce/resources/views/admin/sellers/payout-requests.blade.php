@@ -11,37 +11,33 @@
 </div>
 
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Pending & Approved</div>
-                <div class="h4 mb-0 text-warning">{{ $stats['pending'] ?? 0 }}</div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Pending & Approved</span>
+            <span class="stat-card-value">{{ $stats['pending'] ?? 0 }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Pending Amount</div>
-                <div class="h4 mb-0 text-warning">৳{{ number_format($stats['pending_amount'] ?? 0, 2) }}</div>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-clock"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Pending Amount</span>
+            <span class="stat-card-value">৳{{ number_format($stats['pending_amount'] ?? 0, 0) }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Completed</div>
-                <div class="h4 mb-0 text-success">{{ $stats['completed'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Completed</span>
+            <span class="stat-card-value">{{ $stats['completed'] ?? 0 }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Rejected</div>
-                <div class="h4 mb-0 text-danger">{{ $stats['rejected'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Rejected</span>
+            <span class="stat-card-value">{{ $stats['rejected'] ?? 0 }}</span>
         </div>
     </div>
 </div>

@@ -21,7 +21,15 @@ class AffiliateBannerController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
         
-        return view('admin.affiliate.banners.index', compact('banners'));
+        // Statistics for stat cards
+        $stats = [
+            'total' => AffiliateBanner::count(),
+            'active' => AffiliateBanner::where('status', 'active')->count(),
+            'inactive' => AffiliateBanner::where('status', 'inactive')->count(),
+            'total_clicks' => AffiliateBanner::sum('clicks'),
+        ];
+        
+        return view('admin.affiliate.banners.index', compact('banners', 'stats'));
     }
 
     /**

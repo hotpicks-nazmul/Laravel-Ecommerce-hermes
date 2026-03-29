@@ -9,73 +9,41 @@
 </div>
 
 <!-- Summary Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-primary bg-opacity-10 rounded p-3">
-                            <i class="bi bi-search text-primary fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Searches</p>
-                        <h4 class="mb-0">{{ number_format($totalSearches) }}</h4>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon">
+            <i class="bi bi-search"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Searches</span>
+            <span class="stat-card-value">{{ number_format($totalSearches) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-success bg-opacity-10 rounded p-3">
-                            <i class="bi bi-chat-left-text text-success fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Unique Queries</p>
-                        <h4 class="mb-0">{{ number_format($uniqueQueries) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon">
+            <i class="bi bi-chat-left-text"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Unique Queries</span>
+            <span class="stat-card-value">{{ number_format($uniqueQueries) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-warning bg-opacity-10 rounded p-3">
-                            <i class="bi bi-people text-warning fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Unique Users</p>
-                        <h4 class="mb-0">{{ number_format($uniqueUsers) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon">
+            <i class="bi bi-people"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Unique Users</span>
+            <span class="stat-card-value">{{ number_format($uniqueUsers) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-danger bg-opacity-10 rounded p-3">
-                            <i class="bi bi-emoji-frown text-danger fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">No Results</p>
-                        <h4 class="mb-0">{{ number_format($noResultsCount) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon">
+            <i class="bi bi-emoji-frown"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">No Results</span>
+            <span class="stat-card-value">{{ number_format($noResultsCount) }}</span>
         </div>
     </div>
 </div>

@@ -32,7 +32,15 @@ class AffiliateProductController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
         
-        return view('admin.affiliate.products.index', compact('products'));
+        // Statistics for stat cards
+        $stats = [
+            'total' => AffiliateProduct::count(),
+            'active' => AffiliateProduct::where('status', 'active')->count(),
+            'inactive' => AffiliateProduct::where('status', 'inactive')->count(),
+            'avg_price' => AffiliateProduct::avg('price') ?? 0,
+        ];
+        
+        return view('admin.affiliate.products.index', compact('products', 'stats'));
     }
 
     /**

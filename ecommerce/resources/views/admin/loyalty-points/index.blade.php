@@ -15,62 +15,58 @@
         </div>
 
         <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Total Customers</div>
-                        <div class="h4 mb-0 text-primary">{{ number_format($stats['total_customers']) }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Active Members</div>
-                        <div class="h4 mb-0 text-success">{{ number_format($stats['active_customers']) }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Total Points</div>
-                        <div class="h4 mb-0 text-warning">{{ number_format($stats['total_points']) }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Points Spent</div>
-                        <div class="h4 mb-0 text-info">{{ number_format($stats['total_points_spent']) }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Total Spent</div>
-                        <div class="h4 mb-0">${{ number_format($stats['total_spent'], 2) }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Avg. Points/Customer</div>
-                        <div class="h4 mb-0">
-                            @if($stats['active_customers'] > 0)
-                                {{ number_format(round($stats['total_points'] / $stats['active_customers'])) }}
-                            @else
-                                0
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-people"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Customers</span>
+            <span class="stat-card-value">{{ number_format($stats['total_customers']) }}</span>
         </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active Members</span>
+            <span class="stat-card-value">{{ number_format($stats['active_customers']) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-star"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Points</span>
+            <span class="stat-card-value">{{ number_format($stats['total_points']) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-arrow-down-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Points Spent</span>
+            <span class="stat-card-value">{{ number_format($stats['total_points_spent']) }}</span>
+        </div>
+    </div>
+</div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Spent</span>
+            <span class="stat-card-value">${{ number_format($stats['total_spent'], 2) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-calculator"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Avg. Points/Customer</span>
+            <span class="stat-card-value">
+                @if($stats['active_customers'] > 0)
+                    {{ number_format(round($stats['total_points'] / $stats['active_customers'])) }}
+                @else
+                    0
+                @endif
+            </span>
+        </div>
+    </div>
+</div>
 
         <!-- Filters Card -->
         <div class="card border-0 shadow-sm mb-3">

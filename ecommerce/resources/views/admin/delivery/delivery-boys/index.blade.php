@@ -28,65 +28,40 @@
 </div>
 
 <!-- Statistics Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1 small">Total Delivery Boys</p>
-                        <h4 class="mb-0">{{ $stats['total'] }}</h4>
-                    </div>
-                    <div class="icon-box bg-primary bg-opacity-10 text-primary rounded-circle">
-                        <i class="bi bi-people-fill"></i>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total</span>
+            <span class="stat-card-value">{{ $stats['total'] }}</span>
         </div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1 small">Active</p>
-                        <h4 class="mb-0">{{ $stats['active'] }}</h4>
-                    </div>
-                    <div class="icon-box bg-success bg-opacity-10 text-success rounded-circle">
-                        <i class="bi bi-check-circle-fill"></i>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ $stats['active'] }}</span>
         </div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1 small">Available Now</p>
-                        <h4 class="mb-0">{{ $stats['available'] }}</h4>
-                    </div>
-                    <div class="icon-box bg-info bg-opacity-10 text-info rounded-circle">
-                        <i class="bi bi-bicycle"></i>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-bicycle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Available</span>
+            <span class="stat-card-value">{{ $stats['available'] }}</span>
         </div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1 small">On Leave</p>
-                        <h4 class="mb-0">{{ $stats['on_leave'] }}</h4>
-                    </div>
-                    <div class="icon-box bg-warning bg-opacity-10 text-warning rounded-circle">
-                        <i class="bi bi-calendar-minus-fill"></i>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">On Delivery</span>
+            <span class="stat-card-value">{{ $stats['on_delivery'] }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-calendar-minus-fill"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">On Leave</span>
+            <span class="stat-card-value">{{ $stats['on_leave'] }}</span>
         </div>
     </div>
 </div>

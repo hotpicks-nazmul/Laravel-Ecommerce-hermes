@@ -243,6 +243,7 @@
         }
     </style>
     
+    @include('partials.global-styles')
     @stack('styles')
 </head>
 <body class="bg-halal-cream scroll-smooth font-body">

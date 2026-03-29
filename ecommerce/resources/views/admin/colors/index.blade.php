@@ -38,40 +38,24 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Total</div>
-                    <div class="h4 mb-0 text-primary" data-stat="total">{{ $stats['total'] }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Active</div>
-                    <div class="h4 mb-0 text-success" data-stat="active">{{ $stats['active'] }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Inactive</div>
-                    <div class="h4 mb-0 text-danger" data-stat="inactive">{{ $stats['inactive'] }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">In Use</div>
-                    <div class="h4 mb-0 text-info" data-stat="products">{{ $stats['products'] }}</div>
-                </div>
-            </div>
-        </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-palette"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Total</span><span class="stat-card-value" id="statTotal" data-stat="total">{{ $stats['total'] }}</span></div>
     </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Active</span><span class="stat-card-value" id="statActive" data-stat="active">{{ $stats['active'] }}</span></div>
+    </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Inactive</span><span class="stat-card-value" id="statInactive" data-stat="inactive">{{ $stats['inactive'] }}</span></div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-box"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">In Use</span><span class="stat-card-value" id="statProducts" data-stat="products">{{ $stats['products'] }}</span></div>
+    </div>
+</div>
 
     <!-- Filter Card -->
     <div class="card border-0 shadow-sm mb-3">

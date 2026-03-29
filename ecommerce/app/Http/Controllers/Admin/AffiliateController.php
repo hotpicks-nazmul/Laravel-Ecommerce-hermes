@@ -40,12 +40,22 @@ class AffiliateController extends Controller
         
         $affiliates = $query->orderBy('created_at', 'desc')->paginate(15);
         
+        // Statistics for stat cards
+        $stats = [
+            'total' => Affiliate::count(),
+            'approved' => Affiliate::where('status', 'approved')->count(),
+            'pending' => Affiliate::where('status', 'pending')->count(),
+            'suspended' => Affiliate::where('status', 'suspended')->count(),
+            'total_balance' => Affiliate::sum('balance'),
+            'total_earnings' => Affiliate::sum('total_earnings'),
+        ];
+        
         if ($request->ajax()) {
             $html = view('admin.affiliate.users.partials.table-rows', compact('affiliates'))->render();
             return response()->json(['html' => $html]);
         }
         
-        return view('admin.affiliate.users.index', compact('affiliates'));
+        return view('admin.affiliate.users.index', compact('affiliates', 'stats'));
     }
 
     /**
@@ -171,7 +181,17 @@ class AffiliateController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
         
-        return view('admin.affiliate.payouts', compact('withdrawals'));
+        // Statistics for stat cards
+        $stats = [
+            'total' => AffiliateWithdrawal::count(),
+            'pending' => AffiliateWithdrawal::where('status', 'pending')->count(),
+            'approved' => AffiliateWithdrawal::where('status', 'approved')->count(),
+            'rejected' => AffiliateWithdrawal::where('status', 'rejected')->count(),
+            'total_amount' => AffiliateWithdrawal::where('status', 'approved')->sum('amount'),
+            'pending_amount' => AffiliateWithdrawal::where('status', 'pending')->sum('amount'),
+        ];
+        
+        return view('admin.affiliate.payouts', compact('withdrawals', 'stats'));
     }
 
     /**
@@ -242,7 +262,15 @@ class AffiliateController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
         
-        return view('admin.affiliate.requests', compact('requests'));
+        // Statistics for stat cards
+        $stats = [
+            'total' => AffiliateRequest::count(),
+            'pending' => AffiliateRequest::where('status', 'pending')->count(),
+            'approved' => AffiliateRequest::where('status', 'approved')->count(),
+            'rejected' => AffiliateRequest::where('status', 'rejected')->count(),
+        ];
+        
+        return view('admin.affiliate.requests', compact('requests', 'stats'));
     }
 
     /**

@@ -1,55 +1,45 @@
 @extends('admin.layouts.app')
 
+@section('title', 'Approved Refunds')
+
 @section('content')
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-receipt"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total</span>
+            <span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-clock"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Pending</span>
+            <span class="stat-card-value">{{ $stats['pending'] ?? 0 }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Approved</span>
+            <span class="stat-card-value">{{ $stats['approved'] ?? 0 }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Rejected</span>
+            <span class="stat-card-value">{{ $stats['rejected'] ?? 0 }}</span>
+        </div>
+    </div>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0">Approved Refunds</h4>
     <a href="{{ route('admin.refunds.index') }}" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left me-1"></i> All Refunds
     </a>
-</div>
-
-<!-- Statistics Cards -->
-<div class="row g-2 mb-4" id="statsCards">
-    <div class="col-md col-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total</div>
-                <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md col-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Pending</div>
-                <div class="h4 mb-0 text-warning">{{ $stats['pending'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md col-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Approved</div>
-                <div class="h4 mb-0 text-info">{{ $stats['approved'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md col-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Rejected</div>
-                <div class="h4 mb-0 text-danger">{{ $stats['rejected'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md col-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Processed</div>
-                <div class="h4 mb-0 text-success">{{ $stats['processed'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Filters Card -->
@@ -350,44 +340,32 @@
                     const statsContainer = document.querySelector('#statsCards');
                     if (statsContainer) {
                         statsContainer.innerHTML = `
-                            <div class="col-md col-6">
-                                <div class="card border-0 shadow-sm h-100">
-                                    <div class="card-body text-center py-3">
-                                        <div class="text-muted small text-uppercase">Total</div>
-                                        <div class="h4 mb-0 text-primary">${data.stats.total ?? 0}</div>
-                                    </div>
+                            <div class="stat-card stat-card-primary">
+                                <div class="stat-card-icon"><i class="bi bi-receipt"></i></div>
+                                <div class="stat-card-content">
+                                    <span class="stat-card-label">Total</span>
+                                    <span class="stat-card-value">${data.stats.total ?? 0}</span>
                                 </div>
                             </div>
-                            <div class="col-md col-6">
-                                <div class="card border-0 shadow-sm h-100">
-                                    <div class="card-body text-center py-3">
-                                        <div class="text-muted small text-uppercase">Pending</div>
-                                        <div class="h4 mb-0 text-warning">${data.stats.pending ?? 0}</div>
-                                    </div>
+                            <div class="stat-card stat-card-warning">
+                                <div class="stat-card-icon"><i class="bi bi-clock"></i></div>
+                                <div class="stat-card-content">
+                                    <span class="stat-card-label">Pending</span>
+                                    <span class="stat-card-value">${data.stats.pending ?? 0}</span>
                                 </div>
                             </div>
-                            <div class="col-md col-6">
-                                <div class="card border-0 shadow-sm h-100">
-                                    <div class="card-body text-center py-3">
-                                        <div class="text-muted small text-uppercase">Approved</div>
-                                        <div class="h4 mb-0 text-info">${data.stats.approved ?? 0}</div>
-                                    </div>
+                            <div class="stat-card stat-card-success">
+                                <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+                                <div class="stat-card-content">
+                                    <span class="stat-card-label">Approved</span>
+                                    <span class="stat-card-value">${data.stats.approved ?? 0}</span>
                                 </div>
                             </div>
-                            <div class="col-md col-6">
-                                <div class="card border-0 shadow-sm h-100">
-                                    <div class="card-body text-center py-3">
-                                        <div class="text-muted small text-uppercase">Rejected</div>
-                                        <div class="h4 mb-0 text-danger">${data.stats.rejected ?? 0}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md col-6">
-                                <div class="card border-0 shadow-sm h-100">
-                                    <div class="card-body text-center py-3">
-                                        <div class="text-muted small text-uppercase">Processed</div>
-                                        <div class="h4 mb-0 text-success">${data.stats.processed ?? 0}</div>
-                                    </div>
+                            <div class="stat-card stat-card-danger">
+                                <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+                                <div class="stat-card-content">
+                                    <span class="stat-card-label">Rejected</span>
+                                    <span class="stat-card-value">${data.stats.rejected ?? 0}</span>
                                 </div>
                             </div>
                         `;

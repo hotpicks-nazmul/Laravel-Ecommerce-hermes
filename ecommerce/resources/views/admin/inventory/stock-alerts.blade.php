@@ -5,30 +5,18 @@
 @section('content')
 
 <!-- Stats Cards -->
-<div class="row mb-4">
-    <div class="col-md-4 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Out of Stock</div>
-                <div class="h4 mb-0 text-danger">{{ $stats['critical'] ?? 0 }}</div>
-            </div>
-        </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Out of Stock</span><span class="stat-card-value" id="statCritical">{{ $stats['critical'] ?? 0 }}</span></div>
     </div>
-    <div class="col-md-4 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Critical Low</div>
-                <div class="h4 mb-0 text-warning">{{ $stats['warning'] ?? 0 }}</div>
-            </div>
-        </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Critical Low</span><span class="stat-card-value" id="statWarning">{{ $stats['warning'] ?? 0 }}</span></div>
     </div>
-    <div class="col-md-4 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Low Stock</div>
-                <div class="h4 mb-0 text-info">{{ $stats['notice'] ?? 0 }}</div>
-            </div>
-        </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-info-circle"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Low Stock</span><span class="stat-card-value" id="statNotice">{{ $stats['notice'] ?? 0 }}</span></div>
     </div>
 </div>
 
