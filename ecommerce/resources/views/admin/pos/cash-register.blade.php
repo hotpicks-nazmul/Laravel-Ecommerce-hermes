@@ -27,37 +27,33 @@
     </div>
 
     <!-- Summary Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small text-uppercase">Total Sales</div>
-                    <div class="h3 mb-0 text-primary">৳{{ number_format($totalSales, 2) }}</div>
-                </div>
+    <div class="stat-card-row mb-4" id="statsCards">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Sales</span>
+                <span class="stat-card-value">৳{{ number_format($totalSales, 2) }}</span>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small text-uppercase">Transactions</div>
-                    <div class="h3 mb-0 text-success">{{ $transactionCount }}</div>
-                </div>
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon"><i class="bi bi-receipt"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Transactions</span>
+                <span class="stat-card-value">{{ $transactionCount }}</span>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small text-uppercase">Cash</div>
-                    <div class="h3 mb-0 text-info">৳{{ number_format($totalCash, 2) }}</div>
-                </div>
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon"><i class="bi bi-cash-stack"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Cash</span>
+                <span class="stat-card-value">৳{{ number_format($totalCash, 2) }}</span>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small text-uppercase">Card/Digital</div>
-                    <div class="h3 mb-0 text-warning">৳{{ number_format($totalCard + $totalDigital, 2) }}</div>
-                </div>
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon"><i class="bi bi-credit-card"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Card/Digital</span>
+                <span class="stat-card-value">৳{{ number_format($totalCard + $totalDigital, 2) }}</span>
             </div>
         </div>
     </div>

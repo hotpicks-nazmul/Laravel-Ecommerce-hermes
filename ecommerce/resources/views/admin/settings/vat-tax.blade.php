@@ -72,37 +72,33 @@
 </div>
 
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 col-sm-6 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Taxes</div>
-                <div class="h4 mb-0 text-primary">{{ $taxes->count() }}</div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-receipt"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Taxes</span>
+            <span class="stat-card-value">{{ $taxes->count() }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Active</div>
-                <div class="h4 mb-0 text-success">{{ $taxes->where('is_active', true)->count() }}</div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ $taxes->where('is_active', true)->count() }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Inactive</div>
-                <div class="h4 mb-0 text-secondary">{{ $taxes->where('is_active', false)->count() }}</div>
-            </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Inactive</span>
+            <span class="stat-card-value">{{ $taxes->where('is_active', false)->count() }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Default Rate</div>
-                <div class="h4 mb-0">{{ $defaultTax ? $defaultTax->rate . '%' : 'None' }}</div>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-star"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Default Rate</span>
+            <span class="stat-card-value">{{ $defaultTax ? $defaultTax->rate . '%' : 'None' }}</span>
         </div>
     </div>
 </div>

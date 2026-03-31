@@ -240,18 +240,47 @@ class ReportController extends Controller
         
         $transactions = $query->paginate(20);
         
-        // Calculate summary statistics
-        $totalRecharges = CustomerWallet::where('type', 'credit')->count();
-        $totalRechargeAmount = CustomerWallet::where('type', 'credit')->sum('amount');
-        $totalDebits = CustomerWallet::where('type', 'debit')->count();
-        $totalDebitAmount = CustomerWallet::where('type', 'debit')->sum('amount');
+        // Calculate summary statistics from filtered data
+        $filteredQuery = CustomerWallet::query();
+        
+        // Re-apply filters for summary statistics
+        if ($dateRange) {
+            $dates = explode(' to ', $dateRange);
+            if (count($dates) == 2) {
+                $startDate = trim($dates[0]);
+                $endDate = trim($dates[1]) . ' 23:59:59';
+                $filteredQuery->whereBetween('created_at', [$startDate, $endDate]);
+            }
+        }
+        
+        if ($type) {
+            $filteredQuery->where('type', $type);
+        }
+        
+        if ($source) {
+            $filteredQuery->where('source', $source);
+        }
+        
+        if ($search) {
+            $filteredQuery->whereHas('user', function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            })->orWhere('reference_id', 'like', "%{$search}%")
+              ->orWhere('description', 'like', "%{$search}%");
+        }
+        
+        $totalRecharges = (clone $filteredQuery)->where('type', 'credit')->count();
+        $totalRechargeAmount = (clone $filteredQuery)->where('type', 'credit')->sum('amount');
+        $totalDebits = (clone $filteredQuery)->where('type', 'debit')->count();
+        $totalDebitAmount = (clone $filteredQuery)->where('type', 'debit')->sum('amount');
         $netAmount = $totalRechargeAmount - $totalDebitAmount;
         
         // Get unique users who have wallet transactions
-        $totalUsers = CustomerWallet::distinct('user_id')->count('user_id');
+        $totalUsers = (clone $filteredQuery)->distinct('user_id')->count('user_id');
         
         // Get source counts
-        $sourceCounts = CustomerWallet::select('source', DB::raw('COUNT(*) as count'), DB::raw('SUM(amount) as total'))
+        $sourceCounts = (clone $filteredQuery)->select('source', DB::raw('COUNT(*) as count'), DB::raw('SUM(amount) as total'))
             ->groupBy('source')
             ->get();
         
@@ -452,7 +481,7 @@ class ReportController extends Controller
         $topProduct = $topWishlisted ? Product::find($topWishlisted->product_id) : null;
         
         // Get categories for filter
-        $categories = Category::where('status', 1)->orderBy('name')->get();
+        $categories = Category::where('status', 'active')->orderBy('name')->get();
         
         return view('admin.reports.products-wishlist', compact(
             'wishlists',
@@ -605,7 +634,7 @@ class ReportController extends Controller
             default => $productSales->orderBy('total_qty', 'desc'),
         };
 
-        $productSales = $productSales->paginate(20);
+        $productSales = $productSales->with('product:id,sku,thumbnail')->paginate(20);
 
         // Calculate summary statistics using filtered order items
         $filteredOrderItemsQuery = OrderItem::whereIn('order_id', $orderIds);
@@ -694,12 +723,9 @@ class ReportController extends Controller
         $totalOrders = $orderIds->count();
         $uniqueProducts = OrderItem::whereIn('order_id', $orderIds)->distinct('product_id')->count('product_id');
 
-        // Get sellers for filter (from orders with seller type)
-        $sellerIds = Order::where('order_type', 'seller')
-            ->where('payment_status', 'paid')
-            ->distinct()
-            ->pluck('seller_id');
-        $sellers = User::whereIn('id', $sellerIds)->where('status', 1)->orderBy('name')->get();
+        // Get sellers for filter (from active sellers, not just from orders)
+        // This ensures the dropdown always shows sellers even when no orders exist in the date range
+        $sellers = User::sellers()->where('status', 1)->orderBy('name')->get(['id', 'name', 'shop_name']);
 
         // Get seller names for the displayed products
         $sellerNames = [];
@@ -926,7 +952,8 @@ class ReportController extends Controller
             default => $products->orderBy('quantity', 'asc'),
         };
         
-        $products = $products->paginate(20);
+        $perPage = $request->per_page ?? 20;
+        $products = $products->paginate($perPage);
         
         // Calculate summary statistics
         $totalProducts = Product::count();
@@ -938,7 +965,7 @@ class ReportController extends Controller
         $totalStockQty = Product::sum('quantity');
         
         // Get categories for filter
-        $categories = Category::where('status', 1)->orderBy('name')->get();
+        $categories = Category::where('status', 'active')->orderBy('name')->get();
         
         return view('admin.reports.inventory', compact(
             'products',
@@ -960,6 +987,111 @@ class ReportController extends Controller
     {
         // Export logic would go here
         return back()->with('success', 'Report exported successfully.');
+    }
+    
+    /**
+     * Export Inventory Report
+     */
+    public function inventoryExport(Request $request)
+    {
+        $search = $request->search ?? '';
+        $categoryId = $request->category ?? '';
+        $stockStatus = $request->stock_status ?? '';
+        $sortBy = $request->sort ?? 'stock_asc';
+        
+        // Build query with relationships
+        $products = Product::with('category', 'brand')
+            ->select('id', 'name', 'sku', 'featured_image', 'quantity', 'price', 'cost_price', 'low_stock_threshold', 'stock_status', 'category_id', 'brand_id');
+        
+        // Apply search filter
+        if ($search) {
+            $products = $products->where(function($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('sku', 'like', "%{$search}%");
+            });
+        }
+        
+        // Apply category filter
+        if ($categoryId) {
+            $products = $products->where('category_id', $categoryId);
+        }
+        
+        // Apply stock status filter
+        if ($stockStatus) {
+            switch($stockStatus) {
+                case 'in_stock':
+                    $products = $products->where('quantity', '>', 0);
+                    break;
+                case 'low_stock':
+                    $products = $products->whereColumn('quantity', '<=', 'low_stock_threshold')
+                                        ->where('quantity', '>', 0);
+                    break;
+                case 'out_of_stock':
+                    $products = $products->where('quantity', '<=', 0);
+                    break;
+            }
+        }
+        
+        // Apply sorting
+        $products = match($sortBy) {
+            'stock_desc' => $products->orderBy('quantity', 'desc'),
+            'name_asc' => $products->orderBy('name', 'asc'),
+            'name_desc' => $products->orderBy('name', 'desc'),
+            'price_asc' => $products->orderBy('price', 'asc'),
+            'price_desc' => $products->orderBy('price', 'desc'),
+            'stock_asc' => $products->orderBy('quantity', 'asc'),
+            default => $products->orderBy('quantity', 'asc'),
+        };
+        
+        $products = $products->get();
+        
+        // Generate CSV
+        $filename = 'products-stock-' . date('Y-m-d') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+        
+        $callback = function() use ($products) {
+            $file = fopen('php://output', 'w');
+            
+            // Header row
+            fputcsv($file, [
+                'Product ID',
+                'Product Name',
+                'SKU',
+                'Category',
+                'Quantity',
+                'Low Stock Threshold',
+                'Stock Status',
+                'Price (৳)',
+                'Cost Price (৳)',
+                'Stock Value (৳)'
+            ]);
+            
+            // Data rows
+            foreach ($products as $product) {
+                $stockStatus = $product->quantity <= 0 ? 'Out of Stock' : 
+                               ($product->quantity <= $product->low_stock_threshold ? 'Low Stock' : 'In Stock');
+                
+                fputcsv($file, [
+                    $product->id,
+                    $product->name,
+                    $product->sku ?? 'N/A',
+                    $product->category->name ?? 'Uncategorized',
+                    $product->quantity ?? 0,
+                    $product->low_stock_threshold ?? 0,
+                    $stockStatus,
+                    $product->price ?? 0,
+                    $product->cost_price ?? 0,
+                    ($product->quantity ?? 0) * ($product->cost_price ?? $product->price ?? 0)
+                ]);
+            }
+            
+            fclose($file);
+        };
+        
+        return response()->stream($callback, 200, $headers);
     }
     
     /**

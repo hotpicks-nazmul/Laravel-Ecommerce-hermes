@@ -3,47 +3,44 @@
 @section('title', 'Price Rules')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-calculator"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Rules</span>
+            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-clock"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Upcoming</span>
+            <span class="stat-card-value">{{ number_format($stats['upcoming'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Expired</span>
+            <span class="stat-card-value">{{ number_format($stats['expired'] ?? 0) }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">Price Rules</h4>
     <a href="{{ route('admin.marketing.price-rules.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg me-1"></i> Add New Price Rule
     </a>
-</div>
-
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 col-sm-6 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Rules</div>
-                <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Active</div>
-                <div class="h4 mb-0 text-success">{{ $stats['active'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Upcoming</div>
-                <div class="h4 mb-0 text-info">{{ $stats['upcoming'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6 col-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Expired</div>
-                <div class="h4 mb-0 text-danger">{{ $stats['expired'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Filters Card -->

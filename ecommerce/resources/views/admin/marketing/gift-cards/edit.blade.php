@@ -97,14 +97,14 @@
                             </select>
                             @error('discount_type')
                                 <div class="invalid-feedback">{{ $message }}</div>
-                            @endif
+                            @enderror
                         </div>
                         <div class="col-md-4">
                             <label for="discount_value" class="form-label">Discount Value <span class="text-danger">*</span></label>
                             <input type="number" id="discount_value" name="discount_value" class="form-control @error('discount_value') is-invalid @enderror" value="{{ old('discount_value', $giftCard->discount_value) }}" min="0" step="0.01" required>
                             @error('discount_value')
                                 <div class="invalid-feedback">{{ $message }}</div>
-                            @endif
+                            @enderror
                         </div>
                         <div class="col-md-4">
                             <label for="min_order_amount" class="form-label">Min Order Amount</label>
@@ -159,14 +159,14 @@
                             <input type="text" id="recipient_name" name="recipient_name" class="form-control @error('recipient_name') is-invalid @enderror" value="{{ old('recipient_name', $giftCard->recipient_name) }}">
                             @error('recipient_name')
                                 <div class="invalid-feedback">{{ $message }}</div>
-                            @endif
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label for="recipient_email" class="form-label">Recipient Email</label>
                             <input type="email" id="recipient_email" name="recipient_email" class="form-control @error('recipient_email') is-invalid @enderror" value="{{ old('recipient_email', $giftCard->recipient_email) }}">
                             @error('recipient_email')
                                 <div class="invalid-feedback">{{ $message }}</div>
-                            @endif
+                            @enderror
                         </div>
                     </div>
                     <div class="row g-3 mt-2">
@@ -175,7 +175,7 @@
                             <input type="text" id="sender_name" name="sender_name" class="form-control @error('sender_name') is-invalid @enderror" value="{{ old('sender_name', $giftCard->sender_name) }}">
                             @error('sender_name')
                                 <div class="invalid-feedback">{{ $message }}</div>
-                            @endif
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label for="user_id" class="form-label">Assign to User</label>
@@ -199,7 +199,7 @@
                         <textarea id="message" name="message" class="form-control @error('message') is-invalid @enderror" rows="3" placeholder="Enter a message to include with the gift card">{{ old('message', $giftCard->message) }}</textarea>
                         @error('message')
                             <div class="invalid-feedback">{{ $message }}</div>
-                        @endif
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -283,25 +283,29 @@
                     </ul>
                 </div>
             </div>
-
-            <!-- Danger Zone -->
-            <div class="card border-0 shadow-sm border-danger mb-3">
-                <div class="card-header bg-white border-danger">
-                    <h6 class="mb-0 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Danger Zone</h6>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('admin.marketing.gift-cards.destroy', $giftCard->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this gift card? This action cannot be undone.')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-outline-danger w-100">
-                            <i class="bi bi-trash me-1"></i> Delete Gift Card
-                        </button>
-                    </form>
-                </div>
-            </div>
         </div>
     </div>
 </form>
+
+<!-- Danger Zone (outside main form to avoid nested forms) -->
+<div class="row">
+    <div class="col-lg-4 offset-lg-8">
+        <div class="card border-0 shadow-sm border-danger mb-3">
+            <div class="card-header bg-white border-danger">
+                <h6 class="mb-0 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Danger Zone</h6>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('admin.marketing.gift-cards.destroy', $giftCard->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this gift card? This action cannot be undone.')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-outline-danger w-100">
+                        <i class="bi bi-trash me-1"></i> Delete Gift Card
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Floating Buttons -->
 <div class="floating-save-container">

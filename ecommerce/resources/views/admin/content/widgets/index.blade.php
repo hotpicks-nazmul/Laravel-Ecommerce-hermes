@@ -19,8 +19,11 @@
                     <label class="form-label small text-muted">Search</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" name="search" id="liveSearch" class="form-control" 
+                        <input type="text" name="search" id="liveSearch" class="form-control"
                                placeholder="Name, title..." value="{{ request('search') }}">
+                        <span class="input-group-text" id="searchSpinner" style="display: none;">
+                            <div class="spinner-border spinner-border-sm"></div>
+                        </span>
                     </div>
                 </div>
                 
@@ -193,9 +196,11 @@
     let searchTimeout;
     const searchInput = document.getElementById('liveSearch');
     const filterForm = document.getElementById('filterForm');
+    const searchSpinner = document.getElementById('searchSpinner');
 
     searchInput.addEventListener('input', function() {
         clearTimeout(searchTimeout);
+        searchSpinner.style.display = 'block';
         searchTimeout = setTimeout(() => {
             filterForm.submit();
         }, 300);
@@ -260,7 +265,8 @@
         if (!confirm(`Are you sure you want to ${action} ${selectedItems.size} widget(s)?`)) return;
         
         document.getElementById('bulkActionInput').value = action;
-        document.getElementById('bulkIdsInput').value = JSON.stringify(Array.from(selectedItems));
+        // Send as comma-separated values instead of JSON for proper form submission
+        document.getElementById('bulkIdsInput').value = Array.from(selectedItems).join(',');
         document.getElementById('bulkActionForm').submit();
     }
 </script>

@@ -49,9 +49,9 @@
                     <select name="category" id="filterCategory" class="form-select form-select-sm">
                         <option value="">All Categories</option>
                         @php
-                        $categories = \App\Models\Category::where('status', 'active')->get();
+                        $blogCategories = \App\Models\BlogCategory::where('status', 'active')->get();
                         @endphp
-                        @foreach($categories as $category)
+                        @foreach($blogCategories as $category)
                             <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
                                 {{ $category->name }}
                             </option>

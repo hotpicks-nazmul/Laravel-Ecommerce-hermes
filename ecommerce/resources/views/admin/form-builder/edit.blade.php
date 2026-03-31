@@ -2,31 +2,6 @@
 
 @section('title', 'Edit Form - ' . $form->name)
 
-@push('styles')
-<style>
-.field-card {
-    cursor: grab;
-    transition: all 0.2s ease;
-}
-.field-card:active {
-    cursor: grabbing;
-}
-.field-card.sortable-ghost {
-    opacity: 0.4;
-    background: #f8f9fa;
-}
-.field-card.sortable-chosen {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-.field-options-row {
-    display: none;
-}
-.field-options-row.show {
-    display: block;
-}
-</style>
-@endpush
-
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -313,6 +288,35 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+.field-card {
+    cursor: grab;
+    transition: all 0.2s ease;
+}
+.field-card:active {
+    cursor: grabbing;
+}
+.field-card.sortable-ghost {
+    opacity: 0.4;
+    background: #f8f9fa;
+}
+.field-card.sortable-chosen {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.field-options-row {
+    display: none;
+}
+.field-options-row.show {
+    display: block;
+}
+/* Add padding at bottom to prevent floating button overlap */
+.content-area {
+    padding-bottom: 100px !important;
+}
+</style>
+@endpush
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>

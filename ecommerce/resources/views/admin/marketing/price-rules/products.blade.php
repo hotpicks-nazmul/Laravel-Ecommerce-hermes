@@ -46,10 +46,10 @@
                                 <tbody>
                                     @foreach($products as $product)
                                         @php
-                                            $priceRuleProduct = $priceRule->products->firstWhere('product_id', $product->id);
-                                            $isSelected = $priceRuleProduct !== null;
-                                            $discount = $priceRuleProduct ? $priceRuleProduct->discount : $priceRule->discount_value;
-                                            $discountType = $priceRuleProduct ? $priceRuleProduct->discount_type : $priceRule->discount_type;
+                                            $pivotData = $product->pivot ?? null;
+                                            $isSelected = $pivotData !== null;
+                                            $discount = $pivotData ? $pivotData->discount : $priceRule->discount_value;
+                                            $discountType = $pivotData ? $pivotData->discount_type : $priceRule->discount_type;
                                         @endphp
                                         <tr class="{{ $isSelected ? 'table-primary' : '' }}">
                                             <td>

@@ -3,25 +3,18 @@
 @section('title', 'Hero Section Settings')
 
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-0 py-3">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <h4 class="mb-1 fw-bold">
-                            <i class="bi bi-image-fill text-primary me-2"></i> Hero Section Settings
-                        </h4>
-                        <p class="text-muted mb-0 small">Customize the hero section displayed on your homepage</p>
-                    </div>
-                    <div class="btn-group">
-                        <a href="{{ route('home') }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                            <i class="bi bi-eye me-1"></i> Preview
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1 fw-bold">
+            <i class="bi bi-image-fill text-primary me-2"></i> Hero Section Settings
+        </h4>
+        <p class="text-muted mb-0 small">Customize the hero section displayed on your homepage</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ route('home') }}" target="_blank" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-eye me-1"></i> Preview
+        </a>
     </div>
 </div>
 
@@ -36,21 +29,18 @@
                 </h5>
             </div>
             <div class="card-body">
-                <form action="{{ route('admin.hero.update-type') }}" method="POST">
+                <form action="{{ route('admin.hero.update-type') }}" method="POST" id="hero-type-form">
                     @csrf
-                    <div class="row g-3">
+                    <div class="row g-3 align-items-end">
                         <div class="col-md-6">
                             <label class="form-label fw-medium">Select Hero Type</label>
                             <div class="btn-group w-100" role="group">
-                                <input type="radio" class="btn-check" name="hero_type" id="hero_standard" value="standard" 
-                                    {{ ($heroSettings['hero_type']->value ?? 'standard') === 'standard' ? 'checked' : '' }}>
-                                <label class="btn btn-outline-primary" for="hero_standard">
+                                <input type="radio" class="btn-check" name="hero_type" id="hero_type_standard" value="standard" {{ ($heroSettings['hero_type']->value ?? 'standard') == 'standard' ? 'checked' : '' }}>
+                                <label class="btn btn-outline-primary" for="hero_type_standard">
                                     <i class="bi bi-card-image me-1"></i> Standard Hero
                                 </label>
-                                
-                                <input type="radio" class="btn-check" name="hero_type" id="hero_slider" value="slider"
-                                    {{ ($heroSettings['hero_type']->value ?? 'standard') === 'slider' ? 'checked' : '' }}>
-                                <label class="btn btn-outline-primary" for="hero_slider">
+                                <input type="radio" class="btn-check" name="hero_type" id="hero_type_slider" value="slider" {{ ($heroSettings['hero_type']->value ?? 'standard') == 'slider' ? 'checked' : '' }}>
+                                <label class="btn btn-outline-primary" for="hero_type_slider">
                                     <i class="bi bi-images me-1"></i> Image Slider
                                 </label>
                             </div>
@@ -60,9 +50,9 @@
                             </div>
                         </div>
                         <div class="col-md-6 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-lg me-1"></i> Update Hero Type
-                            </button>
+                            <a href="{{ route('home') }}" target="_blank" class="btn btn-outline-secondary">
+                                <i class="bi bi-eye me-1"></i> Preview
+                            </a>
                         </div>
                     </div>
                 </form>
@@ -161,20 +151,22 @@
         <!-- Left Column -->
         <div class="col-lg-8">
             <!-- Background Image -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-semibold">
-                        <span class="badge bg-primary me-2">1</span>
-                        Background Image
-                    </h5>
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-image me-2"></i>Background Image</h6>
                 </div>
                 <div class="card-body">
                     <div class="row align-items-center">
                         <div class="col-md-8">
-                            <label class="form-label fw-medium">Upload Background Image</label>
-                            <input type="file" name="hero_background_image" 
-                                class="form-control" accept="image/*">
+                            <label for="hero_background_image" class="form-label">Upload Background Image</label>
+                            <input type="file" id="hero_background_image" name="hero_background_image" 
+                                class="form-control @error('hero_background_image') is-invalid @enderror" accept="image/*"
+                                onchange="previewBackgroundImage(this)">
+                            @error('hero_background_image')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Recommended size: 1920x1080px. JPG or PNG format.</div>
+                            <div id="backgroundImagePreview" class="mt-2"></div>
                         </div>
                         <div class="col-md-4">
                             @if($heroSettings->has('hero_background_image') && $heroSettings['hero_background_image']->value)
@@ -196,104 +188,105 @@
             </div>
 
             <!-- Badge Section -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-semibold">
-                        <span class="badge bg-warning text-dark me-2">2</span>
-                        Badge Section
-                    </h5>
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-patch-check me-2"></i>Badge Section</h6>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-medium">
-                                <i class="bi bi-bootstrap me-1"></i> Icon Class
-                            </label>
+                            <label for="hero_badge_icon" class="form-label">Icon Class</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-star-fill"></i></span>
-                                <input type="text" name="hero_badge_icon" 
+                                <input type="text" id="hero_badge_icon" name="hero_badge_icon" 
                                     value="{{ $heroSettings['hero_badge_icon']->value ?? 'bi bi-patch-check-fill' }}"
-                                    class="form-control" placeholder="bi bi-patch-check-fill">
+                                    class="form-control @error('hero_badge_icon') is-invalid @enderror" placeholder="bi bi-patch-check-fill">
                             </div>
+                            @error('hero_badge_icon')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Use Bootstrap Icons classes (e.g., bi bi-patch-check-fill)</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-medium">Badge Text</label>
-                            <input type="text" name="hero_badge_text" 
+                            <label for="hero_badge_text" class="form-label">Badge Text</label>
+                            <input type="text" id="hero_badge_text" name="hero_badge_text" 
                                 value="{{ $heroSettings['hero_badge_text']->value ?? '' }}"
-                                class="form-control" placeholder="Trusted by 10,000+ Customers">
+                                class="form-control @error('hero_badge_text') is-invalid @enderror" placeholder="Trusted by 10,000+ Customers">
+                            @error('hero_badge_text')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Title Section -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-semibold">
-                        <span class="badge bg-info me-2">3</span>
-                        Title Section
-                    </h5>
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-type-h1 me-2"></i>Title Section</h6>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-medium">Title Line 1</label>
-                            <input type="text" name="hero_title_line1" 
+                            <label for="hero_title_line1" class="form-label">Title Line 1</label>
+                            <input type="text" id="hero_title_line1" name="hero_title_line1" 
                                 value="{{ $heroSettings['hero_title_line1']->value ?? '' }}"
-                                class="form-control" placeholder="Fresh">
+                                class="form-control @error('hero_title_line1') is-invalid @enderror" placeholder="Fresh">
+                            @error('hero_title_line1')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-medium">
-                                Title Highlight 1 
-                                <span class="badge bg-warning text-dark ms-1">Gold</span>
-                            </label>
-                            <input type="text" name="hero_title_highlight1" 
+                            <label for="hero_title_highlight1" class="form-label">Title Highlight 1 <span class="badge bg-warning text-dark ms-1">Gold</span></label>
+                            <input type="text" id="hero_title_highlight1" name="hero_title_highlight1" 
                                 value="{{ $heroSettings['hero_title_highlight1']->value ?? '' }}"
-                                class="form-control" placeholder="Halal Food">
+                                class="form-control @error('hero_title_highlight1') is-invalid @enderror" placeholder="Halal Food">
+                            @error('hero_title_highlight1')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-medium">Title Line 2</label>
-                            <input type="text" name="hero_title_line2" 
+                            <label for="hero_title_line2" class="form-label">Title Line 2</label>
+                            <input type="text" id="hero_title_line2" name="hero_title_line2" 
                                 value="{{ $heroSettings['hero_title_line2']->value ?? '' }}"
-                                class="form-control" placeholder="Delivered Fresh">
+                                class="form-control @error('hero_title_line2') is-invalid @enderror" placeholder="Delivered Fresh">
+                            @error('hero_title_line2')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-medium">
-                                Title Line 3
-                                <span class="badge bg-success ms-1">Green</span>
-                            </label>
-                            <input type="text" name="hero_title_line3" 
+                            <label for="hero_title_line3" class="form-label">Title Line 3 <span class="badge bg-success ms-1">Green</span></label>
+                            <input type="text" id="hero_title_line3" name="hero_title_line3" 
                                 value="{{ $heroSettings['hero_title_line3']->value ?? '' }}"
-                                class="form-control" placeholder="To Your Door">
+                                class="form-control @error('hero_title_line3') is-invalid @enderror" placeholder="To Your Door">
+                            @error('hero_title_line3')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Description -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-semibold">
-                        <span class="badge bg-secondary me-2">4</span>
-                        Description
-                    </h5>
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-text-paragraph me-2"></i>Description</h6>
                 </div>
                 <div class="card-body">
-                    <label class="form-label fw-medium">Hero Description</label>
-                    <textarea name="hero_description" rows="3"
-                        class="form-control" placeholder="Premium quality halal meat, poultry, seafood & groceries...">{{ $heroSettings['hero_description']->value ?? '' }}</textarea>
+                    <label for="hero_description" class="form-label">Hero Description</label>
+                    <textarea id="hero_description" name="hero_description" rows="3"
+                        class="form-control @error('hero_description') is-invalid @enderror" placeholder="Premium quality halal meat, poultry, seafood & groceries...">{{ $heroSettings['hero_description']->value ?? '' }}</textarea>
+                    @error('hero_description')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                     <div class="form-text">Describe your products and services in an engaging way.</div>
                 </div>
             </div>
 
             <!-- CTA Buttons -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-semibold">
-                        <span class="badge bg-danger me-2">5</span>
-                        Call-to-Action Buttons
-                    </h5>
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-hand-index me-2"></i>Call-to-Action Buttons</h6>
                 </div>
                 <div class="card-body">
                     <div class="row g-4">
@@ -308,22 +301,31 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
-                                        <label class="form-label small">Button Text</label>
-                                        <input type="text" name="hero_cta1_text" 
+                                        <label for="hero_cta1_text" class="form-label small">Button Text</label>
+                                        <input type="text" id="hero_cta1_text" name="hero_cta1_text" 
                                             value="{{ $heroSettings['hero_cta1_text']->value ?? '' }}"
-                                            class="form-control form-control-sm" placeholder="Shop Now">
+                                            class="form-control form-control-sm @error('hero_cta1_text') is-invalid @enderror" placeholder="Shop Now">
+                                        @error('hero_cta1_text')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label small">Route Name</label>
-                                        <input type="text" name="hero_cta1_link" 
+                                        <label for="hero_cta1_link" class="form-label small">Route Name</label>
+                                        <input type="text" id="hero_cta1_link" name="hero_cta1_link" 
                                             value="{{ $heroSettings['hero_cta1_link']->value ?? '' }}"
-                                            class="form-control form-control-sm" placeholder="products.index">
+                                            class="form-control form-control-sm @error('hero_cta1_link') is-invalid @enderror" placeholder="products.index">
+                                        @error('hero_cta1_link')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div>
-                                        <label class="form-label small">Icon Class</label>
-                                        <input type="text" name="hero_cta1_icon" 
+                                        <label for="hero_cta1_icon" class="form-label small">Icon Class</label>
+                                        <input type="text" id="hero_cta1_icon" name="hero_cta1_icon" 
                                             value="{{ $heroSettings['hero_cta1_icon']->value ?? '' }}"
-                                            class="form-control form-control-sm" placeholder="bi bi-cart3">
+                                            class="form-control form-control-sm @error('hero_cta1_icon') is-invalid @enderror" placeholder="bi bi-cart3">
+                                        @error('hero_cta1_icon')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -340,35 +342,50 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
-                                        <label class="form-label small">Button Text</label>
-                                        <input type="text" name="hero_cta2_text" 
+                                        <label for="hero_cta2_text" class="form-label small">Button Text</label>
+                                        <input type="text" id="hero_cta2_text" name="hero_cta2_text" 
                                             value="{{ $heroSettings['hero_cta2_text']->value ?? '' }}"
-                                            class="form-control form-control-sm" placeholder="Hot Deals">
+                                            class="form-control form-control-sm @error('hero_cta2_text') is-invalid @enderror" placeholder="Hot Deals">
+                                        @error('hero_cta2_text')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label small">Route Name</label>
-                                        <input type="text" name="hero_cta2_link" 
+                                        <label for="hero_cta2_link" class="form-label small">Route Name</label>
+                                        <input type="text" id="hero_cta2_link" name="hero_cta2_link" 
                                             value="{{ $heroSettings['hero_cta2_link']->value ?? '' }}"
-                                            class="form-control form-control-sm" placeholder="products.index">
+                                            class="form-control form-control-sm @error('hero_cta2_link') is-invalid @enderror" placeholder="products.index">
+                                        @error('hero_cta2_link')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label small">Route Params (JSON)</label>
-                                        <input type="text" name="hero_cta2_params" 
+                                        <label for="hero_cta2_params" class="form-label small">Route Params (JSON)</label>
+                                        <input type="text" id="hero_cta2_params" name="hero_cta2_params" 
                                             value="{{ $heroSettings['hero_cta2_params']->value ?? '' }}"
-                                            class="form-control form-control-sm" placeholder='{"sort":"discount"}'>
+                                            class="form-control form-control-sm @error('hero_cta2_params') is-invalid @enderror" placeholder='{"sort":"discount"}'>
+                                        @error('hero_cta2_params')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="row g-2">
                                         <div class="col-6">
-                                            <label class="form-label small">Icon</label>
-                                            <input type="text" name="hero_cta2_icon" 
+                                            <label for="hero_cta2_icon" class="form-label small">Icon</label>
+                                            <input type="text" id="hero_cta2_icon" name="hero_cta2_icon" 
                                                 value="{{ $heroSettings['hero_cta2_icon']->value ?? '' }}"
-                                                class="form-control form-control-sm" placeholder="bi bi-fire">
+                                                class="form-control form-control-sm @error('hero_cta2_icon') is-invalid @enderror" placeholder="bi bi-fire">
+                                            @error('hero_cta2_icon')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
                                         </div>
                                         <div class="col-6">
-                                            <label class="form-label small">Badge</label>
-                                            <input type="text" name="hero_cta2_badge" 
+                                            <label for="hero_cta2_badge" class="form-label small">Badge</label>
+                                            <input type="text" id="hero_cta2_badge" name="hero_cta2_badge" 
                                                 value="{{ $heroSettings['hero_cta2_badge']->value ?? '' }}"
-                                                class="form-control form-control-sm" placeholder="UP TO 30% OFF">
+                                                class="form-control form-control-sm @error('hero_cta2_badge') is-invalid @enderror" placeholder="UP TO 30% OFF">
+                                            @error('hero_cta2_badge')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
                                         </div>
                                     </div>
                                 </div>
@@ -379,12 +396,9 @@
             </div>
 
             <!-- Features Bar -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-semibold">
-                        <span class="badge bg-success me-2">6</span>
-                        Features Bar
-                    </h5>
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-check2-circle me-2"></i>Features Bar</h6>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
@@ -394,22 +408,31 @@
                                 <div class="card-body p-3">
                                     <h6 class="card-title small text-muted mb-3">Feature {{ $i }}</h6>
                                     <div class="mb-2">
-                                        <label class="form-label small">Icon</label>
-                                        <input type="text" name="hero_feature{{ $i }}_icon" 
+                                        <label for="hero_feature{{ $i }}_icon" class="form-label small">Icon</label>
+                                        <input type="text" id="hero_feature{{ $i }}_icon" name="hero_feature{{ $i }}_icon" 
                                             value="{{ $heroSettings["hero_feature{$i}_icon"]->value ?? '' }}"
-                                            class="form-control form-control-sm" placeholder="bi bi-truck">
+                                            class="form-control form-control-sm @error("hero_feature{$i}_icon") is-invalid @enderror" placeholder="bi bi-truck">
+                                        @error("hero_feature{$i}_icon")
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="mb-2">
-                                        <label class="form-label small">Title</label>
-                                        <input type="text" name="hero_feature{{ $i }}_title" 
+                                        <label for="hero_feature{{ $i }}_title" class="form-label small">Title</label>
+                                        <input type="text" id="hero_feature{{ $i }}_title" name="hero_feature{{ $i }}_title" 
                                             value="{{ $heroSettings["hero_feature{$i}_title"]->value ?? '' }}"
-                                            class="form-control form-control-sm" placeholder="Free Delivery">
+                                            class="form-control form-control-sm @error("hero_feature{$i}_title") is-invalid @enderror" placeholder="Free Delivery">
+                                        @error("hero_feature{$i}_title")
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div>
-                                        <label class="form-label small">Subtitle</label>
-                                        <input type="text" name="hero_feature{{ $i }}_subtitle" 
+                                        <label for="hero_feature{{ $i }}_subtitle" class="form-label small">Subtitle</label>
+                                        <input type="text" id="hero_feature{{ $i }}_subtitle" name="hero_feature{{ $i }}_subtitle" 
                                             value="{{ $heroSettings["hero_feature{$i}_subtitle"]->value ?? '' }}"
-                                            class="form-control form-control-sm" placeholder="Orders over Tk500">
+                                            class="form-control form-control-sm @error("hero_feature{$i}_subtitle") is-invalid @enderror" placeholder="Orders over Tk500">
+                                        @error("hero_feature{$i}_subtitle")
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -423,18 +446,20 @@
         <!-- Right Column -->
         <div class="col-lg-4">
             <!-- Main Image -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-semibold">
-                        <i class="bi bi-card-image text-primary me-2"></i>
-                        Main Product Image
-                    </h5>
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-card-image me-2"></i>Main Product Image</h6>
                 </div>
                 <div class="card-body">
-                    <label class="form-label fw-medium">Upload Image</label>
-                    <input type="file" name="hero_main_image" 
-                        class="form-control mb-3" accept="image/*">
+                    <label for="hero_main_image" class="form-label">Upload Image</label>
+                    <input type="file" id="hero_main_image" name="hero_main_image" 
+                        class="form-control @error('hero_main_image') is-invalid @enderror" accept="image/*"
+                        onchange="previewMainImage(this)">
+                    @error('hero_main_image')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                     <div class="form-text mb-3">Recommended: 600x450px</div>
+                    <div id="mainImagePreview" class="mb-3"></div>
                     
                     @if($heroSettings->has('hero_main_image') && $heroSettings['hero_main_image']->value)
                     <div class="position-relative mb-3">
@@ -445,20 +470,20 @@
                     </div>
                     @endif
                     
-                    <label class="form-label fw-medium">Alt Text</label>
-                    <input type="text" name="hero_main_image_alt" 
+                    <label for="hero_main_image_alt" class="form-label">Alt Text</label>
+                    <input type="text" id="hero_main_image_alt" name="hero_main_image_alt" 
                         value="{{ $heroSettings['hero_main_image_alt']->value ?? '' }}"
-                        class="form-control" placeholder="Fresh Halal Meat">
+                        class="form-control @error('hero_main_image_alt') is-invalid @enderror" placeholder="Fresh Halal Meat">
+                    @error('hero_main_image_alt')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
 
             <!-- Floating Cards -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-semibold">
-                        <i class="bi bi-card-text text-info me-2"></i>
-                        Floating Cards
-                    </h5>
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-layers me-2"></i>Floating Cards</h6>
                 </div>
                 <div class="card-body">
                     <!-- Today's Special -->
@@ -468,28 +493,40 @@
                         </h6>
                         <div class="row g-2">
                             <div class="col-6">
-                                <label class="form-label small">Label</label>
-                                <input type="text" name="hero_special_label" 
+                                <label for="hero_special_label" class="form-label small">Label</label>
+                                <input type="text" id="hero_special_label" name="hero_special_label" 
                                     value="{{ $heroSettings['hero_special_label']->value ?? '' }}"
-                                    class="form-control form-control-sm" placeholder="Today's Special">
+                                    class="form-control form-control-sm @error('hero_special_label') is-invalid @enderror" placeholder="Today's Special">
+                                @error('hero_special_label')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="col-6">
-                                <label class="form-label small">Title</label>
-                                <input type="text" name="hero_special_title" 
+                                <label for="hero_special_title" class="form-label small">Title</label>
+                                <input type="text" id="hero_special_title" name="hero_special_title" 
                                     value="{{ $heroSettings['hero_special_title']->value ?? '' }}"
-                                    class="form-control form-control-sm" placeholder="Premium Beef">
+                                    class="form-control form-control-sm @error('hero_special_title') is-invalid @enderror" placeholder="Premium Beef">
+                                @error('hero_special_title')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="col-6">
-                                <label class="form-label small">Button</label>
-                                <input type="text" name="hero_special_button" 
+                                <label for="hero_special_button" class="form-label small">Button</label>
+                                <input type="text" id="hero_special_button" name="hero_special_button" 
                                     value="{{ $heroSettings['hero_special_button']->value ?? '' }}"
-                                    class="form-control form-control-sm" placeholder="Order Now">
+                                    class="form-control form-control-sm @error('hero_special_button') is-invalid @enderror" placeholder="Order Now">
+                                @error('hero_special_button')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="col-6">
-                                <label class="form-label small">Route</label>
-                                <input type="text" name="hero_special_link" 
+                                <label for="hero_special_link" class="form-label small">Route</label>
+                                <input type="text" id="hero_special_link" name="hero_special_link" 
                                     value="{{ $heroSettings['hero_special_link']->value ?? '' }}"
-                                    class="form-control form-control-sm" placeholder="products.index">
+                                    class="form-control form-control-sm @error('hero_special_link') is-invalid @enderror" placeholder="products.index">
+                                @error('hero_special_link')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -501,22 +538,31 @@
                         </h6>
                         <div class="row g-2">
                             <div class="col-4">
-                                <label class="form-label small">Icon</label>
-                                <input type="text" name="hero_delivery_icon" 
+                                <label for="hero_delivery_icon" class="form-label small">Icon</label>
+                                <input type="text" id="hero_delivery_icon" name="hero_delivery_icon" 
                                     value="{{ $heroSettings['hero_delivery_icon']->value ?? '' }}"
-                                    class="form-control form-control-sm" placeholder="bi bi-clock">
+                                    class="form-control form-control-sm @error('hero_delivery_icon') is-invalid @enderror" placeholder="bi bi-clock">
+                                @error('hero_delivery_icon')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="col-4">
-                                <label class="form-label small">Label</label>
-                                <input type="text" name="hero_delivery_label" 
+                                <label for="hero_delivery_label" class="form-label small">Label</label>
+                                <input type="text" id="hero_delivery_label" name="hero_delivery_label" 
                                     value="{{ $heroSettings['hero_delivery_label']->value ?? '' }}"
-                                    class="form-control form-control-sm" placeholder="Delivery">
+                                    class="form-control form-control-sm @error('hero_delivery_label') is-invalid @enderror" placeholder="Delivery">
+                                @error('hero_delivery_label')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="col-4">
-                                <label class="form-label small">Value</label>
-                                <input type="text" name="hero_delivery_value" 
+                                <label for="hero_delivery_value" class="form-label small">Value</label>
+                                <input type="text" id="hero_delivery_value" name="hero_delivery_value" 
                                     value="{{ $heroSettings['hero_delivery_value']->value ?? '' }}"
-                                    class="form-control form-control-sm" placeholder="30-60 Min">
+                                    class="form-control form-control-sm @error('hero_delivery_value') is-invalid @enderror" placeholder="30-60 Min">
+                                @error('hero_delivery_value')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -528,39 +574,38 @@
                         </h6>
                         <div class="row g-2">
                             <div class="col-6">
-                                <label class="form-label small">Label</label>
-                                <input type="text" name="hero_customers_label" 
+                                <label for="hero_customers_label" class="form-label small">Label</label>
+                                <input type="text" id="hero_customers_label" name="hero_customers_label" 
                                     value="{{ $heroSettings['hero_customers_label']->value ?? '' }}"
-                                    class="form-control form-control-sm" placeholder="Happy">
+                                    class="form-control form-control-sm @error('hero_customers_label') is-invalid @enderror" placeholder="Happy">
+                                @error('hero_customers_label')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="col-6">
-                                <label class="form-label small">Value</label>
-                                <input type="text" name="hero_customers_value" 
+                                <label for="hero_customers_value" class="form-label small">Value</label>
+                                <input type="text" id="hero_customers_value" name="hero_customers_value" 
                                     value="{{ $heroSettings['hero_customers_value']->value ?? '' }}"
-                                    class="form-control form-control-sm" placeholder="Customers">
+                                    class="form-control form-control-sm @error('hero_customers_value') is-invalid @enderror" placeholder="Customers">
+                                @error('hero_customers_value')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Save Button -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <button type="submit" class="btn btn-primary w-100 py-2">
-                        <i class="bi bi-check-lg me-2"></i> Save All Settings
-                    </button>
-                    <p class="text-center text-muted small mt-2 mb-0">
-                        Changes will reflect immediately on your homepage
-                    </p>
-                </div>
-            </div>
         </div>
     </div>
 </form>
+@endif
 
 <!-- Floating Save Button -->
+@if(($heroSettings['hero_type']->value ?? 'standard') === 'standard')
 <div class="floating-save-container">
+    <a href="{{ route('admin.hero.index') }}" class="btn btn-secondary floating-reset-btn">
+        <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
     <button type="submit" form="hero-form" class="btn btn-primary floating-save-btn">
         <i class="bi bi-check-lg me-1"></i> Save All Settings
     </button>
@@ -570,11 +615,12 @@
 
 @push('styles')
 <style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
     .card {
         transition: all 0.2s ease;
-    }
-    .card:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
     }
     .form-control:focus {
         border-color: #667eea;
@@ -595,11 +641,64 @@
 
 @push('scripts')
 <script>
-    // Auto-submit on hero type change
-    document.querySelectorAll('input[name="hero_type"]').forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            this.form.submit();
+    document.addEventListener('DOMContentLoaded', function() {
+        // Hero type form handling
+        var form = document.getElementById('hero-type-form');
+        
+        if (!form) {
+            console.error('Hero type form not found');
+            return;
+        }
+        
+        // Handle radio button changes - auto submit
+        var radios = form.querySelectorAll('input[name="hero_type"]');
+        radios.forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                form.submit();
+            });
         });
+        
+        // Auto-scroll to first error field
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
     });
+
+    // Preview background image
+    function previewBackgroundImage(input) {
+        var preview = document.getElementById('backgroundImagePreview');
+        preview.innerHTML = '';
+        
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail mt-2" style="max-width: 200px; max-height: 120px;">';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Preview main image
+    function previewMainImage(input) {
+        var preview = document.getElementById('mainImagePreview');
+        preview.innerHTML = '';
+        
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 200px; max-height: 150px;">';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
 </script>
 @endpush

@@ -2,23 +2,72 @@
 
 @section('title', 'System Update')
 
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display on this page */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+    
+    /* Force specific icons used in Current System Status section */
+    .bi-check2-circle::before { content: "\F26D" !important; color: #198754 !important; }
+    .bi-cloud-download::before { content: "\F34A" !important; color: inherit !important; }
+    
+    /* Text color utility classes */
+    .text-success { color: #198754 !important; }
+    .text-primary { color: #0d6efd !important; }
+    .text-warning { color: #ffc107 !important; }
+    .text-danger { color: #dc3545 !important; }
+</style>
+@endpush
+
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-0 py-3">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <h4 class="mb-1 fw-bold">
-                            <i class="bi bi-arrow-up-circle text-primary me-2"></i> System Update
-                        </h4>
-                        <p class="text-muted mb-0 small">Check for updates, install new versions, and manage system backup</p>
-                    </div>
-                    <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
-                    </a>
-                </div>
-            </div>
+
+<!-- Stats Cards Row -->
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-code-square"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Current Version</span>
+            <span class="stat-card-value">{{ $version['app_version'] ?? '1.0.0' }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-{{ ($version['update_available'] ?? '0') == '1' ? 'warning' : 'success' }}">
+        <div class="stat-card-icon"><i class="bi bi-{{ ($version['update_available'] ?? '0') == '1' ? 'cloud-download' : 'check-circle' }}"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Update Status</span>
+            <span class="stat-card-value">{{ ($version['update_available'] ?? '0') == '1' ? $version['latest_version'] ?? 'Available' : 'Up to Date' }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-calendar-check"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Last Updated</span>
+            <span class="stat-card-value">{{ $version['last_updated'] ?? 'Never' }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-search"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Last Check</span>
+            <span class="stat-card-value">{{ $settings['last_check'] ?? 'Never' }}</span>
         </div>
     </div>
 </div>
@@ -57,9 +106,7 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <div class="d-flex align-items-center">
-                                <div class="bg-success bg-opacity-10 p-3 rounded me-3">
-                                    <i class="bi bi-check2-circle text-success fs-4"></i>
-                                </div>
+                                <i class="bi bi-check2-circle text-success fs-4 me-3"></i>
                                 <div>
                                     <div class="text-muted small">Current Version</div>
                                     <div class="h4 mb-0 fw-bold">{{ $version['app_version'] ?? '1.0.0' }}</div>
@@ -68,9 +115,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <div class="d-flex align-items-center">
-                                <div class="bg-{{ $version['update_available'] ?? '0' == '1' ? 'warning' : 'primary' }} bg-opacity-10 p-3 rounded me-3">
-                                    <i class="bi bi-cloud-download text-{{ $version['update_available'] ?? '0' == '1' ? 'warning' : 'primary' }} fs-4"></i>
-                                </div>
+                                <i class="bi bi-{{ ($version['update_available'] ?? '0') == '1' ? 'cloud-download text-warning' : 'check-circle text-success' }} fs-4 me-3"></i>
                                 <div>
                                     <div class="text-muted small">Update Status</div>
                                     <div class="h6 mb-0">
@@ -260,36 +305,28 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="bg-success bg-opacity-10 p-2 rounded me-3">
-                            <i class="bi bi-check-circle text-success"></i>
-                        </div>
+                        <i class="bi bi-check-circle text-success me-3"></i>
                         <div>
                             <div class="fw-medium">Database Connection</div>
                             <div class="text-muted small">Connected</div>
                         </div>
                     </div>
                     <div class="d-flex align-items-center mb-3">
-                        <div class="bg-success bg-opacity-10 p-2 rounded me-3">
-                            <i class="bi bi-check-circle text-success"></i>
-                        </div>
+                        <i class="bi bi-check-circle text-success me-3"></i>
                         <div>
                             <div class="fw-medium">Cache System</div>
                             <div class="text-muted small">Working</div>
                         </div>
                     </div>
                     <div class="d-flex align-items-center mb-3">
-                        <div class="bg-success bg-opacity-10 p-2 rounded me-3">
-                            <i class="bi bi-check-circle text-success"></i>
-                        </div>
+                        <i class="bi bi-check-circle text-success me-3"></i>
                         <div>
                             <div class="fw-medium">File Storage</div>
                             <div class="text-muted small">Writable</div>
                         </div>
                     </div>
                     <div class="d-flex align-items-center">
-                        <div class="bg-success bg-opacity-10 p-2 rounded me-3">
-                            <i class="bi bi-check-circle text-success"></i>
-                        </div>
+                        <i class="bi bi-check-circle text-success me-3"></i>
                         <div>
                             <div class="fw-medium">Cron Jobs</div>
                             <div class="text-muted small">Active</div>

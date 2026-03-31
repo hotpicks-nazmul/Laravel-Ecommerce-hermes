@@ -31,73 +31,72 @@
     </div>
 
     <!-- Summary Statistics -->
-    <div class="row mb-4">
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small text-uppercase">Total Sales</div>
-                    <div class="h3 mb-0 text-primary">৳{{ number_format($totalSales, 2) }}</div>
-                </div>
+    <div class="stat-card-row mb-4" id="statsCards">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Sales</span>
+                <span class="stat-card-value">৳{{ number_format($totalSales, 2) }}</span>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small text-uppercase">Total Orders</div>
-                    <div class="h3 mb-0 text-success">{{ $totalOrders }}</div>
-                </div>
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon"><i class="bi bi-cart3"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Orders</span>
+                <span class="stat-card-value">{{ $totalOrders }}</span>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small text-uppercase">Avg. Order Value</div>
-                    <div class="h3 mb-0 text-info">৳{{ number_format($averageOrderValue, 2) }}</div>
-                </div>
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon"><i class="bi bi-calculator"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Avg. Order Value</span>
+                <span class="stat-card-value">৳{{ number_format($averageOrderValue, 2) }}</span>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small text-uppercase">Daily Avg.</div>
-                    <div class="h3 mb-0 text-warning">{{ $totalOrders > 0 ? round(($totalSales / max(1, count($dailySales))), 2) : 0 }}</div>
-                </div>
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon"><i class="bi bi-calendar-check"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Daily Avg.</span>
+                <span class="stat-card-value">{{ $totalOrders > 0 ? round(($totalSales / max(1, count($dailySales))), 2) : 0 }}</span>
             </div>
         </div>
     </div>
 
     <!-- Payment Method Breakdown -->
-    <div class="row mb-4">
-        <div class="col-md-4 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small text-uppercase">Cash Payments</div>
-                    <div class="h4 mb-0 text-success">৳{{ number_format($cashSales, 2) }}</div>
-                    <div class="progress mt-2" style="height: 6px;">
-                        <div class="progress-bar bg-success" style="width: {{ $totalSales > 0 ? ($cashSales / $totalSales * 100) : 0 }}%"></div>
-                    </div>
+    <div class="stat-card-row mb-4">
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon"><i class="bi bi-cash-stack"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Cash Payments</span>
+                <span class="stat-card-value">৳{{ number_format($cashSales, 2) }}</span>
+            </div>
+            <div class="stat-card-progress">
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar bg-success" style="width: {{ $totalSales > 0 ? ($cashSales / $totalSales * 100) : 0 }}%"></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small text-uppercase">Card Payments</div>
-                    <div class="h4 mb-0 text-primary">৳{{ number_format($cardSales, 2) }}</div>
-                    <div class="progress mt-2" style="height: 6px;">
-                        <div class="progress-bar bg-primary" style="width: {{ $totalSales > 0 ? ($cardSales / $totalSales * 100) : 0 }}%"></div>
-                    </div>
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon"><i class="bi bi-credit-card"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Card Payments</span>
+                <span class="stat-card-value">৳{{ number_format($cardSales, 2) }}</span>
+            </div>
+            <div class="stat-card-progress">
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar bg-primary" style="width: {{ $totalSales > 0 ? ($cardSales / $totalSales * 100) : 0 }}%"></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small text-uppercase">Digital Wallet</div>
-                    <div class="h4 mb-0 text-warning">৳{{ number_format($digitalSales, 2) }}</div>
-                    <div class="progress mt-2" style="height: 6px;">
-                        <div class="progress-bar bg-warning" style="width: {{ $totalSales > 0 ? ($digitalSales / $totalSales * 100) : 0 }}%"></div>
-                    </div>
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon"><i class="bi bi-wallet2"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Digital Wallet</span>
+                <span class="stat-card-value">৳{{ number_format($digitalSales, 2) }}</span>
+            </div>
+            <div class="stat-card-progress">
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar bg-warning" style="width: {{ $totalSales > 0 ? ($digitalSales / $totalSales * 100) : 0 }}%"></div>
                 </div>
             </div>
         </div>

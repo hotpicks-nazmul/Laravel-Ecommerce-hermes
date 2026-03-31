@@ -4,59 +4,50 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="row g-3 mb-4">
+<div class="stat-card-row mb-4">
     <!-- Total Sales -->
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-card-primary">
-            <div class="stat-card-icon">
-                <i class="bi bi-wallet2"></i>
-            </div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">Total Sales</span>
-                <span class="stat-card-value">৳{{ number_format($totalSales, 2) }}</span>
-            </div>
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon">
+            <i class="bi bi-wallet2"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Sales</span>
+            <span class="stat-card-value">৳{{ number_format($totalSales, 2) }}</span>
         </div>
     </div>
     
     <!-- Today's Sales -->
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-card-success">
-            <div class="stat-card-icon">
-                <i class="bi bi-graph-up-arrow"></i>
-            </div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">Today's Sales</span>
-                <span class="stat-card-value">৳{{ number_format($todaySales, 2) }}</span>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon">
+            <i class="bi bi-graph-up-arrow"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Today's Sales</span>
+            <span class="stat-card-value">৳{{ number_format($todaySales, 2) }}</span>
         </div>
     </div>
     
     <!-- Total Orders -->
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-card-info">
-            <div class="stat-card-icon">
-                <i class="bi bi-cart-check"></i>
-            </div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">Total Orders</span>
-                <span class="stat-card-value">{{ $totalOrders }}</span>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon">
+            <i class="bi bi-cart-check"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Orders</span>
+            <span class="stat-card-value">{{ $totalOrders }}</span>
         </div>
     </div>
     
     <!-- Total Customers -->
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-card-warning">
-            <div class="stat-card-icon">
-                <i class="bi bi-people"></i>
-            </div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">Total Customers</span>
-                <span class="stat-card-value">{{ $totalCustomers }}</span>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon">
+            <i class="bi bi-people"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Customers</span>
+            <span class="stat-card-value">{{ $totalCustomers }}</span>
         </div>
     </div>
-</div>
 </div>
 
 <!-- Main Charts Row -->

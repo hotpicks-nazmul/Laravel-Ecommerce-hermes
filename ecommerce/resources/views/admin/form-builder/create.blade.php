@@ -130,3 +130,12 @@
     </div>
 </form>
 @endsection
+
+@push('styles')
+<style>
+/* Add padding at bottom to prevent floating button overlap */
+.content-area {
+    padding-bottom: 100px !important;
+}
+</style>
+@endpush

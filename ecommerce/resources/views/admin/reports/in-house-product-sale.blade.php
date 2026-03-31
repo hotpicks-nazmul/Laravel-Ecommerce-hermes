@@ -149,7 +149,9 @@
                     <tr>
                         <td>{{ $productSales->firstItem() + $index }}</td>
                         <td>
-                            <div class="fw-medium">{{ $item->product_name }}</div>
+                            <a href="{{ route('admin.products.show', $item->product_id) }}" class="text-decoration-none">
+                                <div class="fw-medium text-primary">{{ $item->product_name }}</div>
+                            </a>
                             @if($item->product && $item->product->sku)
                             <small class="text-muted">SKU: {{ $item->product->sku }}</small>
                             @endif
@@ -255,25 +257,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Quick date presets
-    document.querySelectorAll('.date-preset').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            const days = parseInt(this.dataset.days);
-            const startInput = document.querySelector('input[name="start_date"]');
-            const endInput = document.querySelector('input[name="end_date"]');
-            
-            if (startInput && endInput) {
-                const end = new Date();
-                const start = new Date();
-                start.setDate(start.getDate() - days);
-                
-                startInput.value = start.toISOString().split('T')[0];
-                endInput.value = end.toISOString().split('T')[0];
-                
-                filterForm.submit();
-            }
-        });
-    });
 });
 </script>
 @endpush

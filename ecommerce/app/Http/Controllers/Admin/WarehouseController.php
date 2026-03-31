@@ -56,6 +56,7 @@ class WarehouseController extends Controller
             'total' => Warehouse::count(),
             'active' => Warehouse::where('is_active', true)->count(),
             'inactive' => Warehouse::where('is_active', false)->count(),
+            'cities' => Warehouse::distinct()->count('city'),
         ];
 
         // AJAX response

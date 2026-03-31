@@ -3,71 +3,56 @@
 @section('title', 'Push Notifications')
 
 @section('content')
-<div class="content-area">
-    <div class="container-fluid pt-4">
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">Push Notifications</h4>
-            <a href="{{ route('admin.marketing.push-notifications.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-1"></i> Create Notification
-            </a>
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-bell"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total</span>
+            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
         </div>
-
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Total</div>
-                        <div class="h4 mb-0 text-primary">{{ $stats['total'] }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Draft</div>
-                        <div class="h4 mb-0 text-secondary">{{ $stats['draft'] }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Scheduled</div>
-                        <div class="h4 mb-0 text-warning">{{ $stats['scheduled'] }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Sent</div>
-                        <div class="h4 mb-0 text-success">{{ $stats['sent'] }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Delivered</div>
-                        <div class="h4 mb-0 text-info">{{ $stats['total_delivered'] }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Clicked</div>
-                        <div class="h4 mb-0 text-dark">{{ $stats['total_clicked'] }}</div>
-                    </div>
-                </div>
-            </div>
+    </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-file-earmark"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Draft</span>
+            <span class="stat-card-value">{{ number_format($stats['draft'] ?? 0) }}</span>
         </div>
+    </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-clock"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Scheduled</span>
+            <span class="stat-card-value">{{ number_format($stats['scheduled'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Sent</span>
+            <span class="stat-card-value">{{ number_format($stats['sent'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Failed</span>
+            <span class="stat-card-value">{{ number_format($stats['failed'] ?? 0) }}</span>
+        </div>
+    </div>
+</div>
 
-        <!-- Filters Card -->
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-body py-3">
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Push Notifications</h4>
+    <a href="{{ route('admin.marketing.push-notifications.create') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Create Notification
+    </a>
+</div>
+
+<!-- Filters Card -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-3">
                 <form method="GET" id="filterForm">
                     <div class="row g-2 align-items-end">
                         <!-- Search Input -->
@@ -112,12 +97,12 @@
                         </div>
                     </div>
                 </form>
-            </div>
-        </div>
+    </div>
+</div>
 
-        <!-- Table Card -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-0">
+<!-- Table Card -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
@@ -229,8 +214,6 @@
                 @endif
             </div>
         </div>
-    </div>
-</div>
 @endsection
 
 @push('scripts')

@@ -136,10 +136,13 @@
                     <div class="row mb-4">
                         <label class="col-sm-3 col-form-label fw-semibold">Status</label>
                         <div class="col-sm-9">
-                            <select name="status" class="form-select">
+                            <select name="status" class="form-select @error('status') is-invalid @enderror">
                                 <option value="active" {{ old('status', 'active') == 'active' ? 'selected' : '' }}>Active</option>
                                 <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
                             </select>
+                            @error('status')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                     
@@ -193,8 +196,33 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
+    // Auto-scroll to first error field
+    document.addEventListener('DOMContentLoaded', function() {
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+
 function generateCode() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = '';

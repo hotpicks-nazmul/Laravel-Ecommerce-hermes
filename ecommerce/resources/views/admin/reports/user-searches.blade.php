@@ -28,7 +28,7 @@
             <span class="stat-card-value">{{ number_format($uniqueQueries) }}</span>
         </div>
     </div>
-    <div class="stat-card stat-card-warning">
+    <div class="stat-card stat-card-info">
         <div class="stat-card-icon">
             <i class="bi bi-people"></i>
         </div>
@@ -37,13 +37,22 @@
             <span class="stat-card-value">{{ number_format($uniqueUsers) }}</span>
         </div>
     </div>
-    <div class="stat-card stat-card-danger">
+    <div class="stat-card stat-card-warning">
         <div class="stat-card-icon">
             <i class="bi bi-emoji-frown"></i>
         </div>
         <div class="stat-card-content">
             <span class="stat-card-label">No Results</span>
             <span class="stat-card-value">{{ number_format($noResultsCount) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon">
+            <i class="bi bi-bar-chart"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Avg Results</span>
+            <span class="stat-card-value">{{ number_format($avgResultsPerSearch, 1) }}</span>
         </div>
     </div>
 </div>
@@ -115,8 +124,8 @@
                 </div>
                 
                 <!-- Filter Buttons -->
-                <div class="col-lg-2 col-md-5 col-sm-6">
-                    <div class="d-flex gap-2">
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="d-flex gap-2 flex-wrap">
                         <button type="submit" class="btn btn-sm btn-primary">
                             <i class="bi bi-funnel me-1"></i> Filter
                         </button>
@@ -271,46 +280,48 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Live search with debounce
+    // Live search with debounce - auto submit after typing stops
     let searchTimeout;
     const searchInput = document.getElementById('liveSearch');
     const searchSpinner = document.getElementById('searchSpinner');
     const filterForm = document.getElementById('filterForm');
     
-    if (searchInput) {
+    if (searchInput && filterForm) {
         searchInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
-            const searchTerm = this.value.trim();
             
-            // Show spinner
+            // Show spinner while typing
             if (searchSpinner) {
                 searchSpinner.style.display = 'block';
             }
             
-            // Debounce - wait 500ms after user stops typing
+            // Debounce - submit form 500ms after user stops typing
             searchTimeout = setTimeout(() => {
                 if (searchSpinner) {
                     searchSpinner.style.display = 'none';
                 }
+                // Actually submit the form to filter results
+                filterForm.submit();
             }, 500);
         });
     }
     
-    // Quick date presets
+    // Date range presets - work with the flatpickr date range input
     document.querySelectorAll('.date-preset').forEach(function(btn) {
         btn.addEventListener('click', function() {
             const days = parseInt(this.dataset.days);
-            const startInput = document.querySelector('input[name="start_date"]');
-            const endInput = document.querySelector('input[name="end_date"]');
+            const dateRangeInput = document.getElementById('dateRange');
             
-            if (startInput && endInput) {
+            if (dateRangeInput) {
                 const end = new Date();
                 const start = new Date();
                 start.setDate(start.getDate() - days);
                 
-                startInput.value = start.toISOString().split('T')[0];
-                endInput.value = end.toISOString().split('T')[0];
+                // Format: YYYY-MM-DD to YYYY-MM-DD (flatpickr range format)
+                const startStr = start.toISOString().split('T')[0];
+                const endStr = end.toISOString().split('T')[0];
                 
+                dateRangeInput.value = startStr + ' to ' + endStr;
                 filterForm.submit();
             }
         });

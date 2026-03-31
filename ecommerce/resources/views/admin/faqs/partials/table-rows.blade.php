@@ -21,7 +21,7 @@
             </a>
             <button type="button" class="btn btn-sm btn-outline{{ $faq->status === 'active' ? '-warning' : '-success' }}" 
                     title="{{ $faq->status === 'active' ? 'Deactivate' : 'Activate' }}"
-                    onclick="toggleStatus('{{ route('admin.faqs.toggle-status', $faq->id) }}')">
+                    onclick="toggleStatus('{{ route('admin.faqs.toggle-status', $faq->id) }}', {{ $faq->id }})">
                 <i class="bi bi{{ $faq->status === 'active' ? '-x-circle' : '-check-circle' }}"></i>
             </button>
             <form action="{{ route('admin.faqs.destroy', $faq->id) }}" method="POST" class="d-inline">

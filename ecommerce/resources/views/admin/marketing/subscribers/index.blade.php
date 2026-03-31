@@ -3,39 +3,47 @@
 @section('title', 'Subscribers')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
+
+{{-- Reopen modal if there are validation errors --}}
+@if($errors->any())
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var modal = new bootstrap.Modal(document.getElementById('addSubscriberModal'));
+        modal.show();
+    });
+</script>
+@endif
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-people"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total</span>
+            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Unsubscribed</span>
+            <span class="stat-card-value">{{ number_format($stats['unsubscribed'] ?? 0) }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">Subscribers</h4>
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSubscriberModal">
         <i class="bi bi-plus-lg me-1"></i> Add Subscriber
     </button>
-</div>
-
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-4 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total</div>
-                <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Active</div>
-                <div class="h4 mb-0 text-success">{{ $stats['active'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Unsubscribed</div>
-                <div class="h4 mb-0 text-danger">{{ $stats['unsubscribed'] ?? 0 }}</div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Filters Card -->
@@ -296,13 +304,17 @@
 
     // Update stats cards
     function updateStats(stats) {
-        const totalEl = document.querySelector('.text-primary');
-        const activeEl = document.querySelector('.text-success');
-        const unsubscribedEl = document.querySelector('.text-danger');
-        
-        if (totalEl) totalEl.textContent = stats.total || 0;
-        if (activeEl) activeEl.textContent = stats.active || 0;
-        if (unsubscribedEl) unsubscribedEl.textContent = stats.unsubscribed || 0;
+        const statCards = document.querySelectorAll('.stat-card-value');
+        if (statCards.length >= 3) {
+            statCards[0].textContent = stats.total ? number_format(stats.total) : '0';
+            statCards[1].textContent = stats.active ? number_format(stats.active) : '0';
+            statCards[2].textContent = stats.unsubscribed ? number_format(stats.unsubscribed) : '0';
+        }
+    }
+    
+    // Number format helper
+    function number_format(num) {
+        return parseInt(num).toLocaleString();
     }
 
     // Delete confirmation

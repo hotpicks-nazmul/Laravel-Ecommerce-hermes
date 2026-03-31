@@ -3,45 +3,39 @@
 @section('title', 'FAQs')
 
 @section('content')
-<div class="content-area">
-    <div class="container-fluid pt-4">
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">FAQs</h4>
-            <a href="{{ route('admin.faqs.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-1"></i> Add New FAQ
-            </a>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">FAQs</h4>
+    <a href="{{ route('admin.faqs.create') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Add New FAQ
+    </a>
+</div>
 
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Total FAQs</div>
-                        <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Active</div>
-                        <div class="h4 mb-0 text-success">{{ $stats['active'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Inactive</div>
-                        <div class="h4 mb-0 text-secondary">{{ $stats['inactive'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-question-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total FAQs</span>
+            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
         </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Inactive</span>
+            <span class="stat-card-value">{{ number_format($stats['inactive'] ?? 0) }}</span>
+        </div>
+    </div>
+</div>
 
-        <!-- Filters Card -->
+<!-- Filters Card -->
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-body py-3">
                 <form method="GET" id="filterForm">
@@ -138,8 +132,6 @@
                     </div>
                 </div>
                 @endif
-            </div>
-        </div>
     </div>
 </div>
 
@@ -149,6 +141,7 @@
     <input type="hidden" name="action" id="bulkActionInput">
     <input type="hidden" name="ids" id="bulkIdsInput">
 </form>
+@endsection
 
 @push('scripts')
 <script>
@@ -201,9 +194,12 @@
                 
                 // Update stats
                 if (data.stats) {
-                    document.querySelector('.col-md-4:nth-child(1) .h4').textContent = data.stats.total;
-                    document.querySelector('.col-md-4:nth-child(2) .h4').textContent = data.stats.active;
-                    document.querySelector('.col-md-4:nth-child(3) .h4').textContent = data.stats.inactive;
+                    const statCards = document.querySelectorAll('.stat-card-row .stat-card');
+                    if (statCards.length >= 3) {
+                        statCards[0].querySelector('.stat-card-value').textContent = data.stats.total.toLocaleString();
+                        statCards[1].querySelector('.stat-card-value').textContent = data.stats.active.toLocaleString();
+                        statCards[2].querySelector('.stat-card-value').textContent = data.stats.inactive.toLocaleString();
+                    }
                 }
                 
                 const newUrl = `${window.location.pathname}?${params.toString()}`;
@@ -283,7 +279,7 @@
     }
 
     // Toggle status
-    function toggleStatus(url) {
+    function toggleStatus(url, faqId) {
         fetch(url, {
             method: 'POST',
             headers: {
@@ -295,9 +291,23 @@
         .then(data => {
             if (data.success) {
                 // Update the status badge
-                const badge = document.querySelector(`[data-id="${data.id}"] .status-badge`);
-                if (badge) {
-                    badge.outerHTML = data.badge;
+                const row = document.querySelector(`tr[data-id="${faqId}"]`);
+                if (row) {
+                    const badge = row.querySelector('.status-badge');
+                    if (badge) {
+                        badge.outerHTML = data.badge;
+                    }
+                    // Update the toggle button icon and title
+                    const toggleBtn = row.querySelector('[title="Deactivate"], [title="Activate"]');
+                    if (toggleBtn) {
+                        const isActive = data.status === 'active';
+                        toggleBtn.title = isActive ? 'Deactivate' : 'Activate';
+                        toggleBtn.className = `btn btn-sm btn-outline${isActive ? '-warning' : '-success'}`;
+                        const icon = toggleBtn.querySelector('i');
+                        if (icon) {
+                            icon.className = `bi bi${isActive ? '-x-circle' : '-check-circle'}`;
+                        }
+                    }
                 }
                 
                 // Show success message
@@ -345,4 +355,3 @@
     }
 </style>
 @endpush
-@endsection

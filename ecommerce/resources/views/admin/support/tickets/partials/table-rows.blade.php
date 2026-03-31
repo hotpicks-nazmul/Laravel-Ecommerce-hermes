@@ -1,5 +1,16 @@
+@php
+    $search = request('search');
+@endphp
 @forelse($tickets as $ticket)
-<tr>
+@php
+    $isMatch = $search && (
+        stripos($ticket->ticket_number, $search) !== false ||
+        stripos($ticket->subject, $search) !== false ||
+        stripos($ticket->user->name ?? '', $search) !== false ||
+        stripos($ticket->user->email ?? '', $search) !== false
+    );
+@endphp
+<tr class="{{ $isMatch ? 'table-warning' : '' }}">
     <td>
         <input type="checkbox" class="form-check-input ticket-checkbox" value="{{ $ticket->id }}">
     </td>

@@ -237,7 +237,7 @@ class ChatController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:open,pending,closed',
+            'status' => 'required|in:new,pending,replied,closed',
         ]);
 
         $chat = Chat::findOrFail($id);
@@ -325,9 +325,27 @@ class ChatController extends Controller
      */
     public function aiSettings(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'ai_enabled' => 'nullable|boolean',
+            'ai_welcome_message' => 'nullable|string|max:500',
+            'openai_api_key' => 'nullable|string|max:500',
+            'ai_model' => 'nullable|string|in:gpt-3.5-turbo,gpt-4,gpt-4-turbo',
+            'ai_max_tokens' => 'nullable|integer|min:50|max:2000',
+            'ai_temperature' => 'nullable|numeric|min:0|max:1',
+            'ai_system_prompt' => 'nullable|string|max:2000',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
         Setting::updateOrCreate(['key' => 'ai_chatbot_enabled'], ['value' => $request->has('ai_enabled') ? '1' : '0']);
-        Setting::updateOrCreate(['key' => 'ai_chatbot_welcome_message'], ['value' => $request->ai_welcome_message ?? '']);
+        Setting::updateOrCreate(['key' => 'ai_chatbot_welcome_message'], ['value' => $request->ai_welcome_message ?? 'Hello! How can I help you today?']);
         Setting::updateOrCreate(['key' => 'openai_api_key'], ['value' => $request->openai_api_key ?? '']);
+        Setting::updateOrCreate(['key' => 'ai_chatbot_model'], ['value' => $request->ai_model ?? 'gpt-3.5-turbo']);
+        Setting::updateOrCreate(['key' => 'ai_chatbot_max_tokens'], ['value' => $request->ai_max_tokens ?? '500']);
+        Setting::updateOrCreate(['key' => 'ai_chatbot_temperature'], ['value' => $request->ai_temperature ?? '0.7']);
+        Setting::updateOrCreate(['key' => 'ai_chatbot_system_prompt'], ['value' => $request->ai_system_prompt ?? 'You are a helpful and friendly customer support assistant for an e-commerce store. You help customers with their inquiries about products, orders, shipping, and general questions. Keep your responses concise and helpful.']);
 
         return back()->with('success', 'AI Chatbot settings updated successfully.');
     }
@@ -341,6 +359,10 @@ class ChatController extends Controller
             'enabled' => Setting::where('key', 'ai_chatbot_enabled')->value('value') === '1',
             'welcome_message' => Setting::where('key', 'ai_chatbot_welcome_message')->value('value') ?? 'Hello! How can I help you today?',
             'openai_key' => Setting::where('key', 'openai_api_key')->value('value') ?? '',
+            'model' => Setting::where('key', 'ai_chatbot_model')->value('value') ?? 'gpt-3.5-turbo',
+            'max_tokens' => Setting::where('key', 'ai_chatbot_max_tokens')->value('value') ?? '500',
+            'temperature' => Setting::where('key', 'ai_chatbot_temperature')->value('value') ?? '0.7',
+            'system_prompt' => Setting::where('key', 'ai_chatbot_system_prompt')->value('value') ?? 'You are a helpful and friendly customer support assistant for an e-commerce store. You help customers with their inquiries about products, orders, shipping, and general questions. Keep your responses concise and helpful.',
         ];
 
         return view('admin.chat.ai-settings', compact('aiSettings'));
@@ -351,9 +373,40 @@ class ChatController extends Controller
      */
     public function widgetSettings(Request $request)
     {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'widget_position' => 'nullable|string|in:bottom-right,bottom-left,top-right,top-left',
+            'widget_color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            'widget_button_text' => 'nullable|string|max:50',
+            'chat_welcome_message' => 'nullable|string|max:255',
+            'chat_welcome_subtitle' => 'nullable|string|max:255',
+            'chat_offline_message' => 'nullable|string|max:255',
+            'chat_reply_greeting' => 'nullable|string|max:500',
+            'chat_reply_delivery' => 'nullable|string|max:500',
+            'chat_reply_payment' => 'nullable|string|max:500',
+            'chat_reply_track_order' => 'nullable|string|max:500',
+            'chat_reply_return' => 'nullable|string|max:500',
+            'chat_reply_halal' => 'nullable|string|max:500',
+            'chat_reply_price' => 'nullable|string|max:500',
+            'chat_reply_contact' => 'nullable|string|max:500',
+            'enable_sound' => 'nullable|boolean',
+            'enable_desktop_notify' => 'nullable|boolean',
+            'show_online_status' => 'nullable|boolean',
+            'enable_canned_responses' => 'nullable|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        // Widget Appearance settings
+        Setting::updateOrCreate(['key' => 'chat_widget_position'], ['value' => $request->widget_position ?? 'bottom-right']);
+        Setting::updateOrCreate(['key' => 'chat_widget_color'], ['value' => $request->widget_color ?? '#0d6efd']);
+        Setting::updateOrCreate(['key' => 'chat_widget_button_text'], ['value' => $request->widget_button_text ?? 'Chat']);
+
         // Welcome messages
         Setting::updateOrCreate(['key' => 'chat_welcome_message'], ['value' => $request->chat_welcome_message ?? 'Hello! How can I help you today?']);
         Setting::updateOrCreate(['key' => 'chat_welcome_subtitle'], ['value' => $request->chat_welcome_subtitle ?? 'Our team typically replies within minutes']);
+        Setting::updateOrCreate(['key' => 'chat_offline_message'], ['value' => $request->chat_offline_message ?? 'We are currently offline. Leave us a message!']);
         
         // Auto-reply messages
         Setting::updateOrCreate(['key' => 'chat_reply_greeting'], ['value' => $request->chat_reply_greeting ?? '']);
@@ -363,6 +416,13 @@ class ChatController extends Controller
         Setting::updateOrCreate(['key' => 'chat_reply_return'], ['value' => $request->chat_reply_return ?? '']);
         Setting::updateOrCreate(['key' => 'chat_reply_halal'], ['value' => $request->chat_reply_halal ?? '']);
         Setting::updateOrCreate(['key' => 'chat_reply_price'], ['value' => $request->chat_reply_price ?? '']);
+        Setting::updateOrCreate(['key' => 'chat_reply_contact'], ['value' => $request->chat_reply_contact ?? '']);
+
+        // Advanced Settings
+        Setting::updateOrCreate(['key' => 'chat_enable_sound'], ['value' => $request->has('enable_sound') ? '1' : '0']);
+        Setting::updateOrCreate(['key' => 'chat_enable_desktop_notify'], ['value' => $request->has('enable_desktop_notify') ? '1' : '0']);
+        Setting::updateOrCreate(['key' => 'chat_show_online_status'], ['value' => $request->has('show_online_status') ? '1' : '0']);
+        Setting::updateOrCreate(['key' => 'chat_enable_canned_responses'], ['value' => $request->has('enable_canned_responses') ? '1' : '0']);
 
         return back()->with('success', 'Chat Widget settings updated successfully.');
     }
@@ -389,20 +449,28 @@ class ChatController extends Controller
     }
 
     /**
-     * Delete a conversation.
+     * Delete a conversation (AJAX).
+     */
+    public function destroyConversation($id)
+    {
+        $chat = Chat::findOrFail($id);
+        $chat->messages()->delete();
+        $chat->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Conversation deleted successfully.'
+        ]);
+    }
+
+    /**
+     * Delete a conversation (redirect).
      */
     public function destroy($id)
     {
         $chat = Chat::findOrFail($id);
         $chat->messages()->delete();
         $chat->delete();
-
-        if (request()->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Conversation deleted successfully.'
-            ]);
-        }
 
         return redirect()->route('admin.chat.index')
             ->with('success', 'Conversation deleted successfully.');

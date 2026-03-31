@@ -33,7 +33,7 @@
             <i class="bi bi-dash-circle"></i>
         </div>
         <div class="stat-card-content">
-            <span class="stat-card-label">Total Debits</span>
+            <span class="stat-card-label">Debit Amount</span>
             <span class="stat-card-value">৳{{ number_format($totalDebitAmount, 2) }}</span>
         </div>
     </div>
@@ -141,16 +141,18 @@
                 </div>
                 
                 <!-- Filter Buttons -->
-                <div class="col-lg-12 col-md-12 col-sm-12 mt-2">
-                    <button type="submit" class="btn btn-sm btn-primary">
-                        <i class="bi bi-filter me-1"></i> Apply Filters
-                    </button>
-                    <a href="{{ route('admin.reports.wallet-history') }}" class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-x-lg me-1"></i> Reset
-                    </a>
-                    <a href="{{ route('admin.reports.wallet-history.export', request()->query()) }}" class="btn btn-sm btn-success float-end">
-                        <i class="bi bi-download me-1"></i> Export CSV
-                    </a>
+                <div class="col-lg-12 col-md-12 col-sm-12 mt-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-funnel me-1"></i> Filter
+                        </button>
+                        <a href="{{ route('admin.reports.wallet-history') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i> Reset
+                        </a>
+                        <a href="{{ route('admin.reports.wallet-history.export', request()->query()) }}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-download me-1"></i> Export
+                        </a>
+                    </div>
                 </div>
             </div>
         </form>

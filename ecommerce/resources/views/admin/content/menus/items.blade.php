@@ -18,6 +18,26 @@
     </div>
 </div>
 
+<!-- Success/Error Alerts -->
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+@if($errors->any())
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    <ul class="mb-0">
+        @foreach($errors->all() as $error)
+        <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
 <!-- Menu Items -->
 <div class="row">
     <div class="col-lg-8">
@@ -314,6 +334,10 @@
 
 @push('styles')
 <style>
+.menu-builder-container {
+    min-height: 200px;
+}
+
 .menu-builder-list {
     margin: 0;
     padding: 0;
@@ -335,10 +359,22 @@
     border-radius: 6px;
     border: 1px solid #e9ecef;
     cursor: move;
+    transition: all 0.2s ease;
 }
 
 .menu-item:hover {
     background: #e9ecef;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.menu-item.sortable-ghost {
+    opacity: 0.4;
+    background: #e2e3e5;
+}
+
+.menu-item.sortable-chosen {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background: #fff;
 }
 
 .menu-item .drag-handle {
@@ -361,11 +397,16 @@
     flex: 1;
     font-size: 0.85em;
     color: #6c757d;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
 }
 
 .menu-item .item-actions {
     display: flex;
     gap: 5px;
+    flex-shrink: 0;
 }
 
 .menu-item.inactive {
@@ -381,16 +422,35 @@
 @endpush
 
 @push('scripts')
+<!-- SortableJS Library for drag-and-drop -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Toggle reference fields based on type selection
+    // Initialize SortableJS on the menu list
+    const sortableList = document.getElementById('sortableMenu');
+    if (sortableList) {
+        Sortable.create(sortableList, {
+            group: 'menu-items',
+            animation: 150,
+            handle: '.drag-handle',
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            fallbackClass: 'sortable-fallback',
+            onEnd: function(evt) {
+                // Visual feedback on reorder
+                console.log('Item moved from index ' + evt.oldIndex + ' to ' + evt.newIndex);
+            }
+        });
+    }
+
+    // Toggle reference fields based on type selection (Add Modal)
     const itemType = document.getElementById('itemType');
     const referenceFields = document.querySelectorAll('.reference-field');
     
-    itemType.addEventListener('change', function() {
+    function toggleAddFields(type) {
         referenceFields.forEach(field => field.style.display = 'none');
         
-        switch(this.value) {
+        switch(type) {
             case 'category':
                 document.getElementById('categoryField').style.display = 'block';
                 break;
@@ -408,118 +468,195 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('urlField').style.display = 'block';
                 document.getElementById('itemUrl').placeholder = '/about-us';
         }
-    });
+    }
+    
+    if (itemType) {
+        itemType.addEventListener('change', function() {
+            toggleAddFields(this.value);
+        });
+        // Initialize on page load
+        toggleAddFields(itemType.value);
+    }
 
     // Edit item modal handling
     const editItemModal = document.getElementById('editItemModal');
-    editItemModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        const itemId = button.getAttribute('data-item-id');
-        const itemTitle = button.getAttribute('data-item-title');
-        const itemType = button.getAttribute('data-item-type');
-        const itemUrl = button.getAttribute('data-item-url');
-        const itemTarget = button.getAttribute('data-item-target');
-        const itemIcon = button.getAttribute('data-item-icon');
-        const itemCssClass = button.getAttribute('data-item-css-class');
-        const itemParentId = button.getAttribute('data-item-parent-id');
-        const itemActive = button.getAttribute('data-item-active');
-        const itemReferenceId = button.getAttribute('data-item-reference-id');
+    if (editItemModal) {
+        editItemModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const itemId = button.getAttribute('data-item-id');
+            const itemTitle = button.getAttribute('data-item-title');
+            const itemTypeVal = button.getAttribute('data-item-type');
+            const itemUrl = button.getAttribute('data-item-url');
+            const itemTarget = button.getAttribute('data-item-target');
+            const itemIcon = button.getAttribute('data-item-icon');
+            const itemCssClass = button.getAttribute('data-item-css-class');
+            const itemParentId = button.getAttribute('data-item-parent-id');
+            const itemActive = button.getAttribute('data-item-active');
+            const itemReferenceId = button.getAttribute('data-item-reference-id');
 
-        document.getElementById('editItemTitle').value = itemTitle;
-        document.getElementById('editItemType').value = itemType;
-        document.getElementById('editItemUrl').value = itemUrl || '';
-        document.getElementById('editItemTarget').value = itemTarget || '_self';
-        document.getElementById('editItemIcon').value = itemIcon || '';
-        document.getElementById('editItemCssClass').value = itemCssClass || '';
-        document.getElementById('editItemParent').value = itemParentId || '';
-        document.getElementById('editItemActive').checked = itemActive === '1';
+            document.getElementById('editItemTitle').value = itemTitle || '';
+            document.getElementById('editItemType').value = itemTypeVal || 'custom';
+            document.getElementById('editItemUrl').value = itemUrl || '';
+            document.getElementById('editItemTarget').value = itemTarget || '_self';
+            document.getElementById('editItemIcon').value = itemIcon || '';
+            document.getElementById('editItemCssClass').value = itemCssClass || '';
+            document.getElementById('editItemParent').value = itemParentId || '';
+            document.getElementById('editItemActive').checked = itemActive === '1';
 
-        // Update form action
-        const form = document.getElementById('editItemForm');
-        form.action = `{{ route('admin.menus.items.update', [$menu->id, 'ITEM_ID']) }}`.replace('ITEM_ID', itemId);
+            // Update form action
+            const form = document.getElementById('editItemForm');
+            form.action = `{{ route('admin.menus.items.update', [$menu->id, 'ITEM_ID']) }}`.replace('ITEM_ID', itemId);
 
-        // Show/hide reference fields
-        const editReferenceFields = document.querySelectorAll('.edit-reference-field');
-        editReferenceFields.forEach(field => field.style.display = 'none');
+            // Show/hide reference fields
+            const editReferenceFields = document.querySelectorAll('.edit-reference-field');
+            editReferenceFields.forEach(field => field.style.display = 'none');
 
-        switch(itemType) {
-            case 'category':
-                document.getElementById('editCategoryField').style.display = 'block';
-                document.getElementById('editCategorySelect').value = itemReferenceId || '';
-                break;
-            case 'page':
-                document.getElementById('editPageField').style.display = 'block';
-                document.getElementById('editPageSelect').value = itemReferenceId || '';
-                break;
-            case 'product':
-                document.getElementById('editProductField').style.display = 'block';
-                document.getElementById('editProductSelect').value = itemReferenceId || '';
-                break;
-            case 'link':
-                document.getElementById('editUrlField').style.display = 'block';
-                document.getElementById('editItemUrl').placeholder = 'https://example.com';
-                break;
-            default:
-                document.getElementById('editUrlField').style.display = 'block';
-                document.getElementById('editItemUrl').placeholder = '/about-us';
-        }
-    });
+            switch(itemTypeVal) {
+                case 'category':
+                    document.getElementById('editCategoryField').style.display = 'block';
+                    document.getElementById('editCategorySelect').value = itemReferenceId || '';
+                    break;
+                case 'page':
+                    document.getElementById('editPageField').style.display = 'block';
+                    document.getElementById('editPageSelect').value = itemReferenceId || '';
+                    break;
+                case 'product':
+                    document.getElementById('editProductField').style.display = 'block';
+                    document.getElementById('editProductSelect').value = itemReferenceId || '';
+                    break;
+                case 'link':
+                    document.getElementById('editUrlField').style.display = 'block';
+                    document.getElementById('editItemUrl').placeholder = 'https://example.com';
+                    break;
+                default:
+                    document.getElementById('editUrlField').style.display = 'block';
+                    document.getElementById('editItemUrl').placeholder = '/about-us';
+            }
+        });
+    }
+
+    // Edit modal type change handler
+    const editItemType = document.getElementById('editItemType');
+    if (editItemType) {
+        editItemType.addEventListener('change', function() {
+            const editReferenceFields = document.querySelectorAll('.edit-reference-field');
+            editReferenceFields.forEach(field => field.style.display = 'none');
+            
+            switch(this.value) {
+                case 'category':
+                    document.getElementById('editCategoryField').style.display = 'block';
+                    break;
+                case 'page':
+                    document.getElementById('editPageField').style.display = 'block';
+                    break;
+                case 'product':
+                    document.getElementById('editProductField').style.display = 'block';
+                    break;
+                case 'link':
+                    document.getElementById('editUrlField').style.display = 'block';
+                    document.getElementById('editItemUrl').placeholder = 'https://example.com';
+                    break;
+                default:
+                    document.getElementById('editUrlField').style.display = 'block';
+                    document.getElementById('editItemUrl').placeholder = '/about-us';
+            }
+        });
+    }
 
     // Save order functionality
     const saveOrderBtn = document.getElementById('saveOrderBtn');
-    
-    saveOrderBtn.addEventListener('click', function() {
-        const items = [];
-        const sortableList = document.getElementById('sortableMenu');
-        
-        function processItems(ul, parentId = null) {
-            const lis = ul.querySelectorAll(':scope > li.menu-item-wrapper');
-            lis.forEach((li, index) => {
-                const itemId = li.getAttribute('data-item-id');
-                const parentEl = li.closest('ul');
-                const parentItemId = parentEl && parentEl.closest('li.menu-item-wrapper') 
-                    ? parentEl.closest('li.menu-item-wrapper').getAttribute('data-item-id') 
-                    : null;
-                
-                items.push({
-                    id: parseInt(itemId),
-                    parent_id: parentItemId ? parseInt(parentItemId) : null,
-                    sort_order: index
+    if (saveOrderBtn) {
+        saveOrderBtn.addEventListener('click', function() {
+            const items = [];
+            
+            function processItems(ul, parentId = null) {
+                const lis = ul.querySelectorAll(':scope > li.menu-item-wrapper');
+                lis.forEach((li, index) => {
+                    const itemId = li.getAttribute('data-item-id');
+                    const parentEl = li.closest('ul');
+                    const parentItemId = parentEl && parentEl.closest('li.menu-item-wrapper') 
+                        ? parentEl.closest('li.menu-item-wrapper').getAttribute('data-item-id') 
+                        : null;
+                    
+                    items.push({
+                        id: parseInt(itemId),
+                        parent_id: parentItemId ? parseInt(parentItemId) : null,
+                        sort_order: index
+                    });
+
+                    const childUl = li.querySelector('ul');
+                    if (childUl) {
+                        processItems(childUl, itemId);
+                    }
                 });
+            }
 
-                const childUl = li.querySelector('ul');
-                if (childUl) {
-                    processItems(childUl, itemId);
-                }
-            });
+            processItems(sortableList);
+
+            if (items.length > 0) {
+                // Show loading state
+                saveOrderBtn.disabled = true;
+                saveOrderBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+                
+                fetch(`{{ route('admin.menus.items.reorder', $menu->id) }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ items: items })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Show success alert
+                        showAlert('success', data.message || 'Menu order saved successfully!');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showAlert('danger', 'Error saving order: ' + (data.message || 'Unknown error'));
+                        resetSaveButton();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('danger', 'An error occurred while saving the order.');
+                    resetSaveButton();
+                });
+            } else {
+                showAlert('warning', 'No items to reorder.');
+            }
+        });
+    }
+    
+    function resetSaveButton() {
+        saveOrderBtn.disabled = false;
+        saveOrderBtn.innerHTML = '<i class="bi bi-save me-1"></i> Save Order';
+    }
+    
+    // Helper function to show alerts using Bootstrap alerts
+    function showAlert(type, message) {
+        // Remove existing alerts
+        document.querySelectorAll('.menu-alert').forEach(el => el.remove());
+        
+        const alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show menu-alert" role="alert">
+                <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        
+        // Insert before the first card
+        const firstCard = document.querySelector('.card');
+        if (firstCard) {
+            firstCard.insertAdjacentHTML('beforebegin', alertHtml);
         }
-
-        processItems(sortableList);
-
-        if (items.length > 0) {
-            fetch(`{{ route('admin.menus.items.reorder', $menu->id) }}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ items: items })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Menu order saved successfully!');
-                    location.reload();
-                } else {
-                    alert('Error saving order: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while saving the order.');
-            });
-        }
-    });
+    }
 });
 </script>
 @endpush

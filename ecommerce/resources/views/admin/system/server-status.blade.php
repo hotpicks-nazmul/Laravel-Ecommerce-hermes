@@ -2,23 +2,80 @@
 
 @section('title', 'Server Status')
 
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display on this page */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+    
+    /* Text color utility classes */
+    .text-success { color: #198754 !important; }
+    .text-danger { color: #dc3545 !important; }
+</style>
+@endpush
+
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-0 py-3">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <h4 class="mb-1 fw-bold">
-                            <i class="bi bi-server text-primary me-2"></i> Server Status
-                        </h4>
-                        <p class="text-muted mb-0 small">Monitor server health, extensions, and directory permissions</p>
-                    </div>
-                    <a href="{{ route('admin.system.update') }}" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-arrow-left me-1"></i> Back to System Update
-                    </a>
-                </div>
-            </div>
+
+<!-- Stats Cards Row -->
+<div class="stat-card-row stat-card-row-6 mb-4" style="width: 100%; max-width: 100%;">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-filetype-php"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">PHP Version</span>
+            <span class="stat-card-value">{{ $serverInfo['php_version'] }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-box-seam"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Laravel</span>
+            <span class="stat-card-value">{{ $serverInfo['laravel_version'] }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-database"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Database</span>
+            <span class="stat-card-value">{{ ucfirst($serverInfo['database_type']) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-gear"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Max Execution</span>
+            <span class="stat-card-value">{{ $serverInfo['max_execution_time'] }}s</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-memory"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Memory Limit</span>
+            <span class="stat-card-value">{{ $serverInfo['memory_limit'] }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-hdd"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Server OS</span>
+            <span class="stat-card-value">{{ $serverInfo['os'] }}</span>
         </div>
     </div>
 </div>
@@ -193,45 +250,35 @@
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-center mb-3">
-                    <div class="bg-success bg-opacity-10 p-2 rounded me-3">
-                        <i class="bi bi-check-circle text-success"></i>
-                    </div>
+                    <i class="bi bi-check-circle text-success me-3"></i>
                     <div>
                         <div class="fw-medium">Database</div>
                         <div class="text-muted small">Connected</div>
                     </div>
                 </div>
                 <div class="d-flex align-items-center mb-3">
-                    <div class="bg-success bg-opacity-10 p-2 rounded me-3">
-                        <i class="bi bi-check-circle text-success"></i>
-                    </div>
+                    <i class="bi bi-check-circle text-success me-3"></i>
                     <div>
                         <div class="fw-medium">PHP</div>
                         <div class="text-muted small">{{ $serverInfo['php_version'] }}</div>
                     </div>
                 </div>
                 <div class="d-flex align-items-center mb-3">
-                    <div class="bg-success bg-opacity-10 p-2 rounded me-3">
-                        <i class="bi bi-check-circle text-success"></i>
-                    </div>
+                    <i class="bi bi-check-circle text-success me-3"></i>
                     <div>
                         <div class="fw-medium">Cache</div>
                         <div class="text-muted small">Working</div>
                     </div>
                 </div>
                 <div class="d-flex align-items-center mb-3">
-                    <div class="bg-success bg-opacity-10 p-2 rounded me-3">
-                        <i class="bi bi-check-circle text-success"></i>
-                    </div>
+                    <i class="bi bi-check-circle text-success me-3"></i>
                     <div>
                         <div class="fw-medium">Storage</div>
                         <div class="text-muted small">Writable</div>
                     </div>
                 </div>
                 <div class="d-flex align-items-center">
-                    <div class="bg-success bg-opacity-10 p-2 rounded me-3">
-                        <i class="bi bi-check-circle text-success"></i>
-                    </div>
+                    <i class="bi bi-check-circle text-success me-3"></i>
                     <div>
                         <div class="fw-medium">Sessions</div>
                         <div class="text-muted small">Active</div>

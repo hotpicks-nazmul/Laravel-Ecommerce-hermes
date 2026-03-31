@@ -3,183 +3,175 @@
 @section('title', 'Banners')
 
 @section('content')
-<div class="content-area">
-    <div class="container-fluid spnp">
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">Banners</h4>
-            <a href="{{ route('admin.banners.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-1"></i> Add New Banner
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Banners</h4>
+    <a href="{{ route('admin.banners.create') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Add New Banner
+    </a>
+</div>
+
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4">
+<div class="stat-card stat-card-primary">
+<div class="stat-card-icon"><i class="bi bi-image"></i></div>
+<div class="stat-card-content">
+    <span class="stat-card-label">Total Banners</span>
+    <span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span>
+</div>
+</div>
+<div class="stat-card stat-card-success">
+<div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+<div class="stat-card-content">
+    <span class="stat-card-label">Active</span>
+    <span class="stat-card-value">{{ $stats['active'] ?? 0 }}</span>
+</div>
+</div>
+<div class="stat-card stat-card-danger">
+<div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+<div class="stat-card-content">
+    <span class="stat-card-label">Inactive</span>
+    <span class="stat-card-value">{{ $stats['inactive'] ?? 0 }}</span>
+</div>
+</div>
+<div class="stat-card stat-card-info">
+<div class="stat-card-icon"><i class="bi bi-list-ol"></i></div>
+<div class="stat-card-content">
+    <span class="stat-card-label">Positions</span>
+    <span class="stat-card-value">{{ count($positions) }}</span>
+</div>
+</div>
+</div>
+
+<!-- Filters Card -->
+<div class="card border-0 shadow-sm mb-3">
+<div class="card-body py-3">
+<form method="GET" id="filterForm">
+    <div class="row g-2 align-items-end">
+        <!-- Search Input -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <label class="form-label small text-muted">Search</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" name="search" id="liveSearch" class="form-control"
+                       placeholder="Search by title..." value="{{ request('search') }}">
+                <span class="input-group-text" id="searchSpinner" style="display: none;">
+                    <div class="spinner-border spinner-border-sm"></div>
+                </span>
+            </div>
+        </div>
+        
+        <!-- Position Filter -->
+        <div class="col-lg-2 col-md-3 col-sm-6">
+            <label class="form-label small text-muted">Position</label>
+            <select name="position" id="filterPosition" class="form-select form-select-sm">
+                <option value="">All Positions</option>
+                @foreach($positions as $key => $label)
+                    <option value="{{ $key }}" {{ request('position') == $key ? 'selected' : '' }}>
+                        {{ $label }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        
+        <!-- Status Filter -->
+        <div class="col-lg-2 col-md-3 col-sm-6">
+            <label class="form-label small text-muted">Status</label>
+            <select name="status" id="filterStatus" class="form-select form-select-sm">
+                <option value="">All Status</option>
+                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
+                <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+            </select>
+        </div>
+
+        <!-- Per Page -->
+        <div class="col-lg-2 col-md-3 col-sm-6">
+            <label class="form-label small text-muted">Per Page</label>
+            <select name="per_page" id="filterPerPage" class="form-select form-select-sm">
+                <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15</option>
+                <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+            </select>
+        </div>
+        
+        <!-- Reset Button -->
+        <div class="col-lg-1 col-md-2 col-sm-6">
+            <a href="{{ route('admin.banners.index') }}" class="btn btn-sm btn-outline-secondary w-100">
+                <i class="bi bi-x-lg me-1"></i> Reset
             </a>
         </div>
-
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-3 col-sm-6 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Total Banners</div>
-                        <div class="h4 mb-0 text-primary">{{ $banners->total() }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Active</div>
-                        <div class="h4 mb-0 text-success">{{ $banners->where('is_active', true)->count() }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Inactive</div>
-                        <div class="h4 mb-0 text-danger">{{ $banners->where('is_active', false)->count() }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Positions</div>
-                        <div class="h4 mb-0 text-info">{{ count($positions) }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Filters Card -->
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-body py-3">
-                <form method="GET" id="filterForm">
-                    <div class="row g-2 align-items-end">
-                        <!-- Search Input -->
-                        <div class="col-lg-3 col-md-4 col-sm-6">
-                            <label class="form-label small text-muted">Search</label>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                <input type="text" name="search" id="liveSearch" class="form-control" 
-                                       placeholder="Search by title..." value="{{ request('search') }}">
-                                <span class="input-group-text" id="searchSpinner" style="display: none;">
-                                    <div class="spinner-border spinner-border-sm"></div>
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <!-- Position Filter -->
-                        <div class="col-lg-2 col-md-3 col-sm-6">
-                            <label class="form-label small text-muted">Position</label>
-                            <select name="position" id="filterPosition" class="form-select form-select-sm">
-                                <option value="">All Positions</option>
-                                @foreach($positions as $key => $label)
-                                    <option value="{{ $key }}" {{ request('position') == $key ? 'selected' : '' }}>
-                                        {{ $label }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        
-                        <!-- Status Filter -->
-                        <div class="col-lg-2 col-md-3 col-sm-6">
-                            <label class="form-label small text-muted">Status</label>
-                            <select name="status" id="filterStatus" class="form-select form-select-sm">
-                                <option value="">All Status</option>
-                                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
-                                <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
-                            </select>
-                        </div>
-
-                        <!-- Per Page -->
-                        <div class="col-lg-2 col-md-3 col-sm-6">
-                            <label class="form-label small text-muted">Per Page</label>
-                            <select name="per_page" id="filterPerPage" class="form-select form-select-sm">
-                                <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15</option>
-                                <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
-                                <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
-                                <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Reset Button -->
-                        <div class="col-lg-1 col-md-2 col-sm-6">
-                            <a href="{{ route('admin.banners.index') }}" class="btn btn-sm btn-outline-secondary w-100">
-                                <i class="bi bi-x-lg me-1"></i> Reset
-                            </a>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Bulk Actions Bar -->
-        <div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
-            <div class="card-body py-2">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <span class="text-muted"><span id="selectedCount">0</span> selected</span>
-                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="clearSelection()">
-                            Clear Selection
-                        </button>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <form method="POST" action="{{ route('admin.banners.bulkAction') }}" id="bulkActionForm">
-                            @csrf
-                            <input type="hidden" name="action" id="bulkActionInput" value="">
-                            <input type="hidden" name="ids" id="bulkIdsInput" value="">
-                        </form>
-                        <button type="button" class="btn btn-sm btn-success" onclick="bulkAction('activate')">
-                            <i class="bi bi-check-circle me-1"></i> Activate
-                        </button>
-                        <button type="button" class="btn btn-sm btn-warning" onclick="bulkAction('deactivate')">
-                            <i class="bi bi-x-circle me-1"></i> Deactivate
-                        </button>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="bulkAction('delete')">
-                            <i class="bi bi-trash me-1"></i> Delete
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Table Card -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th style="width: 40px;">
-                                    <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
-                                </th>
-                                <th style="width: 80px;">Image</th>
-                                <th>Title</th>
-                                <th>Position</th>
-                                <th style="width: 100px;">Status</th>
-                                <th style="width: 80px;">Order</th>
-                                <th style="width: 120px;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            @include('admin.banners.partials.table-rows')
-                        </tbody>
-                    </table>
-                </div>
-                
-                <!-- Pagination inside card-body -->
-                @if($banners->hasPages())
-                <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <div class="text-muted small">
-                        Showing {{ $banners->firstItem() }} - {{ $banners->lastItem() }} of {{ $banners->total() }} banners
-                    </div>
-                    <div>
-                        {{ $banners->appends(request()->query())->links() }}
-                    </div>
-                </div>
-                @endif
-            </div>
-        </div>
     </div>
+</form>
+</div>
+</div>
+
+<!-- Bulk Actions Bar -->
+<div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
+<div class="card-body py-2">
+<div class="d-flex align-items-center justify-content-between">
+    <div>
+        <span class="text-muted"><span id="selectedCount">0</span> selected</span>
+        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="clearSelection()">
+            Clear Selection
+        </button>
+    </div>
+    <div class="d-flex gap-2">
+        <form method="POST" action="{{ route('admin.banners.bulkAction') }}" id="bulkActionForm">
+            @csrf
+            <input type="hidden" name="action" id="bulkActionInput" value="">
+            <input type="hidden" name="ids" id="bulkIdsInput" value="">
+        </form>
+        <button type="button" class="btn btn-sm btn-success" onclick="bulkAction('activate')">
+            <i class="bi bi-check-circle me-1"></i> Activate
+        </button>
+        <button type="button" class="btn btn-sm btn-warning" onclick="bulkAction('deactivate')">
+            <i class="bi bi-x-circle me-1"></i> Deactivate
+        </button>
+        <button type="button" class="btn btn-sm btn-danger" onclick="bulkAction('delete')">
+            <i class="bi bi-trash me-1"></i> Delete
+        </button>
+    </div>
+</div>
+</div>
+</div>
+
+<!-- Table Card -->
+<div class="card border-0 shadow-sm">
+<div class="card-body p-0">
+<div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th style="width: 40px;">
+                    <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
+                </th>
+                <th style="width: 80px;">Image</th>
+                <th>Title</th>
+                <th>Position</th>
+                <th style="width: 100px;">Status</th>
+                <th style="width: 80px;">Order</th>
+                <th style="width: 120px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            @include('admin.banners.partials.table-rows')
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination inside card-body -->
+@if($banners->hasPages())
+<div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="text-muted small">
+        Showing {{ $banners->firstItem() }} - {{ $banners->lastItem() }} of {{ $banners->total() }} banners
+    </div>
+    <div>
+        {{ $banners->appends(request()->query())->links() }}
+    </div>
+</div>
+@endif
+</div>
 </div>
 
 <!-- Delete Confirmation Form -->
@@ -348,21 +340,40 @@
         document.getElementById('bulkActionForm').submit();
     }
 
-    // Toggle banner status
-    function toggleBanner(url) {
+    // Toggle banner status with visual feedback
+    function toggleBannerStatus(checkbox, url) {
+        const isChecked = checkbox.checked;
+        
         fetch(url, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             }
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // Reload the page to show updated status
-                window.location.reload();
+                // Update checkbox state based on server response
+                checkbox.checked = data.is_active;
+                
+                // Show visual feedback
+                const row = checkbox.closest('tr');
+                if (data.is_active) {
+                    row.classList.remove('table-secondary');
+                } else {
+                    row.classList.add('table-secondary');
+                }
+            } else {
+                // Revert checkbox on error
+                checkbox.checked = !isChecked;
             }
+        })
+        .catch(error => {
+            // Revert checkbox on error
+            checkbox.checked = !isChecked;
+            console.error('Toggle error:', error);
         });
     }
 </script>

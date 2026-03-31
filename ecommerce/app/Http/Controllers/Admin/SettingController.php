@@ -19,16 +19,33 @@ class SettingController extends Controller
 
     public function updateGeneral(Request $request)
     {
-        $settings = $request->except('_token');
-        
-        foreach ($settings as $key => $value) {
-            Setting::updateOrCreate(
-                ['key' => $key],
-                ['value' => $value]
-            );
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'site_name' => 'required|string|max:255',
+            'site_tagline' => 'nullable|string|max:255',
+            'currency' => 'nullable|string|in:BDT,USD,EUR,GBP,INR',
+            'timezone' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
         }
 
-        return back()->with('success', 'General settings updated successfully.');
+        try {
+            // Only allow specific settings keys to prevent injection
+            $allowedKeys = ['site_name', 'site_tagline', 'currency', 'timezone'];
+            $settings = $request->only($allowedKeys);
+            
+            foreach ($settings as $key => $value) {
+                Setting::updateOrCreate(
+                    ['key' => $key],
+                    ['value' => $value]
+                );
+            }
+
+            return back()->with('success', 'General settings updated successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to update settings. Please try again.');
+        }
     }
 
     public function store()
@@ -459,6 +476,15 @@ class SettingController extends Controller
      */
     public function updateWhatsapp(Request $request)
     {
+        $request->validate([
+            'whatsapp_phone_number' => 'required|string|max:20',
+            'whatsapp_display_name' => 'nullable|string|max:100',
+            'whatsapp_welcome_message' => 'nullable|string|max:500',
+            'whatsapp_position' => 'nullable|in:bottom-right,bottom-left,top-right,top-left',
+            'whatsapp_button_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
+            'whatsapp_predefined_messages' => 'nullable|string',
+        ]);
+
         $settings = [
             'whatsapp_enabled' => $request->has('whatsapp_enabled') ? '1' : '0',
             'whatsapp_phone_number' => $request->whatsapp_phone_number ?? '',

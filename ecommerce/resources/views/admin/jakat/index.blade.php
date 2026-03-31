@@ -3,6 +3,27 @@
 @section('title', 'Islamic Jakat Calculator')
 
 @section('content')
+
+@php
+    $inputs = $inputs ?? [];
+    $selectedNisabType = $selectedNisabType ?? 'gold';
+@endphp
+
+<!-- Session Flash Messages -->
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
 <div class="mb-4">
     <h4 class="mb-0"><i class="bi bi-calculator me-2"></i>Islamic Jakat Calculator</h4>
     <p class="text-muted mb-0">Calculate your Zakat based on Islamic principles</p>
@@ -51,14 +72,14 @@
                             <label class="form-label">Gold Price (per gram)</label>
                             <div class="input-group">
                                 <span class="input-group-text">৳</span>
-                                <input type="number" class="form-control" name="gold_price" value="{{ $goldPrice }}" min="0" step="0.01">
+                                <input type="number" class="form-control" name="gold_price" value="{{ old('gold_price', $goldPrice) }}" min="0" step="0.01">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Silver Price (per gram)</label>
                             <div class="input-group">
                                 <span class="input-group-text">৳</span>
-                                <input type="number" class="form-control" name="silver_price" value="{{ $silverPrice }}" min="0" step="0.01">
+                                <input type="number" class="form-control" name="silver_price" value="{{ old('silver_price', $silverPrice) }}" min="0" step="0.01">
                             </div>
                         </div>
                     </div>
@@ -68,13 +89,13 @@
                         <label class="form-label">Nisab Calculation Basis</label>
                         <div class="d-flex gap-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="nisab_type" id="nisabGold" value="gold" {{ (isset($selectedNisabType) && $selectedNisabType === 'gold') || !isset($selectedNisabType) ? 'checked' : '' }}>
+                                <input class="form-check-input" type="radio" name="nisab_type" id="nisabGold" value="gold" {{ (old('nisab_type', $selectedNisabType) === 'gold') ? 'checked' : '' }}>
                                 <label class="form-check-label" for="nisabGold">
                                     Gold (87.48g)
                                 </label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="nisab_type" id="nisabSilver" value="silver" {{ isset($selectedNisabType) && $selectedNisabType === 'silver' ? 'checked' : '' }}>
+                                <input class="form-check-input" type="radio" name="nisab_type" id="nisabSilver" value="silver" {{ old('nisab_type', $selectedNisabType) === 'silver' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="nisabSilver">
                                     Silver (612.36g)
                                 </label>
@@ -90,19 +111,19 @@
                     <div class="row mb-4">
                         <div class="col-md-3">
                             <label class="form-label">24K Gold</label>
-                            <input type="number" class="form-control" name="gold_24k" value="{{ $inputs['gold_24k'] ?? 0 }}" min="0" step="0.001" placeholder="Grams">
+                            <input type="number" class="form-control" name="gold_24k" value="{{ old('gold_24k', ($inputs['gold_24k'] ?? '')) }}" min="0" step="0.001" placeholder="Grams">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">22K Gold</label>
-                            <input type="number" class="form-control" name="gold_22k" value="{{ $inputs['gold_22k'] ?? 0 }}" min="0" step="0.001" placeholder="Grams">
+                            <input type="number" class="form-control" name="gold_22k" value="{{ old('gold_22k', ($inputs['gold_22k'] ?? '')) }}" min="0" step="0.001" placeholder="Grams">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">21K Gold</label>
-                            <input type="number" class="form-control" name="gold_21k" value="{{ $inputs['gold_21k'] ?? 0 }}" min="0" step="0.001" placeholder="Grams">
+                            <input type="number" class="form-control" name="gold_21k" value="{{ old('gold_21k', ($inputs['gold_21k'] ?? '')) }}" min="0" step="0.001" placeholder="Grams">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">18K Gold</label>
-                            <input type="number" class="form-control" name="gold_18k" value="{{ $inputs['gold_18k'] ?? 0 }}" min="0" step="0.001" placeholder="Grams">
+                            <input type="number" class="form-control" name="gold_18k" value="{{ old('gold_18k', ($inputs['gold_18k'] ?? '')) }}" min="0" step="0.001" placeholder="Grams">
                         </div>
                     </div>
 
@@ -111,7 +132,7 @@
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <label class="form-label">Silver (grams)</label>
-                            <input type="number" class="form-control" name="silver" value="{{ $inputs['silver'] ?? 0 }}" min="0" step="0.001" placeholder="Grams">
+                            <input type="number" class="form-control" name="silver" value="{{ old('silver', ($inputs['silver'] ?? '')) }}" min="0" step="0.001" placeholder="Grams">
                         </div>
                     </div>
 
@@ -124,14 +145,14 @@
                             <label class="form-label">Cash on Hand</label>
                             <div class="input-group">
                                 <span class="input-group-text">৳</span>
-                                <input type="number" class="form-control" name="cash" value="{{ $inputs['cash'] ?? 0 }}" min="0" step="0.01">
+                                <input type="number" class="form-control" name="cash" value="{{ old('cash', ($inputs['cash'] ?? '')) }}" min="0" step="0.01">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Bank Balance</label>
                             <div class="input-group">
                                 <span class="input-group-text">৳</span>
-                                <input type="number" class="form-control" name="bank_balance" value="{{ $inputs['bank_balance'] ?? 0 }}" min="0" step="0.01">
+                                <input type="number" class="form-control" name="bank_balance" value="{{ old('bank_balance', ($inputs['bank_balance'] ?? '')) }}" min="0" step="0.01">
                             </div>
                         </div>
                     </div>
@@ -141,14 +162,14 @@
                             <label class="form-label">Business Assets</label>
                             <div class="input-group">
                                 <span class="input-group-text">৳</span>
-                                <input type="number" class="form-control" name="business_assets" value="{{ $inputs['business_assets'] ?? 0 }}" min="0" step="0.01">
+                                <input type="number" class="form-control" name="business_assets" value="{{ old('business_assets', ($inputs['business_assets'] ?? '')) }}" min="0" step="0.01">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Investments</label>
                             <div class="input-group">
                                 <span class="input-group-text">৳</span>
-                                <input type="number" class="form-control" name="investments" value="{{ $inputs['investments'] ?? 0 }}" min="0" step="0.01">
+                                <input type="number" class="form-control" name="investments" value="{{ old('investments', ($inputs['investments'] ?? '')) }}" min="0" step="0.01">
                             </div>
                         </div>
                     </div>
@@ -158,21 +179,21 @@
                             <label class="form-label">Stocks</label>
                             <div class="input-group">
                                 <span class="input-group-text">৳</span>
-                                <input type="number" class="form-control" name="stocks" value="{{ $inputs['stocks'] ?? 0 }}" min="0" step="0.01">
+                                <input type="number" class="form-control" name="stocks" value="{{ old('stocks', ($inputs['stocks'] ?? '')) }}" min="0" step="0.01">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Cryptocurrency</label>
                             <div class="input-group">
                                 <span class="input-group-text">৳</span>
-                                <input type="number" class="form-control" name="crypto" value="{{ $inputs['crypto'] ?? 0 }}" min="0" step="0.01">
+                                <input type="number" class="form-control" name="crypto" value="{{ old('crypto', ($inputs['crypto'] ?? '')) }}" min="0" step="0.01">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Other Assets</label>
                             <div class="input-group">
                                 <span class="input-group-text">৳</span>
-                                <input type="number" class="form-control" name="other_assets" value="{{ $inputs['other_assets'] ?? 0 }}" min="0" step="0.01">
+                                <input type="number" class="form-control" name="other_assets" value="{{ old('other_assets', ($inputs['other_assets'] ?? '')) }}" min="0" step="0.01">
                             </div>
                         </div>
                     </div>
@@ -190,7 +211,7 @@
     <!-- Results Panel -->
     <div class="col-lg-4">
         @if(isset($result))
-        <div class="card border-0 shadow-sm mb-4 {{ $result['is_liable'] ? 'border-success' : 'border-warning' }}">
+        <div class="card shadow-sm mb-4 {{ $result['is_liable'] ? 'border border-success' : 'border border-warning' }}">
             <div class="card-header bg-white py-3">
                 <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Calculation Result</h5>
             </div>
@@ -296,3 +317,12 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent content overlap */
+    .content-area {
+        padding-bottom: 20px;
+    }
+</style>
+@endpush

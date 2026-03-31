@@ -2,6 +2,14 @@
 
 @section('title', 'Add Warehouse')
 
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0"><i class="bi bi-building me-2"></i>Add Warehouse</h4>
@@ -194,7 +202,7 @@
 
 <!-- Floating Buttons -->
 <div class="floating-save-container">
-    <a href="{{ route('admin.warehouses.index') }}" class="btn btn-secondary floating-reset-btn">
+    <a href="{{ route('admin.warehouses.index') }}" class="btn btn-secondary floating-reset-btn text-white">
         <i class="bi bi-x-lg me-1"></i> Cancel
     </a>
     <button type="submit" form="warehouseForm" class="btn btn-primary floating-save-btn">
@@ -202,3 +210,17 @@
     </button>
 </div>
 @endsection
+
+@push('styles')
+<style>
+/* Global Card Styles */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.card-header.bg-white {
+    background-color: var(--color-white) !important;
+}
+</style>
+@endpush

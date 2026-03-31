@@ -53,12 +53,16 @@ class SupportController extends Controller
             'total' => Ticket::count(),
             'open' => Ticket::where('status', 'open')->count(),
             'pending' => Ticket::where('status', 'pending')->count(),
+            'answered' => Ticket::where('status', 'answered')->count(),
             'solved' => Ticket::where('status', 'solved')->count(),
             'closed' => Ticket::where('status', 'closed')->count(),
         ];
 
         if ($request->ajax()) {
-            return view('admin.support.tickets.partials.table-rows', compact('tickets'))->render();
+            return response()->json([
+                'html' => view('admin.support.tickets.partials.table-rows', compact('tickets'))->render(),
+                'stats' => $stats
+            ]);
         }
 
         return view('admin.support.tickets.index', compact('tickets', 'stats'));

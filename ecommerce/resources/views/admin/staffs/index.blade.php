@@ -4,37 +4,33 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Staffs</div>
-                <div class="h4 mb-0 text-primary" id="stat-total">{{ $stats['total'] ?? 0 }}</div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Staffs</span>
+            <span class="stat-card-value" id="stat-total">{{ $stats['total'] ?? 0 }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Active</div>
-                <div class="h4 mb-0 text-success" id="stat-active">{{ $stats['active'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value" id="stat-active">{{ $stats['active'] ?? 0 }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Inactive</div>
-                <div class="h4 mb-0 text-secondary" id="stat-inactive">{{ $stats['inactive'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Inactive</span>
+            <span class="stat-card-value" id="stat-inactive">{{ $stats['inactive'] ?? 0 }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Banned</div>
-                <div class="h4 mb-0 text-danger" id="stat-banned">{{ $stats['banned'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-ban"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Banned</span>
+            <span class="stat-card-value" id="stat-banned">{{ $stats['banned'] ?? 0 }}</span>
         </div>
     </div>
 </div>

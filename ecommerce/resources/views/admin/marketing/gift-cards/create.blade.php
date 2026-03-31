@@ -94,14 +94,14 @@
                             </select>
                             @error('discount_type')
                                 <div class="invalid-feedback">{{ $message }}</div>
-                            @endif
+                            @enderror
                         </div>
                         <div class="col-md-4">
                             <label for="discount_value" class="form-label">Discount Value <span class="text-danger">*</span></label>
                             <input type="number" id="discount_value" name="discount_value" class="form-control @error('discount_value') is-invalid @enderror" value="{{ old('discount_value', 0) }}" min="0" step="0.01" required>
                             @error('discount_value')
                                 <div class="invalid-feedback">{{ $message }}</div>
-                            @endif
+                            @enderror
                         </div>
                         <div class="col-md-4">
                             <label for="min_order_amount" class="form-label">Min Order Amount</label>
@@ -156,14 +156,14 @@
                             <input type="text" id="recipient_name" name="recipient_name" class="form-control @error('recipient_name') is-invalid @enderror" value="{{ old('recipient_name') }}">
                             @error('recipient_name')
                                 <div class="invalid-feedback">{{ $message }}</div>
-                            @endif
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label for="recipient_email" class="form-label">Recipient Email</label>
                             <input type="email" id="recipient_email" name="recipient_email" class="form-control @error('recipient_email') is-invalid @enderror" value="{{ old('recipient_email') }}">
                             @error('recipient_email')
                                 <div class="invalid-feedback">{{ $message }}</div>
-                            @endif
+                            @enderror
                         </div>
                     </div>
                     <div class="row g-3 mt-2">
@@ -172,7 +172,7 @@
                             <input type="text" id="sender_name" name="sender_name" class="form-control @error('sender_name') is-invalid @enderror" value="{{ old('sender_name') }}">
                             @error('sender_name')
                                 <div class="invalid-feedback">{{ $message }}</div>
-                            @endif
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label for="user_id" class="form-label">Assign to User</label>
@@ -196,7 +196,7 @@
                         <textarea id="message" name="message" class="form-control @error('message') is-invalid @enderror" rows="3" placeholder="Enter a message to include with the gift card">{{ old('message') }}</textarea>
                         @error('message')
                             <div class="invalid-feedback">{{ $message }}</div>
-                        @endif
+                        @enderror
                     </div>
                 </div>
             </div>

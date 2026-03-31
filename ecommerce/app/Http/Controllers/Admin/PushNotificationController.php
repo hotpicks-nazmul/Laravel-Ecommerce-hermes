@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\ImageHelper;
 use App\Models\PushNotification;
 use App\Models\User;
 use App\Models\Product;
@@ -87,9 +88,18 @@ class PushNotificationController extends Controller
 
         $data = $request->except(['image', 'schedule_type', 'scheduled_at']);
 
-        // Handle image upload
+        // Handle image upload with ImageHelper
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('push-notifications', 'public');
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'push-notifications',
+                    512,
+                    150,
+                    85
+                );
+                $data['image'] = $imageResult['path'];
+            }
         }
 
         // Handle schedule
@@ -160,13 +170,22 @@ class PushNotificationController extends Controller
 
         $data = $request->except(['image', 'schedule_type', 'scheduled_at']);
 
-        // Handle image upload
+        // Handle image upload with ImageHelper
         if ($request->hasFile('image')) {
             // Delete old image if exists
             if ($pushNotification->image) {
-                Storage::disk('public')->delete($pushNotification->image);
+                ImageHelper::deleteImage($pushNotification->image);
             }
-            $data['image'] = $request->file('image')->store('push-notifications', 'public');
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'push-notifications',
+                    512,
+                    150,
+                    85
+                );
+                $data['image'] = $imageResult['path'];
+            }
         }
 
         // Handle schedule
@@ -202,7 +221,7 @@ class PushNotificationController extends Controller
     {
         // Delete image if exists
         if ($pushNotification->image) {
-            Storage::disk('public')->delete($pushNotification->image);
+            ImageHelper::deleteImage($pushNotification->image);
         }
 
         $pushNotification->delete();

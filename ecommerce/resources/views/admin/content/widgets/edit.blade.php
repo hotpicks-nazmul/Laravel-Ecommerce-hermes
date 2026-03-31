@@ -143,8 +143,9 @@
                 <h6 class="mb-0">Status</h6>
             </div>
             <div class="card-body">
+                <input type="hidden" name="status" value="inactive" form="widgetForm">
                 <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" id="status" name="status" form="widgetForm" 
+                    <input class="form-check-input" type="checkbox" id="status" name="status" form="widgetForm"
                            value="active" {{ old('status', $widget->status) == 'active' ? 'checked' : '' }}>
                     <label class="form-check-label" for="status">
                         <i class="bi bi-check-circle text-success me-1"></i> Active
@@ -219,6 +220,15 @@
     @csrf
     @method('DELETE')
 </form>
+
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>

@@ -3,11 +3,40 @@
 @section('title', 'OTP Credentials')
 
 @section('content')
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-hdd-network"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">SMS Gateway</span>
+            <span class="stat-card-value" style="font-size: 18px;">{{ ucfirst($credentials['sms_gateway'] ?? 'custom') }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-send"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">OTPs Sent Today</span>
+            <span class="stat-card-value">{{ number_format($stats['total_sent_today'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Verified Today</span>
+            <span class="stat-card-value">{{ number_format($stats['successful_verifications'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Failed Attempts</span>
+            <span class="stat-card-value">{{ number_format($stats['failed_attempts'] ?? 0) }}</span>
+        </div>
+    </div>
+</div>
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">OTP Credentials</h4>
-        <a href="{{ route('admin.otp.configuration') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Back to OTP Config
-        </a>
     </div>
 
     <div class="row">
@@ -160,6 +189,97 @@
                     </div>
                 </div>
                 
+                <!-- Nexmo (Vonage) Settings -->
+                <div id="nexmoFields" class="card border-0 shadow-sm mb-3" style="{{ old('sms_gateway', $credentials['sms_gateway'] ?? '') == 'nexmo' ? '' : 'display:none;' }}">
+                    <div class="card-header bg-white">
+                        <h6 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Nexmo (Vonage) Settings</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="nexmo_api_key" class="form-label">API Key</label>
+                                <input type="text" id="nexmo_api_key" name="nexmo_api_key" class="form-control" value="{{ old('nexmo_api_key', $credentials['nexmo_api_key'] ?? '') }}" placeholder="Enter API key">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="nexmo_api_secret" class="form-label">API Secret</label>
+                                <div class="input-group">
+                                    <input type="password" id="nexmo_api_secret" name="nexmo_api_secret" class="form-control" value="{{ old('nexmo_api_secret', $credentials['nexmo_api_secret'] ?? '') }}" placeholder="Enter API secret">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('nexmo_api_secret')">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="nexmo_from" class="form-label">From Number</label>
+                                <input type="text" id="nexmo_from" name="nexmo_from" class="form-control" value="{{ old('nexmo_from', $credentials['nexmo_from'] ?? '') }}" placeholder="+1234567890">
+                                <div class="form-text">Your registered Nexmo number</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Banglalion Settings -->
+                <div id="banglalionFields" class="card border-0 shadow-sm mb-3" style="{{ old('sms_gateway', $credentials['sms_gateway'] ?? '') == 'banglalion' ? '' : 'display:none;' }}">
+                    <div class="card-header bg-white">
+                        <h6 class="mb-0"><i class="bi bi-broadcast me-2"></i>Banglalion Settings</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="banglalion_api_key" class="form-label">API Key</label>
+                                <input type="text" id="banglalion_api_key" name="banglalion_api_key" class="form-control" value="{{ old('banglalion_api_key', $credentials['banglalion_api_key'] ?? '') }}" placeholder="Enter API key">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="banglalion_api_secret" class="form-label">API Secret</label>
+                                <div class="input-group">
+                                    <input type="password" id="banglalion_api_secret" name="banglalion_api_secret" class="form-control" value="{{ old('banglalion_api_secret', $credentials['banglalion_api_secret'] ?? '') }}" placeholder="Enter API secret">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('banglalion_api_secret')">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="banglalion_sender_id" class="form-label">Sender ID</label>
+                                <input type="text" id="banglalion_sender_id" name="banglalion_sender_id" class="form-control" value="{{ old('banglalion_sender_id', $credentials['banglalion_sender_id'] ?? '') }}" placeholder="HAMKO">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- MIM SMS Settings -->
+                <div id="mimFields" class="card border-0 shadow-sm mb-3" style="{{ old('sms_gateway', $credentials['sms_gateway'] ?? '') == 'mim' ? '' : 'display:none;' }}">
+                    <div class="card-header bg-white">
+                        <h6 class="mb-0"><i class="bi bi-envelope me-2"></i>MIM SMS Settings</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="mim_api_key" class="form-label">API Key</label>
+                                <input type="text" id="mim_api_key" name="mim_api_key" class="form-control" value="{{ old('mim_api_key', $credentials['mim_api_key'] ?? '') }}" placeholder="Enter API key">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="mim_api_secret" class="form-label">API Secret</label>
+                                <div class="input-group">
+                                    <input type="password" id="mim_api_secret" name="mim_api_secret" class="form-control" value="{{ old('mim_api_secret', $credentials['mim_api_secret'] ?? '') }}" placeholder="Enter API secret">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('mim_api_secret')">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="mim_sender_id" class="form-label">Sender ID</label>
+                                <input type="text" id="mim_sender_id" name="mim_sender_id" class="form-control" value="{{ old('mim_sender_id', $credentials['mim_sender_id'] ?? '') }}" placeholder="HAMKO">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- SSL Wireless Settings -->
                 <div id="sslFields" class="card border-0 shadow-sm mb-3" style="{{ old('sms_gateway', $credentials['sms_gateway'] ?? '') == 'ssl' ? '' : 'display:none;' }}">
                     <div class="card-header bg-white">
@@ -296,6 +416,29 @@
     .content-area {
         padding-bottom: 100px !important;
     }
+    
+    /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+    
     .avatar-sm {
         width: 36px;
         height: 36px;
@@ -310,8 +453,11 @@
         
         document.getElementById('customGatewayFields').style.display = (gateway === 'custom') ? 'block' : 'none';
         document.getElementById('twilioFields').style.display = (gateway === 'twilio') ? 'block' : 'none';
+        document.getElementById('nexmoFields').style.display = (gateway === 'nexmo') ? 'block' : 'none';
         document.getElementById('msg91Fields').style.display = (gateway === 'msg91') ? 'block' : 'none';
+        document.getElementById('banglalionFields').style.display = (gateway === 'banglalion') ? 'block' : 'none';
         document.getElementById('sslFields').style.display = (gateway === 'ssl') ? 'block' : 'none';
+        document.getElementById('mimFields').style.display = (gateway === 'mim') ? 'block' : 'none';
     }
     
     function togglePassword(fieldId) {

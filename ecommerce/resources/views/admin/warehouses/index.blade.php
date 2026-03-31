@@ -4,39 +4,48 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="row mb-4" id="statsCards">
-    <div class="col-md-4 col-sm-4 col-12 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Warehouses</div>
-                <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
-            </div>
+<div class="stat-card-row mb-4" id="statsCards">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-building"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Warehouses</span>
+            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
         </div>
     </div>
-    <div class="col-md-4 col-sm-4 col-12 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Active</div>
-                <div class="h4 mb-0 text-success">{{ $stats['active'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
         </div>
     </div>
-    <div class="col-md-4 col-sm-4 col-12 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Inactive</div>
-                <div class="h4 mb-0 text-secondary">{{ $stats['inactive'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Inactive</span>
+            <span class="stat-card-value">{{ number_format($stats['inactive'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-geo-alt"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Cities</span>
+            <span class="stat-card-value">{{ number_format($stats['cities'] ?? 0) }}</span>
         </div>
     </div>
 </div>
 
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0"><i class="bi bi-building me-2"></i>All Warehouses</h4>
-    <a href="{{ route('admin.warehouses.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> Add Warehouse
-    </a>
+    <div>
+        <h4 class="mb-0"><i class="bi bi-building me-2"></i>All Warehouses</h4>
+        <small class="text-muted">Manage your warehouse locations, stock distribution centers</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ route('admin.warehouses.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Add Warehouse
+        </a>
+    </div>
 </div>
 
 <!-- Filters Card -->
@@ -92,6 +101,34 @@
     </div>
 </div>
 
+<!-- Bulk Actions Bar -->
+<div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
+    <div class="card-body py-2">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted"><span id="selectedCount">0</span> selected</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="selectAllWarehouses()">
+                    Select All {{ $warehouses->total() }} Warehouses
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
+                    Clear Selection
+                </button>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <button type="button" class="btn btn-sm btn-success" onclick="bulkAction('activate')">
+                    <i class="bi bi-check-circle me-1"></i> Activate
+                </button>
+                <button type="button" class="btn btn-sm btn-warning" onclick="bulkAction('deactivate')">
+                    <i class="bi bi-pause-circle me-1"></i> Deactivate
+                </button>
+                <button type="button" class="btn btn-sm btn-danger" onclick="bulkAction('delete')">
+                    <i class="bi bi-trash me-1"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Warehouses Table -->
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
@@ -99,7 +136,9 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 50px;">#</th>
+                        <th style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAllCheckbox" onclick="toggleSelectAll(this)">
+                        </th>
                         <th>Warehouse</th>
                         <th>Location</th>
                         <th>Contact</th>
@@ -123,9 +162,9 @@
                     <option value="25" {{ request('per_page') == 25 || !request('per_page') ? 'selected' : '' }}>25</option>
                     <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
                     <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
-                </select class="text-muted small">per page</span>
->
-                <span            </div>
+                </select>
+                <span class="text-muted small">per page</span>
+            </div>
             <div id="paginationLinks">
                 {{ $warehouses->appends(request()->query())->links() }}
             </div>
@@ -138,9 +177,111 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+    /* Override grid with flexbox for full width stat cards */
+    .stat-card-row {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        width: 100% !important;
+        gap: 16px !important;
+    }
+    
+    .stat-card-row .stat-card {
+        flex: 1 1 calc(25% - 16px) !important;
+        min-width: 200px !important;
+    }
+    
+    /* Ensure all cards are full width */
+    .card {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Status Toggle Styles */
+    .status-toggle {
+        min-width: 70px;
+        transition: all 0.2s;
+    }
+    .status-toggle:hover {
+        transform: scale(1.05);
+    }
+    .table > :not(caption) > * > * {
+        padding: 0.75rem 0.5rem;
+    }
+    .product-checkbox:checked + td img {
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.3);
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 let searchTimeout;
+let selectedWarehouses = new Set();
+
+// Bulk Selection Functions
+function toggleSelectAll(checkbox) {
+    const checkboxes = document.querySelectorAll('.warehouse-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = checkbox.checked;
+        if (checkbox.checked) {
+            selectedWarehouses.add(parseInt(cb.value));
+        } else {
+            selectedWarehouses.delete(parseInt(cb.value));
+        }
+    });
+    updateBulkActions();
+}
+
+function selectAllWarehouses() {
+    const checkboxes = document.querySelectorAll('.warehouse-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = true;
+        selectedWarehouses.add(parseInt(cb.value));
+    });
+    updateBulkActions();
+    document.getElementById('selectedCount').textContent = {{ $warehouses->total() ?? 0 }} + ' (all pages)';
+}
+
+function clearSelection() {
+    selectedWarehouses.clear();
+    const checkboxes = document.querySelectorAll('.warehouse-checkbox');
+    checkboxes.forEach(cb => cb.checked = false);
+    document.getElementById('selectAllCheckbox').checked = false;
+    updateBulkActions();
+}
+
+function updateSelection(id, checked) {
+    if (checked) {
+        selectedWarehouses.add(id);
+    } else {
+        selectedWarehouses.delete(id);
+    }
+    updateBulkActions();
+}
+
+function updateBulkActions() {
+    const count = selectedWarehouses.size;
+    document.getElementById('selectedCount').textContent = count;
+    document.getElementById('bulkActionsBar').style.display = count > 0 ? 'block' : 'none';
+}
+
+function bulkAction(action) {
+    if (selectedWarehouses.size === 0) {
+        toastr.warning('Please select at least one warehouse');
+        return;
+    }
+    
+    if (action === 'delete' && !confirm('Are you sure you want to delete selected warehouses?')) {
+        return;
+    }
+    
+    const form = document.getElementById('bulkActionForm');
+    document.getElementById('bulkActionInput').value = action;
+    document.getElementById('bulkIdsInput').value = JSON.stringify(Array.from(selectedWarehouses));
+    form.submit();
+}
 
 // Live search with debouncing
 const searchInput = document.getElementById('liveSearch');
@@ -229,10 +370,11 @@ function performLiveSearch(searchTerm) {
 
 // Update statistics cards
 function updateStats(stats) {
-    const statCards = document.querySelectorAll('#statsCards .h4');
-    if (statCards[0]) statCards[0].textContent = stats.total ?? 0;
-    if (statCards[1]) statCards[1].textContent = stats.active ?? 0;
-    if (statCards[2]) statCards[2].textContent = stats.inactive ?? 0;
+    const statValues = document.querySelectorAll('#statsCards .stat-card-value');
+    if (statValues[0]) statValues[0].textContent = stats.total ?? 0;
+    if (statValues[1]) statValues[1].textContent = stats.active ?? 0;
+    if (statValues[2]) statValues[2].textContent = stats.inactive ?? 0;
+    if (statValues[3]) statValues[3].textContent = stats.cities ?? 0;
 }
 
 // Change per page

@@ -1,11 +1,20 @@
+@php
+    $search = request('search');
+@endphp
 @forelse($banners as $banner)
-<tr>
+@php
+    $isMatch = $search && (
+        stripos($banner->title, $search) !== false ||
+        stripos($banner->description ?? '', $search) !== false
+    );
+@endphp
+<tr class="{{ $isMatch ? 'table-warning' : '' }}">
     <td>
         <input type="checkbox" class="form-check-input banner-checkbox" value="{{ $banner->id }}">
     </td>
     <td>
         @php
-            $imageUrl = $banner->image;
+            $imageUrl = $banner->thumbnail ?? $banner->image;
             if($imageUrl && !str_starts_with($imageUrl, '/storage/') && !str_starts_with($imageUrl, 'http')) {
                 $imageUrl = '/storage/' . $imageUrl;
             }
@@ -31,12 +40,9 @@
     </td>
     <td>
         <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" 
+            <input class="form-check-input" type="checkbox"
                    {{ $banner->is_active ? 'checked' : '' }}
-                   onchange="event.preventDefault(); document.getElementById('toggle-form-{{ $banner->id }}').submit();">
-            <form id="toggle-form-{{ $banner->id }}" method="POST" action="{{ route('admin.banners.toggle', $banner->id) }}" style="display: none;">
-                @csrf
-            </form>
+                   onchange="toggleBannerStatus(this, '{{ route('admin.banners.toggle', $banner->id) }}')">
         </div>
     </td>
     <td>
@@ -47,7 +53,7 @@
             <a href="{{ route('admin.banners.edit', $banner->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                 <i class="bi bi-pencil"></i>
             </a>
-            <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" 
+            <button type="button" class="btn btn-sm btn-outline-danger" title="Delete"
                     onclick="event.preventDefault(); if(confirm('Are you sure you want to delete this banner?')) { document.getElementById('delete-form-{{ $banner->id }}').submit(); }">
                 <i class="bi bi-trash"></i>
             </button>

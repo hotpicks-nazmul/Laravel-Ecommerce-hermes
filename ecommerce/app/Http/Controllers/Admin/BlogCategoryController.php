@@ -144,13 +144,24 @@ class BlogCategoryController extends Controller
             'meta_keywords' => 'nullable|string|max:255',
         ]);
 
-        $data = $request->except(['image']);
+        $data = $request->except(['image', 'remove_image']);
         
         // Generate slug if not provided
         if (empty($data['slug'])) {
             $data['slug'] = Str::slug($request->name);
         } else {
             $data['slug'] = Str::slug($data['slug']);
+        }
+
+        // Handle image removal
+        if ($request->has('remove_image') && $request->remove_image) {
+            if ($blogCategory->image) {
+                $oldPath = str_replace('/storage/', '', $blogCategory->image);
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            }
+            $data['image'] = null;
         }
 
         // Handle image upload
@@ -179,7 +190,13 @@ class BlogCategoryController extends Controller
     {
         // Check if category has blogs
         if ($blogCategory->blogs()->count() > 0) {
-            return back()->with('error', 'Cannot delete category with blog posts. Please move or delete blog posts first.');
+            $message = 'Cannot delete category with blog posts. Please move or delete blog posts first.';
+            
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+            
+            return back()->with('error', $message);
         }
 
         // Delete image
@@ -192,7 +209,13 @@ class BlogCategoryController extends Controller
         
         $blogCategory->delete();
         
-        return back()->with('success', 'Blog category deleted successfully.');
+        $message = 'Blog category deleted successfully.';
+        
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json(['success' => true, 'message' => $message]);
+        }
+        
+        return back()->with('success', $message);
     }
 
     /**
@@ -200,15 +223,19 @@ class BlogCategoryController extends Controller
      */
     public function toggleStatus(Request $request, BlogCategory $blogCategory)
     {
-        $blogCategory->update([
-            'status' => $blogCategory->status === 'active' ? 'inactive' : 'active'
-        ]);
+        $newStatus = $blogCategory->status === 'active' ? 'inactive' : 'active';
+        $blogCategory->update(['status' => $newStatus]);
+        
+        // Generate the new badge HTML
+        $badge = $newStatus === 'active' 
+            ? '<span class="badge bg-success">Active</span>'
+            : '<span class="badge bg-secondary">Inactive</span>';
         
         return response()->json([
             'success' => true,
             'message' => 'Status updated successfully.',
-            'status' => $blogCategory->status,
-            'badge' => $blogCategory->status_badge
+            'status' => $newStatus,
+            'badge' => $badge
         ]);
     }
 

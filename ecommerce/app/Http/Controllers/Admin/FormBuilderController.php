@@ -190,6 +190,8 @@ class FormBuilderController extends Controller
         // Handle boolean fields manually (checkbox handling)
         $validated['is_required'] = $request->has('is_required');
         $validated['is_unique'] = $request->has('is_unique');
+        $validated['is_visible'] = $request->has('is_visible');
+        $validated['is_editable'] = $request->has('is_editable');
 
         // Generate field name from label
         $fieldName = Str::slug($validated['label'], '_');
@@ -206,12 +208,13 @@ class FormBuilderController extends Controller
         $validated['form_id'] = $formId;
         $validated['order'] = $form->fields()->max('order') + 1;
         
-        if (isset($validated['options'])) {
-            $validated['options'] = json_encode($validated['options']);
+        // Model mutators handle JSON encoding, so we pass arrays directly
+        if (isset($validated['options']) && is_string($validated['options'])) {
+            $validated['options'] = json_decode($validated['options'], true);
         }
         
-        if (isset($validated['validation_rules'])) {
-            $validated['validation_rules'] = json_encode($validated['validation_rules']);
+        if (isset($validated['validation_rules']) && is_string($validated['validation_rules'])) {
+            $validated['validation_rules'] = json_decode($validated['validation_rules'], true);
         }
 
         $field = FormField::create($validated);
@@ -262,12 +265,13 @@ class FormBuilderController extends Controller
             $validated['name'] = $fieldName;
         }
 
-        if (isset($validated['options'])) {
-            $validated['options'] = json_encode($validated['options']);
+        // Model mutators handle JSON encoding, so we pass arrays directly
+        if (isset($validated['options']) && is_string($validated['options'])) {
+            $validated['options'] = json_decode($validated['options'], true);
         }
         
-        if (isset($validated['validation_rules'])) {
-            $validated['validation_rules'] = json_encode($validated['validation_rules']);
+        if (isset($validated['validation_rules']) && is_string($validated['validation_rules'])) {
+            $validated['validation_rules'] = json_decode($validated['validation_rules'], true);
         }
 
         $field->update($validated);
@@ -286,8 +290,20 @@ class FormBuilderController extends Controller
     {
         $field = FormField::where('form_id', $formId)->findOrFail($fieldId);
         
+        // Return field with properly parsed options
+        $fieldData = $field->toArray();
+        
+        // Parse options from JSON string to array for JavaScript
+        if (is_string($field->options) && !empty($field->options)) {
+            $fieldData['options'] = json_decode($field->options, true);
+        } elseif (is_array($field->options)) {
+            $fieldData['options'] = $field->options;
+        } else {
+            $fieldData['options'] = [];
+        }
+        
         return response()->json([
-            'field' => $field,
+            'field' => $fieldData,
         ]);
     }
 

@@ -2,23 +2,85 @@
 
 @section('title', 'Data Export/Import')
 
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display on this page */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+    
+    /* Text color classes */
+    .text-primary { color: #0d6efd !important; }
+    .text-success { color: #198754 !important; }
+    .text-warning { color: #ffc107 !important; }
+    .text-danger { color: #dc3545 !important; }
+    .text-info { color: #0dcaf0 !important; }
+    .text-secondary { color: #6c757d !important; }
+    .text-dark { color: #212529 !important; }
+</style>
+@endpush
+
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-0 py-3">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <h4 class="mb-1 fw-bold">
-                            <i class="bi bi-database-down text-primary me-2"></i> Data Export/Import
-                        </h4>
-                        <p class="text-muted mb-0 small">Export your data to CSV/JSON or import data from CSV/JSON files</p>
-                    </div>
-                    <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
-                    </a>
-                </div>
-            </div>
+
+<!-- Stats Cards Row -->
+<div class="stat-card-row stat-card-row-6 mb-4" style="width: 100%; max-width: 100%;">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-box"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Products</span>
+            <span class="stat-card-value">{{ number_format($counts['products'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-folder"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Categories</span>
+            <span class="stat-card-value">{{ number_format($counts['categories'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-award"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Brands</span>
+            <span class="stat-card-value">{{ number_format($counts['brands'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-people"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Users</span>
+            <span class="stat-card-value">{{ number_format($counts['users'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-ticket-perforated"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Coupons</span>
+            <span class="stat-card-value">{{ number_format($counts['coupons'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-images"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Banners</span>
+            <span class="stat-card-value">{{ number_format($counts['banners'] ?? 0) }}</span>
         </div>
     </div>
 </div>
@@ -48,9 +110,7 @@
                 <div class="row g-3">
                     <div class="col-md-3 col-sm-6">
                         <div class="d-flex align-items-center p-2 border rounded">
-                            <div class="bg-primary bg-opacity-10 p-2 rounded me-2">
-                                <i class="bi bi-box text-primary"></i>
-                            </div>
+                            <i class="bi bi-box text-primary me-2"></i>
                             <div>
                                 <div class="small text-muted">Products</div>
                                 <div class="fw-bold">{{ $counts['products'] ?? 0 }}</div>
@@ -59,9 +119,7 @@
                     </div>
                     <div class="col-md-3 col-sm-6">
                         <div class="d-flex align-items-center p-2 border rounded">
-                            <div class="bg-success bg-opacity-10 p-2 rounded me-2">
-                                <i class="bi bi-folder text-success"></i>
-                            </div>
+                            <i class="bi bi-folder text-success me-2"></i>
                             <div>
                                 <div class="small text-muted">Categories</div>
                                 <div class="fw-bold">{{ $counts['categories'] ?? 0 }}</div>
@@ -70,9 +128,7 @@
                     </div>
                     <div class="col-md-3 col-sm-6">
                         <div class="d-flex align-items-center p-2 border rounded">
-                            <div class="bg-warning bg-opacity-10 p-2 rounded me-2">
-                                <i class="bi bi-award text-warning"></i>
-                            </div>
+                            <i class="bi bi-award text-warning me-2"></i>
                             <div>
                                 <div class="small text-muted">Brands</div>
                                 <div class="fw-bold">{{ $counts['brands'] ?? 0 }}</div>
@@ -81,9 +137,7 @@
                     </div>
                     <div class="col-md-3 col-sm-6">
                         <div class="d-flex align-items-center p-2 border rounded">
-                            <div class="bg-info bg-opacity-10 p-2 rounded me-2">
-                                <i class="bi bi-person text-info"></i>
-                            </div>
+                            <i class="bi bi-person text-info me-2"></i>
                             <div>
                                 <div class="small text-muted">Users</div>
                                 <div class="fw-bold">{{ $counts['users'] ?? 0 }}</div>
@@ -92,9 +146,7 @@
                     </div>
                     <div class="col-md-3 col-sm-6">
                         <div class="d-flex align-items-center p-2 border rounded">
-                            <div class="bg-danger bg-opacity-10 p-2 rounded me-2">
-                                <i class="bi bi-ticket-perforated text-danger"></i>
-                            </div>
+                            <i class="bi bi-ticket-perforated text-danger me-2"></i>
                             <div>
                                 <div class="small text-muted">Coupons</div>
                                 <div class="fw-bold">{{ $counts['coupons'] ?? 0 }}</div>
@@ -103,9 +155,7 @@
                     </div>
                     <div class="col-md-3 col-sm-6">
                         <div class="d-flex align-items-center p-2 border rounded">
-                            <div class="bg-secondary bg-opacity-10 p-2 rounded me-2">
-                                <i class="bi bi-image text-secondary"></i>
-                            </div>
+                            <i class="bi bi-image text-secondary me-2"></i>
                             <div>
                                 <div class="small text-muted">Banners</div>
                                 <div class="fw-bold">{{ $counts['banners'] ?? 0 }}</div>
@@ -114,9 +164,7 @@
                     </div>
                     <div class="col-md-3 col-sm-6">
                         <div class="d-flex align-items-center p-2 border rounded">
-                            <div class="bg-dark bg-opacity-10 p-2 rounded me-2">
-                                <i class="bi bi-collection-play text-dark"></i>
-                            </div>
+                            <i class="bi bi-collection-play text-dark me-2"></i>
                             <div>
                                 <div class="small text-muted">Sliders</div>
                                 <div class="fw-bold">{{ $counts['sliders'] ?? 0 }}</div>
@@ -125,9 +173,7 @@
                     </div>
                     <div class="col-md-3 col-sm-6">
                         <div class="d-flex align-items-center p-2 border rounded">
-                            <div class="bg-purple bg-opacity-10 p-2 rounded me-2" style="background-color: rgba(138, 43, 226, 0.1);">
-                                <i class="bi bi-file-text" style="color: #8a2be2;"></i>
-                            </div>
+                            <i class="bi bi-file-text me-2" style="color: #8a2be2;"></i>
                             <div>
                                 <div class="small text-muted">Blogs</div>
                                 <div class="fw-bold">{{ $counts['blogs'] ?? 0 }}</div>

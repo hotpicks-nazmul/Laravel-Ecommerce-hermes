@@ -81,7 +81,7 @@
                         <option value="">All Sellers</option>
                         @foreach($sellers as $seller)
                             <option value="{{ $seller->id }}" {{ $sellerId == $seller->id ? 'selected' : '' }}>
-                                {{ $seller->name }}
+                                {{ $seller->name }}{{ $seller->shop_name ? ' - ' . $seller->shop_name : '' }}
                             </option>
                         @endforeach
                     </select>
@@ -226,53 +226,6 @@
     }
     .badge {
         font-weight: 500;
-    }
-    .stat-card {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 16px;
-        padding: 20px 24px;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        border: 1px solid #f0f0f0;
-        transition: all 0.2s ease;
-    }
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .stat-card-icon {
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 10px;
-        font-size: 22px;
-    }
-    .stat-card-primary .stat-card-icon { background: #e8f4fd; color: #0d6efd; }
-    .stat-card-warning .stat-card-icon { background: #fff3cd; color: #ffc107; }
-    .stat-card-info .stat-card-icon { background: #cff4fc; color: #0dcaf0; }
-    .stat-card-success .stat-card-icon { background: #d1e7dd; color: #198754; }
-    .stat-card-danger .stat-card-icon { background: #f8d7da; color: #dc3545; }
-
-    .stat-card-content {
-        display: flex;
-        flex-direction: column;
-        text-align: left;
-    }
-    .stat-card-label {
-        font-size: 13px;
-        color: #6c757d;
-        margin-bottom: 2px;
-    }
-    .stat-card-value {
-        font-size: 24px;
-        font-weight: 700;
-        color: #212529;
-        line-height: 1.2;
     }
 </style>
 @endpush

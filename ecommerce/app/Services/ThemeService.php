@@ -164,6 +164,13 @@ class ThemeService
             'gold_color' => $config['colors']['gold'] ?? '#d4af37',
             'heading_font' => $config['fonts']['heading'] ?? 'Inter',
             'body_font' => $config['fonts']['body'] ?? 'Inter',
+            // Menu styling defaults
+            'menu_hover_color' => '#ffffff',
+            'menu_text_hover_color' => '#4f46e5',
+            'menu_active_color' => '#ffffff',
+            'menu_active_text_color' => '#4f46e5',
+            'menu_font_size' => '14',
+            'menu_font_weight' => '400',
         ];
 
         // Get features if saved

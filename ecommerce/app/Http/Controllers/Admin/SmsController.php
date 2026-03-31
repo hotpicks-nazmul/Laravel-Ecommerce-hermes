@@ -77,7 +77,7 @@ class SmsController extends Controller
         $request->validate([
             'message' => 'required|string|max:1600',
             'recipients_type' => 'required|in:all_customers,subscribers,registered_users,specific_numbers',
-            'specific_numbers' => 'required_if:recipients_type,specific_numbers|nullable|string',
+            'specific_numbers' => 'required_if:recipients_type,specific_numbers|string',
         ], [
             'specific_numbers.required_if' => 'Please enter phone numbers.',
             'message.required' => 'Please enter a message.',
@@ -153,9 +153,8 @@ class SmsController extends Controller
     /**
      * Delete SMS campaign from history.
      */
-    public function destroy(Request $request)
+    public function destroy($id)
     {
-        $id = $request->id;
         $history = Session::get('sms_history', collect([]));
         
         $history = $history->reject(function ($item) use ($id) {

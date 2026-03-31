@@ -34,9 +34,13 @@ class ThemeController extends Controller
             'theme' => 'required|string',
         ]);
 
-        $this->themeService->activateTheme($request->theme);
+        $activated = $this->themeService->activateTheme($request->theme);
 
-        return back()->with('success', 'Theme activated successfully.');
+        if ($activated) {
+            return back()->with('success', 'Theme activated successfully.');
+        }
+
+        return back()->with('error', 'Failed to activate theme. Theme may not exist.');
     }
 
     public function settings()

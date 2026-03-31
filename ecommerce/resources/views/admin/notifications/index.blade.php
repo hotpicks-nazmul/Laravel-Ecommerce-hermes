@@ -42,39 +42,35 @@
 </div>
 
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total</div>
-                <div class="h4 mb-0 text-primary">{{ $notifications->total() }}</div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-bell"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total</span>
+            <span class="stat-card-value">{{ $notifications->total() }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Unread</div>
-                <div class="h4 mb-0 text-danger">{{ $notifications->where('is_read', false)->count() }}</div>
-            </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-envelope"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Unread</span>
+            <span class="stat-card-value">{{ $notifications->where('is_read', false)->count() }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Read</div>
-                <div class="h4 mb-0 text-success">{{ $notifications->where('is_read', true)->count() }}</div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Read</span>
+            <span class="stat-card-value">{{ $notifications->where('is_read', true)->count() }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Actions</div>
-                <button class="btn btn-sm btn-outline-primary" onclick="markAllNotificationsAsRead()">
-                    <i class="bi bi-check-all me-1"></i> Mark All Read
-                </button>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-check-all"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Actions</span>
+            <button class="btn btn-sm btn-outline-primary" onclick="markAllNotificationsAsRead()">
+                Mark All Read
+            </button>
         </div>
     </div>
 </div>

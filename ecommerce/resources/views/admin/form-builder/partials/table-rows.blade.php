@@ -27,13 +27,12 @@
     </td>
     <td>
         <div class="btn-group">
-            <!-- Toggle Status -->
-            <form action="{{ route('admin.form-builder.toggle-status', $form->id) }}" method="POST" class="d-inline">
-                @csrf
-                <button type="submit" class="btn btn-sm {{ $form->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}" title="{{ $form->is_active ? 'Deactivate' : 'Activate' }}">
-                    <i class="bi bi-{{ $form->is_active ? 'pause-circle' : 'play-circle' }}"></i>
-                </button>
-            </form>
+            <!-- Toggle Status (AJAX) -->
+            <button type="button" class="btn btn-sm {{ $form->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}"
+                    onclick="toggleFormStatus({{ $form->id }}, this)"
+                    title="{{ $form->is_active ? 'Deactivate' : 'Activate' }}">
+                <i class="bi bi-{{ $form->is_active ? 'pause-circle' : 'play-circle' }}"></i>
+            </button>
             
             <!-- View Form -->
             <a href="{{ route('admin.form-builder.show', $form->id) }}" class="btn btn-sm btn-outline-info" title="View">

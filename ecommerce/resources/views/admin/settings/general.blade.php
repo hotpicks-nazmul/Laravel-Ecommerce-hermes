@@ -3,9 +3,39 @@
 @section('title', 'General Settings')
 
 @section('content')
-<div class="mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0">General Settings</h4>
+    <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+    </a>
 </div>
+
+<!-- Success/Error Alerts -->
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+@if($errors->any())
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>Please fix the following errors:
+    <ul class="mb-0 mt-2">
+        @foreach($errors->all() as $error)
+        <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
 
 <form action="{{ route('admin.settings.general.update') }}" method="POST" id="settings-form">
     @csrf
@@ -21,12 +51,18 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="site_name" class="form-label">Site Name <span class="text-danger">*</span></label>
-                            <input type="text" id="site_name" name="site_name" class="form-control" value="{{ old('site_name', $settings['site_name'] ?? '') }}" required>
+                            <input type="text" id="site_name" name="site_name" class="form-control @error('site_name') is-invalid @enderror" value="{{ old('site_name', $settings['site_name'] ?? '') }}" required>
+                            @error('site_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Your website name</div>
                         </div>
                         <div class="col-md-6">
                             <label for="site_tagline" class="form-label">Site Tagline</label>
-                            <input type="text" id="site_tagline" name="site_tagline" class="form-control" value="{{ old('site_tagline', $settings['site_tagline'] ?? '') }}">
+                            <input type="text" id="site_tagline" name="site_tagline" class="form-control @error('site_tagline') is-invalid @enderror" value="{{ old('site_tagline', $settings['site_tagline'] ?? '') }}">
+                            @error('site_tagline')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Short description of your store</div>
                         </div>
                     </div>
@@ -42,23 +78,29 @@
                     <div class="row">
                         <div class="col-md-6">
                             <label for="currency" class="form-label">Currency</label>
-                            <select id="currency" name="currency" class="form-select">
-                                <option value="BDT" {{ ($settings['currency'] ?? 'BDT') === 'BDT' ? 'selected' : '' }}>BDT (৳) - Bangladesh</option>
-                                <option value="USD" {{ ($settings['currency'] ?? '') === 'USD' ? 'selected' : '' }}>USD ($) - US Dollar</option>
-                                <option value="EUR" {{ ($settings['currency'] ?? '') === 'EUR' ? 'selected' : '' }}>EUR (€) - Euro</option>
-                                <option value="GBP" {{ ($settings['currency'] ?? '') === 'GBP' ? 'selected' : '' }}>GBP (£) - British Pound</option>
-                                <option value="INR" {{ ($settings['currency'] ?? '') === 'INR' ? 'selected' : '' }}>INR (₹) - Indian Rupee</option>
+                            <select id="currency" name="currency" class="form-select @error('currency') is-invalid @enderror">
+                                <option value="BDT" {{ old('currency', $settings['currency'] ?? 'BDT') === 'BDT' ? 'selected' : '' }}>BDT (৳) - Bangladesh</option>
+                                <option value="USD" {{ old('currency', $settings['currency'] ?? '') === 'USD' ? 'selected' : '' }}>USD ($) - US Dollar</option>
+                                <option value="EUR" {{ old('currency', $settings['currency'] ?? '') === 'EUR' ? 'selected' : '' }}>EUR (€) - Euro</option>
+                                <option value="GBP" {{ old('currency', $settings['currency'] ?? '') === 'GBP' ? 'selected' : '' }}>GBP (£) - British Pound</option>
+                                <option value="INR" {{ old('currency', $settings['currency'] ?? '') === 'INR' ? 'selected' : '' }}>INR (₹) - Indian Rupee</option>
                             </select>
+                            @error('currency')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label for="timezone" class="form-label">Timezone</label>
-                            <select id="timezone" name="timezone" class="form-select">
-                                <option value="Asia/Dhaka" {{ ($settings['timezone'] ?? 'Asia/Dhaka') === 'Asia/Dhaka' ? 'selected' : '' }}>Asia/Dhaka (UTC+6)</option>
-                                <option value="Asia/Kolkata" {{ ($settings['timezone'] ?? '') === 'Asia/Kolkata' ? 'selected' : '' }}>Asia/Kolkata (UTC+5:30)</option>
-                                <option value="UTC" {{ ($settings['timezone'] ?? '') === 'UTC' ? 'selected' : '' }}>UTC</option>
-                                <option value="Europe/London" {{ ($settings['timezone'] ?? '') === 'Europe/London' ? 'selected' : '' }}>Europe/London</option>
-                                <option value="America/New_York" {{ ($settings['timezone'] ?? '') === 'America/New_York' ? 'selected' : '' }}>America/New_York</option>
+                            <select id="timezone" name="timezone" class="form-select @error('timezone') is-invalid @enderror">
+                                <option value="Asia/Dhaka" {{ old('timezone', $settings['timezone'] ?? 'Asia/Dhaka') === 'Asia/Dhaka' ? 'selected' : '' }}>Asia/Dhaka (UTC+6)</option>
+                                <option value="Asia/Kolkata" {{ old('timezone', $settings['timezone'] ?? '') === 'Asia/Kolkata' ? 'selected' : '' }}>Asia/Kolkata (UTC+5:30)</option>
+                                <option value="UTC" {{ old('timezone', $settings['timezone'] ?? '') === 'UTC' ? 'selected' : '' }}>UTC</option>
+                                <option value="Europe/London" {{ old('timezone', $settings['timezone'] ?? '') === 'Europe/London' ? 'selected' : '' }}>Europe/London</option>
+                                <option value="America/New_York" {{ old('timezone', $settings['timezone'] ?? '') === 'America/New_York' ? 'selected' : '' }}>America/New_York</option>
                             </select>
+                            @error('timezone')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -129,8 +171,40 @@
 
 <!-- Floating Save Button -->
 <div class="floating-save-container">
+    <a href="{{ route('admin.settings.general') }}" class="btn btn-secondary floating-reset-btn">
+        <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
     <button type="submit" form="settings-form" class="btn btn-primary floating-save-btn">
         <i class="bi bi-check-lg me-1"></i> Save Settings
     </button>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-scroll to first error field
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+</script>
+@endpush

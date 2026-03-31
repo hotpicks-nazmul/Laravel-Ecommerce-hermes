@@ -10,6 +10,26 @@
     </a>
 </div>
 
+<!-- Success/Error Alerts -->
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+@if($errors->any())
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    <ul class="mb-0">
+        @foreach($errors->all() as $error)
+        <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
 <div class="row">
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm mb-3">
@@ -68,7 +88,8 @@
             </div>
             <div class="card-body">
                 <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" form="menuForm" {{ old('is_active', true) ? 'checked' : '' }}>
+                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" form="menuForm" {{ old('is_active', true) ? 'checked' : '' }}>
+                    <input type="hidden" name="is_active" value="0" form="menuForm">
                     <label class="form-check-label" for="is_active">
                         <i class="bi bi-check-circle text-success me-1"></i> Active
                     </label>
@@ -123,6 +144,20 @@ document.addEventListener('DOMContentLoaded', function() {
     slugInput.addEventListener('input', function() {
         slugInput.dataset.modified = 'true';
     });
+    
+    // Auto-scroll to first error field
+    @if($errors->any())
+        var firstErrorField = document.querySelector('.is-invalid');
+        if (firstErrorField) {
+            setTimeout(function() {
+                firstErrorField.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                firstErrorField.focus();
+            }, 100);
+        }
+    @endif
 });
 </script>
 @endpush

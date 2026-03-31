@@ -3,8 +3,6 @@
 @section('title', 'Edit Blog Tag')
 
 @section('content')
-<div class="content-area">
-    <div class="container-fluid pt-4">
         <!-- Header with Back Button -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="mb-0">Edit Blog Tag</h4>
@@ -43,8 +41,8 @@
                                 <div class="input-group">
                                     <span class="input-group-text">/tag/</span>
                                     <input type="text" id="slug" name="slug" 
-                                           class="form-control @error('slug') is 
-                                           value="{{-invalid @enderror" old('slug', $blogTag->slug) }}">
+                                           class="form-control @error('slug') is-invalid @enderror" 
+                                           value="{{ old('slug', $blogTag->slug) }}">
                                 </div>
                                 @error('slug')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -188,8 +186,6 @@
                 <i class="bi bi-check-lg me-1"></i> Update Tag
             </button>
         </div>
-    </div>
-</div>
 @endsection
 
 @push('styles')

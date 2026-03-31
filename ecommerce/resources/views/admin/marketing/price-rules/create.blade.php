@@ -54,14 +54,14 @@
                             </select>
                             @error('discount_type')
                                 <div class="invalid-feedback">{{ $message }}</div>
-                            @endif
+                            @enderror
                         </div>
                         <div class="col-md-4">
                             <label for="discount_value" class="form-label">Discount Value <span class="text-danger">*</span></label>
                             <input type="number" id="discount_value" name="discount_value" class="form-control @error('discount_value') is-invalid @enderror" value="{{ old('discount_value', 0) }}" step="0.01" min="0" required>
                             @error('discount_value')
                                 <div class="invalid-feedback">{{ $message }}</div>
-                            @endif
+                            @enderror
                         </div>
                         <div class="col-md-4">
                             <label for="max_discount_amount" class="form-label">Max Discount Amount</label>
@@ -70,7 +70,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @else
                                 <div class="form-text">Leave empty for no limit</div>
-                            @endif
+                            @enderror
                         </div>
                     </div>
 
@@ -83,7 +83,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @else
                                 <div class="form-text">Minimum product quantity to qualify</div>
-                            @endif
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label for="min_order_amount" class="form-label">Minimum Order Amount</label>
@@ -92,7 +92,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @else
                                 <div class="form-text">Minimum cart total to qualify</div>
-                            @endif
+                            @enderror
                         </div>
                     </div>
 
@@ -105,7 +105,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @else
                                 <div class="form-text">Leave empty for immediate activation</div>
-                            @endif
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label for="end_date" class="form-label">End Date & Time</label>
@@ -114,7 +114,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @else
                                 <div class="form-text">Leave empty for no expiration</div>
-                            @endif
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -200,7 +200,7 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @else
                             <div class="form-text">Set to active to apply the rule</div>
-                        @endif
+                        @enderror
                     </div>
 
                     <div class="form-check form-switch mb-3">
@@ -218,7 +218,7 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @else
                             <div class="form-text">Higher priority rules apply first</div>
-                        @endif
+                        @enderror
                     </div>
                 </div>
             </div>

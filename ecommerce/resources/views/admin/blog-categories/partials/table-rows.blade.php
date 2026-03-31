@@ -1,7 +1,16 @@
+@php
+    $search = request('search');
+@endphp
 @forelse($categories as $category)
-<tr data-id="{{ $category->id }}">
+@php
+    $isMatch = $search && (
+        stripos($category->name, $search) !== false || 
+        stripos($category->slug, $search) !== false
+    );
+@endphp
+<tr data-id="{{ $category->id }}" class="{{ $isMatch ? 'table-warning' : '' }}">
     <td>
-        <input type="checkbox" class="form-check-input item-checkbox" value="{{ $category->id }}">
+        <input type="checkbox" class="form-check-input item-checkbox" value="{{ $category->id }}" onchange="toggleItem(this)">
     </td>
     <td>
         <div class="d-flex align-items-center">
@@ -64,17 +73,3 @@
     </td>
 </tr>
 @endforelse
-
-<script>
-    // Reinitialize event listeners for dynamically loaded content
-    document.querySelectorAll('.item-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            if (this.checked) {
-                selectedItems.add(parseInt(this.value));
-            } else {
-                selectedItems.delete(parseInt(this.value));
-            }
-            updateBulkActions();
-        });
-    });
-</script>

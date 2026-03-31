@@ -11,37 +11,33 @@
 </div>
 
 <!-- Stats Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Forms</div>
-                <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-ui-checks"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Forms</span>
+            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Active Forms</div>
-                <div class="h4 mb-0 text-success">{{ $stats['active'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active Forms</span>
+            <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Inactive Forms</div>
-                <div class="h4 mb-0 text-secondary">{{ $stats['inactive'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Inactive Forms</span>
+            <span class="stat-card-value">{{ number_format($stats['inactive'] ?? 0) }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Submissions</div>
-                <div class="h4 mb-0 text-info">{{ $stats['total_submissions'] ?? 0 }}</div>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-file-earmark-text"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Submissions</span>
+            <span class="stat-card-value">{{ number_format($stats['total_submissions'] ?? 0) }}</span>
         </div>
     </div>
 </div>
@@ -194,6 +190,33 @@ document.addEventListener('DOMContentLoaded', function() {
     if (filterDirection) {
         filterDirection.addEventListener('change', performSearch);
     }
+    
+    // Toggle form status via AJAX
+    window.toggleFormStatus = function(formId, button) {
+        fetch(`{{ route('admin.form-builder.toggle-status', ':id') }}`.replace(':id', formId), {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Update button appearance
+                if (data.is_active) {
+                    button.className = 'btn btn-sm btn-outline-warning';
+                    button.innerHTML = '<i class="bi bi-pause-circle"></i>';
+                    button.title = 'Deactivate';
+                } else {
+                    button.className = 'btn btn-sm btn-outline-success';
+                    button.innerHTML = '<i class="bi bi-play-circle"></i>';
+                    button.title = 'Activate';
+                }
+            }
+        })
+        .catch(err => console.error('Error toggling status:', err));
+    };
 });
 </script>
 @endpush

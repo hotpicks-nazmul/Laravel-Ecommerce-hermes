@@ -62,13 +62,11 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 <h6 class="text-muted text-uppercase small mb-3">Quick Actions</h6>
-                <form action="{{ route('admin.form-builder.toggle-status', $form->id) }}" method="POST" class="d-inline">
-                    @csrf
-                    <button type="submit" class="btn btn-sm {{ $form->is_active ? 'btn-warning' : 'btn-success' }}">
-                        <i class="bi bi-{{ $form->is_active ? 'pause' : 'play' }}-circle me-1"></i>
-                        {{ $form->is_active ? 'Deactivate' : 'Activate' }}
-                    </button>
-                </form>
+                <button type="button" class="btn btn-sm {{ $form->is_active ? 'btn-warning' : 'btn-success' }}"
+                        id="toggleStatusBtn" onclick="toggleFormStatus({{ $form->id }})">
+                    <i class="bi bi-{{ $form->is_active ? 'pause' : 'play' }}-circle me-1"></i>
+                    {{ $form->is_active ? 'Deactivate' : 'Activate' }}
+                </button>
                 <form action="{{ route('admin.form-builder.duplicate', $form->id) }}" method="POST" class="d-inline">
                     @csrf
                     <button type="submit" class="btn btn-sm btn-outline-secondary">
@@ -149,3 +147,31 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function toggleFormStatus(formId) {
+    const btn = document.getElementById('toggleStatusBtn');
+    fetch(`{{ route('admin.form-builder.toggle-status', ':id') }}`.replace(':id', formId), {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (data.is_active) {
+                btn.className = 'btn btn-sm btn-warning';
+                btn.innerHTML = '<i class="bi bi-pause-circle me-1"></i> Deactivate';
+            } else {
+                btn.className = 'btn btn-sm btn-success';
+                btn.innerHTML = '<i class="bi bi-play-circle me-1"></i> Activate';
+            }
+        }
+    })
+    .catch(err => console.error('Error toggling status:', err));
+}
+</script>
+@endpush

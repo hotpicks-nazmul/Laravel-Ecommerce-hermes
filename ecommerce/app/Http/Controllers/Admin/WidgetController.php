@@ -76,9 +76,9 @@ class WidgetController extends Controller
         $data = $request->all();
         $data['slug'] = Str::slug($request->name);
         
-        // Handle settings as JSON
+        // Handle settings - model casts as array, so pass the array directly
         if ($request->has('settings') && is_array($request->settings)) {
-            $data['settings'] = json_encode($request->settings);
+            $data['settings'] = $request->settings;
         }
 
         Widget::create($data);
@@ -127,9 +127,9 @@ class WidgetController extends Controller
         $data = $request->all();
         $data['slug'] = Str::slug($request->name);
         
-        // Handle settings as JSON
+        // Handle settings - model casts as array, so pass the array directly
         if ($request->has('settings') && is_array($request->settings)) {
-            $data['settings'] = json_encode($request->settings);
+            $data['settings'] = $request->settings;
         }
 
         $widget->update($data);
@@ -202,11 +202,13 @@ class WidgetController extends Controller
     {
         $request->validate([
             'action' => 'required|string|in:activate,deactivate,delete,feature,unfeature',
-            'widgets' => 'required|array',
-            'widgets.*' => 'exists:widgets,id',
+            'widgets' => 'required|string',
         ]);
 
-        $widgets = Widget::whereIn('id', $request->widgets);
+        // Parse comma-separated widget IDs
+        $widgetIds = array_filter(array_map('intval', explode(',', $request->widgets)));
+        
+        $widgets = Widget::whereIn('id', $widgetIds);
 
         switch ($request->action) {
             case 'activate':

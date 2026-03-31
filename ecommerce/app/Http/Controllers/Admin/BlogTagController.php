@@ -158,6 +158,14 @@ class BlogTagController extends Controller
     {
         $blogTag->delete();
         
+        // Check if AJAX request
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Blog tag deleted successfully.'
+            ]);
+        }
+        
         return back()->with('success', 'Blog tag deleted successfully.');
     }
 

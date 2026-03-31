@@ -69,13 +69,13 @@ class ProductQAController extends Controller
         // AJAX response
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('admin.product-qa.partials.table-rows', compact('qaEntries'))->render(),
+                'html' => view('admin.support.product-queries.partials.table-rows', compact('qaEntries'))->render(),
                 'pagination' => $qaEntries->links()->toHtml(),
                 'stats' => $stats,
             ]);
         }
 
-        return view('admin.product-qa.index', compact('qaEntries', 'stats', 'products'));
+        return view('admin.support.product-queries.index', compact('qaEntries', 'stats', 'products'));
     }
 
     /**
@@ -93,7 +93,7 @@ class ProductQAController extends Controller
             ->take(5)
             ->get();
 
-        return view('admin.product-qa.show', compact('product_qa', 'relatedQA'));
+        return view('admin.support.product-queries.show', compact('product_qa', 'relatedQA'));
     }
 
     /**
@@ -116,7 +116,7 @@ class ProductQAController extends Controller
         ]);
 
         return redirect()
-            ->route('admin.product-qa.index')
+            ->route('admin.support.product-queries.index')
             ->with('success', 'Question answered successfully.');
     }
 
@@ -128,7 +128,7 @@ class ProductQAController extends Controller
         $product_qa->delete();
 
         return redirect()
-            ->route('admin.product-qa.index')
+            ->route('admin.support.product-queries.index')
             ->with('success', 'Q&A entry deleted successfully.');
     }
 
@@ -146,7 +146,7 @@ class ProductQAController extends Controller
 
         if (empty($ids)) {
             return redirect()
-                ->route('admin.product-qa.index')
+                ->route('admin.support.product-queries.index')
                 ->with('error', 'No items selected.');
         }
 
@@ -180,7 +180,7 @@ class ProductQAController extends Controller
         }
 
         return redirect()
-            ->route('admin.product-qa.index')
+            ->route('admin.support.product-queries.index')
             ->with('success', $message);
     }
 

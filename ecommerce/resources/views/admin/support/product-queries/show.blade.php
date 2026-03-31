@@ -2,86 +2,7 @@
 
 @section('title', 'Answer Question')
 
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-    
-    .question-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 12px;
-        padding: 24px;
-        margin-bottom: 20px;
-    }
-    
-    .question-card .question-text {
-        font-size: 1.25rem;
-        line-height: 1.6;
-    }
-    
-    .question-meta {
-        opacity: 0.9;
-        font-size: 0.875rem;
-        margin-top: 16px;
-        padding-top: 16px;
-        border-top: 1px solid rgba(255,255,255,0.2);
-    }
-    
-    .answer-section {
-        background: #f8f9fa;
-        border-radius: 12px;
-        padding: 24px;
-    }
-    
-    .product-card {
-        border-radius: 12px;
-        overflow: hidden;
-    }
-    
-    .product-card img {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-    }
-    
-    .related-qa-item {
-        padding: 12px;
-        border-radius: 8px;
-        background: #f8f9fa;
-        margin-bottom: 8px;
-    }
-    
-    .related-qa-item:hover {
-        background: #e9ecef;
-    }
-    
-    .status-badge {
-        font-size: 0.875rem;
-        padding: 0.375rem 0.75rem;
-        border-radius: 0.5rem;
-    }
-    
-    .status-pending {
-        background-color: #fef3c7;
-        color: #92400e;
-    }
-    
-    .status-answered {
-        background-color: #dbeafe;
-        color: #1e40af;
-    }
-    
-    .status-published {
-        background-color: #d1fae5;
-        color: #065f46;
-    }
-</style>
-@endpush
-
 @section('content')
-<div class="container-fluid">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
@@ -290,7 +211,6 @@
             @endif
         </div>
     </div>
-</div>
 
 <!-- Floating Save Button -->
 <div class="floating-save-container">
@@ -311,6 +231,84 @@
     </button>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+    
+    .question-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+    
+    .question-card .question-text {
+        font-size: 1.25rem;
+        line-height: 1.6;
+    }
+    
+    .question-meta {
+        opacity: 0.9;
+        font-size: 0.875rem;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .answer-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 24px;
+    }
+    
+    .product-card {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .product-card img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .related-qa-item {
+        padding: 12px;
+        border-radius: 8px;
+        background: #f8f9fa;
+        margin-bottom: 8px;
+    }
+    
+    .related-qa-item:hover {
+        background: #e9ecef;
+    }
+    
+    .status-badge {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.5rem;
+    }
+    
+    .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+    
+    .status-answered {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .status-published {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>

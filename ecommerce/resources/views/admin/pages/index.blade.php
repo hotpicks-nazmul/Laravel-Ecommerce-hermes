@@ -10,8 +10,7 @@
 </div>
 
 <!-- Filters Card -->
-<div class="card border- New Page
-   0 shadow-sm mb-3">
+<div class="card border-0 shadow-sm mb-3">
     <div class="card-body py-3">
         <form method="GET" id="filterForm">
             <div class="row g-2 align-items-end">

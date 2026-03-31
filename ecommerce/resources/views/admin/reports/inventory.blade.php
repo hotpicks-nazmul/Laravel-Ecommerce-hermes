@@ -110,7 +110,7 @@
                 </div>
                 
                 <!-- Sort By -->
-                <div class="col-lg-2 col-md-3 col-sm-6">
+                <div class="col-lg-2 col-md-2 col-sm-6">
                     <label class="form-label small text-muted">Sort By</label>
                     <select name="sort" class="form-select form-select-sm">
                         <option value="stock_asc" {{ $sortBy == 'stock_asc' ? 'selected' : '' }}>Stock (Low to High)</option>
@@ -122,6 +122,18 @@
                     </select>
                 </div>
                 
+                <!-- Per Page -->
+                <div class="col-lg-1 col-md-2 col-sm-6">
+                    <label class="form-label small text-muted">Per Page</label>
+                    <select name="per_page" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit()">
+                        <option value="10" {{ request('per_page', 20) == 10 ? 'selected' : '' }}>10</option>
+                        <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20</option>
+                        <option value="25" {{ request('per_page', 20) == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('per_page', 20) == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('per_page', 20) == 100 ? 'selected' : '' }}>100</option>
+                    </select>
+                </div>
+                
                 <!-- Filter Buttons -->
                 <div class="col-lg-3 col-md-4 col-sm-6">
                     <div class="d-flex gap-2">
@@ -130,6 +142,9 @@
                         </button>
                         <a href="{{ route('admin.reports.inventory') }}" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-x-lg me-1"></i> Reset
+                        </a>
+                        <a href="{{ route('admin.reports.inventory.export', request()->query()) }}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-download me-1"></i> Export
                         </a>
                     </div>
                 </div>

@@ -2,6 +2,49 @@
 
 @section('title', 'Activity Logs')
 
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display on this page */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+    
+    /* Pagination icon sizing - fix large icons */
+    .pagination .page-link i,
+    .pagination .page-link i::before,
+    .pagination .page-link .bi,
+    .pagination .page-link .bi::before {
+        font-size: 14px !important;
+        line-height: 1 !important;
+    }
+    
+    .page-item .page-link i,
+    .page-item .page-link i::before,
+    .page-item .page-link .bi,
+    .page-item .page-link .bi::before {
+        font-size: 14px !important;
+        line-height: 1 !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="mb-4">
     <h4 class="mb-0"><i class="bi bi-journal-text me-2"></i>Activity Logs</h4>
@@ -9,73 +52,33 @@
 </div>
 
 <!-- Stats Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-primary bg-opacity-10 rounded p-3">
-                            <i class="bi bi-journal-text text-primary fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Total Logs</p>
-                        <h4 class="mb-0">{{ number_format($stats['total']) }}</h4>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-journal-text"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Logs</span>
+            <span class="stat-card-value">{{ number_format($stats['total']) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-success bg-opacity-10 rounded p-3">
-                            <i class="bi bi-person-badge text-success fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Admin Logs</p>
-                        <h4 class="mb-0">{{ number_format($stats['admin']) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-person-badge"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Admin Logs</span>
+            <span class="stat-card-value">{{ number_format($stats['admin']) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-info bg-opacity-10 rounded p-3">
-                            <i class="bi bi-people text-info fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">Customer Logs</p>
-                        <h4 class="mb-0">{{ number_format($stats['customer']) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-people"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Customer Logs</span>
+            <span class="stat-card-value">{{ number_format($stats['customer']) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-warning bg-opacity-10 rounded p-3">
-                            <i class="bi bi-gear text-warning fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <p class="text-muted small mb-0">System Logs</p>
-                        <h4 class="mb-0">{{ number_format($stats['system']) }}</h4>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-gear"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">System Logs</span>
+            <span class="stat-card-value">{{ number_format($stats['system']) }}</span>
         </div>
     </div>
 </div>
@@ -263,12 +266,12 @@
         </div>
         
         @if($logs->hasPages())
-        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
-            <div class="text-muted small">
-                Page {{ $logs->currentPage() }} of {{ $logs->lastPage() }}
-            </div>
-            <div>
-                {{ $logs->appends(request()->query())->links() }}
+        <div class="card-footer bg-white py-3 text-center">
+            <div class="d-inline-flex align-items-center gap-3">
+                <span class="text-muted small">
+                    Showing {{ $logs->firstItem() ?? 0 }} - {{ $logs->lastItem() ?? 0 }} of {{ $logs->total() }} logs
+                </span>
+                {{ $logs->appends(request()->query())->links('pagination::bootstrap-5') }}
             </div>
         </div>
         @endif

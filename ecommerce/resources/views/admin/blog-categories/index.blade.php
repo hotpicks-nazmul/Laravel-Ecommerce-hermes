@@ -3,138 +3,94 @@
 @section('title', 'Blog Categories')
 
 @section('content')
-<div class="content-area">
-    <div class="container-fluid pt-4">
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">Blog Categories</h4>
-            <a href="{{ route('admin.blog-categories.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-1"></i> Add New Category
-            </a>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Blog Categories</h4>
+    <a href="{{ route('admin.blog-categories.create') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Add New Category
+    </a>
+</div>
 
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Total Categories</div>
-                        <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Active</div>
-                        <div class="h4 mb-0 text-success">{{ $stats['active'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Inactive</div>
-                        <div class="h4 mb-0 text-secondary">{{ $stats['inactive'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-collection"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Categories</span>
+            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
         </div>
-
-        <!-- Filters Card -->
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-body py-3">
-                <form method="GET" id="filterForm">
-                    <div class="row g-2 align-items-end">
-                        <!-- Search Input -->
-                        <div class="col-lg-4 col-md-4 col-sm-6">
-                            <label class="form-label small text-muted">Search</label>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                <input type="text" name="search" id="liveSearch" class="form-control" 
-                                       placeholder="Search categories..." value="{{ request('search') }}">
-                                <span class="input-group-text" id="searchSpinner" style="display: none;">
-                                    <div class="spinner-border spinner-border-sm"></div>
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <!-- Status Filter -->
-                        <div class="col-lg-3 col-md-3 col-sm-6">
-                            <label class="form-label small text-muted">Status</label>
-                            <select name="status" id="filterStatus" class="form-select form-select-sm">
-                                <option value="">All Status</option>
-                                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
-                                <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Reset Button -->
-                        <div class="col-lg-2 col-md-3 col-sm-6">
-                            <a href="{{ route('admin.blog-categories.index') }}" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-x-lg me-1"></i> Reset
-                            </a>
-                        </div>
-                    </div>
-                </form>
-            </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
         </div>
-
-        <!-- Bulk Actions Bar -->
-        <div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
-            <div class="card-body py-2">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <span class="text-muted"><span id="selectedCount">0</span> selected</span>
-                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="clearSelection()">
-                            Clear Selection
-                        </button>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-sm btn-success" onclick="bulkAction('activate')">
-                            <i class="bi bi-check-circle me-1"></i> Activate
-                        </button>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="bulkAction('delete')">
-                            <i class="bi bi-trash me-1"></i> Delete
-                        </button>
-                    </div>
-                </div>
-            </div>
+    </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Inactive</span>
+            <span class="stat-card-value">{{ number_format($stats['inactive'] ?? 0) }}</span>
         </div>
+    </div>
+</div>
 
-        <!-- Table Card -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th style="width: 40px;">
-                                    <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
-                                </th>
-                                <th>Category</th>
-                                <th style="width: 100px;">Blogs</th>
-                                <th style="width: 100px;">Status</th>
-                                <th style="width: 120px;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            @include('admin.blog-categories.partials.table-rows')
-                        </tbody>
-                    </table>
+<!-- Filters Card -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-3">
+        <form method="GET" id="filterForm">
+            <div class="row g-2 align-items-end">
+                <!-- Search Input -->
+                <div class="col-lg-4 col-md-4 col-sm-6">
+                    <label class="form-label small text-muted">Search</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" id="liveSearch" class="form-control" 
+                               placeholder="Search categories..." value="{{ request('search') }}">
+                        <span class="input-group-text" id="searchSpinner" style="display: none;">
+                            <div class="spinner-border spinner-border-sm"></div>
+                        </span>
+                    </div>
                 </div>
                 
-                <!-- Pagination -->
-                @if($categories->hasPages())
-                <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <div class="text-muted small">
-                        Showing {{ $categories->firstItem() }} - {{ $categories->lastItem() }} of {{ $categories->total() }} categories
-                    </div>
-                    <div>
-                        {{ $categories->appends(request()->query())->links() }}
-                    </div>
+                <!-- Status Filter -->
+                <div class="col-lg-3 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Status</label>
+                    <select name="status" id="filterStatus" class="form-select form-select-sm">
+                        <option value="">All Status</option>
+                        <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
+                        <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                    </select>
                 </div>
-                @endif
+                
+                <!-- Reset Button -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <a href="{{ route('admin.blog-categories.index') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-lg me-1"></i> Reset
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bulk Actions Bar -->
+<div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
+    <div class="card-body py-2">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted"><span id="selectedCount">0</span> selected</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="clearSelection()">
+                    Clear Selection
+                </button>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-success" onclick="bulkAction('activate')">
+                    <i class="bi bi-check-circle me-1"></i> Activate
+                </button>
+                <button type="button" class="btn btn-sm btn-danger" onclick="bulkAction('delete')">
+                    <i class="bi bi-trash me-1"></i> Delete
+                </button>
             </div>
         </div>
     </div>
@@ -146,6 +102,41 @@
     <input type="hidden" name="action" id="bulkActionInput">
     <input type="hidden" name="ids" id="bulkIdsInput">
 </form>
+
+<!-- Table Card -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
+                        </th>
+                        <th>Category</th>
+                        <th style="width: 100px;">Blogs</th>
+                        <th style="width: 100px;">Status</th>
+                        <th style="width: 150px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    @include('admin.blog-categories.partials.table-rows', ['categories' => $categories])
+                </tbody>
+            </table>
+        </div>
+        
+        @if($categories->hasPages())
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="text-muted small">
+                Showing {{ $categories->firstItem() ?? 0 }} - {{ $categories->lastItem() ?? 0 }} of {{ $categories->total() }} entries
+            </div>
+            <div>
+                {{ $categories->appends(request()->query())->links() }}
+            </div>
+        </div>
+        @endif
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -216,29 +207,31 @@
     // Bulk selection
     let selectedItems = new Set();
 
-    document.getElementById('selectAllCheckbox').addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('.item-checkbox');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-            if (this.checked) {
-                selectedItems.add(parseInt(checkbox.value));
-            } else {
-                selectedItems.delete(parseInt(checkbox.value));
-            }
-        });
-        updateBulkActions();
+    // Select all checkbox handler
+    document.addEventListener('change', function(e) {
+        if (e.target.id === 'selectAllCheckbox') {
+            const checkboxes = document.querySelectorAll('.item-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = e.target.checked;
+                if (e.target.checked) {
+                    selectedItems.add(parseInt(checkbox.value));
+                } else {
+                    selectedItems.delete(parseInt(checkbox.value));
+                }
+            });
+            updateBulkActions();
+        }
     });
 
-    document.querySelectorAll('.item-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            if (this.checked) {
-                selectedItems.add(parseInt(this.value));
-            } else {
-                selectedItems.delete(parseInt(this.value));
-            }
-            updateBulkActions();
-        });
-    });
+    // Toggle item selection
+    function toggleItem(checkbox) {
+        if (checkbox.checked) {
+            selectedItems.add(parseInt(checkbox.value));
+        } else {
+            selectedItems.delete(parseInt(checkbox.value));
+        }
+        updateBulkActions();
+    }
 
     function updateBulkActions() {
         const count = selectedItems.size;
@@ -248,7 +241,10 @@
         // Update select all checkbox
         const totalCheckboxes = document.querySelectorAll('.item-checkbox').length;
         const checkedCheckboxes = document.querySelectorAll('.item-checkbox:checked').length;
-        document.getElementById('selectAllCheckbox').checked = totalCheckboxes > 0 && totalCheckboxes === checkedCheckboxes;
+        const selectAll = document.getElementById('selectAllCheckbox');
+        if (selectAll) {
+            selectAll.checked = totalCheckboxes > 0 && totalCheckboxes === checkedCheckboxes;
+        }
     }
 
     function clearSelection() {
@@ -256,7 +252,10 @@
         document.querySelectorAll('.item-checkbox').forEach(checkbox => {
             checkbox.checked = false;
         });
-        document.getElementById('selectAllCheckbox').checked = false;
+        const selectAll = document.getElementById('selectAllCheckbox');
+        if (selectAll) {
+            selectAll.checked = false;
+        }
         updateBulkActions();
     }
 
@@ -289,8 +288,6 @@
                 const badge = document.querySelector(`.status-badge[data-id="${id}"]`);
                 if (badge) {
                     badge.outerHTML = data.badge;
-                    // Update the data-id for new element
-                    document.querySelector(`.status-badge`).setAttribute('data-id', id);
                 }
                 // Update the button icon
                 const row = document.querySelector(`tr[data-id="${id}"]`);

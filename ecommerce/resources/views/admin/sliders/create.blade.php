@@ -52,15 +52,29 @@
                         @enderror
                     </div>
                     
+                    <div class="mb-3">
+                        <label for="link" class="form-label">Link URL</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                            <input type="url" id="link" name="link" class="form-control @error('link') is-invalid @enderror" placeholder="https://example.com" value="{{ old('link') }}">
+                        </div>
+                        @error('link')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h6 class="mb-3"><i class="bi bi-hand-index me-2"></i>Button Configuration</h6>
+                    
                     <div class="row g-3">
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <label for="button_text" class="form-label">Button Text</label>
                             <input type="text" id="button_text" name="button_text" class="form-control @error('button_text') is-invalid @enderror" placeholder="Shop Now" value="{{ old('button_text') }}">
                             @error('button_text')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <label for="button_color" class="form-label">Button Color</label>
                             <div class="input-group">
                                 <input type="color" id="button_color_picker" class="form-control form-control-color" value="{{ old('button_color', '#D4AF37') }}" style="width: 50px; padding: 2px;">
@@ -70,7 +84,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-4">
                             <label for="button_text_color" class="form-label">Text Color</label>
                             <div class="input-group">
                                 <input type="color" id="button_text_color_picker" class="form-control form-control-color" value="{{ old('button_text_color', '#FFFFFF') }}" style="width: 50px; padding: 2px;">
@@ -80,7 +94,10 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-3">
+                    </div>
+                    
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
                             <label for="button_icon" class="form-label">Icon</label>
                             <select id="button_icon" name="button_icon" class="form-select @error('button_icon') is-invalid @enderror">
                                 <option value="bi-arrow-right" {{ old('button_icon', 'bi-arrow-right') == 'bi-arrow-right' ? 'selected' : '' }}>Arrow Right</option>
@@ -98,32 +115,13 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-6">
                             <label for="button_icon_color" class="form-label">Icon Color</label>
                             <div class="input-group">
                                 <input type="color" id="button_icon_color_picker" class="form-control form-control-color" value="{{ old('button_icon_color', '#FFFFFF') }}" style="width: 50px; padding: 2px;">
                                 <input type="text" id="button_icon_color" name="button_icon_color" class="form-control @error('button_icon_color') is-invalid @enderror" placeholder="#FFFFFF" value="{{ old('button_icon_color', '#FFFFFF') }}">
                             </div>
                             @error('button_icon_color')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-1">
-                            <label for="link" class="form-label">Link</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row g-3 mt-2">
-                        <div class="col-md-12">
-                            <label for="link" class="form-label">Link URL</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
-                                <input type="url" id="link" name="link" class="form-control @error('link') is-invalid @enderror" placeholder="https://example.com" value="{{ old('link') }}">
-                            </div>
-                            @error('link')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -196,6 +194,22 @@
 
 @push('scripts')
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-scroll to first error field
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+
     // Image preview functionality
     document.getElementById('image').addEventListener('change', function(e) {
         const file = e.target.files[0];

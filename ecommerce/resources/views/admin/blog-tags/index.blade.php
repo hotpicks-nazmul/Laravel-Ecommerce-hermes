@@ -3,45 +3,39 @@
 @section('title', 'Blog Tags')
 
 @section('content')
-<div class="content-area">
-    <div class="container-fluid pt-4">
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">Blog Tags</h4>
-            <a href="{{ route('admin.blog-tags.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-1"></i> Add New Tag
-            </a>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Blog Tags</h4>
+    <a href="{{ route('admin.blog-tags.create') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Add New Tag
+    </a>
+</div>
 
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Total Tags</div>
-                        <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Active</div>
-                        <div class="h4 mb-0 text-success">{{ $stats['active'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Inactive</div>
-                        <div class="h4 mb-0 text-secondary">{{ $stats['inactive'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-tags"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Tags</span>
+            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
         </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Inactive</span>
+            <span class="stat-card-value">{{ number_format($stats['inactive'] ?? 0) }}</span>
+        </div>
+    </div>
+</div>
 
-        <!-- Filters Card -->
+<!-- Filters Card -->
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-body py-3">
                 <form method="GET" id="filterForm">
@@ -135,8 +129,6 @@
                     </div>
                 </div>
                 @endif
-            </div>
-        </div>
     </div>
 </div>
 
@@ -147,6 +139,32 @@
     <input type="hidden" name="ids" id="bulkIdsInput">
 </form>
 @endsection
+
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -188,7 +206,7 @@
         if (urlParams.get('per_page')) params.set('per_page', urlParams.get('per_page'));
         
         // AJAX request
-        fetch(`{{ route('admin.blog-tags.index') }}?${params.toString()}`, {
+        fetch(`{{ route('admin.blog-tags.index') }}?${params.toString()}&ajax=1`, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
@@ -213,7 +231,7 @@
         });
     }
 
-    // Bulk selection
+    // Bulk selection - use event delegation for AJAX-loaded content
     let selectedItems = new Set();
 
     document.getElementById('selectAllCheckbox').addEventListener('change', function() {
@@ -229,15 +247,14 @@
         updateBulkActions();
     });
 
-    document.querySelectorAll('.item-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            if (this.checked) {
-                selectedItems.add(parseInt(this.value));
-            } else {
-                selectedItems.delete(parseInt(this.value));
-            }
-            updateBulkActions();
-        });
+    // Event delegation for item checkboxes
+    document.getElementById('tableBody').addEventListener('change', '.item-checkbox', function() {
+        if (this.checked) {
+            selectedItems.add(parseInt(this.value));
+        } else {
+            selectedItems.delete(parseInt(this.value));
+        }
+        updateBulkActions();
     });
 
     function updateBulkActions() {
@@ -285,16 +302,14 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // Update the badge
-                const badge = document.querySelector(`.status-badge[data-id="${id}"]`);
-                if (badge) {
-                    badge.outerHTML = data.badge;
-                    // Update the data-id for new element
-                    document.querySelector(`.status-badge`).setAttribute('data-id', id);
-                }
-                // Update the button icon
+                // Update the badge - use the specific row's badge
                 const row = document.querySelector(`tr[data-id="${id}"]`);
                 if (row) {
+                    const badge = row.querySelector('.status-badge');
+                    if (badge) {
+                        badge.outerHTML = data.badge;
+                    }
+                    // Update the toggle button
                     const btn = row.querySelector('button[onclick^="toggleStatus"]');
                     if (btn) {
                         const isActive = data.status === 'active';
@@ -344,8 +359,8 @@
         .then(data => {
             if (data.success) {
                 showToast(data.message || 'Tag deleted successfully', 'success');
-                // Reload the page or fetch new data
-                performLiveSearch(searchInput.value.trim());
+                // Reload page to refresh table and stats
+                setTimeout(() => window.location.reload(), 500);
             } else {
                 showToast(data.message || 'An error occurred', 'error');
             }

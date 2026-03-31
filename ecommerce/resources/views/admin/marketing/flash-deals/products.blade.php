@@ -53,14 +53,13 @@
                                         @endphp
                                         <tr class="{{ $isSelected ? 'table-primary' : '' }}">
                                             <td>
-                                                <input type="checkbox" 
-                                                       class="form-check-input product-checkbox product-select" 
-                                                       name="products[{{ $product->id }}][selected]" 
-                                                       value="1"
-                                                       {{ $isSelected ? 'checked' : '' }}
-                                                       data-product-id="{{ $product->id }}"
-                                                       onchange="toggleProductRow(this)">
-                                                <input type="hidden" name="products[{{ $product->id }}][product_id]" value="{{ $product->id }}">
+                                                 <input type="checkbox" 
+                                                        class="form-check-input product-checkbox product-select" 
+                                                        name="products[{{ $product->id }}][selected]" 
+                                                        value="1"
+                                                        {{ $isSelected ? 'checked' : '' }}
+                                                        data-product-id="{{ $product->id }}"
+                                                        onchange="toggleProductRow(this)">
                                             </td>
                                             <td>
                                                 <div class="d-flex align-items-center">
@@ -96,19 +95,19 @@
                                                        {{ !$isSelected ? 'disabled' : '' }}>
                                             </td>
                                             <td style="min-width: 120px;">
-                                                <select class="form-select form-select-sm" 
-                                                        name="products[{{ $product->id }}][discount_type]"
-                                                        {{ !$isSelected ? 'disabled' : '' }}>
-                                                    <option value="percent" {{ $discountType === 'percent' ? 'selected' : '' }}>Percentage (%)</option>
-                                                    <option value="flat" {{ $discountType === 'flat' ? 'selected' : '' }}>Fixed Amount</option>
-                                                </select>
+                                                 <select class="form-select form-select-sm" 
+                                                         name="products[{{ $product->id }}][discount_type]"
+                                                         {{ !$isSelected ? 'disabled' : '' }}>
+                                                     <option value="percent" {{ $discountType === 'percent' ? 'selected' : '' }}>Percentage (%)</option>
+                                                     <option value="fixed" {{ $discountType === 'fixed' ? 'selected' : '' }}>Fixed Amount</option>
+                                                 </select>
                                             </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
-                    @else
+                     @else
                         <div class="text-center py-5">
                             <i class="bi bi-inbox display-4 text-muted"></i>
                             <p class="mt-2 text-muted">No products available</p>
@@ -118,14 +117,17 @@
                         </div>
                     @endif
                 </div>
-            </div>
-
-            <!-- Pagination -->
-            @if($products->hasPages())
-                <div class="d-flex justify-content-center mb-3">
-                    {{ $products->links() }}
+                @if($products->hasPages())
+                <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="text-muted small">
+                        Showing {{ $products->firstItem() }} - {{ $products->lastItem() }} of {{ $products->total() }} products
+                    </div>
+                    <div>
+                        {{ $products->appends(request()->query())->links() }}
+                    </div>
                 </div>
-            @endif
+                @endif
+            </div>
         </div>
 
         <div class="col-lg-4">

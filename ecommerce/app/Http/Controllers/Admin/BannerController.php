@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Banner;
+use App\Helpers\ImageHelper;
 
 class BannerController extends Controller
 {
@@ -54,7 +55,15 @@ class BannerController extends Controller
 
         $positions = Banner::getPositionOptions();
 
-        return view('admin.banners.index', compact('banners', 'positions'));
+        // Calculate stats from all banners, not just paginated ones
+        $allBanners = Banner::all();
+        $stats = [
+            'total' => $allBanners->count(),
+            'active' => $allBanners->where('is_active', true)->count(),
+            'inactive' => $allBanners->where('is_active', false)->count(),
+        ];
+
+        return view('admin.banners.index', compact('banners', 'positions', 'stats'));
     }
 
     /**
@@ -87,9 +96,19 @@ class BannerController extends Controller
 
         $data = $request->all();
 
-        // Handle image upload
+        // Handle image upload with ImageHelper
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('banners', 'public');
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'banners',
+                    1920,
+                    300,
+                    85
+                );
+                $data['image'] = $imageResult['path'];
+                $data['thumbnail'] = $imageResult['thumbnail'] ?? null;
+            }
         }
 
         // Set default sort order if not provided
@@ -140,13 +159,23 @@ class BannerController extends Controller
 
         $data = $request->all();
 
-        // Handle image upload
+        // Handle image upload with ImageHelper
         if ($request->hasFile('image')) {
             // Delete old image
-            if ($banner->image && \Storage::disk('public')->exists($banner->image)) {
-                \Storage::disk('public')->delete($banner->image);
+            if ($banner->image) {
+                ImageHelper::deleteImage($banner->image, $banner->thumbnail ?? null);
             }
-            $data['image'] = $request->file('image')->store('banners', 'public');
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'banners',
+                    1920,
+                    300,
+                    85
+                );
+                $data['image'] = $imageResult['path'];
+                $data['thumbnail'] = $imageResult['thumbnail'] ?? null;
+            }
         }
 
         $banner->update($data);
@@ -159,9 +188,9 @@ class BannerController extends Controller
      */
     public function destroy(Banner $banner)
     {
-        // Delete image
-        if ($banner->image && \Storage::disk('public')->exists($banner->image)) {
-            \Storage::disk('public')->delete($banner->image);
+        // Delete image using ImageHelper
+        if ($banner->image) {
+            ImageHelper::deleteImage($banner->image, $banner->thumbnail ?? null);
         }
 
         $banner->delete();
@@ -175,6 +204,14 @@ class BannerController extends Controller
     public function toggle(Banner $banner)
     {
         $banner->update(['is_active' => !$banner->is_active]);
+        
+        if (request()->expectsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'is_active' => $banner->is_active,
+                'message' => $banner->is_active ? 'Banner activated' : 'Banner deactivated'
+            ]);
+        }
         
         $status = $banner->is_active ? 'activated' : 'deactivated';
         return back()->with('success', "Banner {$status} successfully.");
@@ -228,8 +265,8 @@ class BannerController extends Controller
 
             case 'delete':
                 $banners->each(function ($banner) {
-                    if ($banner->image && \Storage::disk('public')->exists($banner->image)) {
-                        \Storage::disk('public')->delete($banner->image);
+                    if ($banner->image) {
+                        ImageHelper::deleteImage($banner->image, $banner->thumbnail ?? null);
                     }
                     $banner->delete();
                 });

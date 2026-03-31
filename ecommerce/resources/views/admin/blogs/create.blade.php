@@ -234,7 +234,7 @@ $(document).ready(function() {
         fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana'],
         fontSizes: ['8', '9', '10', '11', '12', '14', '16', '18', '20', '24', '28', '32', '36', '48', '64'],
         styleTags: [
-            'p', 
+            'p',
             { title: 'Heading 1', tag: 'h1', value: 'h1' },
             { title: 'Heading 2', tag: 'h2', value: 'h2' },
             { title: 'Heading 3', tag: 'h3', value: 'h3' },
@@ -294,6 +294,20 @@ $(document).ready(function() {
             reader.readAsDataURL(file);
         }
     });
+    
+    // Auto-scroll to first error field
+    @if($errors->any())
+        var firstErrorField = document.querySelector('.is-invalid');
+        if (firstErrorField) {
+            setTimeout(function() {
+                firstErrorField.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                firstErrorField.focus();
+            }, 100);
+        }
+    @endif
 });
 </script>
 @endpush

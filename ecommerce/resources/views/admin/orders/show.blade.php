@@ -21,7 +21,7 @@
 </div>
 
 <!-- Status Overview Cards -->
-<div class="row mb-4">
+<div class="stat-card-row mb-4">
     <div class="col-md-3 col-sm-6 mb-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">

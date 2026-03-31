@@ -20,7 +20,7 @@ Do you understand? let me know.
 
 The e-commerce website development is done. I want to perform a QA (Quality Assurance) cross-check section by section.
 
-Current Task: Focus only on the Admin Panel > Products > Bulk Discount
+Current Task: Focus only on the Admin Panel > Products > Newsletters
 
 Instructions:
 
@@ -37,15 +37,16 @@ Do you understand? Please confirm the scope and list the files you are about to 
 
 The e-commerce website development is done. I want to perform a QA (Quality Assurance) cross-check section by section.
 
-Current Task: Focus only on the Admin Panel > REPORTS > Seller Products Sale
+Current Task: Focus only on the Admin Panel > OTPSystem > Set OTP Credentials
 
 Instructions:
 
-Read Preference.md to understand the required style and functionality standards.(check carefully image, button, table, style related issues)
+Read Preference.md, this fil has som bug and fixes. if you encounter any problem first look at this file for solution. if you dont get solution there then let me know first. and ask for permission to proceed.
 Read the existing code for the General Settings page to understand the current implementation.
 Trace the Logic: Verify if the forms, buttons, and inputs function correctly (e.g., does the 'Save' button actually commit data to the database? Are validations working?).
 Usability Check: Ensure the features are logical and easy to use for the admin.
 Crucial: Do not write or modify any code yet. Just report your findings. List any bugs, logical errors, or deviations from Preference.md that you find.
+Style: also  implement/maintain global css (global-styles.blade.php) carefully with pin point accuracy. reference style page: http://127.0.0.1:8000/admin/inventory
 
 After completing all fixes, ALWAYS run this checklist:
 1. Re-read ORIGINAL QA report - verify ALL items addressed in table of content?
@@ -64,89 +65,23 @@ also fix those issues carefully, no need to ask me to proceed.
 -----------------------------------------------------------------------------------------------
 
 
-
-
-
 Add this hints to Preference.md on your own language, that you will understand it to take necessary steps in future:
 hint 1:
 hint 2:
 also update the Table of contents of Preference.md
 
 
------------------------------------------------------------------------------------
-
-
-QA CHECKLIST FOR ADMIN PANEL SECTIONS (AGAINST PREFERENCE.MD):
-
-Current Task: Focus only on the Admin Panel > Products > Brand
-
-Instructions:
-
-1. MENU/NAVIGATION VERIFICATION
-   - Check sidebar menu expands/collapses correctly (Preference.md: Sidebar Navigation State)
-   - Verify active state highlighting matches current route (Preference.md: Active State/Collapse State)
-   - Confirm all menu items link to correct routes (Preference.md: Route Conflict Prevention)
-   - Test menu state persistence across page loads
-
-2. BUTTON FUNCTIONALITY VERIFICATION
-   - Confirm all buttons use Preference.md standard classes:
-     * Primary actions: btn btn-primary floating-save-btn with bi-check-lg (Preference.md: Floating Action Buttons)
-     * Secondary/Cancel: btn btn-secondary floating-reset-btn with bi-x-lg (Preference.md: Floating Action Buttons)
-     * Dangerous actions: btn btn-outline-danger floating-reset-btn with bi-trash (Preference.md: Floating Action Buttons)
-   - Verify button actions trigger correct functionality
-   - Check floating button positioning and overlap prevention (Preference.md: Floating Buttons Overlap Issue)
-
-3. FORM VALIDATION & SUBMISSION
-   - Validate required fields show * indicator (Preference.md: Form Controls Best Practices)
-   - Check error messages use invalid-feedback divs (Preference.md: Form Validation Errors)
-   - Verify auto-scroll to first error on submission (Preference.md: Form Validation Errors)
-   - Test form submission actually processes data
-   - Confirm CSRF protection is present
-   - Check image upload functionality follows ImageHelper standards (Preference.md: Image Upload Functionality)
-
-4. SECURITY MEASURES VERIFICATION
-   - Verify permission middleware is applied to routes (Preference.md: Important Implementation Rule)
-   - Check authorization gates/policies are enforced
-   - Validate input sanitization and validation rules
-   - Confirm proper error handling (no stack traces exposed)
-   - Check for proper use of modals vs direct redirects for errors (Preference.md: Bootstrap Modal Popup)
-
-5. STYLING CONSISTENCY CHECK (AGAINST PREFERENCE.MD)
-   - Verify card styling: border-0 shadow-sm mb-3 (Preference.md: Cards)
-   - Check table structure matches Preference.md standards (Preference.md: Table Listing Pages)
-   - Confirm form control best practices are followed (Preference.md: Form Controls Best Practices)
-   - Validate icon usage follows Bootstrap Icons guidelines (Preference.md: Icons)
-   - Check spacing, typography, and color usage consistency
-
-6. BUG IDENTIFICATION
-   - Test edge cases and boundary conditions
-   - Verify JavaScript functionality (AJAX, live search, etc.) (Preference.md: Search & Filter Functionality)
-   - Check for console errors in browser dev tools
-   - Validate responsive behavior across screen sizes
-   - Test form reset and cancel functionality
-
-7. REPORTING (AGAINST PREFERENCE.MD)
-   - Document all findings without modifying code
-   - Categorize issues by severity (critical, major, minor)
-   - Reference specific Preference.md sections for deviations
-   - Provide clear reproduction steps for any bugs found
-   - Verify compliance with Important Implementation Rule (Admin Panel + Frontend Integration)
-
-
-
 -------------------------------------------------------------------
-I want to implement global css (global-styles.blade.php) to every admin pages
+I want to implement global css (global-styles.blade.php) to below pages:
 
-this page implementade well so use this page as a reference: http://127.0.0.1:8000/admin/products
-
-but these pages below is not implementade well.
-Refund
-    Refund Requests
-    Approved Refunds
-    Rejected Refunds
+Admin Panel > OTPSystem > Set OTP Credentials
 
 
-so implement carefully
+so implement carefully with pin point accuracy.
+
+reference page: http://127.0.0.1:8000/admin/inventory
+
+
 
 
 

@@ -160,9 +160,9 @@
                     <div class="mb-3">
                         <label for="recipients_type_modal" class="form-label">Recipients</label>
                         <select name="recipients_type" id="recipients_type_modal" class="form-select" required>
-                            <option value="all">All (Subscribers + Customers)</option>
-                            <option value="subscribers">Newsletter Subscribers Only</option>
-                            <option value="users">Registered Customers Only</option>
+                            <option value="all" {{ $newsletter->recipients_type == 'all' ? 'selected' : '' }}>All (Subscribers + Customers)</option>
+                            <option value="subscribers" {{ $newsletter->recipients_type == 'subscribers' ? 'selected' : '' }}>Newsletter Subscribers Only</option>
+                            <option value="users" {{ $newsletter->recipients_type == 'users' ? 'selected' : '' }}>Registered Customers Only</option>
                         </select>
                         <div class="form-text">This will send to: <span id="recipientCount">-</span> recipients</div>
                     </div>
@@ -190,6 +190,8 @@
     </button>
 </div>
 @endif
+
+@endsection
 
 @push('styles')
 <style>
@@ -230,4 +232,3 @@
     document.getElementById('recipients_type_modal')?.addEventListener('change', updateRecipientCount);
 </script>
 @endpush
-@endsection

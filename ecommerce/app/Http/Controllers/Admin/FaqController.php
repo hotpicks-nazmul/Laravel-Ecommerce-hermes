@@ -152,6 +152,7 @@ class FaqController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Status updated successfully.',
+            'id' => $faq->id,
             'status' => $faq->status,
             'badge' => $faq->status_badge
         ]);

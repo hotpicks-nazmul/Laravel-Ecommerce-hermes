@@ -8,32 +8,29 @@
 </div>
 
 <!-- Stats Cards -->
-        <div class="row mb-4">
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Total Templates</div>
-                        <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Active</div>
-                        <div class="h4 mb-0 text-success">{{ $stats['active'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Inactive</div>
-                        <div class="h4 mb-0 text-danger">{{ $stats['inactive'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-envelope"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Templates</span>
+            <span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span>
         </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value">{{ $stats['active'] ?? 0 }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Inactive</span>
+            <span class="stat-card-value">{{ $stats['inactive'] ?? 0 }}</span>
+        </div>
+    </div>
+</div>
 
         <!-- Filters Card -->
         <div class="card border-0 shadow-sm mb-3">

@@ -121,11 +121,18 @@ class JakatController extends Controller
             'silver_price' => 'required|numeric|min:0',
         ]);
 
-        // Save prices to settings
-        Setting::updateOrCreate(['key' => 'gold_price_per_gram'], ['value' => $validated['gold_price']]);
-        Setting::updateOrCreate(['key' => 'silver_price_per_gram'], ['value' => $validated['silver_price']]);
+        try {
+            // Save prices to settings
+            Setting::updateOrCreate(['key' => 'gold_price_per_gram'], ['value' => $validated['gold_price']]);
+            Setting::updateOrCreate(['key' => 'silver_price_per_gram'], ['value' => $validated['silver_price']]);
 
-        return redirect()->route('admin.jakat.index')
-            ->with('success', 'Market prices updated successfully.');
+            return redirect()->route('admin.jakat.index')
+                ->with('success', 'Market prices updated successfully.');
+        } catch (\Exception $e) {
+            Log::error('Failed to update Jakat market prices: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Failed to update market prices. Please try again.')
+                ->withInput();
+        }
     }
 }

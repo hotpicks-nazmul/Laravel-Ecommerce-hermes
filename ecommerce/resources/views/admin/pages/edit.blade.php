@@ -45,8 +45,8 @@
                     
                     <div class="mb-3">
                         <label for="page-content" class="form-label">Content <span class="text-danger">*</span></label>
-                        <textarea id="page-content" name="content" class="form-control @error('content') is-invalid @elderror" 
-                                  rows="10" placeholder="Write your page content here..." required>{{ old('content', $page->content) }}</textarea>
+                        <textarea id="page-content" name="content" class="form-control @error('content') is-invalid @enderror" 
+          rows="10" placeholder="Write your page content here..." required>{{ old('content', $page->content) }}</textarea>
                         @error('content')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -61,8 +61,8 @@
                             <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="document.getElementById('remove_image').value=1;this.parentElement.style.display='none';">Remove</button>
                         </div>
                         @endif
-                        <input type="file" id="featured_image" name="featured_image" class="form-control" accept="image/*">
-                        <input type="hidden" name="remove_image" id="remove_image" value="0">
+                        <input type="file" id="featured_image" name="featured_image" class="form-control" accept="image/*" form="pageForm">
+                        <input type="hidden" name="remove_image" id="remove_image" value="0" form="pageForm">
                         <div class="form-text">Recommended size: 1200x630px. Leave empty to keep current image.</div>
                     </div>
                 </form>
@@ -78,14 +78,14 @@
                     <label for="meta_title" class="form-label">Meta Title</label>
                     <input type="text" id="meta_title" name="meta_title" class="form-control" 
                            value="{{ old('meta_title', $page->meta_title) }}" 
-                           placeholder="SEO title (defaults to page title)">
+                           placeholder="SEO title (defaults to page title)" form="pageForm">
                     <div class="form-text">Leave empty to use the page title</div>
                 </div>
                 
                 <div class="mb-3">
                     <label for="meta_description" class="form-label">Meta Description</label>
                     <textarea id="meta_description" name="meta_description" class="form-control" rows="2" 
-                              placeholder="Brief description for search engines">{{ old('meta_description', $page->meta_description) }}</textarea>
+                              placeholder="Brief description for search engines" form="pageForm">{{ old('meta_description', $page->meta_description) }}</textarea>
                     <div class="form-text">A concise description for search engine results (150-160 characters)</div>
                 </div>
             </div>
@@ -99,7 +99,7 @@
             </div>
             <div class="card-body">
                 <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" id="isActive" name="is_active" value="1" {{ old('is_active', $page->status === 'published') ? 'checked' : '' }}>
+                    <input class="form-check-input" type="checkbox" id="isActive" name="is_active" value="1" {{ old('is_active', $page->status === 'published') ? 'checked' : '' }} form="pageForm">
                     <label class="form-check-label" for="isActive">
                         <i class="bi bi-check-circle text-success me-1"></i> Publish Page
                     </label>

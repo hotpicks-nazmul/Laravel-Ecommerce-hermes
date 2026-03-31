@@ -3,80 +3,72 @@
 @section('title', 'Abandoned Cart Recovery')
 
 @section('content')
-<div class="content-area">
-    <div class="container-fluid pt-4">
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">Abandoned Cart Recovery</h4>
-            <div class="d-flex gap-2">
-                <a href="{{ route('admin.marketing.abandoned-cart.settings') }}" class="btn btn-outline-primary">
-                    <i class="bi bi-gear me-1"></i> Settings
-                </a>
-                <a href="{{ route('admin.marketing.abandoned-cart.conversion-tracking') }}" class="btn btn-outline-info">
-                    <i class="bi bi-graph-up me-1"></i> Analytics
-                </a>
-            </div>
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-cart-x"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Abandoned</span>
+            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
         </div>
-
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Total Abandoned</div>
-                        <div class="h4 mb-0 text-primary">{{ $stats['total'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Abandoned</div>
-                        <div class="h4 mb-0 text-danger">{{ $stats['abandoned'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Recovered</div>
-                        <div class="h4 mb-0 text-success">{{ $stats['recovered'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Recovery Rate</div>
-                        <div class="h4 mb-0 text-info">
-                            @if($stats['total'] > 0)
-                                {{ round(($stats['recovered'] / $stats['total']) * 100, 1) }}%
-                            @else
-                                0%
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Emails Sent</div>
-                        <div class="h4 mb-0 text-warning">{{ $stats['email_sent'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6 mb-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center py-3">
-                        <div class="text-muted small text-uppercase">Revenue Recovered</div>
-                        <div class="h4 mb-0 text-success">{{ '৳' . number_format($stats['total_revenue_recovered'] ?? 0, 2) }}</div>
-                    </div>
-                </div>
-            </div>
+    </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-cart-dash"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Abandoned</span>
+            <span class="stat-card-value">{{ number_format($stats['abandoned'] ?? 0) }}</span>
         </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-cart-check"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Recovered</span>
+            <span class="stat-card-value">{{ number_format($stats['recovered'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-percent"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Recovery Rate</span>
+            <span class="stat-card-value">
+                @if($stats['total'] > 0)
+                    {{ round(($stats['recovered'] / $stats['total']) * 100, 1) }}%
+                @else
+                    0%
+                @endif
+            </span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-envelope"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Emails Sent</span>
+            <span class="stat-card-value">{{ number_format($stats['email_sent'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Revenue Recovered</span>
+            <span class="stat-card-value">{{ '৳' . number_format($stats['total_revenue_recovered'] ?? 0, 2) }}</span>
+        </div>
+    </div>
+</div>
 
-        <!-- Filters Card -->
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Abandoned Cart Recovery</h4>
+    <div class="d-flex gap-2">
+        <a href="{{ route('admin.marketing.abandoned-cart.settings') }}" class="btn btn-outline-primary">
+            <i class="bi bi-gear me-1"></i> Settings
+        </a>
+        <a href="{{ route('admin.marketing.abandoned-cart.conversion-tracking') }}" class="btn btn-outline-info">
+            <i class="bi bi-graph-up me-1"></i> Analytics
+        </a>
+    </div>
+</div>
+
+<!-- Filters Card -->
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-body py-3">
                 <form method="GET" id="filterForm">
@@ -249,8 +241,6 @@
                 @endif
             </div>
         </div>
-    </div>
-</div>
 @endsection
 
 @push('scripts')

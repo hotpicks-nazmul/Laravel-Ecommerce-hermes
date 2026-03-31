@@ -324,6 +324,20 @@ $(document).ready(function() {
                 .replace(/(^-|-$)/g, ''));
         }
     });
+    
+    // Auto-scroll to first error field
+    @if($errors->any())
+        var firstErrorField = document.querySelector('.is-invalid');
+        if (firstErrorField) {
+            setTimeout(function() {
+                firstErrorField.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                firstErrorField.focus();
+            }, 100);
+        }
+    @endif
 });
 </script>
 @endpush

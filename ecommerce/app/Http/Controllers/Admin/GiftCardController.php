@@ -40,7 +40,15 @@ class GiftCardController extends Controller
 
         $giftCards = $query->paginate(15);
 
-        return view('admin.marketing.gift-cards.index', compact('giftCards'));
+        $stats = [
+            'total' => GiftCard::count(),
+            'active' => GiftCard::where('status', 'active')->count(),
+            'inactive' => GiftCard::where('status', 'inactive')->count(),
+            'expired' => GiftCard::where('status', 'expired')->count(),
+            'used' => GiftCard::where('status', 'used')->count(),
+        ];
+
+        return view('admin.marketing.gift-cards.index', compact('giftCards', 'stats'));
     }
 
     /**

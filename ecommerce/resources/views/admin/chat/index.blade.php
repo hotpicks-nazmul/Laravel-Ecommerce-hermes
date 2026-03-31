@@ -3,6 +3,7 @@
 @section('title', 'Live Chat')
 
 @section('content')
+<!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0">Live Chat</h4>
     <div class="d-flex gap-2">
@@ -13,45 +14,40 @@
 </div>
 
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-2 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Chats</div>
-                <div class="h4 mb-0 text-primary" id="statTotal">0</div>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-chat-dots"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Chats</span>
+            <span class="stat-card-value" id="statTotal">0</span>
         </div>
     </div>
-    <div class="col-md-2 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">New</div>
-                <div class="h4 mb-0 text-info" id="statNew">0</div>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-chat-square-text"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">New</span>
+            <span class="stat-card-value" id="statNew">0</span>
         </div>
     </div>
-    <div class="col-md-2 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Pending</div>
-                <div class="h4 mb-0 text-warning" id="statPending">0</div>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Pending</span>
+            <span class="stat-card-value" id="statPending">0</span>
         </div>
     </div>
-    <div class="col-md-2 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Replied</div>
-                <div class="h4 mb-0 text-success" id="statReplied">0</div>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active</span>
+            <span class="stat-card-value" id="statActive">0</span>
         </div>
     </div>
-    <div class="col-md-2 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Closed</div>
-                <div class="h4 mb-0 text-secondary" id="statClosed">0</div>
-            </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-check2-all"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Closed</span>
+            <span class="stat-card-value" id="statClosed">0</span>
         </div>
     </div>
 </div>
@@ -69,7 +65,7 @@
             <div class="card-body p-0">
                 <!-- Filters -->
                 <div class="border-bottom p-2">
-                    <div class="btn-group w-100">
+                    <div class="btn-group w-100 filter-tabs">
                         <button class="btn btn-sm btn-outline-secondary filter-btn active position-relative" data-filter="all">
                             All <span class="badge rounded-pill bg-secondary" id="badgeAll">0</span>
                         </button>
@@ -229,6 +225,20 @@
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 <style>
+/* Make filter tabs fit in single row */
+.btn-group.filter-tabs {
+    flex-wrap: nowrap;
+}
+.btn-group.filter-tabs .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.4rem;
+    white-space: nowrap;
+}
+.btn-group.filter-tabs .btn .badge {
+    font-size: 0.65rem;
+    padding: 0.2em 0.4em;
+}
+
 .avatar-circle {
     font-weight: 600;
 }
@@ -570,7 +580,7 @@ function updateStats(data) {
     }
     document.getElementById('statNew').textContent = data.new || 0;
     document.getElementById('statPending').textContent = data.pending || 0;
-    document.getElementById('statReplied').textContent = data.replied || 0;
+    document.getElementById('statActive').textContent = data.active || data.replied || 0;
     document.getElementById('statClosed').textContent = data.closed || 0;
     
     // Update filter badges
@@ -607,8 +617,8 @@ function selectConversation(id, userName, status) {
     // Load messages
     loadMessages(id);
     
-    // Mark messages as read when conversation is clicked
-    markAsRead();
+    // Subscribe to Pusher channel for this chat
+    subscribeToChat(id);
 }
 
 function loadMessages(conversationId) {
@@ -848,9 +858,17 @@ function closeChat() {
     if (confirm('Are you sure you want to close this chat?')) {
         document.getElementById('chatStatusSelect').value = 'closed';
         updateChatStatus();
+        // Reset UI state
         currentConversationId = null;
         document.getElementById('chatCard').style.display = 'none';
         document.getElementById('noChatCard').style.display = 'block';
+        document.getElementById('messagesList').innerHTML = '';
+        document.getElementById('noMessages').style.display = 'block';
+        // Remove active highlight from conversation list
+        document.querySelectorAll('#conversationsList .list-group-item').forEach(el => {
+            el.classList.remove('active');
+        });
+        loadConversations();
     }
 }
 
@@ -858,7 +876,7 @@ function deleteChat() {
     if (!currentConversationId) return;
     
     if (confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) {
-        fetch(`{{ route('admin.chat.destroy', ':id') }}`.replace(':id', currentConversationId), {
+        fetch(`{{ route('admin.chat.conversation.destroy', ':id') }}`.replace(':id', currentConversationId), {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -962,10 +980,14 @@ function updateQuickReplies(messages) {
     messages.forEach((msg, index) => {
         // Add keyboard shortcut hint (1-9)
         const shortcut = index < 9 ? `<span class="badge bg-secondary ms-1" style="font-size: 0.6rem;">${index + 1}</span>` : '';
-        html += `<button type="button" class="btn btn-sm btn-outline-primary me-1 mb-1" 
-            onclick="sendQuickReply(${msg.id}, '${msg.message.replace(/'/g, "\\'")}')" 
-            title="${msg.message.substring(0, 80)}${msg.message.length > 80 ? '...' : ''}\nClick to send directly | Hold Ctrl+${index + 1}">
-            ${msg.title} ${shortcut}
+        // Escape HTML to prevent XSS
+        const escapedTitle = msg.title.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>').replace(/"/g, '"').replace(/'/g, '&#x27;');
+        const escapedMessage = msg.message.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>').replace(/"/g, '"').replace(/'/g, '&#x27;');
+        const safeMessage = msg.message.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
+        html += `<button type="button" class="btn btn-sm btn-outline-primary me-1 mb-1"
+            onclick="sendQuickReply(${msg.id}, '${safeMessage}')"
+            title="${escapedMessage.substring(0, 80)}${msg.message.length > 80 ? '...' : ''}\nClick to send directly | Hold Ctrl+${index + 1}">
+            ${escapedTitle} ${shortcut}
         </button>`;
     });
     container.innerHTML = html;
@@ -1134,7 +1156,12 @@ function startTypingPolling() {
 function checkUserTypingStatus() {
     if (!currentConversationId) return;
     
-    fetch('{{ route("admin.chat.check-typing") }}?conversation_id=' + currentConversationId)
+    fetch(`{{ route('admin.chat.check-typing') }}?conversation_id=${currentConversationId}`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
         .then(res => res.json())
         .then(data => {
             if (data.user_is_typing) {
@@ -1323,34 +1350,61 @@ sendMessage = function(e) {
     const file = fileInput ? fileInput.files[0] : null;
     
     if (!message && !file) return;
-    if (!currentConversationId && !file) return;
+    if (!currentConversationId) return;
     
-    const formData = new FormData();
-    formData.append('conversation_id', currentConversationId);
-    if (message) formData.append('message', message);
-    if (file) formData.append('attachment', file);
-    
-    fetch(`{{ route('admin.chat.send') }}`, {
-        method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        input.value = '';
-        if (fileInput) fileInput.value = '';
-        const preview = document.getElementById('filePreview');
-        if (preview) preview.innerHTML = '';
-        loadMessages(currentConversationId);
-        loadConversations();
-    })
-    .catch(err => {
-        console.error('Error sending message:', err);
-        alert('Failed to send message. Please try again.');
-    });
+    // If there's a file, use FormData for multipart upload
+    if (file) {
+        const formData = new FormData();
+        formData.append('conversation_id', currentConversationId);
+        if (message) formData.append('message', message);
+        formData.append('attachment', file);
+        
+        fetch(`{{ route('admin.chat.send') }}`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            input.value = '';
+            if (fileInput) fileInput.value = '';
+            const preview = document.getElementById('filePreview');
+            if (preview) preview.innerHTML = '';
+            loadMessages(currentConversationId);
+            loadConversations();
+        })
+        .catch(err => {
+            console.error('Error sending message:', err);
+            alert('Failed to send message. Please try again.');
+        });
+    } else {
+        // No file, use JSON
+        fetch(`{{ route('admin.chat.send') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                conversation_id: currentConversationId,
+                message: message
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            input.value = '';
+            loadMessages(currentConversationId);
+            loadConversations();
+        })
+        .catch(err => {
+            console.error('Error sending message:', err);
+            alert('Failed to send message. Please try again.');
+        });
+    }
 };
 
 // ============================================

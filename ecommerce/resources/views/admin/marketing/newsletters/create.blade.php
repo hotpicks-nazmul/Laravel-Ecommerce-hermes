@@ -97,6 +97,8 @@
     </button>
 </div>
 
+@endsection
+
 @push('styles')
 <style>
     .content-area {
@@ -104,4 +106,3 @@
     }
 </style>
 @endpush
-@endsection

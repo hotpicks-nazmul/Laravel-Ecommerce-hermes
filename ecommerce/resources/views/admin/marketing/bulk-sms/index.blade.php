@@ -3,43 +3,81 @@
 @section('title', 'Bulk SMS')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4" id="statsCards">
+    <!-- Card 1 -->
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-people"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Customers with Phone</span>
+            <span class="stat-card-value">{{ number_format($stats['total_customers'] ?? 0) }}</span>
+        </div>
+    </div>
+    <!-- Card 2 -->
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-bell"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active Subscribers</span>
+            <span class="stat-card-value">{{ number_format($stats['total_subscribers'] ?? 0) }}</span>
+        </div>
+    </div>
+    <!-- Card 3 -->
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-send"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Sent</span>
+            <span class="stat-card-value">{{ number_format($stats['total_sent'] ?? 0) }}</span>
+        </div>
+    </div>
+    <!-- Card 4 -->
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Successful</span>
+            <span class="stat-card-value">{{ number_format($stats['successful'] ?? 0) }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">Bulk SMS</h4>
 </div>
 
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Customers with Phone</div>
-                <div class="h4 mb-0 text-primary">{{ $stats['total_customers'] }}</div>
+<!-- Filters Card -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-3">
+        <form method="GET" id="filterForm">
+            <div class="row g-2 align-items-end">
+                <!-- Search Input -->
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <label class="form-label small text-muted">Search</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" id="liveSearch" class="form-control" 
+                               placeholder="Search messages..." value="{{ request('search') }}">
+                    </div>
+                </div>
+                
+                <!-- Status Filter -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Status</label>
+                    <select name="status" id="filterStatus" class="form-select form-select-sm">
+                        <option value="">All Status</option>
+                        <option value="sent" {{ request('status') == 'sent' ? 'selected' : '' }}>Sent</option>
+                        <option value="partial" {{ request('status') == 'partial' ? 'selected' : '' }}>Partial</option>
+                        <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
+                    </select>
+                </div>
+                
+                <!-- Reset Button -->
+                <div class="col-lg-2 col-md-4 col-sm-8">
+                    <a href="{{ route('admin.marketing.bulk-sms.index') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-lg me-1"></i> Reset
+                    </a>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Active Subscribers</div>
-                <div class="h4 mb-0 text-success">{{ $stats['total_subscribers'] }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Total Sent</div>
-                <div class="h4 mb-0 text-info">{{ $stats['total_sent'] }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Successful</div>
-                <div class="h4 mb-0 text-success">{{ $stats['successful'] }}</div>
-            </div>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -56,8 +94,8 @@
                     
                     <!-- Recipients Type -->
                     <div class="mb-3">
-                        <label class="form-label">Recipients <span class="text-danger">*</span></label>
-                        <select name="recipients_type" id="recipientsType" class="form-select" onchange="updateRecipientCount()">
+                        <label for="recipientsType" class="form-label">Recipients <span class="text-danger">*</span></label>
+                        <select name="recipients_type" id="recipientsType" class="form-select">
                             <option value="">Select recipients...</option>
                             <option value="all_customers">All Customers (with phone)</option>
                             <option value="subscribers">SMS Subscribers</option>
@@ -65,17 +103,17 @@
                             <option value="specific_numbers">Specific Phone Numbers</option>
                         </select>
                         @error('recipients_type')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
 
                     <!-- Specific Numbers (shown when selected) -->
                     <div class="mb-3" id="specificNumbersField" style="display: none;">
-                        <label class="form-label">Phone Numbers <span class="text-danger">*</span></label>
+                        <label for="specificNumbers" class="form-label">Phone Numbers <span class="text-danger">*</span></label>
                         <textarea name="specific_numbers" id="specificNumbers" class="form-control" rows="3" placeholder="Enter phone numbers separated by commas&#10;Example: 01712345678, 01987654321, 01812345678"></textarea>
                         <div class="form-text">Enter multiple phone numbers separated by commas</div>
                         @error('specific_numbers')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -89,14 +127,14 @@
 
                     <!-- Message -->
                     <div class="mb-3">
-                        <label class="form-label">Message <span class="text-danger">*</span></label>
-                        <textarea name="message" id="message" class="form-control" rows="5" placeholder="Enter your message..." maxlength="1600" oninput="updateCharCount()"></textarea>
+                        <label for="message" class="form-label">Message <span class="text-danger">*</span></label>
+                        <textarea name="message" id="message" class="form-control @error('message') is-invalid @enderror" rows="5" placeholder="Enter your message..." maxlength="1600" oninput="updateCharCount()"></textarea>
                         <div class="d-flex justify-content-between">
                             <div class="form-text">SMS will be sent as plain text</div>
                             <div class="form-text"><span id="charCount">0</span>/1600 characters</div>
                         </div>
                         @error('message')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -126,16 +164,6 @@
                             <span class="text-muted">Your message preview will appear here...</span>
                         </div>
                     </div>
-
-                    <!-- Submit Button -->
-                    <div class="d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary" onclick="resetForm()">
-                            <i class="bi bi-x-lg me-1"></i> Reset
-                        </button>
-                        <button type="submit" class="btn btn-primary" id="sendBtn" disabled>
-                            <i class="bi bi-send me-1"></i> Send SMS
-                        </button>
-                    </div>
                 </form>
             </div>
         </div>
@@ -162,9 +190,9 @@
                 <h6 class="mb-0"><i class="bi bi-gear me-2"></i>SMS Gateway</h6>
             </div>
             <div class="card-body">
-                <p class="text-muted small mb-2">Configure your SMS gateway in settings to enable actual SMS delivery.</p>
-                <a href="#" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-sliders me-1"></i> SMS Settings
+                <p class="text-muted small mb-2">Configure your SMS gateway to enable actual SMS delivery.</p>
+                <a href="{{ route('admin.otp.credentials') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-sliders me-1"></i> SMS Gateway Settings
                 </a>
             </div>
         </div>
@@ -173,23 +201,8 @@
 
 <!-- SMS History -->
 <div class="card border-0 shadow-sm">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div class="card-header bg-white">
         <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>SMS History</h6>
-        
-        <!-- Filter -->
-        <form method="GET" class="d-flex gap-2">
-            <select name="status" class="form-select form-select-sm" style="width: 150px;" onchange="this.form.submit()">
-                <option value="">All Status</option>
-                <option value="sent" {{ request('status') == 'sent' ? 'selected' : '' }}>Sent</option>
-                <option value="partial" {{ request('status') == 'partial' ? 'selected' : '' }}>Partial</option>
-                <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
-            </select>
-            @if(request('status'))
-                <a href="{{ route('admin.marketing.bulk-sms.index') }}" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-x-lg"></i>
-                </a>
-            @endif
-        </form>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -203,9 +216,13 @@
                         <th style="width: 100px;">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tableBody">
                     @forelse($smsHistory as $sms)
-                        <tr>
+                        @php
+                            $search = request('search');
+                            $isMatch = $search && stripos($sms['message'], $search) !== false;
+                        @endphp
+                        <tr class="{{ $isMatch ? 'table-warning' : '' }}">
                             <td>
                                 <div class="text-truncate" style="max-width: 300px;" title="{{ $sms['message'] }}">
                                     {{ Str::limit($sms['message'], 50) }}
@@ -286,6 +303,16 @@
     </div>
 </div>
 
+<!-- Floating Save Button Container -->
+<div class="floating-save-container">
+    <button type="button" class="btn btn-secondary floating-reset-btn" onclick="resetForm()">
+        <i class="bi bi-x-lg me-1"></i> Reset
+    </button>
+    <button type="submit" form="smsForm" class="btn btn-primary floating-save-btn" id="sendBtn" disabled>
+        <i class="bi bi-send me-1"></i> Send SMS
+    </button>
+</div>
+
 <!-- SMS Detail Modal -->
 <div class="modal fade" id="smsDetailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -326,17 +353,57 @@
         </div>
     </div>
 </div>
+@endsection
 
 @push('styles')
 <style>
+    /* Add padding at bottom to prevent floating button overlap */
     .content-area {
         padding-bottom: 100px !important;
     }
+    
+    /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
 </style>
 @endpush
 
 @push('scripts')
 <script>
+    // Auto-scroll to first validation error on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+
     // Toggle specific numbers field
     document.getElementById('recipientsType').addEventListener('change', function() {
         const specificNumbersField = document.getElementById('specificNumbersField');
@@ -397,8 +464,6 @@
                 console.error('Error:', error);
                 document.getElementById('recipientCountText').textContent = 'Error getting count';
             });
-        
-        updateSendButton();
     }
 
     // Update send button state
@@ -463,7 +528,7 @@
             return;
         }
         
-        const url = '{{ url("admin/marketing/bulk-sms") }}/' + id;
+        const url = '{{ route("admin.marketing.bulk-sms.destroy", ["id" => "ID_PLACEHOLDER"]) }}'.replace('ID_PLACEHOLDER', id);
         
         fetch(url, {
             method: 'DELETE',
@@ -488,6 +553,38 @@
 
     // Update count when specific numbers change
     document.getElementById('specificNumbers').addEventListener('input', updateRecipientCount);
+
+    // Live search for SMS history
+    let searchTimeout;
+    const searchInput = document.getElementById('liveSearch');
+    const filterStatus = document.getElementById('filterStatus');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                submitFilterForm();
+            }, 300);
+        });
+    }
+
+    if (filterStatus) {
+        filterStatus.addEventListener('change', function() {
+            submitFilterForm();
+        });
+    }
+
+    function submitFilterForm() {
+        const params = new URLSearchParams();
+        const search = searchInput.value.trim();
+        const status = filterStatus.value;
+        
+        if (search) params.set('search', search);
+        if (status) params.set('status', status);
+        
+        const queryString = params.toString();
+        const url = '{{ route("admin.marketing.bulk-sms.index") }}' + (queryString ? '?' + queryString : '');
+        window.location.href = url;
+    }
 </script>
 @endpush
-@endsection

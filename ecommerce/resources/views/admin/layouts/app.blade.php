@@ -8,6 +8,24 @@
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Pagination override - must come after Bootstrap */
+        .admin-panel .pagination .page-link,
+        .card-footer .pagination .page-link {
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.875rem !important;
+            line-height: 1.5 !important;
+            min-width: 2rem !important;
+            height: 2rem !important;
+        }
+        .admin-panel .pagination .page-link i::before,
+        .card-footer .pagination .page-link i::before,
+        .admin-panel .pagination .page-link .bi::before,
+        .card-footer .pagination .page-link .bi::before {
+            font-size: 0.875rem !important;
+            line-height: 1 !important;
+        }
+    </style>
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <!-- DataTables CSS -->
@@ -267,6 +285,46 @@
             padding: 20px;
         }
         
+        /* All Bootstrap Icons - Force visibility */
+        i[class*="bi bi-"],
+        i[class*="bi-"]:before,
+        span[class*="bi bi-"],
+        span[class*="bi bi-"]:before {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* Card Header Icons - Ensure visibility */
+        .card-header i.bi {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            font-family: 'bootstrap-icons' !important;
+            font-style: normal !important;
+            font-weight: normal !important;
+            font-variant: normal !important;
+            text-transform: none !important;
+            line-height: 1 !important;
+            -webkit-font-smoothing: antialiased !important;
+            -moz-osx-font-smoothing: grayscale !important;
+        }
+        
+        /* Card Body Icons - Ensure visibility */
+        .card-body i.bi {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            font-family: 'bootstrap-icons' !important;
+            font-style: normal !important;
+            font-weight: normal !important;
+            font-variant: normal !important;
+            text-transform: none !important;
+            line-height: 1 !important;
+            -webkit-font-smoothing: antialiased !important;
+            -moz-osx-font-smoothing: grayscale !important;
+        }
+        
         /* Statistics Card - Universal Global Style */
         /* Use this class on any page for consistent stats cards */
         .stat-card-grid {
@@ -444,12 +502,14 @@
         .stat-card {
             border: none;
             border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             transition: transform 0.3s ease;
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 16px;
+            background: #fff;
+            border: 1px solid #f0f0f0;
         }
         
         .stat-card:hover {
@@ -485,17 +545,18 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 16px;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
         }
 
         .stat-card-row-6 {
             grid-template-columns: repeat(6, 1fr);
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
         }
-
-        .stat-card-row .stat-card {
-            min-height: 80px;
-            align-items: stretch;
-        }
-
+        
         @media (max-width: 992px) {
             .stat-card-row {
                 grid-template-columns: repeat(2, 1fr);
@@ -504,13 +565,13 @@
                 grid-template-columns: repeat(3, 1fr);
             }
         }
-
+        
         @media (max-width: 768px) {
             .stat-card-row-6 {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
-
+        
         @media (max-width: 576px) {
             .stat-card-row {
                 grid-template-columns: 1fr;
@@ -518,6 +579,12 @@
             .stat-card-row-6 {
                 grid-template-columns: 1fr;
             }
+        }
+        
+        .stat-card-row .stat-card {
+            min-height: 80px;
+            align-items: stretch;
+            box-sizing: border-box;
         }
         
         .stat-card:hover {
@@ -541,6 +608,50 @@
             border-radius: 10px;
             font-size: 22px;
         }
+        
+        /* Force Bootstrap Icons to display */
+        .stat-card-icon i {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            width: auto !important;
+            height: auto !important;
+            position: relative !important;
+            font-family: 'bootstrap-icons' !important;
+        }
+        
+        .stat-card-icon i:before {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            width: auto !important;
+            height: auto !important;
+        }
+        
+        /* Explicit colors for stat card variants */
+        .stat-card-primary .stat-card-icon { background: #e8f4fd; }
+        .stat-card-primary .stat-card-icon i:before { color: #0d6efd !important; }
+        .stat-card-primary .stat-card-icon i { color: #0d6efd !important; }
+        
+        .stat-card-success .stat-card-icon { background: #d1e7dd; }
+        .stat-card-success .stat-card-icon i:before { color: #198754 !important; }
+        .stat-card-success .stat-card-icon i { color: #198754 !important; }
+        
+        .stat-card-info .stat-card-icon { background: #cff4fc; }
+        .stat-card-info .stat-card-icon i:before { color: #0dcaf0 !important; }
+        .stat-card-info .stat-card-icon i { color: #0dcaf0 !important; }
+        
+        .stat-card-warning .stat-card-icon { background: #fff3cd; }
+        .stat-card-warning .stat-card-icon i:before { color: #ffc107 !important; }
+        .stat-card-warning .stat-card-icon i { color: #ffc107 !important; }
+        
+        .stat-card-danger .stat-card-icon { background: #f8d7da; }
+        .stat-card-danger .stat-card-icon i:before { color: #dc3545 !important; }
+        .stat-card-danger .stat-card-icon i { color: #dc3545 !important; }
+        
+        .stat-card-secondary .stat-card-icon { background: #e2e3e5; }
+        .stat-card-secondary .stat-card-icon i:before { color: #6c757d !important; }
+        .stat-card-secondary .stat-card-icon i { color: #6c757d !important; }
         
         /* Responsive */
         @media (max-width: 991.98px) {
@@ -785,6 +896,33 @@
                 padding: 10px 18px;
                 font-size: 0.9rem;
             }
+        }
+        
+        /* Pagination icon sizing - fix large icons */
+        .pagination .page-link i,
+        .pagination .page-link i::before,
+        .pagination .page-link .bi,
+        .pagination .page-link .bi::before {
+            font-size: 14px !important;
+            line-height: 1 !important;
+        }
+        
+        .page-item .page-link i,
+        .page-item .page-link i::before,
+        .page-item .page-link .bi,
+        .page-item .page-link .bi::before {
+            font-size: 14px !important;
+            line-height: 1 !important;
+        }
+        
+        .dataTables_paginate .paginate_button {
+            min-width: auto !important;
+            padding: 0.25rem 0.5rem !important;
+        }
+        
+        .dataTables_paginate .paginate_button i,
+        .dataTables_paginate .paginate_button i::before {
+            font-size: 14px !important;
         }
     </style>
     
@@ -1465,14 +1603,14 @@
             <!-- CONTENT -->
             @if(Auth::user()->hasPermission('content'))
             <div class="menu-category">
-                <a class="menu-category-header {{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') || request()->routeIs('admin.content.widgets.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuContent" role="button" aria-expanded="{{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') || request()->routeIs('admin.content.widgets.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-settings.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') || request()->routeIs('admin.content.widgets.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuContent" role="button" aria-expanded="{{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-settings.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') || request()->routeIs('admin.content.widgets.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-file-earmark-text menu-icon"></i>
                         <span class="menu-category-title">Content</span>
                     </div>
                     <i class="bi bi-chevron-down arrow"></i>
                 </a>
-                <div class="collapse {{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') || request()->routeIs('admin.content.widgets.*') ? 'show' : '' }}" id="menuContent">
+                <div class="collapse {{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-settings.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') || request()->routeIs('admin.content.widgets.*') ? 'show' : '' }}" id="menuContent">
                     <ul class="nav flex-column submenu">
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}" href="{{ route('admin.pages.index') }}">
@@ -1480,7 +1618,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.blogs.*') ? 'active' : '' }}" href="{{ route('admin.blogs.index') }}">
+                            <a class="nav-link {{ request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-settings.*') ? 'active' : '' }}" href="{{ route('admin.blogs.index') }}">
                                 <i class="bi bi-newspaper"></i> Blog Posts
                             </a>
                         </li>

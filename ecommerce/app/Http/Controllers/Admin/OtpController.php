@@ -84,7 +84,9 @@ class OtpController extends Controller
             OtpConfiguration::getAllConfig()
         );
 
-        return view('admin.otp.sms-templates', compact('templates'));
+        $stats = $this->otpService->getStats();
+
+        return view('admin.otp.sms-templates', compact('templates', 'stats'));
     }
 
     /**
@@ -122,7 +124,9 @@ class OtpController extends Controller
             OtpConfiguration::getAllConfig()
         );
 
-        return view('admin.otp.credentials', compact('credentials'));
+        $stats = $this->otpService->getStats();
+
+        return view('admin.otp.credentials', compact('credentials', 'stats'));
     }
 
     /**
@@ -141,11 +145,11 @@ class OtpController extends Controller
         if ($request->has('custom_api_url')) {
             OtpConfiguration::set('custom_api_url', $request->custom_api_url, 'credentials');
         }
-        if ($request->has('custom_api_key') && !empty($request->custom_api_key)) {
-            OtpConfiguration::set('custom_api_key', $request->custom_api_key, 'credentials');
+        if ($request->has('custom_api_key')) {
+            OtpConfiguration::set('custom_api_key', $request->custom_api_key ?? '', 'credentials');
         }
-        if ($request->has('custom_api_secret') && !empty($request->custom_api_secret)) {
-            OtpConfiguration::set('custom_api_secret', $request->custom_api_secret, 'credentials');
+        if ($request->has('custom_api_secret')) {
+            OtpConfiguration::set('custom_api_secret', $request->custom_api_secret ?? '', 'credentials');
         }
         if ($request->has('custom_sender_id')) {
             OtpConfiguration::set('custom_sender_id', $request->custom_sender_id, 'credentials');
@@ -161,8 +165,8 @@ class OtpController extends Controller
         if ($request->has('twilio_sid')) {
             OtpConfiguration::set('twilio_sid', $request->twilio_sid, 'credentials');
         }
-        if ($request->has('twilio_token') && !empty($request->twilio_token)) {
-            OtpConfiguration::set('twilio_token', $request->twilio_token, 'credentials');
+        if ($request->has('twilio_token')) {
+            OtpConfiguration::set('twilio_token', $request->twilio_token ?? '', 'credentials');
         }
         if ($request->has('twilio_from')) {
             OtpConfiguration::set('twilio_from', $request->twilio_from, 'credentials');
@@ -183,11 +187,44 @@ class OtpController extends Controller
         if ($request->has('ssl_sms_user')) {
             OtpConfiguration::set('ssl_sms_user', $request->ssl_sms_user, 'credentials');
         }
-        if ($request->has('ssl_sms_pass') && !empty($request->ssl_sms_pass)) {
-            OtpConfiguration::set('ssl_sms_pass', $request->ssl_sms_pass, 'credentials');
+        if ($request->has('ssl_sms_pass')) {
+            OtpConfiguration::set('ssl_sms_pass', $request->ssl_sms_pass ?? '', 'credentials');
         }
         if ($request->has('ssl_sid')) {
             OtpConfiguration::set('ssl_sid', $request->ssl_sid, 'credentials');
+        }
+
+        // Save Nexmo (Vonage) credentials
+        if ($request->has('nexmo_api_key')) {
+            OtpConfiguration::set('nexmo_api_key', $request->nexmo_api_key, 'credentials');
+        }
+        if ($request->has('nexmo_api_secret')) {
+            OtpConfiguration::set('nexmo_api_secret', $request->nexmo_api_secret ?? '', 'credentials');
+        }
+        if ($request->has('nexmo_from')) {
+            OtpConfiguration::set('nexmo_from', $request->nexmo_from, 'credentials');
+        }
+
+        // Save Banglalion credentials
+        if ($request->has('banglalion_api_key')) {
+            OtpConfiguration::set('banglalion_api_key', $request->banglalion_api_key, 'credentials');
+        }
+        if ($request->has('banglalion_api_secret')) {
+            OtpConfiguration::set('banglalion_api_secret', $request->banglalion_api_secret ?? '', 'credentials');
+        }
+        if ($request->has('banglalion_sender_id')) {
+            OtpConfiguration::set('banglalion_sender_id', $request->banglalion_sender_id, 'credentials');
+        }
+
+        // Save MIM SMS credentials
+        if ($request->has('mim_api_key')) {
+            OtpConfiguration::set('mim_api_key', $request->mim_api_key, 'credentials');
+        }
+        if ($request->has('mim_api_secret')) {
+            OtpConfiguration::set('mim_api_secret', $request->mim_api_secret ?? '', 'credentials');
+        }
+        if ($request->has('mim_sender_id')) {
+            OtpConfiguration::set('mim_sender_id', $request->mim_sender_id, 'credentials');
         }
 
         return redirect()->route('admin.otp.credentials')

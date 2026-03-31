@@ -37,6 +37,7 @@ class NewsletterController extends Controller
             'draft' => Newsletter::where('status', 'draft')->count(),
             'sent' => Newsletter::where('status', 'sent')->count(),
             'scheduled' => Newsletter::where('status', 'scheduled')->count(),
+            'failed' => Newsletter::where('status', 'failed')->count(),
         ];
 
         return view('admin.marketing.newsletters.index', compact('newsletters', 'stats'));

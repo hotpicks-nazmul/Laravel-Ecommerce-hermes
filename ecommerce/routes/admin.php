@@ -405,7 +405,7 @@ Route::prefix('chat')->name('chat.')->group(function () {
     Route::post('/conversation/{id}/close', [ChatController::class, 'close'])->name('close');
     Route::post('/conversation/{id}/mark-unread', [ChatController::class, 'markAsUnread'])->name('mark-unread');
     Route::post('/conversation/{id}/mark-read', [ChatController::class, 'markAsRead'])->name('mark-read');
-    Route::delete('/conversation/{id}', [ChatController::class, 'destroy'])->name('destroy');
+    Route::delete('/conversation/{id}', [ChatController::class, 'destroyConversation'])->name('conversation.destroy');
     Route::get('/online-users', [ChatController::class, 'getOnlineUsers'])->name('online-users');
     
     // AI Settings
@@ -425,9 +425,6 @@ Route::prefix('chat')->name('chat.')->group(function () {
     Route::delete('/predefined/{id}', [ChatController::class, 'destroyPredefinedMessage'])->name('predefined.destroy');
     Route::post('/predefined/toggle/{id}', [ChatController::class, 'togglePredefinedMessage'])->name('predefined.toggle');
     Route::post('/predefined/reorder', [ChatController::class, 'reorderPredefinedMessages'])->name('predefined.reorder');
-    
-    // Delete conversation
-    Route::delete('/{id}', [ChatController::class, 'destroy'])->name('destroy');
 });
 
 // Reports
@@ -444,6 +441,7 @@ Route::prefix('reports')->middleware('permission:reports')->name('reports.')->gr
     Route::get('/products', [ReportController::class, 'products'])->name('products');
     Route::get('/customers', [ReportController::class, 'customers'])->name('customers');
     Route::get('/inventory', [ReportController::class, 'inventory'])->name('inventory');
+    Route::get('/inventory/export', [ReportController::class, 'inventoryExport'])->name('inventory.export');
     Route::get('/export/{type}', [ReportController::class, 'export'])->name('export');
 });
 
@@ -713,13 +711,13 @@ Route::prefix('marketing')->middleware('permission:marketing')->name('marketing.
     Route::get('/newsletters', [\App\Http\Controllers\Admin\NewsletterController::class, 'index'])->name('newsletters.index');
     Route::get('/newsletters/create', [\App\Http\Controllers\Admin\NewsletterController::class, 'create'])->name('newsletters.create');
     Route::post('/newsletters', [\App\Http\Controllers\Admin\NewsletterController::class, 'store'])->name('newsletters.store');
+    Route::get('/newsletters/recipient-count', [\App\Http\Controllers\Admin\NewsletterController::class, 'getRecipientCount'])->name('newsletters.recipient-count');
     Route::get('/newsletters/{newsletter}/edit', [\App\Http\Controllers\Admin\NewsletterController::class, 'edit'])->name('newsletters.edit');
     Route::put('/newsletters/{newsletter}', [\App\Http\Controllers\Admin\NewsletterController::class, 'update'])->name('newsletters.update');
     Route::delete('/newsletters/{newsletter}', [\App\Http\Controllers\Admin\NewsletterController::class, 'destroy'])->name('newsletters.destroy');
     Route::post('/newsletters/{newsletter}/send', [\App\Http\Controllers\Admin\NewsletterController::class, 'send'])->name('newsletters.send');
     Route::get('/newsletters/{newsletter}/preview', [\App\Http\Controllers\Admin\NewsletterController::class, 'preview'])->name('newsletters.preview');
     Route::post('/newsletters/{newsletter}/duplicate', [\App\Http\Controllers\Admin\NewsletterController::class, 'duplicate'])->name('newsletters.duplicate');
-    Route::get('/newsletters/recipient-count', [\App\Http\Controllers\Admin\NewsletterController::class, 'getRecipientCount'])->name('newsletters.recipient-count');
     
     Route::get('/bulk-sms', [\App\Http\Controllers\Admin\SmsController::class, 'index'])->name('bulk-sms.index');
     Route::post('/bulk-sms/send', [\App\Http\Controllers\Admin\SmsController::class, 'send'])->name('bulk-sms.send');
@@ -728,7 +726,7 @@ Route::prefix('marketing')->middleware('permission:marketing')->name('marketing.
     
     Route::get('/subscribers', [\App\Http\Controllers\Admin\SubscriberController::class, 'index'])->name('subscribers.index');
     Route::post('/subscribers', [\App\Http\Controllers\Admin\SubscriberController::class, 'store'])->name('subscribers.store');
-    Route::post('/subscribers/export', [\App\Http\Controllers\Admin\SubscriberController::class, 'export'])->name('subscribers.export');
+    Route::get('/subscribers/export', [\App\Http\Controllers\Admin\SubscriberController::class, 'export'])->name('subscribers.export');
     Route::get('/subscribers/count', [\App\Http\Controllers\Admin\SubscriberController::class, 'getCount'])->name('subscribers.count');
     Route::delete('/subscribers/{subscriber}', [\App\Http\Controllers\Admin\SubscriberController::class, 'destroy'])->name('subscribers.destroy');
     Route::post('/subscribers/{subscriber}/unsubscribe', [\App\Http\Controllers\Admin\SubscriberController::class, 'unsubscribe'])->name('subscribers.unsubscribe');
@@ -1165,7 +1163,10 @@ Route::prefix('menus')->name('menus.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'index'])->name('index');
     Route::get('/create', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'create'])->name('create');
     Route::post('/', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'store'])->name('store');
-    
+
+    // Link options route - must be before {id} routes to avoid conflicts
+    Route::get('/link-options', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'getLinkOptions'])->name('link-options');
+
     // Menu items routes - must be before {id} routes to avoid conflicts
     Route::post('/{id}/items', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'storeItem'])->name('items.store');
     Route::get('/{id}/items', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'items'])->name('items');
@@ -1173,13 +1174,10 @@ Route::prefix('menus')->name('menus.')->group(function () {
     Route::delete('/{id}/items/{itemId}', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'destroyItem'])->name('items.destroy');
     Route::post('/{id}/items/reorder', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'reorderItems'])->name('items.reorder');
     Route::post('/{id}/items/{itemId}/toggle', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'toggleItemStatus'])->name('items.toggle');
-    
-    // Link options route
-    Route::get('/link-options', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'getLinkOptions'])->name('link-options');
-    
+
     // Toggle status
     Route::post('/{id}/toggle', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'toggleStatus'])->name('toggle');
-    
+
     // CRUD routes - must be after specific routes
     Route::get('/{id}/edit', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'edit'])->name('edit');
     Route::put('/{id}', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'update'])->name('update');

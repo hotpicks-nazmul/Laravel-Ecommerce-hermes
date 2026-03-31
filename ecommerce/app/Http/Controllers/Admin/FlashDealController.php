@@ -16,7 +16,16 @@ class FlashDealController extends Controller
     public function index()
     {
         $flashDeals = FlashDeal::latest()->paginate(15);
-        return view('admin.marketing.flash-deals.index', compact('flashDeals'));
+        
+        $stats = [
+            'total' => FlashDeal::count(),
+            'active' => FlashDeal::where('status', 'active')->count(),
+            'inactive' => FlashDeal::where('status', 'inactive')->count(),
+            'expired' => FlashDeal::where('status', 'expired')->count(),
+            'featured' => FlashDeal::where('is_featured', true)->count(),
+        ];
+        
+        return view('admin.marketing.flash-deals.index', compact('flashDeals', 'stats'));
     }
 
     /**
@@ -155,7 +164,7 @@ class FlashDealController extends Controller
             }
         }
         
-        return redirect()->route('admin.marketing.flash-deals.index')
+        return redirect()->route('admin.marketing.flash-deals.products', $flashDeal->id)
             ->with('success', 'Flash deal products updated successfully.');
     }
 

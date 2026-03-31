@@ -268,10 +268,31 @@
         // Get form values and open preview
         const form = document.getElementById('themeSettingsForm');
         const formData = new FormData(form);
-        const params = new URLSearchParams(formData);
+        const params = new URLSearchParams();
+        
+        // Properly serialize FormData entries
+        for (const [key, value] of formData.entries()) {
+            params.append(key, value);
+        }
         
         // Open frontend in new tab with preview parameters
         window.open('{{ url("/") }}?' + params.toString() + '&preview=1', '_blank');
     }
+
+    // Auto-scroll to first error field on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
 </script>
 @endpush

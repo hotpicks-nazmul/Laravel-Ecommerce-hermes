@@ -3,7 +3,6 @@
 @section('title', 'Home Page Settings')
 
 @section('content')
-<div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
@@ -736,10 +735,12 @@
             </div>
         </div>
     </form>
-</div>
 
 <!-- Floating Save Button -->
 <div class="floating-save-container">
+    <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary floating-reset-btn">
+        <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
     <button type="submit" form="homepage-form" class="btn btn-primary floating-save-btn">
         <i class="bi bi-check-lg me-1"></i> Save Settings
     </button>
@@ -748,6 +749,11 @@
 
 @push('styles')
 <style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+    
     .form-check-input:checked {
         background-color: #667eea;
         border-color: #667eea;

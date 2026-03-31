@@ -2,69 +2,7 @@
 
 @section('title', 'Product Queries')
 
-@push('styles')
-<style>
-    /* Add padding at bottom to prevent floating button overlap */
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-    
-    .qa-question {
-        max-width: 300px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    
-    .qa-answer {
-        max-width: 300px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    
-    .status-badge {
-        font-size: 0.75rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.25rem;
-    }
-    
-    .status-pending {
-        background-color: #fef3c7;
-        color: #92400e;
-    }
-    
-    .status-answered {
-        background-color: #dbeafe;
-        color: #1e40af;
-    }
-    
-    .status-published {
-        background-color: #d1fae5;
-        color: #065f46;
-    }
-    
-    .featured-icon {
-        color: #f59e0b;
-    }
-    
-    .product-info {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .product-info img {
-        width: 40px;
-        height: 40px;
-        object-fit: cover;
-        border-radius: 4px;
-    }
-</style>
-@endpush
-
 @section('content')
-<div class="container-fluid">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -74,38 +12,22 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Total</div>
-                    <div class="h4 mb-0 text-primary">{{ $stats['total'] }}</div>
-                </div>
-            </div>
+    <div class="stat-card-row mb-4">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon"><i class="bi bi-question-circle"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Total</span><span class="stat-card-value" id="statTotal">{{ $stats['total'] ?? 0 }}</span></div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Pending</div>
-                    <div class="h4 mb-0 text-warning">{{ $stats['pending'] }}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon"><i class="bi bi-clock"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Pending</span><span class="stat-card-value" id="statPending">{{ $stats['pending'] ?? 0 }}</span></div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Answered</div>
-                    <div class="h4 mb-0 text-info">{{ $stats['answered'] }}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon"><i class="bi bi-chat-dots"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Answered</span><span class="stat-card-value" id="statAnswered">{{ $stats['answered'] ?? 0 }}</span></div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Published</div>
-                    <div class="h4 mb-0 text-success">{{ $stats['published'] }}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Published</span><span class="stat-card-value" id="statPublished">{{ $stats['published'] ?? 0 }}</span></div>
         </div>
     </div>
 
@@ -325,8 +247,85 @@
         </div>
         @endif
     </div>
-</div>
 @endsection
+
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+    
+    .qa-question {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .qa-answer {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+    }
+    
+    .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+    
+    .status-answered {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .status-published {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+    
+    .featured-icon {
+        color: #f59e0b;
+    }
+    
+    .product-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .product-info img {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>
