@@ -228,11 +228,11 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <small class="text-muted">Original Price:</small>
-                                        <div class="h5 mb-0" id="previewOriginal">$100.00</div>
+                                        <div class="h5 mb-0" id="previewOriginal">৳100.00</div>
                                     </div>
                                     <div class="col-md-6">
                                         <small class="text-muted">After Discount:</small>
-                                        <div class="h5 mb-0 text-success" id="previewDiscounted">$90.00</div>
+                                        <div class="h5 mb-0 text-success" id="previewDiscounted">৳90.00</div>
                                     </div>
                                 </div>
                             </div>
@@ -447,12 +447,14 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="editDiscount({{ $product->id }})" title="Edit">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSingleDiscount({{ $product->id }})" title="Remove">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="editDiscount({{ $product->id }})" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSingleDiscount({{ $product->id }})" title="Remove">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                             @empty
@@ -634,8 +636,8 @@
             discountedPrice = originalPrice - value;
         }
 
-        document.getElementById('previewOriginal').textContent = '$' + originalPrice.toFixed(2);
-        document.getElementById('previewDiscounted').textContent = '$' + Math.max(0, discountedPrice).toFixed(2);
+        document.getElementById('previewOriginal').textContent = '৳' + originalPrice.toFixed(2);
+        document.getElementById('previewDiscounted').textContent = '৳' + Math.max(0, discountedPrice).toFixed(2);
         document.getElementById('previewSection').style.display = value > 0 ? 'block' : 'none';
     }
 
@@ -690,9 +692,9 @@
                     <small class="text-muted">${p.category}</small>
                 </td>
                 <td><code>${p.sku}</code></td>
-                <td>$${parseFloat(p.price).toFixed(2)}</td>
+                <td>৳${parseFloat(p.price).toFixed(2)}</td>
                 <td>
-                    ${p.sale_price ? '<span class="text-success">$' + parseFloat(p.sale_price).toFixed(2) + '</span>' : '<span class="text-muted">-</span>'}
+                    ${p.sale_price ? '<span class="text-success">৳' + parseFloat(p.sale_price).toFixed(2) + '</span>' : '<span class="text-muted">-</span>'}
                     ${p.discount_starts_at || p.discount_ends_at ? '<br><small class="text-info">' + formatDiscountDates(p.discount_starts_at, p.discount_ends_at, p.is_on_sale) + '</small>' : ''}
                 </td>
             </tr>
@@ -952,34 +954,38 @@
     fetch('{{ route('admin.products.bulk-discount.products') }}')
         .then(res => res.json())
         .then(data => {
-            const onSale = data.products.filter(p => p.sale_price).length;
+            const products = data.products || [];
+            const onSale = products.filter(p => p.sale_price).length;
             document.getElementById('productsOnSale').textContent = onSale;
-            document.getElementById('regularPriceOnly').textContent = data.products.length - onSale;
+            document.getElementById('regularPriceOnly').textContent = products.length - onSale;
+        })
+        .catch(() => {
+            document.getElementById('productsOnSale').textContent = '0';
+            document.getElementById('regularPriceOnly').textContent = '0';
         });
 
     // Initial preview update
     updatePreview();
+
+    // Tab state persistence
+    document.addEventListener('DOMContentLoaded', function() {
+      // Restore tab
+      const activeTab = localStorage.getItem('activeDiscountTab');
+      if (activeTab) {
+        const tabEl = document.querySelector(`button[data-bs-target="${activeTab}"]`);
+        if (tabEl) {
+          new bootstrap.Tab(tabEl).show();
+        }
+      }
+
+      // Save tab when shown
+      const tabButtons = document.querySelectorAll('#discountTabs button[data-bs-toggle="tab"]');
+      tabButtons.forEach(button => {
+        button.addEventListener('shown.bs.tab', event => {
+          localStorage.setItem('activeDiscountTab', event.target.getAttribute('data-bs-target'));
+        });
+      });
+    });
 </script>
 @endpush
-     <script>
-       // Tab state persistence
-       document.addEventListener('DOMContentLoaded', function() {
-         // Restore tab
-         const activeTab = localStorage.getItem('activeDiscountTab');
-         if (activeTab) {
-           const tabEl = document.querySelector(`button[data-bs-target="${activeTab}"]`);
-           if (tabEl) {
-             new bootstrap.Tab(tabEl).show();
-           }
-         }
-
-         // Save tab when shown
-         const tabButtons = document.querySelectorAll('#discountTabs button[data-bs-toggle="tab"]');
-         tabButtons.forEach(button => {
-           button.addEventListener('shown.bs.tab', event => {
-             localStorage.setItem('activeDiscountTab', event.target.getAttribute('data-bs-target'));
-           });
-         });
-       });
-     </script>
 @endsection

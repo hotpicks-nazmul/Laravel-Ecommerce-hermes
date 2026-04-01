@@ -80,6 +80,12 @@ class DigitalCategoryController extends Controller
             return response()->json([
                 'html' => view('admin.digital-categories.partials.table-rows', compact('categories'))->render(),
                 'pagination' => $categories->links()->toHtml(),
+                'pagination_info' => [
+                    'first_item' => $categories->firstItem(),
+                    'last_item' => $categories->lastItem(),
+                    'total' => $categories->total(),
+                    'has_pages' => $categories->hasPages(),
+                ],
                 'stats' => $stats
             ]);
         }

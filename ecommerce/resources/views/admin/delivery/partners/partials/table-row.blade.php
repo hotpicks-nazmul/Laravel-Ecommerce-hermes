@@ -73,11 +73,11 @@
     </td>
     <td>{{ $partner->sort_order }}</td>
     <td>
-        <div class="d-flex gap-1">
+        <div class="btn-group">
             <a href="{{ route('admin.delivery.partners.edit', $partner->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                 <i class="bi bi-pencil"></i>
             </a>
-            <form action="{{ route('admin.delivery.partners.destroy', $partner->id) }}" method="POST" class="d-inline">
+            <form action="{{ route('admin.delivery.partners.destroy', $partner->id) }}" method="POST">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this partner?')">

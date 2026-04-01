@@ -23,15 +23,35 @@
     </div>
 </div>
 
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
+
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
+
+@if($errors->any())
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    <strong>Please fix the following errors:</strong>
+    <ul class="mb-0 mt-2">
+        @foreach($errors->all() as $error)
+        <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
+
 <form action="{{ route('admin.settings.shipping.update') }}" method="POST" id="shipping-form">
     @csrf
-
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
 
     <div class="row">
         <div class="col-lg-8">
@@ -50,8 +70,11 @@
                         <label class="form-label">Minimum Order Amount for Free Shipping</label>
                         <div class="input-group">
                             <span class="input-group-text">{{ config('app.currency_symbol', '৳') }}</span>
-                            <input type="number" name="free_shipping_min_amount" class="form-control" value="{{ $settings['free_shipping_min_amount'] ?? 0 }}" min="0" step="0.01">
+                            <input type="number" name="free_shipping_min_amount" class="form-control @error('free_shipping_min_amount') is-invalid @enderror" value="{{ old('free_shipping_min_amount', $settings['free_shipping_min_amount'] ?? 0) }}" min="0" step="0.01">
                         </div>
+                        @error('free_shipping_min_amount')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                         <div class="form-text">Orders above this amount will get free shipping (0 = disabled)</div>
                     </div>
                 </div>
@@ -65,19 +88,25 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">Shipping Calculation Type</label>
-                        <select name="shipping_calculation_type" class="form-select">
-                            <option value="flat" {{ ($settings['shipping_calculation_type'] ?? 'flat') === 'flat' ? 'selected' : '' }}>Flat Rate</option>
-                            <option value="weight" {{ ($settings['shipping_calculation_type'] ?? '') === 'weight' ? 'selected' : '' }}>Based on Weight</option>
-                            <option value="price" {{ ($settings['shipping_calculation_type'] ?? '') === 'price' ? 'selected' : '' }}>Based on Price</option>
-                            <option value="location" {{ ($settings['shipping_calculation_type'] ?? '') === 'location' ? 'selected' : '' }}>Based on Location</option>
+                        <select name="shipping_calculation_type" class="form-select @error('shipping_calculation_type') is-invalid @enderror">
+                            <option value="flat" {{ old('shipping_calculation_type', $settings['shipping_calculation_type'] ?? 'flat') === 'flat' ? 'selected' : '' }}>Flat Rate</option>
+                            <option value="weight" {{ old('shipping_calculation_type', $settings['shipping_calculation_type'] ?? '') === 'weight' ? 'selected' : '' }}>Based on Weight</option>
+                            <option value="price" {{ old('shipping_calculation_type', $settings['shipping_calculation_type'] ?? '') === 'price' ? 'selected' : '' }}>Based on Price</option>
+                            <option value="location" {{ old('shipping_calculation_type', $settings['shipping_calculation_type'] ?? '') === 'location' ? 'selected' : '' }}>Based on Location</option>
                         </select>
+                        @error('shipping_calculation_type')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Default Shipping Cost</label>
                         <div class="input-group">
                             <span class="input-group-text">{{ config('app.currency_symbol', '৳') }}</span>
-                            <input type="number" name="default_shipping_cost" class="form-control" value="{{ $settings['default_shipping_cost'] ?? 0 }}" min="0" step="0.01">
+                            <input type="number" name="default_shipping_cost" class="form-control @error('default_shipping_cost') is-invalid @enderror" value="{{ old('default_shipping_cost', $settings['default_shipping_cost'] ?? 0) }}" min="0" step="0.01">
                         </div>
+                        @error('default_shipping_cost')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                         <div class="form-text">Default cost when no specific rule applies</div>
                     </div>
                 </div>
@@ -98,8 +127,11 @@
                         <label class="form-label">Local Pickup Cost</label>
                         <div class="input-group">
                             <span class="input-group-text">{{ config('app.currency_symbol', '৳') }}</span>
-                            <input type="number" name="local_pickup_cost" class="form-control" value="{{ $settings['local_pickup_cost'] ?? 0 }}" min="0" step="0.01">
+                            <input type="number" name="local_pickup_cost" class="form-control @error('local_pickup_cost') is-invalid @enderror" value="{{ old('local_pickup_cost', $settings['local_pickup_cost'] ?? 0) }}" min="0" step="0.01">
                         </div>
+                        @error('local_pickup_cost')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                         <div class="form-text">Cost for local pickup (0 = free)</div>
                     </div>
                 </div>
@@ -135,8 +167,31 @@
 
 <!-- Floating Save Button -->
 <div class="floating-save-container">
+    <a href="{{ route('admin.settings.index') }}" class="btn btn-secondary floating-reset-btn">
+        <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
     <button type="submit" form="shipping-form" class="btn btn-primary floating-save-btn">
         <i class="bi bi-check-lg me-1"></i> Save Settings
     </button>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+    
+    /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+</style>
+@endpush

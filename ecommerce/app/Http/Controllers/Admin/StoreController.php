@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Store;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use App\Helpers\ImageHelper;
 
 class StoreController extends Controller
 {
@@ -104,9 +105,9 @@ class StoreController extends Controller
             'longitude' => 'nullable|numeric|between:-180,180',
             'opening_hours' => 'nullable|string|max:1000',
             'description' => 'nullable|string|max:2000',
-            'logo' => 'nullable|string|max:500',
-            'favicon' => 'nullable|string|max:500',
-            'banner' => 'nullable|string|max:500',
+            'logo' => 'nullable|image|max:2048',
+            'favicon' => 'nullable|image|max:1024',
+            'banner' => 'nullable|image|max:5120',
             'primary_color' => 'nullable|string|max:20',
             'secondary_color' => 'nullable|string|max:20',
             'meta_title' => 'nullable|string|max:255',
@@ -121,7 +122,7 @@ class StoreController extends Controller
             'sort_order' => 'nullable|integer|min:0',
         ]);
 
-        $data = $request->all();
+        $data = $request->except(['logo', 'favicon', 'banner']);
         
         // Generate slug from name if not provided
         if (empty($data['slug'])) {
@@ -136,6 +137,48 @@ class StoreController extends Controller
         // If this is the first store, make it default
         if (!Store::exists()) {
             $data['is_default'] = true;
+        }
+
+        // Process logo image
+        if ($request->hasFile('logo')) {
+            if (ImageHelper::isValidImage($request->file('logo'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('logo'),
+                    'stores/logos',
+                    400,
+                    100,
+                    85
+                );
+                $data['logo'] = $imageResult['path'];
+            }
+        }
+
+        // Process favicon
+        if ($request->hasFile('favicon')) {
+            if (ImageHelper::isValidImage($request->file('favicon'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('favicon'),
+                    'stores/favicons',
+                    64,
+                    32,
+                    90
+                );
+                $data['favicon'] = $imageResult['path'];
+            }
+        }
+
+        // Process banner
+        if ($request->hasFile('banner')) {
+            if (ImageHelper::isValidImage($request->file('banner'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('banner'),
+                    'stores/banners',
+                    1920,
+                    400,
+                    85
+                );
+                $data['banner'] = $imageResult['path'];
+            }
         }
 
         $store = Store::create($data);
@@ -180,9 +223,9 @@ class StoreController extends Controller
             'longitude' => 'nullable|numeric|between:-180,180',
             'opening_hours' => 'nullable|string|max:1000',
             'description' => 'nullable|string|max:2000',
-            'logo' => 'nullable|string|max:500',
-            'favicon' => 'nullable|string|max:500',
-            'banner' => 'nullable|string|max:500',
+            'logo' => 'nullable|image|max:2048',
+            'favicon' => 'nullable|image|max:1024',
+            'banner' => 'nullable|image|max:5120',
             'primary_color' => 'nullable|string|max:20',
             'secondary_color' => 'nullable|string|max:20',
             'meta_title' => 'nullable|string|max:255',
@@ -197,7 +240,7 @@ class StoreController extends Controller
             'sort_order' => 'nullable|integer|min:0',
         ]);
 
-        $data = $request->all();
+        $data = $request->except(['logo', 'favicon', 'banner']);
 
         // Generate slug from name if empty
         if (empty($data['slug'])) {
@@ -208,6 +251,60 @@ class StoreController extends Controller
         if ($request->is_default && !$store->is_default) {
             Store::where('is_default', true)->update(['is_default' => false]);
             $data['is_default'] = true;
+        }
+
+        // Process logo image
+        if ($request->hasFile('logo')) {
+            if (ImageHelper::isValidImage($request->file('logo'))) {
+                // Delete old logo
+                if ($store->logo) {
+                    ImageHelper::deleteImage($store->logo);
+                }
+                $imageResult = ImageHelper::processImage(
+                    $request->file('logo'),
+                    'stores/logos',
+                    400,
+                    100,
+                    85
+                );
+                $data['logo'] = $imageResult['path'];
+            }
+        }
+
+        // Process favicon
+        if ($request->hasFile('favicon')) {
+            if (ImageHelper::isValidImage($request->file('favicon'))) {
+                // Delete old favicon
+                if ($store->favicon) {
+                    ImageHelper::deleteImage($store->favicon);
+                }
+                $imageResult = ImageHelper::processImage(
+                    $request->file('favicon'),
+                    'stores/favicons',
+                    64,
+                    32,
+                    90
+                );
+                $data['favicon'] = $imageResult['path'];
+            }
+        }
+
+        // Process banner
+        if ($request->hasFile('banner')) {
+            if (ImageHelper::isValidImage($request->file('banner'))) {
+                // Delete old banner
+                if ($store->banner) {
+                    ImageHelper::deleteImage($store->banner);
+                }
+                $imageResult = ImageHelper::processImage(
+                    $request->file('banner'),
+                    'stores/banners',
+                    1920,
+                    400,
+                    85
+                );
+                $data['banner'] = $imageResult['path'];
+            }
         }
 
         $store->update($data);
@@ -230,6 +327,17 @@ class StoreController extends Controller
         // If deleting default store, make another store default
         if ($store->is_default) {
             Store::where('id', '!=', $store->id)->first()?->update(['is_default' => true]);
+        }
+
+        // Delete associated images
+        if ($store->logo) {
+            ImageHelper::deleteImage($store->logo);
+        }
+        if ($store->favicon) {
+            ImageHelper::deleteImage($store->favicon);
+        }
+        if ($store->banner) {
+            ImageHelper::deleteImage($store->banner);
         }
 
         $store->delete();

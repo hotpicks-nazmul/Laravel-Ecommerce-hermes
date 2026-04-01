@@ -19,7 +19,6 @@
 @endpush
 
 @section('content')
-<div class="container-fluid">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -187,11 +186,11 @@
                                 </button>
                             </td>
                             <td>
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('admin.attributes.edit', $attribute->id) }}" class="btn btn-outline-primary" title="Edit">
+                                <div class="d-flex gap-1">
+                                    <a href="{{ route('admin.attributes.edit', $attribute->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <button type="button" class="btn btn-outline-danger" onclick="deleteItem({{ $attribute->id }})" title="Delete">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteItem({{ $attribute->id }})" title="Delete">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
@@ -225,7 +224,6 @@
         </div>
         @endif
     </div>
-</div>
 
 <!-- Bulk Action Form -->
 <form id="bulkActionForm" method="POST" style="display: none;">

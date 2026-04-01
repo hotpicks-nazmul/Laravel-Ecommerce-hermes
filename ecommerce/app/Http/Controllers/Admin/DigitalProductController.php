@@ -122,7 +122,7 @@ class DigitalProductController extends Controller
             
             $pagination = '';
             if ($products->hasPages()) {
-                $pagination = '<div class="d-flex justify-content-center mt-3">' . $products->links()->toHtml() . '</div>';
+                $pagination = $products->appends($request->query())->links()->toHtml();
             }
             
             return response()->json([

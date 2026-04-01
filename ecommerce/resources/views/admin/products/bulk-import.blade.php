@@ -42,7 +42,7 @@
                             </div>
                         </div>
                         @error('import_file')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -197,6 +197,7 @@
         <i class="bi bi-upload me-1"></i> Start Import
     </button>
 </div>
+@endsection
 
 @push('styles')
 <style>
@@ -226,6 +227,7 @@
     const fileName = document.getElementById('fileName');
     const submitBtn = document.getElementById('submitBtn');
     const floatingSubmitBtn = document.getElementById('floatingSubmitBtn');
+    const progressBar = document.getElementById('progressBar');
 
     // Click to upload
     uploadArea.addEventListener('click', () => fileInput.click());
@@ -367,7 +369,6 @@
      
      // Function to update progress bar
      function updateProgress(percent, text) {
-         const progressBar = document.getElementById('progressBar');
          const progressText = document.getElementById('progressText');
          const progressPercent = document.getElementById('progressPercent');
          
@@ -391,6 +392,20 @@
              importProgress.style.display = 'block';
          }
      }
+
+     // Auto-scroll to first validation error
+     document.addEventListener('DOMContentLoaded', function() {
+         @if($errors->any())
+             var firstErrorField = document.querySelector('.is-invalid, .invalid-feedback.d-block');
+             if (firstErrorField) {
+                 setTimeout(function() {
+                     firstErrorField.scrollIntoView({ 
+                         behavior: 'smooth', 
+                         block: 'center' 
+                     });
+                 }, 100);
+             }
+         @endif
+     });
  </script>
 @endpush
-@endsection

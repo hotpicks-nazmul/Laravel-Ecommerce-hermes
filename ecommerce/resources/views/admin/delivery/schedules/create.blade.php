@@ -3,7 +3,6 @@
 @section('title', 'Add Delivery Schedule')
 
 @section('content')
-<div class="content-area">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">Add Delivery Schedule</h4>
@@ -271,7 +270,6 @@
             <i class="bi bi-check-lg me-1"></i> Create Schedule
         </button>
     </div>
-</div>
 @endsection
 
 @push('styles')

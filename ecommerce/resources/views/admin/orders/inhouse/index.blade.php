@@ -4,7 +4,7 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="stat-card-row mb-4">
+<div class="stat-card-row mb-4" id="statsCards">
     <div class="stat-card stat-card-primary">
         <div class="stat-card-icon"><i class="bi bi-cart-fill"></i></div>
         <div class="stat-card-content"><span class="stat-card-label">Total Orders</span><span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span></div>
@@ -188,6 +188,30 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+/* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+.stat-card-icon i,
+.stat-card-icon i::before,
+.bi::before,
+.bi::before {
+    font-size: inherit !important;
+    line-height: 1 !important;
+}
+
+/* Override icon colors for stat cards */
+.stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+.stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+.stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+.stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+.stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+.stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+
+/* Make the whole icon colored */
+.stat-card-icon i { color: inherit !important; }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 let searchTimeout;
@@ -291,53 +315,29 @@ function updateStats(stats) {
     if (!statsContainer) return;
     
     statsContainer.innerHTML = `
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Total Orders</div>
-                    <div class="h4 mb-0 text-primary">${stats.total || 0}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon"><i class="bi bi-cart-fill"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Total Orders</span><span class="stat-card-value">${stats.total || 0}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Pending</div>
-                    <div class="h4 mb-0 text-warning">${stats.pending || 0}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon"><i class="bi bi-clock"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Pending</span><span class="stat-card-value">${stats.pending || 0}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Processing</div>
-                    <div class="h4 mb-0 text-info">${stats.processing || 0}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon"><i class="bi bi-gear"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Processing</span><span class="stat-card-value">${stats.processing || 0}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Shipped</div>
-                    <div class="h4 mb-0 text-primary">${stats.shipped || 0}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-secondary">
+            <div class="stat-card-icon"><i class="bi bi-truck"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Shipped</span><span class="stat-card-value">${stats.shipped || 0}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Delivered</div>
-                    <div class="h4 mb-0 text-success">${stats.delivered || 0}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon"><i class="bi bi-check2-all"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Delivered</span><span class="stat-card-value">${stats.delivered || 0}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Cancelled</div>
-                    <div class="h4 mb-0 text-danger">${stats.cancelled || 0}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-danger">
+            <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Cancelled</span><span class="stat-card-value">${stats.cancelled || 0}</span></div>
         </div>
     `;
 }

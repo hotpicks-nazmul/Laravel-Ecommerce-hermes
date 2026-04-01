@@ -22,17 +22,23 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="mail_mailer" class="form-label">Mail Driver <span class="text-danger">*</span></label>
-                            <select id="mail_mailer" name="mail_mailer" class="form-select" required>
-                                <option value="smtp" {{ ($settings['mail_mailer'] ?? 'smtp') === 'smtp' ? 'selected' : '' }}>SMTP</option>
-                                <option value="sendmail" {{ ($settings['mail_mailer'] ?? '') === 'sendmail' ? 'selected' : '' }}>Sendmail</option>
-                                <option value="log" {{ ($settings['mail_mailer'] ?? '') === 'log' ? 'selected' : '' }}>Log (Development)</option>
-                                <option value="array" {{ ($settings['mail_mailer'] ?? '') === 'array' ? 'selected' : '' }}>Array (Testing)</option>
+                            <select id="mail_mailer" name="mail_mailer" class="form-select @error('mail_mailer') is-invalid @enderror" required>
+                                <option value="smtp" {{ old('mail_mailer', $settings['mail_mailer'] ?? 'smtp') === 'smtp' ? 'selected' : '' }}>SMTP</option>
+                                <option value="sendmail" {{ old('mail_mailer', $settings['mail_mailer'] ?? '') === 'sendmail' ? 'selected' : '' }}>Sendmail</option>
+                                <option value="log" {{ old('mail_mailer', $settings['mail_mailer'] ?? '') === 'log' ? 'selected' : '' }}>Log (Development)</option>
+                                <option value="array" {{ old('mail_mailer', $settings['mail_mailer'] ?? '') === 'array' ? 'selected' : '' }}>Array (Testing)</option>
                             </select>
+                            @error('mail_mailer')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Choose how emails should be sent</div>
                         </div>
                         <div class="col-md-6">
                             <label for="mail_host" class="form-label">SMTP Host <span class="text-danger">*</span></label>
-                            <input type="text" id="mail_host" name="mail_host" class="form-control" value="{{ old('mail_host', $settings['mail_host'] ?? '') }}" placeholder="smtp.example.com" required>
+                            <input type="text" id="mail_host" name="mail_host" class="form-control @error('mail_host') is-invalid @enderror" value="{{ old('mail_host', $settings['mail_host'] ?? '') }}" placeholder="smtp.example.com" required>
+                            @error('mail_host')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Your SMTP server address</div>
                         </div>
                     </div>
@@ -40,16 +46,22 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="mail_port" class="form-label">SMTP Port <span class="text-danger">*</span></label>
-                            <input type="number" id="mail_port" name="mail_port" class="form-control" value="{{ old('mail_port', $settings['mail_port'] ?? '587') }}" placeholder="587" required>
+                            <input type="number" id="mail_port" name="mail_port" class="form-control @error('mail_port') is-invalid @enderror" value="{{ old('mail_port', $settings['mail_port'] ?? '587') }}" placeholder="587" required>
+                            @error('mail_port')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Common ports: 587 (TLS), 465 (SSL), 25</div>
                         </div>
                         <div class="col-md-6">
                             <label for="mail_encryption" class="form-label">Encryption</label>
-                            <select id="mail_encryption" name="mail_encryption" class="form-select">
-                                <option value="tls" {{ ($settings['mail_encryption'] ?? 'tls') === 'tls' ? 'selected' : '' }}>TLS (Recommended)</option>
-                                <option value="ssl" {{ ($settings['mail_encryption'] ?? '') === 'ssl' ? 'selected' : '' }}>SSL</option>
-                                <option value="" {{ ($settings['mail_encryption'] ?? '') === '' ? 'selected' : '' }}>None</option>
+                            <select id="mail_encryption" name="mail_encryption" class="form-select @error('mail_encryption') is-invalid @enderror">
+                                <option value="tls" {{ old('mail_encryption', $settings['mail_encryption'] ?? 'tls') === 'tls' ? 'selected' : '' }}>TLS (Recommended)</option>
+                                <option value="ssl" {{ old('mail_encryption', $settings['mail_encryption'] ?? '') === 'ssl' ? 'selected' : '' }}>SSL</option>
+                                <option value="" {{ old('mail_encryption', $settings['mail_encryption'] ?? '') === '' ? 'selected' : '' }}>None</option>
                             </select>
+                            @error('mail_encryption')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Secure connection type</div>
                         </div>
                     </div>
@@ -57,17 +69,23 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="mail_username" class="form-label">SMTP Username</label>
-                            <input type="text" id="mail_username" name="mail_username" class="form-control" value="{{ old('mail_username', $settings['mail_username'] ?? '') }}" placeholder="your-username">
+                            <input type="text" id="mail_username" name="mail_username" class="form-control @error('mail_username') is-invalid @enderror" value="{{ old('mail_username', $settings['mail_username'] ?? '') }}" placeholder="your-username">
+                            @error('mail_username')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Your SMTP authentication username</div>
                         </div>
                         <div class="col-md-6">
                             <label for="mail_password" class="form-label">SMTP Password</label>
                             <div class="input-group">
-                                <input type="password" id="mail_password" name="mail_password" class="form-control" value="{{ old('mail_password', $settings['mail_password'] ?? '') }}" placeholder="••••••••">
+                                <input type="password" id="mail_password" name="mail_password" class="form-control @error('mail_password') is-invalid @enderror" value="{{ old('mail_password', $settings['mail_password'] ?? '') }}" placeholder="••••••••">
                                 <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
                                     <i class="bi bi-eye" id="password-icon"></i>
                                 </button>
                             </div>
+                            @error('mail_password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Your SMTP authentication password</div>
                         </div>
                     </div>
@@ -83,12 +101,18 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="mail_from_address" class="form-label">From Email <span class="text-danger">*</span></label>
-                            <input type="email" id="mail_from_address" name="mail_from_address" class="form-control" value="{{ old('mail_from_address', $settings['mail_from_address'] ?? 'noreply@example.com') }}" placeholder="noreply@example.com" required>
+                            <input type="email" id="mail_from_address" name="mail_from_address" class="form-control @error('mail_from_address') is-invalid @enderror" value="{{ old('mail_from_address', $settings['mail_from_address'] ?? 'noreply@example.com') }}" placeholder="noreply@example.com" required>
+                            @error('mail_from_address')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Email address used as sender</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="mail_from_name" class="form-label">From Name <span class="text-danger">*</span></label>
-                            <input type="text" id="mail_from_name" name="mail_from_name" class="form-control" value="{{ old('mail_from_name', $settings['mail_from_name'] ?? config('app.name')) }}" placeholder="{{ config('app.name') }}" required>
+                            <input type="text" id="mail_from_name" name="mail_from_name" class="form-control @error('mail_from_name') is-invalid @enderror" value="{{ old('mail_from_name', $settings['mail_from_name'] ?? config('app.name')) }}" placeholder="{{ config('app.name') }}" required>
+                            @error('mail_from_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Name displayed as sender</div>
                         </div>
                     </div>
@@ -104,7 +128,10 @@
                     <div class="row">
                         <div class="col-md-12">
                             <label for="contact_email" class="form-label">Contact Form Recipient</label>
-                            <input type="email" id="contact_email" name="contact_email" class="form-control" value="{{ old('contact_email', $settings['contact_email'] ?? '') }}" placeholder="admin@example.com">
+                            <input type="email" id="contact_email" name="contact_email" class="form-control @error('contact_email') is-invalid @enderror" value="{{ old('contact_email', $settings['contact_email'] ?? '') }}" placeholder="admin@example.com">
+                            @error('contact_email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Email address where contact form submissions will be sent</div>
                         </div>
                     </div>
@@ -221,6 +248,9 @@
 
 <!-- Floating Save Button -->
 <div class="floating-save-container">
+    <a href="{{ route('admin.settings.email') }}" class="btn btn-secondary floating-reset-btn">
+        <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
     <button type="submit" form="email-form" class="btn btn-primary floating-save-btn">
         <i class="bi bi-check-lg me-1"></i> Save Settings
     </button>
@@ -237,6 +267,22 @@
 
 @push('scripts')
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-scroll to first error field
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+
     // Toggle password visibility
     function togglePassword() {
         const passwordInput = document.getElementById('mail_password');

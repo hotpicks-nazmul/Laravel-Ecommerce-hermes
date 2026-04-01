@@ -52,15 +52,14 @@
                     <i class="bi {{ $schedule->is_active ? 'bi-x-circle' : 'bi-check-circle' }}"></i>
                 </button>
             </form>
-            <a href="{{ route('admin.delivery.schedules.destroy', $schedule->id) }}" 
-               class="btn btn-sm btn-outline-danger" 
-               title="Delete"
-               onclick="event.preventDefault(); if(confirm('Are you sure you want to delete &quot;{{ $schedule->name }}&quot;?')) { document.getElementById('delete-form-{{ $schedule->id }}').submit(); }">
-                <i class="bi bi-trash"></i>
-            </a>
-            <form id="delete-form-{{ $schedule->id }}" method="POST" action="{{ route('admin.delivery.schedules.destroy', $schedule->id) }}" style="display: none;">
+            <form action="{{ route('admin.delivery.schedules.destroy', $schedule->id) }}" method="POST" class="d-inline">
                 @csrf
                 @method('DELETE')
+                <button type="submit" class="btn btn-sm btn-outline-danger" 
+                        title="Delete"
+                        onclick="return confirm('Are you sure you want to delete &quot;{{ $schedule->name }}&quot;?')">
+                    <i class="bi bi-trash"></i>
+                </button>
             </form>
         </div>
     </td>
@@ -76,19 +75,3 @@
     </td>
 </tr>
 @endforelse
-
-<!-- Delete Form -->
-<form id="deleteForm" method="POST" style="display: none;">
-    @csrf
-    @method('DELETE')
-</form>
-
-<script>
-function deleteSchedule(id, name) {
-    if (confirm(`Are you sure you want to delete "${name}"?`)) {
-        const form = document.getElementById('deleteForm');
-        form.action = `{{ route('admin.delivery.schedules.index') }}/` + id;
-        form.submit();
-    }
-}
-</script>

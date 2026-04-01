@@ -56,28 +56,40 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Order Prefix</label>
-                            <input type="text" name="order_prefix" class="form-control" value="{{ $settings['order_prefix'] ?? 'ORD' }}" placeholder="ORD">
+                            <input type="text" name="order_prefix" class="form-control @error('order_prefix') is-invalid @enderror" value="{{ old('order_prefix', $settings['order_prefix'] ?? 'ORD') }}" placeholder="ORD">
+                            @error('order_prefix')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Prefix added to order numbers (e.g., ORD-12345)</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Order Suffix</label>
-                            <input type="text" name="order_suffix" class="form-control" value="{{ $settings['order_suffix'] ?? '' }}" placeholder="">
+                            <input type="text" name="order_suffix" class="form-control @error('order_suffix') is-invalid @enderror" value="{{ old('order_suffix', $settings['order_suffix'] ?? '') }}" placeholder="">
+                            @error('order_suffix')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Suffix added to order numbers</div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Order Number Length</label>
-                            <input type="number" name="order_number_length" class="form-control" value="{{ $settings['order_number_length'] ?? 8 }}" min="4" max="16">
+                            <input type="number" name="order_number_length" class="form-control @error('order_number_length') is-invalid @enderror" value="{{ old('order_number_length', $settings['order_number_length'] ?? 8) }}" min="4" max="16">
+                            @error('order_number_length')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Minimum length of random number part</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Order Number Format</label>
-                            <select name="order_number_format" class="form-select">
-                                <option value="random" {{ ($settings['order_number_format'] ?? 'random') === 'random' ? 'selected' : '' }}>Random Number</option>
-                                <option value="sequential" {{ ($settings['order_number_format'] ?? '') === 'sequential' ? 'selected' : '' }}>Sequential Number</option>
-                                <option value="date" {{ ($settings['order_number_format'] ?? '') === 'date' ? 'selected' : '' }}>Date + Random (YMD-Random)</option>
+                            <select name="order_number_format" class="form-select @error('order_number_format') is-invalid @enderror">
+                                <option value="random" {{ old('order_number_format', $settings['order_number_format'] ?? 'random') === 'random' ? 'selected' : '' }}>Random Number</option>
+                                <option value="sequential" {{ old('order_number_format', $settings['order_number_format'] ?? '') === 'sequential' ? 'selected' : '' }}>Sequential Number</option>
+                                <option value="date" {{ old('order_number_format', $settings['order_number_format'] ?? '') === 'date' ? 'selected' : '' }}>Date + Random (YMD-Random)</option>
                             </select>
+                            @error('order_number_format')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Format for generating order numbers</div>
                         </div>
                     </div>
@@ -95,7 +107,10 @@
                             <label class="form-label">Minimum Order Amount</label>
                             <div class="input-group">
                                 <span class="input-group-text">{{ config('app.currency_symbol', '৳') }}</span>
-                                <input type="number" name="min_order_amount" class="form-control" value="{{ $settings['min_order_amount'] ?? 0 }}" min="0" step="0.01">
+                                <input type="number" name="min_order_amount" class="form-control @error('min_order_amount') is-invalid @enderror" value="{{ old('min_order_amount', $settings['min_order_amount'] ?? 0) }}" min="0" step="0.01">
+                                @error('min_order_amount')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="form-text">Minimum cart total to place order (0 = no limit)</div>
                         </div>
@@ -103,7 +118,10 @@
                             <label class="form-label">Maximum Order Amount</label>
                             <div class="input-group">
                                 <span class="input-group-text">{{ config('app.currency_symbol', '৳') }}</span>
-                                <input type="number" name="max_order_amount" class="form-control" value="{{ $settings['max_order_amount'] ?? 0 }}" min="0" step="0.01">
+                                <input type="number" name="max_order_amount" class="form-control @error('max_order_amount') is-invalid @enderror" value="{{ old('max_order_amount', $settings['max_order_amount'] ?? 0) }}" min="0" step="0.01">
+                                @error('max_order_amount')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="form-text">Maximum cart total per order (0 = no limit)</div>
                         </div>
@@ -111,12 +129,18 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Minimum Order Quantity</label>
-                            <input type="number" name="min_order_quantity" class="form-control" value="{{ $settings['min_order_quantity'] ?? 1 }}" min="1">
+                            <input type="number" name="min_order_quantity" class="form-control @error('min_order_quantity') is-invalid @enderror" value="{{ old('min_order_quantity', $settings['min_order_quantity'] ?? 1) }}" min="1">
+                            @error('min_order_quantity')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Minimum quantity per order</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Maximum Order Quantity</label>
-                            <input type="number" name="max_order_quantity" class="form-control" value="{{ $settings['max_order_quantity'] ?? 99 }}" min="1">
+                            <input type="number" name="max_order_quantity" class="form-control @error('max_order_quantity') is-invalid @enderror" value="{{ old('max_order_quantity', $settings['max_order_quantity'] ?? 99) }}" min="1">
+                            @error('max_order_quantity')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Maximum quantity per order item</div>
                         </div>
                     </div>
@@ -133,7 +157,10 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Order Validity (Hours)</label>
                             <div class="input-group">
-                                <input type="number" name="order_validity_hours" class="form-control" value="{{ $settings['order_validity_hours'] ?? 72 }}" min="1">
+                                <input type="number" name="order_validity_hours" class="form-control @error('order_validity_hours') is-invalid @enderror" value="{{ old('order_validity_hours', $settings['order_validity_hours'] ?? 72) }}" min="1">
+                                @error('order_validity_hours')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                                 <span class="input-group-text">hours</span>
                             </div>
                             <div class="form-text">Time before order expires if not paid</div>
@@ -141,7 +168,10 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Auto Cancel Unpaid After</label>
                             <div class="input-group">
-                                <input type="number" name="auto_cancel_unpaid_hours" class="form-control" value="{{ $settings['auto_cancel_unpaid_hours'] ?? 0 }}" min="0">
+                                <input type="number" name="auto_cancel_unpaid_hours" class="form-control @error('auto_cancel_unpaid_hours') is-invalid @enderror" value="{{ old('auto_cancel_unpaid_hours', $settings['auto_cancel_unpaid_hours'] ?? 0) }}" min="0">
+                                @error('auto_cancel_unpaid_hours')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                                 <span class="input-group-text">hours</span>
                             </div>
                             <div class="form-text">Auto-cancel unpaid orders (0 = disabled)</div>
@@ -151,7 +181,10 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Auto Complete Delivered Orders</label>
                             <div class="input-group">
-                                <input type="number" name="auto_complete_delivered_days" class="form-control" value="{{ $settings['auto_complete_delivered_days'] ?? 0 }}" min="0">
+                                <input type="number" name="auto_complete_delivered_days" class="form-control @error('auto_complete_delivered_days') is-invalid @enderror" value="{{ old('auto_complete_delivered_days', $settings['auto_complete_delivered_days'] ?? 0) }}" min="0">
+                                @error('auto_complete_delivered_days')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                                 <span class="input-group-text">days</span>
                             </div>
                             <div class="form-text">Days after delivery to auto-complete (0 = disabled)</div>
@@ -169,27 +202,33 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Invoice Prefix</label>
-                            <input type="text" name="invoice_prefix" class="form-control" value="{{ $settings['invoice_prefix'] ?? 'INV' }}" placeholder="INV">
+                            <input type="text" name="invoice_prefix" class="form-control @error('invoice_prefix') is-invalid @enderror" value="{{ old('invoice_prefix', $settings['invoice_prefix'] ?? 'INV') }}" placeholder="INV">
+                            @error('invoice_prefix')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Prefix for invoice numbers</div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="show_invoice_logo" id="show_invoice_logo" value="1" {{ ($settings['show_invoice_logo'] ?? '1') === '1' ? 'checked' : '' }}>
+                                <input class="form-check-input" type="checkbox" name="show_invoice_logo" id="show_invoice_logo" value="1" {{ old('show_invoice_logo', $settings['show_invoice_logo'] ?? '1') === '1' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="show_invoice_logo">Show Logo on Invoice</label>
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="show_invoice_barcode" id="show_invoice_barcode" value="1" {{ ($settings['show_invoice_barcode'] ?? '1') === '1' ? 'checked' : '' }}>
+                                <input class="form-check-input" type="checkbox" name="show_invoice_barcode" id="show_invoice_barcode" value="1" {{ old('show_invoice_barcode', $settings['show_invoice_barcode'] ?? '1') === '1' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="show_invoice_barcode">Show Barcode on Invoice</label>
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Invoice Terms & Conditions</label>
-                        <textarea name="invoice_terms" class="form-control" rows="3" placeholder="Enter any terms or conditions to show on invoice">{{ $settings['invoice_terms'] ?? '' }}</textarea>
+                        <textarea name="invoice_terms" class="form-control @error('invoice_terms') is-invalid @enderror" rows="3" placeholder="Enter any terms or conditions to show on invoice">{{ old('invoice_terms', $settings['invoice_terms'] ?? '') }}</textarea>
+                        @error('invoice_terms')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -326,14 +365,17 @@
                 </div>
                 <div class="card-body">
                     <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" name="digital_product_auto_deliver" id="digital_product_auto_deliver" value="1" {{ ($settings['digital_product_auto_deliver'] ?? '0') === '1' ? 'checked' : '' }}>
+                        <input class="form-check-input" type="checkbox" name="digital_product_auto_deliver" id="digital_product_auto_deliver" value="1" {{ old('digital_product_auto_deliver', $settings['digital_product_auto_deliver'] ?? '0') === '1' ? 'checked' : '' }}>
                         <label class="form-check-label" for="digital_product_auto_deliver">Auto Deliver Digital Products</label>
                         <div class="form-text small text-muted">Automatically deliver digital products after payment</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Download Validity</label>
                         <div class="input-group">
-                            <input type="number" name="digital_product_validity_days" class="form-control" value="{{ $settings['digital_product_validity_days'] ?? 30 }}" min="1">
+                            <input type="number" name="digital_product_validity_days" class="form-control @error('digital_product_validity_days') is-invalid @enderror" value="{{ old('digital_product_validity_days', $settings['digital_product_validity_days'] ?? 30) }}" min="1">
+                            @error('digital_product_validity_days')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <span class="input-group-text">days</span>
                         </div>
                         <div class="form-text">Days before download links expire</div>
@@ -369,8 +411,40 @@
 
 <!-- Floating Save Button -->
 <div class="floating-save-container">
+    <a href="{{ route('admin.settings.index') }}" class="btn btn-secondary floating-reset-btn">
+        <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
     <button type="submit" form="order-config-form" class="btn btn-primary floating-save-btn">
         <i class="bi bi-check-lg me-1"></i> Save Settings
     </button>
 </div>
+
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-scroll to first error field
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+</script>
+@endpush
 @endsection

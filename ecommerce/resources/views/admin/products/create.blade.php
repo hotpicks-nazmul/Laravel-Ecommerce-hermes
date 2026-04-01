@@ -77,12 +77,12 @@
                             <div class="mb-3">
                                 <label for="sku" class="form-label">SKU <span class="text-success">(Auto-generated)</span></label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control bg-light" id="sku" name="sku" value="{{ $nextSku ?? 'SKU-1000' }}" readonly>
+                                    <input type="text" class="form-control" id="sku" name="sku" value="{{ old('sku', $nextSku ?? 'SKU-1000') }}">
                                     <button type="button" class="btn btn-outline-secondary" onclick="generateSKU()" title="Generate New SKU">
                                         <i class="bi bi-arrow-repeat"></i>
                                     </button>
                                 </div>
-                                <div class="form-text">Sequential SKU - auto-generated on page load</div>
+                                <div class="form-text">Auto-generated on page load, can be edited</div>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -111,8 +111,8 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="brand" class="form-label">Brand <span class="text-danger">*</span></label>
-                                 <select class="form-select @error('brand') is-invalid @enderror" id="brand" name="brand" required form="product-form"
+                                <label for="brand" class="form-label">Brand</label>
+                                 <select class="form-select @error('brand') is-invalid @enderror" id="brand" name="brand"
                                          data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('brand') }}">
                                      <option value="">Select Brand</option>
                                      @foreach($brands as $id => $name)
@@ -177,7 +177,7 @@
             <div class="card-body">
                 <div class="mb-3">
                     <label for="category_id" class="form-label">Select Category <span class="text-danger">*</span></label>
-                    <select class="form-select @error('category_id') is-invalid @enderror" id="category_id" name="category_id" required form="product-form"
+                    <select class="form-select @error('category_id') is-invalid @enderror" id="category_id" name="category_id" required
                            data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('category_id') }}">
                         <option value="">Select Category</option>
                         @foreach($categories as $id => $name)
@@ -208,7 +208,7 @@
             <div class="card-body">
                 <div class="mb-3">
                     <label for="image" class="form-label">Featured Image</label>
-                    <input type="file" class="form-control @error('image') is-invalid @enderror" id="image" name="image" accept="image/*" form="product-form" onchange="previewFeaturedImage(this)"
+                    <input type="file" class="form-control @error('image') is-invalid @enderror" id="image" name="image" accept="image/*" onchange="previewFeaturedImage(this)"
                            data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('image') }}">
                     @error('image')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -219,7 +219,7 @@
                 
                 <div class="mb-3">
                     <label for="images" class="form-label">Gallery Images</label>
-                    <input type="file" class="form-control @error('images') is-invalid @enderror" id="images" name="images[]" multiple accept="image/*" form="product-form" onchange="previewGalleryImages(this)"
+                    <input type="file" class="form-control @error('images') is-invalid @enderror" id="images" name="images[]" multiple accept="image/*" onchange="previewGalleryImages(this)"
                            data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('images') }}">
                     @error('images')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -237,7 +237,7 @@
             </div>
             <div class="card-body">
                 <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }} form="product-form">
+                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
                     <label class="form-check-label" for="is_active">
                         <i class="bi bi-check-circle text-success me-1"></i> Active
                     </label>
@@ -245,7 +245,7 @@
                 </div>
                 
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" value="1" {{ old('is_featured') ? 'checked' : '' }} form="product-form">
+                    <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" value="1" {{ old('is_featured') ? 'checked' : '' }}>
                     <label class="form-check-label" for="is_featured">
                         <i class="bi bi-star text-warning me-1"></i> Featured Product
                     </label>

@@ -3,52 +3,6 @@
 @section('title', 'Analytics')
 
 @section('content')
-<!-- Statistics Cards -->
-<div class="stat-card-row mb-4" id="statsCards">
-    <div class="stat-card stat-card-primary">
-        <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">Sales</span>
-            <span class="stat-card-value">{{ number_format($currentSales) }}</span>
-        </div>
-    </div>
-    <div class="stat-card {{ $salesGrowth >= 0 ? 'stat-card-success' : 'stat-card-danger' }}">
-        <div class="stat-card-icon"><i class="bi {{ $salesGrowth >= 0 ? 'bi-graph-up-arrow' : 'bi-graph-down-arrow' }}"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">Growth</span>
-            <span class="stat-card-value">{{ number_format($salesGrowth, 1) }}%</span>
-        </div>
-    </div>
-    <div class="stat-card stat-card-info">
-        <div class="stat-card-icon"><i class="bi bi-cart3"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">Orders</span>
-            <span class="stat-card-value">{{ number_format($currentOrders) }}</span>
-        </div>
-    </div>
-    <div class="stat-card stat-card-warning">
-        <div class="stat-card-icon"><i class="bi bi-people"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">Customers</span>
-            <span class="stat-card-value">{{ number_format($currentCustomers) }}</span>
-        </div>
-    </div>
-    <div class="stat-card stat-card-secondary">
-        <div class="stat-card-icon"><i class="bi bi-box-seam"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">Products</span>
-            <span class="stat-card-value">{{ number_format($totalProducts) }}</span>
-        </div>
-    </div>
-    <div class="stat-card stat-card-danger">
-        <div class="stat-card-icon"><i class="bi bi-exclamation-triangle"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">Out of Stock</span>
-            <span class="stat-card-value">{{ number_format($outOfStockProducts) }}</span>
-        </div>
-    </div>
-</div>
-
 <!-- Page Header -->
 @if(session('error'))
 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -107,30 +61,54 @@
     </div>
 </div>
 
-<!-- Key Metrics Cards -->
-<div class="stat-card-row mb-4">
-    <!-- Total Revenue -->
+<!-- Statistics Cards - 6 Column Row -->
+<div class="stat-card-row stat-card-row-6 mb-4" id="statsCards">
     <div class="stat-card stat-card-primary">
-        <div class="stat-card-icon">
-            <i class="bi bi-currency-dollar"></i>
-        </div>
+        <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Total Revenue</span>
             <span class="stat-card-value">৳{{ number_format($currentSales, 2) }}</span>
         </div>
     </div>
-    
-    <!-- Total Orders -->
-    <div class="stat-card stat-card-success">
-        <div class="stat-card-icon">
-            <i class="bi bi-cart-check"></i>
+    <div class="stat-card {{ $salesGrowth >= 0 ? 'stat-card-success' : 'stat-card-danger' }}">
+        <div class="stat-card-icon"><i class="bi {{ $salesGrowth >= 0 ? 'bi-graph-up-arrow' : 'bi-graph-down-arrow' }}"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Sales Growth</span>
+            <span class="stat-card-value">{{ number_format($salesGrowth, 1) }}%</span>
         </div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-cart-check"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Total Orders</span>
             <span class="stat-card-value">{{ number_format($currentOrders) }}</span>
         </div>
     </div>
-    
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-people"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">New Customers</span>
+            <span class="stat-card-value">{{ number_format($currentCustomers) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-box-seam"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Products</span>
+            <span class="stat-card-value">{{ number_format($totalProducts) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Out of Stock</span>
+            <span class="stat-card-value">{{ number_format($outOfStockProducts) }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics Cards -->
+<div class="stat-card-row mb-4">
     <!-- Average Order Value -->
     <div class="stat-card stat-card-info">
         <div class="stat-card-icon">
@@ -142,14 +120,36 @@
         </div>
     </div>
     
-    <!-- New Customers -->
-    <div class="stat-card stat-card-warning">
+    <!-- Conversion Rate -->
+    <div class="stat-card stat-card-success">
         <div class="stat-card-icon">
-            <i class="bi bi-people"></i>
+            <i class="bi bi-bullseye"></i>
         </div>
         <div class="stat-card-content">
-            <span class="stat-card-label">New Customers</span>
-            <span class="stat-card-value">{{ number_format($currentCustomers) }}</span>
+            <span class="stat-card-label">Conversion Rate</span>
+            <span class="stat-card-value">{{ $conversionRate }}%</span>
+        </div>
+    </div>
+    
+    <!-- Total Searches -->
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon">
+            <i class="bi bi-search"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Searches</span>
+            <span class="stat-card-value">{{ number_format($totalSearches) }}</span>
+        </div>
+    </div>
+    
+    <!-- Active Products -->
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Active Products</span>
+            <span class="stat-card-value">{{ number_format($activeProducts) }}</span>
         </div>
     </div>
 </div>
@@ -458,6 +458,32 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+</style>
+@endpush
 
 @push('scripts')
 <script src="{{ asset('vendor/js/chart.js') }}"></script>

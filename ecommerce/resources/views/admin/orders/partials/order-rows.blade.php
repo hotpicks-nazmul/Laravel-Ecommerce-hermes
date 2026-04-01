@@ -1,5 +1,16 @@
+@php
+    $search = request('search');
+@endphp
 @forelse($orders as $order)
-<tr>
+@php
+    $isMatch = $search && (
+        stripos($order->order_number, $search) !== false ||
+        stripos($order->billing_full_name, $search) !== false ||
+        stripos($order->billing_email, $search) !== false ||
+        stripos($order->billing_phone, $search) !== false
+    );
+@endphp
+<tr class="{{ $isMatch ? 'table-warning' : '' }}">
     <td>
         <strong>{{ $order->order_number }}</strong>
     </td>
@@ -38,7 +49,7 @@
         <br><small class="text-muted">{{ $order->created_at->format('H:i') }}</small>
     </td>
     <td>
-        <div class="d-flex gap-1">
+        <div class="btn-group">
             <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-outline-primary" title="View Details">
                 <i class="bi bi-eye"></i>
             </a>
@@ -115,10 +126,11 @@
 @empty
 <tr>
     <td colspan="7" class="text-center py-5">
-        <div class="text-muted">
-            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-            <p class="mb-0">No orders found.</p>
-        </div>
+        <i class="bi bi-folder text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mb-2 mt-2">No orders found</p>
+        <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-primary mt-1">
+            <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+        </a>
     </td>
 </tr>
 @endforelse

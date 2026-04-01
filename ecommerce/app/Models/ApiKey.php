@@ -117,7 +117,7 @@ class ApiKey extends Model
             'sms' => 'SMS Gateway',
             'email' => 'Email Service',
             'warehouse' => 'Warehouse/Inventory',
-            ' Dropship' => 'Dropshipping',
+            'dropship' => 'Dropshipping',
             'custom' => 'Custom Integration',
         ];
     }

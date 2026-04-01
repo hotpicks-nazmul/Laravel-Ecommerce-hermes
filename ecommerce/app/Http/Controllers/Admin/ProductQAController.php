@@ -116,7 +116,7 @@ class ProductQAController extends Controller
         ]);
 
         return redirect()
-            ->route('admin.support.product-queries.index')
+            ->route('admin.product-qa.index')
             ->with('success', 'Question answered successfully.');
     }
 
@@ -128,7 +128,7 @@ class ProductQAController extends Controller
         $product_qa->delete();
 
         return redirect()
-            ->route('admin.support.product-queries.index')
+            ->route('admin.product-qa.index')
             ->with('success', 'Q&A entry deleted successfully.');
     }
 
@@ -146,7 +146,7 @@ class ProductQAController extends Controller
 
         if (empty($ids)) {
             return redirect()
-                ->route('admin.support.product-queries.index')
+                ->route('admin.product-qa.index')
                 ->with('error', 'No items selected.');
         }
 
@@ -180,7 +180,7 @@ class ProductQAController extends Controller
         }
 
         return redirect()
-            ->route('admin.support.product-queries.index')
+            ->route('admin.product-qa.index')
             ->with('success', $message);
     }
 

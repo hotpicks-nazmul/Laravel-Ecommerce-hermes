@@ -3,7 +3,6 @@
 @section('title', 'Create Quotation')
 
 @section('content')
-<div class="container-fluid">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -200,7 +199,6 @@
             </div>
         </div>
     </form>
-</div>
 
 <!-- Floating Save Button -->
 <div class="floating-save-container">

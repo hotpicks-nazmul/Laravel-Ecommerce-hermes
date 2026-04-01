@@ -226,7 +226,7 @@ function performLiveSearch(searchTerm) {
 
 // Update statistics cards
 function updateStats(stats) {
-    const statCards = document.querySelectorAll('#statsCards .h4');
+    const statCards = document.querySelectorAll('.stat-card-value');
     if (statCards[0]) statCards[0].textContent = stats.total ?? 0;
     if (statCards[1]) statCards[1].textContent = stats.active ?? 0;
     if (statCards[2]) statCards[2].textContent = stats.inactive ?? 0;

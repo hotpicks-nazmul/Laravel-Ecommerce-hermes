@@ -1819,6 +1819,19 @@ class DeliveryController extends Controller
             'inactive' => DeliveryBoy::where('status', 'inactive')->count(),
         ];
 
+        // AJAX response
+        if ($request->ajax()) {
+            $html = view('admin.delivery.delivery-boys.partials.table-rows', compact('deliveryBoys'))->render();
+            $pagination = $deliveryBoys->links()->toHtml();
+            
+            return response()->json([
+                'html' => $html,
+                'stats' => $stats,
+                'pagination' => $pagination,
+                'total' => $deliveryBoys->total()
+            ]);
+        }
+
         return view('admin.delivery.delivery-boys.index', compact(
             'deliveryBoys',
             'zones',
@@ -1985,6 +1998,15 @@ class DeliveryController extends Controller
         $deliveryBoy->update(['is_active' => !$deliveryBoy->is_active]);
 
         $status = $deliveryBoy->is_active ? 'activated' : 'deactivated';
+        
+        if (request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Delivery boy has been {$status} successfully!",
+                'is_active' => $deliveryBoy->is_active
+            ]);
+        }
+        
         return back()->with('success', "Delivery boy has been {$status} successfully!");
     }
 
@@ -1996,6 +2018,15 @@ class DeliveryController extends Controller
         $deliveryBoy->update(['is_available' => !$deliveryBoy->is_available]);
 
         $status = $deliveryBoy->is_available ? 'marked as available' : 'marked as unavailable';
+        
+        if (request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Delivery boy has been {$status} successfully!",
+                'is_available' => $deliveryBoy->is_available
+            ]);
+        }
+        
         return back()->with('success', "Delivery boy has been {$status} successfully!");
     }
 

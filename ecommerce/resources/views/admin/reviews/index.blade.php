@@ -265,7 +265,7 @@
                                     </div>
                                     <div class="modal-footer">
                                         @if($review->status !== 'approved')
-                                            <button type="button" class="btn btn-success" onclick="approveReview({{ $review->review->id ?? $review->id }})">
+                                            <button type="button" class="btn btn-success" onclick="approveReview({{ $review->id }})">
                                                 <i class="bi bi-check-lg me-1"></i> Approve
                                             </button>
                                         @endif

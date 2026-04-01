@@ -4,11 +4,39 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0">Payment Methods</h4>
+    <h4 class="mb-0"><i class="bi bi-credit-card me-2"></i>Payment Methods</h4>
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createGatewayModal">
         <i class="bi bi-plus-lg me-1"></i> Add New Payment Method
     </button>
 </div>
+
+<!-- Flash Messages -->
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
+@if($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <strong>Validation Error:</strong>
+        <ul class="mb-0 mt-1">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
 
 <!-- Statistics Cards -->
 <div class="stat-card-row mb-4">
@@ -27,7 +55,7 @@
         </div>
     </div>
     <div class="stat-card stat-card-warning">
-        <div class="stat-card-icon"><i class="bi bi-sunglasses"></i></div>
+        <div class="stat-card-icon"><i class="bi bi-bug"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Test Mode</span>
             <span class="stat-card-value">{{ $gateways->where('test_mode', true)->count() }}</span>
@@ -133,7 +161,7 @@
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title">Edit {{ $gateway->name }}</h5>
+                                    <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit {{ $gateway->name }}</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <form action="{{ route('admin.payment.update', $gateway->id) }}" method="POST" enctype="multipart/form-data">
@@ -142,19 +170,32 @@
                                     <div class="modal-body">
                                         <div class="mb-3">
                                             <label class="form-label">Name <span class="text-danger">*</span></label>
-                                            <input type="text" name="name" class="form-control" value="{{ $gateway->name }}" required>
+                                            <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $gateway->name) }}" required>
+                                            @error('name')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Slug <span class="text-danger">*</span></label>
-                                            <input type="text" name="slug" class="form-control" value="{{ $gateway->slug }}" required>
+                                            <input type="text" name="slug" class="form-control @error('slug') is-invalid @enderror" value="{{ old('slug', $gateway->slug) }}" required>
+                                            @error('slug')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                            <div class="form-text">Unique identifier (lowercase, no spaces)</div>
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Description</label>
-                                            <textarea name="description" class="form-control" rows="2">{{ $gateway->description }}</textarea>
+                                            <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="2">{{ old('description', $gateway->description) }}</textarea>
+                                            @error('description')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Logo</label>
-                                            <input type="file" name="logo" class="form-control" accept="image/*">
+                                            <input type="file" name="logo" class="form-control @error('logo') is-invalid @enderror" accept="image/*">
+                                            @error('logo')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
                                             @if($gateway->logo)
                                             <div class="mt-2">
                                                 <img src="{{ Storage::url($gateway->logo) }}" alt="" style="height: 40px;">
@@ -163,20 +204,28 @@
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Sort Order</label>
-                                            <input type="number" name="sort_order" class="form-control" value="{{ $gateway->sort_order }}">
+                                            <input type="number" name="sort_order" class="form-control" value="{{ old('sort_order', $gateway->sort_order) }}">
                                         </div>
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" name="is_active" id="edit_active{{ $gateway->id }}" {{ $gateway->is_active ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="edit_active{{ $gateway->id }}">Active</label>
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" name="is_active" id="edit_active{{ $gateway->id }}" {{ old('is_active', $gateway->is_active) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="edit_active{{ $gateway->id }}">
+                                                <i class="bi bi-check-circle text-success me-1"></i> Active
+                                            </label>
                                         </div>
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" name="test_mode" id="edit_test{{ $gateway->id }}" {{ $gateway->test_mode ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="edit_test{{ $gateway->id }}">Test Mode</label>
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" name="test_mode" id="edit_test{{ $gateway->id }}" {{ old('test_mode', $gateway->test_mode) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="edit_test{{ $gateway->id }}">
+                                                <i class="bi bi-bug text-warning me-1"></i> Test Mode
+                                            </label>
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-primary">Update</button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            <i class="bi bi-x-lg me-1"></i> Cancel
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-check-lg me-1"></i> Update
+                                        </button>
                                     </div>
                                 </form>
                             </div>
@@ -188,13 +237,16 @@
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title">{{ $gateway->name }} Credentials</h5>
+                                    <h5 class="modal-title"><i class="bi bi-key me-2"></i>{{ $gateway->name }} Credentials</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <form action="{{ route('admin.payment.credentials', $gateway->slug) }}" method="POST">
                                     @csrf
                                     <div class="modal-body">
-                                        <p class="text-muted small mb-3">Enter the API credentials for {{ $gateway->name }}. These will be encrypted and stored securely.</p>
+                                        <div class="alert alert-info small mb-3">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Enter the API credentials for {{ $gateway->name }}. These will be encrypted and stored securely.
+                                        </div>
                                         
                                         @if($gateway->slug === 'bkash')
                                         <div class="mb-3">
@@ -287,8 +339,12 @@
                                         @endif
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-primary">Save Credentials</button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            <i class="bi bi-x-lg me-1"></i> Cancel
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-check-lg me-1"></i> Save Credentials
+                                        </button>
                                     </div>
                                 </form>
                             </div>
@@ -316,7 +372,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Add New Payment Method</h5>
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Add New Payment Method</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ route('admin.payment.store') }}" method="POST" enctype="multipart/form-data">
@@ -324,51 +380,126 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control" placeholder="e.g., bKash" required>
+                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" placeholder="e.g., bKash" required>
+                        @error('name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Slug <span class="text-danger">*</span></label>
-                        <input type="text" name="slug" class="form-control" placeholder="e.g., bkash" required>
+                        <input type="text" name="slug" class="form-control @error('slug') is-invalid @enderror" value="{{ old('slug') }}" placeholder="e.g., bkash" required>
+                        @error('slug')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                         <div class="form-text">Unique identifier (lowercase, no spaces)</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Description</label>
-                        <textarea name="description" class="form-control" rows="2" placeholder="Brief description of the payment method"></textarea>
+                        <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="2" placeholder="Brief description of the payment method">{{ old('description') }}</textarea>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Logo</label>
-                        <input type="file" name="logo" class="form-control" accept="image/*">
+                        <input type="file" name="logo" class="form-control @error('logo') is-invalid @enderror" accept="image/*">
+                        @error('logo')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                         <div class="form-text">Recommended size: 128x128px, PNG or JPG</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Sort Order</label>
-                        <input type="number" name="sort_order" class="form-control" value="0">
+                        <input type="number" name="sort_order" class="form-control" value="{{ old('sort_order', 0) }}">
                     </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="is_active" id="create_active" checked>
-                        <label class="form-check-label" for="create_active">Active</label>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="is_active" id="create_active" {{ old('is_active', true) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="create_active">
+                            <i class="bi bi-check-circle text-success me-1"></i> Active
+                        </label>
                     </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="test_mode" id="create_test" checked>
-                        <label class="form-check-label" for="create_test">Test Mode</label>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="test_mode" id="create_test" {{ old('test_mode', true) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="create_test">
+                            <i class="bi bi-bug text-warning me-1"></i> Test Mode
+                        </label>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Payment Method</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i> Create Payment Method
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap if any */
+    .content-area {
+        padding-bottom: 20px !important;
+    }
+    
+    /* Force Bootstrap Icons to display */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+</style>
+@endpush
+
 @push('scripts')
 <script>
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-scroll to first error field
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                    
+                    // Open the modal that contains the error
+                    var modal = firstErrorField.closest('.modal');
+                    if (modal) {
+                        var modalId = modal.id;
+                        var bsModal = new bootstrap.Modal(document.getElementById(modalId));
+                        bsModal.show();
+                    }
+                }, 100);
+            }
+        @endif
+        
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    });
 </script>
 @endpush
 @endsection

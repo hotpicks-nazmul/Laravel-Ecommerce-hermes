@@ -3,33 +3,47 @@
 @section('title', 'Wishlist Management')
 
 @section('content')
-<div class="content-area">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-0">Wishlist Management</h4>
-            <small class="text-muted">Manage customer wishlists and track product interests</small>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('admin.wishlists.export') }}" class="btn btn-outline-primary">
-                <i class="bi bi-download me-1"></i> Export All
-            </a>
-        </div>
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0">Wishlist Management</h4>
+        <small class="text-muted">Manage customer wishlists and track product interests</small>
     </div>
+    <div class="d-flex gap-2">
+        <a href="{{ route('admin.wishlists.export') }}" class="btn btn-outline-primary">
+            <i class="bi bi-download me-1"></i> Export All
+        </a>
+    </div>
+</div>
 
-    <!-- Statistics Cards -->
-<div class="stat-card-row mb-4">
-    <div class="stat-card stat-card-primary">
-        <div class="stat-card-icon"><i class="bi bi-heart-fill"></i></div>
-        <div class="stat-card-content"><span class="stat-card-label">Total Wishlist Items</span><span class="stat-card-value" id="stat-total">{{ $stats['total_wishlists'] }}</span></div>
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon"><i class="bi bi-heart-fill"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Wishlist Items</span>
+                <span class="stat-card-value" id="stat-total">{{ $stats['total_wishlists'] }}</span>
+            </div>
+        </div>
     </div>
-    <div class="stat-card stat-card-success">
-        <div class="stat-card-icon"><i class="bi bi-box-seam"></i></div>
-        <div class="stat-card-content"><span class="stat-card-label">Unique Products</span><span class="stat-card-value" id="stat-products">{{ $stats['unique_products'] }}</span></div>
+    <div class="col-md-4">
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon"><i class="bi bi-box-seam"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Unique Products</span>
+                <span class="stat-card-value" id="stat-products">{{ $stats['unique_products'] }}</span>
+            </div>
+        </div>
     </div>
-    <div class="stat-card stat-card-info">
-        <div class="stat-card-icon"><i class="bi bi-people-fill"></i></div>
-        <div class="stat-card-content"><span class="stat-card-label">Active Customers</span><span class="stat-card-value" id="stat-users">{{ $stats['unique_users'] }}</span></div>
+    <div class="col-md-4">
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Active Customers</span>
+                <span class="stat-card-value" id="stat-users">{{ $stats['unique_users'] }}</span>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -136,17 +150,17 @@
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="bg-light">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
                         <tr>
-                            <th width="40">
-                                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                            <th style="width: 40px;">
+                                <input type="checkbox" class="form-check-input" id="selectAllCheckbox" onchange="toggleSelectAll()">
                             </th>
                             <th>Customer Name</th>
                             <th>Product</th>
                             <th>Category</th>
                             <th>Date Added</th>
-                            <th width="100">Actions</th>
+                            <th style="width: 120px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -154,13 +168,20 @@
                     </tbody>
                 </table>
             </div>
-        </div>
-        <!-- Pagination -->
-        <div class="card-footer bg-white" id="paginationWrapper">
-            {{ $wishlists->links() }}
+            
+            @if($wishlists->hasPages())
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="text-muted small">
+                    Showing {{ $wishlists->firstItem() ?? 0 }} - {{ $wishlists->lastItem() ?? 0 }} of {{ $wishlists->total() }} entries
+                </div>
+                <div>
+                    {{ $wishlists->appends(request()->query())->links() }}
+                </div>
+            </div>
+            @endif
         </div>
     </div>
-</div>
+@endsection
 
 <!-- Hidden form for bulk actions -->
 <form id="bulkActionForm" method="POST" style="display: none;">
@@ -234,7 +255,14 @@
             
             if (data.html) {
                 document.querySelector('#tableBody').innerHTML = data.html;
-                document.getElementById('paginationWrapper').innerHTML = data.pagination;
+                
+                // Update pagination - find the card-footer inside the table card
+                if (data.pagination) {
+                    const paginationContainer = document.querySelector('.card-body .card-footer');
+                    if (paginationContainer) {
+                        paginationContainer.outerHTML = data.pagination;
+                    }
+                }
                 
                 // Update stats
                 if (data.stats) {
@@ -391,4 +419,3 @@
     }
 </script>
 @endpush
-@endsection

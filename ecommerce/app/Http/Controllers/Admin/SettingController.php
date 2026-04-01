@@ -95,6 +95,23 @@ class SettingController extends Controller
 
     public function updateEmail(Request $request)
     {
+        // Validate SMTP settings input
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'mail_mailer' => 'required|string|in:smtp,sendmail,log,array,mailgun,ses,postmark',
+            'mail_host' => 'required_if:mail_mailer,smtp|string|max:255',
+            'mail_port' => 'required_if:mail_mailer,smtp|integer|min:1|max:65535',
+            'mail_username' => 'nullable|string|max:255',
+            'mail_password' => 'nullable|string|max:255',
+            'mail_encryption' => 'nullable|string|in:tls,ssl,',
+            'mail_from_address' => 'required|email|max:255',
+            'mail_from_name' => 'required|string|max:255',
+            'contact_email' => 'nullable|email|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
         // Save SMTP settings to database and update .env
         $smtpSettings = $request->except('_token', 'test_email', 'contact_email');
         
@@ -122,22 +139,27 @@ class SettingController extends Controller
     protected function updateEnvFile(Request $request)
     {
         $envPath = base_path('.env');
+        
+        if (!file_exists($envPath)) {
+            return;
+        }
+        
         $envContent = file_get_contents($envPath);
         
         $updates = [
-            'MAIL_MAILER' => $request->mail_mailer,
-            'MAIL_HOST' => $request->mail_host,
-            'MAIL_PORT' => $request->mail_port,
-            'MAIL_USERNAME' => $request->mail_username,
-            'MAIL_PASSWORD' => $request->mail_password,
-            'MAIL_ENCRYPTION' => $request->mail_encryption,
-            'MAIL_FROM_ADDRESS' => $request->mail_from_address,
-            'MAIL_FROM_NAME' => $request->mail_from_name,
+            'MAIL_MAILER' => $request->mail_mailer ?? 'smtp',
+            'MAIL_HOST' => $request->mail_host ?? '',
+            'MAIL_PORT' => $request->mail_port ?? '587',
+            'MAIL_USERNAME' => $request->mail_username ?? '',
+            'MAIL_PASSWORD' => $request->mail_password ?? '',
+            'MAIL_ENCRYPTION' => $request->mail_encryption ?? 'tls',
+            'MAIL_FROM_ADDRESS' => $request->mail_from_address ?? '',
+            'MAIL_FROM_NAME' => $request->mail_from_name ?? '',
         ];
         
         foreach ($updates as $key => $value) {
             // Check if the key exists in .env
-            if (strpos($envContent, $key . '=') !== false) {
+            if (preg_match('/^' . $key . '=/m', $envContent)) {
                 // Update existing key
                 $envContent = preg_replace(
                     '/^' . $key . '=.*$/m',
@@ -150,7 +172,7 @@ class SettingController extends Controller
             }
         }
         
-        file_put_contents($envContent, $envContent);
+        file_put_contents($envPath, $envContent);
         
         // Clear config cache
         $this->clearConfigCache();
@@ -272,6 +294,11 @@ class SettingController extends Controller
 
     public function createBackup()
     {
+        // Check if ZipArchive extension is available
+        if (!class_exists('ZipArchive')) {
+            return back()->with('error', 'ZipArchive extension is not installed. Please enable it in your PHP configuration.');
+        }
+
         try {
             $backupPath = storage_path('app/backups');
             if (!is_dir($backupPath)) {
@@ -292,9 +319,19 @@ class SettingController extends Controller
             // Create a simple SQL dump
             $sqlFile = storage_path('app/backups/temp_' . $timestamp . '.sql');
             
-            // Try using mysqldump
-            $command = "mysqldump -h{$dbHost} -u{$dbUser} -p{$dbPass} {$dbName} > {$sqlFile} 2>/dev/null";
+            // Try using mysqldump with credentials file for security
+            $mysqlCredentialsFile = storage_path('app/backups/temp_my.cnf_' . $timestamp);
+            $credentialsContent = "[client]\nhost={$dbHost}\nuser={$dbUser}\npassword={$dbPass}\n";
+            file_put_contents($mysqlCredentialsFile, $credentialsContent);
+            chmod($mysqlCredentialsFile, 0600);
+            
+            $command = "mysqldump --defaults-file={$mysqlCredentialsFile} {$dbName} > {$sqlFile} 2>/dev/null";
             exec($command, $output, $result);
+            
+            // Clean up credentials file immediately
+            if (file_exists($mysqlCredentialsFile)) {
+                unlink($mysqlCredentialsFile);
+            }
             
             // If mysqldump failed, create an empty file with note
             if (!file_exists($sqlFile) || filesize($sqlFile) === 0) {
@@ -315,6 +352,13 @@ class SettingController extends Controller
                     base_path('.env') => '.env',
                     base_path('composer.json') => 'composer.json',
                 ];
+                
+                // Add storage/app/public directory if it exists (user uploads)
+                $storagePublicPath = storage_path('app/public');
+                if (is_dir($storagePublicPath)) {
+                    $zip->addEmptyDir('storage_public');
+                    $this->addDirectoryToZip($zip, $storagePublicPath, 'storage_public');
+                }
                 
                 foreach ($filesToBackup as $source => $destination) {
                     if (file_exists($source)) {
@@ -338,8 +382,21 @@ class SettingController extends Controller
 
     public function downloadBackup($file)
     {
+        // Sanitize filename to prevent path traversal attacks
+        $sanitizedFile = basename($file);
+        
+        // Only allow .zip files
+        if (pathinfo($sanitizedFile, PATHINFO_EXTENSION) !== 'zip') {
+            return back()->with('error', 'Invalid file type.');
+        }
+        
         $backupPath = storage_path('app/backups');
-        $filePath = $backupPath . '/' . $file;
+        $filePath = $backupPath . '/' . $sanitizedFile;
+        
+        // Verify the file is within the backup directory (prevent path traversal)
+        if (realpath($filePath) === false || strpos(realpath($filePath), realpath($backupPath)) !== 0) {
+            return back()->with('error', 'Invalid file path.');
+        }
         
         if (!file_exists($filePath)) {
             return back()->with('error', 'Backup file not found.');
@@ -350,17 +407,28 @@ class SettingController extends Controller
 
     public function restoreBackup(Request $request)
     {
+        // Check if ZipArchive extension is available
+        if (!class_exists('ZipArchive')) {
+            return back()->with('error', 'ZipArchive extension is not installed. Please enable it in your PHP configuration.');
+        }
+
         $request->validate([
-            'backup_file' => 'required|file|mimes:zip',
+            'backup_file' => 'required|file|mimes:zip|max:102400', // Max 100MB
         ]);
         
         try {
             $uploadedFile = $request->file('backup_file');
-            $tempPath = storage_path('app/backups/temp_restore_' . time() . '.zip');
-            $uploadedFile->move(storage_path('app/backups'), basename($tempPath));
+            $backupPath = storage_path('app/backups');
+            
+            if (!is_dir($backupPath)) {
+                mkdir($backupPath, 0755, true);
+            }
+            
+            $tempPath = $backupPath . '/temp_restore_' . time() . '.zip';
+            $uploadedFile->move($backupPath, basename($tempPath));
             
             // Extract ZIP
-            $extractPath = storage_path('app/backups/temp_restore_' . time());
+            $extractPath = $backupPath . '/temp_restore_' . time();
             mkdir($extractPath, 0755, true);
             
             $zip = new \ZipArchive();
@@ -371,19 +439,55 @@ class SettingController extends Controller
                 // Look for database.sql in extracted files
                 $sqlFile = $extractPath . '/database.sql';
                 if (file_exists($sqlFile)) {
-                    // Restore database
+                    // Restore database using mysql command with credentials file for security
                     $dbHost = config('database.connections.mysql.host');
                     $dbName = config('database.connections.mysql.database');
                     $dbUser = config('database.connections.mysql.username');
                     $dbPass = config('database.connections.mysql.password');
                     
-                    // Note: Direct restore requires careful handling
-                    // For security, we just verify the file exists
-                    // Actual restore would need careful implementation
+                    // Create temporary credentials file
+                    $mysqlCredentialsFile = $backupPath . '/temp_my.cnf_' . time();
+                    $credentialsContent = "[client]\nhost={$dbHost}\nuser={$dbUser}\npassword={$dbPass}\n";
+                    file_put_contents($mysqlCredentialsFile, $credentialsContent);
+                    chmod($mysqlCredentialsFile, 0600);
+                    
+                    // Execute SQL restore
+                    $command = "mysql --defaults-file={$mysqlCredentialsFile} {$dbName} < {$sqlFile} 2>&1";
+                    exec($command, $output, $result);
+                    
+                    // Clean up credentials file
+                    if (file_exists($mysqlCredentialsFile)) {
+                        unlink($mysqlCredentialsFile);
+                    }
+                    
+                    if ($result !== 0) {
+                        $this->deleteDirectory($extractPath);
+                        if (file_exists($tempPath)) {
+                            unlink($tempPath);
+                        }
+                        return back()->with('error', 'Database restore failed. Error: ' . implode("\n", $output));
+                    }
+                }
+                
+                // Restore .env file if present
+                $envFile = $extractPath . '/.env';
+                if (file_exists($envFile)) {
+                    $currentEnvPath = base_path('.env');
+                    // Backup current .env before overwriting
+                    if (file_exists($currentEnvPath)) {
+                        copy($currentEnvPath, $backupPath . '/.env.backup_' . time());
+                    }
+                    copy($envFile, $currentEnvPath);
                 }
                 
                 // Clean up
                 $this->deleteDirectory($extractPath);
+            } else {
+                $this->deleteDirectory($extractPath);
+                if (file_exists($tempPath)) {
+                    unlink($tempPath);
+                }
+                return back()->with('error', 'Failed to open backup file. The file may be corrupted.');
             }
             
             // Clean up temp zip
@@ -391,7 +495,10 @@ class SettingController extends Controller
                 unlink($tempPath);
             }
             
-            return back()->with('success', 'Backup restored successfully. Please verify your data.');
+            // Clear config cache after restore
+            $this->clearConfigCache();
+            
+            return back()->with('success', 'Backup restored successfully. Please verify your data and clear your browser cache.');
         } catch (\Exception $e) {
             return back()->with('error', 'Restore failed: ' . $e->getMessage());
         }
@@ -403,8 +510,21 @@ class SettingController extends Controller
             'file' => 'required|string',
         ]);
         
+        // Sanitize filename to prevent path traversal attacks
+        $sanitizedFile = basename($request->file);
+        
+        // Only allow .zip files
+        if (pathinfo($sanitizedFile, PATHINFO_EXTENSION) !== 'zip') {
+            return back()->with('error', 'Invalid file type.');
+        }
+        
         $backupPath = storage_path('app/backups');
-        $filePath = $backupPath . '/' . $request->file;
+        $filePath = $backupPath . '/' . $sanitizedFile;
+        
+        // Verify the file is within the backup directory (prevent path traversal)
+        if (realpath($filePath) === false || strpos(realpath($filePath), realpath($backupPath)) !== 0) {
+            return back()->with('error', 'Invalid file path.');
+        }
         
         if (!file_exists($filePath)) {
             return back()->with('error', 'Backup file not found.');
@@ -430,6 +550,29 @@ class SettingController extends Controller
     }
 
     /**
+     * Recursively add a directory to a ZIP archive.
+     */
+    protected function addDirectoryToZip($zip, $directory, $zipPath)
+    {
+        if (!is_dir($directory)) {
+            return;
+        }
+        
+        $files = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($directory),
+            \RecursiveIteratorIterator::LEAVES_ONLY
+        );
+        
+        foreach ($files as $file) {
+            if (!$file->isDir()) {
+                $filePath = $file->getRealPath();
+                $relativePath = $zipPath . '/' . substr($filePath, strlen($directory) + 1);
+                $zip->addFile($filePath, $relativePath);
+            }
+        }
+    }
+
+    /**
      * Social Login Settings
      */
     public function socialLogin()
@@ -443,6 +586,17 @@ class SettingController extends Controller
      */
     public function updateSocialLogin(Request $request)
     {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'google_client_id' => 'nullable|string|max:255',
+            'google_client_secret' => 'nullable|string|max:255',
+            'facebook_client_id' => 'nullable|string|max:255',
+            'facebook_client_secret' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
         $settings = [
             'google_enabled' => $request->has('google_enabled') ? '1' : '0',
             'google_client_id' => $request->google_client_id ?? '',
@@ -521,37 +675,67 @@ class SettingController extends Controller
      */
     public function updateFooter(Request $request)
     {
-        $settings = [
-            'footer_about_text' => $request->footer_about_text ?? '',
-            'footer_facebook_url' => $request->footer_facebook_url ?? '',
-            'footer_instagram_url' => $request->footer_instagram_url ?? '',
-            'footer_youtube_url' => $request->footer_youtube_url ?? '',
-            'footer_twitter_url' => $request->footer_twitter_url ?? '',
-            'footer_linkedin_url' => $request->footer_linkedin_url ?? '',
-            'footer_address' => $request->footer_address ?? '',
-            'footer_phone' => $request->footer_phone ?? '',
-            'footer_email' => $request->footer_email ?? '',
-            'footer_business_hours' => $request->footer_business_hours ?? '',
-            'footer_copyright_text' => $request->footer_copyright_text ?? '',
-            'footer_newsletter_enabled' => $request->has('footer_newsletter_enabled') ? '1' : '0',
-            'footer_newsletter_title' => $request->footer_newsletter_title ?? '',
-            'footer_newsletter_subtitle' => $request->footer_newsletter_subtitle ?? '',
-            'footer_column1_title' => $request->footer_column1_title ?? 'Quick Links',
-            'footer_column2_title' => $request->footer_column2_title ?? 'Customer Service',
-            'footer_column3_title' => $request->footer_column3_title ?? 'Contact Us',
-            'footer_payment_methods' => $request->footer_payment_methods ?? 'bkash,nagad,rocket,visa,mastercard',
-            'footer_show_payment_icons' => $request->has('footer_show_payment_icons') ? '1' : '0',
-        ];
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'footer_about_text' => 'nullable|string|max:1000',
+            'footer_facebook_url' => 'nullable|url',
+            'footer_instagram_url' => 'nullable|url',
+            'footer_youtube_url' => 'nullable|url',
+            'footer_twitter_url' => 'nullable|url',
+            'footer_linkedin_url' => 'nullable|url',
+            'footer_address' => 'nullable|string|max:500',
+            'footer_phone' => 'nullable|string|max:50',
+            'footer_email' => 'nullable|email|max:255',
+            'footer_business_hours' => 'nullable|string|max:255',
+            'footer_copyright_text' => 'nullable|string|max:500',
+            'footer_newsletter_enabled' => 'nullable|in:1',
+            'footer_newsletter_title' => 'nullable|string|max:255',
+            'footer_newsletter_subtitle' => 'nullable|string|max:255',
+            'footer_column1_title' => 'nullable|string|max:100',
+            'footer_column2_title' => 'nullable|string|max:100',
+            'footer_column3_title' => 'nullable|string|max:100',
+            'footer_payment_methods' => 'nullable|string|max:500',
+            'footer_show_payment_icons' => 'nullable|in:1',
+        ]);
 
-        foreach ($settings as $key => $value) {
-            // Use updateOrCreate with just the key as unique identifier
-            Setting::updateOrCreate(
-                ['key' => $key],
-                ['value' => $value, 'group' => 'footer']
-            );
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
         }
 
-        return back()->with('success', 'Footer settings updated successfully.');
+        try {
+            $settings = [
+                'footer_about_text' => $request->footer_about_text ?? '',
+                'footer_facebook_url' => $request->footer_facebook_url ?? '',
+                'footer_instagram_url' => $request->footer_instagram_url ?? '',
+                'footer_youtube_url' => $request->footer_youtube_url ?? '',
+                'footer_twitter_url' => $request->footer_twitter_url ?? '',
+                'footer_linkedin_url' => $request->footer_linkedin_url ?? '',
+                'footer_address' => $request->footer_address ?? '',
+                'footer_phone' => $request->footer_phone ?? '',
+                'footer_email' => $request->footer_email ?? '',
+                'footer_business_hours' => $request->footer_business_hours ?? '',
+                'footer_copyright_text' => $request->footer_copyright_text ?? '',
+                'footer_newsletter_enabled' => $request->has('footer_newsletter_enabled') ? '1' : '0',
+                'footer_newsletter_title' => $request->footer_newsletter_title ?? '',
+                'footer_newsletter_subtitle' => $request->footer_newsletter_subtitle ?? '',
+                'footer_column1_title' => $request->footer_column1_title ?? 'Quick Links',
+                'footer_column2_title' => $request->footer_column2_title ?? 'Customer Service',
+                'footer_column3_title' => $request->footer_column3_title ?? 'Contact Us',
+                'footer_payment_methods' => $request->footer_payment_methods ?? 'bkash,nagad,rocket,visa,mastercard',
+                'footer_show_payment_icons' => $request->has('footer_show_payment_icons') ? '1' : '0',
+            ];
+
+            foreach ($settings as $key => $value) {
+                // Use updateOrCreate with just the key as unique identifier
+                Setting::updateOrCreate(
+                    ['key' => $key],
+                    ['value' => $value, 'group' => 'footer']
+                );
+            }
+
+            return back()->with('success', 'Footer settings updated successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to update footer settings. Please try again.')->withInput();
+        }
     }
 
     /**
@@ -681,7 +865,7 @@ class SettingController extends Controller
      */
     public function storeCurrency(Request $request)
     {
-        $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'name' => 'required|string|max:100',
             'code' => 'required|string|max:10|unique:currencies,code',
             'symbol' => 'required|string|max:10',
@@ -690,6 +874,10 @@ class SettingController extends Controller
             'is_active' => 'nullable|boolean',
             'sort_order' => 'nullable|integer|min:0',
         ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput()->with('open_add_modal', true);
+        }
 
         $data = $request->except('_token');
         $data['is_default'] = $request->input('is_default') === '1' || $request->has('is_default');
@@ -716,7 +904,7 @@ class SettingController extends Controller
     {
         $currency = Currency::findOrFail($id);
 
-        $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'name' => 'required|string|max:100',
             'code' => 'required|string|max:10|unique:currencies,code,' . $id,
             'symbol' => 'required|string|max:10',
@@ -725,6 +913,10 @@ class SettingController extends Controller
             'is_active' => 'nullable|boolean',
             'sort_order' => 'nullable|integer|min:0',
         ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput()->with('edit_currency_id', $id);
+        }
 
         $data = $request->except('_token', '_method');
         $data['is_default'] = $request->input('is_default') === '1' || $request->has('is_default');
@@ -895,11 +1087,16 @@ class SettingController extends Controller
      */
     public function updateVatTax(Request $request)
     {
+        $request->validate([
+            'tax_type' => 'nullable|in:global,location',
+            'tax_calculation_address' => 'nullable|in:shipping,billing',
+        ]);
+
         $settings = [
             'tax_enabled' => $request->has('tax_enabled') ? '1' : '0',
             'tax_type' => $request->tax_type ?? 'global',
             'tax_per_product' => $request->has('tax_per_product') ? '1' : '0',
-            'tax_calulation_address' => $request->tax_calulation_address ?? 'shipping',
+            'tax_calculation_address' => $request->tax_calculation_address ?? 'shipping',
         ];
 
         foreach ($settings as $key => $value) {
@@ -926,6 +1123,39 @@ class SettingController extends Controller
      */
     public function updateOrderConfiguration(Request $request)
     {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'order_prefix' => 'nullable|string|max:10',
+            'order_suffix' => 'nullable|string|max:10',
+            'order_number_length' => 'nullable|integer|min:4|max:16',
+            'order_number_format' => 'nullable|in:random,sequential,date',
+            
+            'min_order_amount' => 'nullable|numeric|min:0',
+            'max_order_amount' => 'nullable|numeric|min:0',
+            'min_order_quantity' => 'nullable|integer|min:1',
+            'max_order_quantity' => 'nullable|integer|min:1',
+            
+            'order_validity_hours' => 'nullable|integer|min:1',
+            'auto_cancel_unpaid_hours' => 'nullable|integer|min:0',
+            'auto_complete_delivered_days' => 'nullable|integer|min:0',
+            
+            'new_order_status' => 'nullable|in:pending,confirmed,processing',
+            'confirm_order_status' => 'nullable|in:pending,confirmed,processing',
+            'processing_order_status' => 'nullable|in:confirmed,processing,shipped',
+            'shipped_order_status' => 'nullable|in:processing,shipped,delivered',
+            'delivered_order_status' => 'nullable|in:delivered,completed',
+            'cancelled_order_status' => 'nullable|in:cancelled,refunded',
+            'returned_order_status' => 'nullable|in:returned,refunded',
+            
+            'invoice_prefix' => 'nullable|string|max:10',
+            'invoice_terms' => 'nullable|string',
+            
+            'digital_product_validity_days' => 'nullable|integer|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
         $settings = [
             // Order Number Settings
             'order_prefix' => $request->order_prefix ?? 'ORD',
@@ -1023,6 +1253,33 @@ class SettingController extends Controller
      */
     public function updateFileSystem(Request $request)
     {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            // File Upload Settings
+            'max_upload_size' => 'nullable|integer|min:100|max:102400',
+            'allowed_file_types' => 'nullable|string|max:500',
+            'max_image_width' => 'nullable|integer|min:100|max:10000',
+            'max_image_height' => 'nullable|integer|min:100|max:10000',
+            
+            // Image Settings
+            'image_quality' => 'nullable|integer|min:10|max:100',
+            'thumbnail_width' => 'nullable|integer|min:50|max:500',
+            'thumbnail_height' => 'nullable|integer|min:50|max:500',
+            'watermark_position' => 'nullable|in:center,top-left,top-right,bottom-left,bottom-right',
+            
+            // Cache Settings
+            'cache_driver' => 'nullable|in:file,redis,memcached,array',
+            'cache_ttl' => 'nullable|integer|min:60|max:86400',
+            'query_cache_ttl' => 'nullable|integer|min:60|max:3600',
+            
+            // Storage Settings
+            'storage_disk' => 'nullable|in:public,local,s3',
+            'cloud_driver' => 'nullable|in:s3,digitalocean,wasabi',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
         $settings = [
             // File Upload Settings
             'max_upload_size' => $request->max_upload_size ?? 5120,
@@ -1092,6 +1349,22 @@ class SettingController extends Controller
      */
     public function updateShipping(Request $request)
     {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'free_shipping_enabled' => 'nullable|boolean',
+            'free_shipping_min_amount' => 'nullable|numeric|min:0',
+            'shipping_calculation_type' => 'nullable|in:flat,weight,price,location',
+            'default_shipping_cost' => 'nullable|numeric|min:0',
+            'shipping_by_weight' => 'nullable|boolean',
+            'shipping_by_price' => 'nullable|boolean',
+            'enable_shipping_estimate' => 'nullable|boolean',
+            'local_pickup_enabled' => 'nullable|boolean',
+            'local_pickup_cost' => 'nullable|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
         $settings = [
             'free_shipping_enabled' => $request->has('free_shipping_enabled') ? '1' : '0',
             'free_shipping_min_amount' => $request->free_shipping_min_amount ?? 0,
@@ -1152,6 +1425,15 @@ class SettingController extends Controller
      */
     public function updateNotifications(Request $request)
     {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'admin_phone_for_sms' => 'nullable|string|max:20|regex:/^\+?[0-9\s\-]+$/',
+            'low_stock_threshold' => 'nullable|integer|min:1|max:9999',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
         $settings = [
             // Email Notifications - Admin
             'notify_admin_new_order' => $request->has('notify_admin_new_order') ? '1' : '0',
@@ -1200,14 +1482,18 @@ class SettingController extends Controller
             'admin_phone_for_sms' => $request->admin_phone_for_sms ?? '',
         ];
 
-        foreach ($settings as $key => $value) {
-            Setting::updateOrCreate(
-                ['key' => $key],
-                ['value' => $value, 'group' => 'notifications']
-            );
-        }
+        try {
+            foreach ($settings as $key => $value) {
+                Setting::updateOrCreate(
+                    ['key' => $key],
+                    ['value' => $value, 'group' => 'notifications']
+                );
+            }
 
-        return back()->with('success', 'Notification settings updated successfully.');
+            return back()->with('success', 'Notification settings updated successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to update notification settings. Please try again.');
+        }
     }
 
     /**

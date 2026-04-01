@@ -230,7 +230,7 @@ class DataExportImportController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'type' => 'required|in:products,categories,brands,attributes,colors,coupons,banners,sliders,blogs,subscribers,product_bundles,faqs,pages,taxes,delivery_zones,warehouses',
+            'type' => 'required|in:products,categories,brands,attributes,colors,coupons,users,banners,sliders,blogs,subscribers,product_bundles,faqs,pages,taxes,delivery_zones,warehouses',
             'file' => 'required|file|mimes:csv,json',
             'action' => 'nullable|in:create,update,both',
         ]);
@@ -394,6 +394,14 @@ class DataExportImportController extends Controller
                 case 'subscribers':
                     foreach ($data as $row) {
                         $result = $this->importSubscriber($row, $action);
+                        if ($result === 'created') $created++;
+                        if ($result === 'updated') $updated++;
+                    }
+                    break;
+
+                case 'users':
+                    foreach ($data as $row) {
+                        $result = $this->importUser($row, $action);
                         if ($result === 'created') $created++;
                         if ($result === 'updated') $updated++;
                     }
@@ -911,6 +919,41 @@ class DataExportImportController extends Controller
             if (!$query->exists()) {
                 Subscriber::create([
                     'email' => $email,
+                    'is_active' => $data['is_active'] ?? true,
+                ]);
+                return 'created';
+            }
+        }
+        
+        return null;
+    }
+
+    private function importUser($data, $action)
+    {
+        $email = $data['email'] ?? null;
+        if (!$email) return null;
+
+        $query = User::where('email', $email);
+        
+        if ($action === 'update' || $action === 'both') {
+            $user = $query->first();
+            if ($user) {
+                $user->update([
+                    'name' => $data['name'] ?? $user->name,
+                    'phone' => $data['phone'] ?? $user->phone,
+                    'is_active' => isset($data['is_active']) ? ($data['is_active'] === '1' || $data['is_active'] === 'true') : $user->is_active,
+                ]);
+                return 'updated';
+            }
+        }
+        
+        if ($action === 'create' || $action === 'both') {
+            if (!$query->exists()) {
+                User::create([
+                    'name' => $data['name'] ?? 'User',
+                    'email' => $email,
+                    'phone' => $data['phone'] ?? null,
+                    'password' => bcrypt('password'), // Default password, should be changed by user
                     'is_active' => $data['is_active'] ?? true,
                 ]);
                 return 'created';

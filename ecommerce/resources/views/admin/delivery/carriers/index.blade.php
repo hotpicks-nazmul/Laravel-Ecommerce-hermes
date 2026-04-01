@@ -474,7 +474,6 @@ function performLiveSearch(searchTerm) {
                 document.getElementById('stat-active').textContent = data.stats.active || 0;
                 document.getElementById('stat-inactive').textContent = data.stats.inactive || 0;
                 document.getElementById('stat-featured').textContent = data.stats.featured || 0;
-                document.getElementById('stat-api-configured').textContent = data.stats.api_configured || 0;
             }
             
             // Update URL without reload
@@ -489,6 +488,33 @@ function performLiveSearch(searchTerm) {
     .catch(err => {
         searchSpinner.style.display = 'none';
         console.error('Search error:', err);
+    });
+}
+
+// Delete carrier function
+function deleteCarrier(carrierId) {
+    if (!confirm('Are you sure you want to delete this carrier?')) return;
+    
+    fetch(`{{ route('admin.delivery.carriers.destroy', ':id') }}`.replace(':id', carrierId), {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message || 'Carrier deleted successfully', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showToast(data.message || 'Error deleting carrier', 'error');
+        }
+    })
+    .catch(err => {
+        showToast('Error deleting carrier', 'error');
     });
 }
 

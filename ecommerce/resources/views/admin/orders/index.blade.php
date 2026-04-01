@@ -284,59 +284,27 @@ function performLiveSearch(searchTerm) {
 
 // Update statistics cards
 function updateStats(stats) {
-    const statsContainer = document.getElementById('statsCards');
+    const statsContainer = document.querySelector('.stat-card-row');
     if (!statsContainer) return;
     
-    statsContainer.innerHTML = `
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Total Orders</div>
-                    <div class="h4 mb-0 text-primary">${stats.total || 0}</div>
-                </div>
+    const statCards = [
+        { label: 'Total Orders', value: stats.total || 0, icon: 'bi-cart-fill', variant: 'primary' },
+        { label: 'Pending', value: stats.pending || 0, icon: 'bi-clock', variant: 'warning' },
+        { label: 'Processing', value: stats.processing || 0, icon: 'bi-gear', variant: 'info' },
+        { label: 'Shipped', value: stats.shipped || 0, icon: 'bi-truck', variant: 'secondary' },
+        { label: 'Delivered', value: stats.delivered || 0, icon: 'bi-check2-all', variant: 'success' },
+        { label: 'Cancelled', value: stats.cancelled || 0, icon: 'bi-x-circle', variant: 'danger' }
+    ];
+    
+    statsContainer.innerHTML = statCards.map(card => `
+        <div class="stat-card stat-card-${card.variant}">
+            <div class="stat-card-icon"><i class="bi ${card.icon}"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">${card.label}</span>
+                <span class="stat-card-value">${typeof card.value === 'number' ? card.value.toLocaleString() : card.value}</span>
             </div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Pending</div>
-                    <div class="h4 mb-0 text-warning">${stats.pending || 0}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Processing</div>
-                    <div class="h4 mb-0 text-info">${stats.processing || 0}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Shipped</div>
-                    <div class="h4 mb-0 text-primary">${stats.shipped || 0}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Delivered</div>
-                    <div class="h4 mb-0 text-success">${stats.delivered || 0}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Cancelled</div>
-                    <div class="h4 mb-0 text-danger">${stats.cancelled || 0}</div>
-                </div>
-            </div>
-        </div>
-    `;
+    `).join('');
 }
 
 // Change per page

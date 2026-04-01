@@ -232,6 +232,8 @@
     </button>
 </div>
 
+@endsection
+
 @push('styles')
 <style>
     /* Add padding at bottom to prevent floating button overlap */
@@ -248,4 +250,3 @@
     }
 </script>
 @endpush
-@endsection

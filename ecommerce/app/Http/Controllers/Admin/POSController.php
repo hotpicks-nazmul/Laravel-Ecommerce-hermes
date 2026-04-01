@@ -366,41 +366,34 @@ class POSController extends Controller
     {
         $date = $request->date ?? date('Y-m-d');
         
-        $transactions = Session::get('pos_transactions', []);
-        
-        // Filter by date
-        $transactions = array_filter($transactions, function($t) use ($date) {
-            return date('Y-m-d', strtotime($t['created_at'])) === $date;
-        });
-
-        // Calculate stats
-        $totalSales = array_sum(array_column($transactions, 'total'));
-        $totalCash = array_sum(array_filter($transactions, function($t) {
-            return $t['payment_method'] === 'cash';
-        }));
-        $totalCard = array_sum(array_filter($transactions, function($t) {
-            return $t['payment_method'] === 'card';
-        }));
-        $totalDigital = array_sum(array_filter($transactions, function($t) {
-            return $t['payment_method'] === 'digital_wallet';
-        }));
-        $transactionCount = count($transactions);
-
-        // Get database orders for today (backup check)
+        // Get database orders as primary source (persistent data)
         $dbOrders = Order::where('order_type', 'pos')
             ->whereDate('created_at', $date)
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Calculate stats from database orders
+        $totalSales = $dbOrders->sum('total');
+        $totalCash = $dbOrders->where('payment_method', 'cash')->sum('total');
+        $totalCard = $dbOrders->where('payment_method', 'card')->sum('total');
+        $totalDigital = $dbOrders->where('payment_method', 'digital_wallet')->sum('total');
+        $transactionCount = $dbOrders->count();
+
+        // Also get session transactions for current session (fallback)
+        $sessionTransactions = Session::get('pos_transactions', []);
+        $sessionTransactions = array_filter($sessionTransactions, function($t) use ($date) {
+            return date('Y-m-d', strtotime($t['created_at'])) === $date;
+        });
+
         return view('admin.pos.cash-register', compact(
-            'transactions', 
-            'date', 
-            'totalSales', 
-            'totalCash', 
+            'dbOrders',
+            'sessionTransactions',
+            'date',
+            'totalSales',
+            'totalCash',
             'totalCard',
             'totalDigital',
-            'transactionCount',
-            'dbOrders'
+            'transactionCount'
         ));
     }
 

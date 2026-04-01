@@ -18,7 +18,7 @@
         <div class="stat-card-content"><span class="stat-card-label">Inactive</span><span class="stat-card-value text-danger" id="statInactive">{{ $stats['inactive'] ?? 0 }}</span></div>
     </div>
     <div class="stat-card stat-card-info">
-        <div class="stat-card-icon"><i class="bi bi-folder-tree"></i></div>
+        <div class="stat-card-icon"><i class="bi bi-diagram-3"></i></div>
         <div class="stat-card-content"><span class="stat-card-label">Parent Categories</span><span class="stat-card-value text-info" id="statRoot">{{ $stats['root'] ?? 0 }}</span></div>
     </div>
 </div>
@@ -105,7 +105,7 @@
             @if($categories->count() > 0)
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
+                    <thead class="table-light">
                         <tr>
                             <th class="ps-3" style="width: 50px;">
                                 <a href="#" class="text-decoration-none text-dark sort-link" data-sort="order">#</a>
@@ -131,8 +131,13 @@
             </div>
             
             @if($categories->hasPages())
-            <div class="p-3 border-top" id="paginationContainer">
-                {{ $categories->links() }}
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2" id="paginationContainer">
+                <div class="text-muted small" id="paginationInfo">
+                    Showing {{ $categories->firstItem() ?? 0 }} - {{ $categories->lastItem() ?? 0 }} of {{ $categories->total() }} entries
+                </div>
+                <div id="paginationLinks">
+                    {{ $categories->appends(request()->query())->links() }}
+                </div>
             </div>
             @endif
             @else
@@ -148,6 +153,40 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+    
+    /* Ensure stat card icons are visible */
+    .stat-card-primary .stat-card-icon i { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i { color: #6c757d !important; }
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -237,11 +276,24 @@ function performLiveSearch(searchTerm) {
             // Update table body
             document.querySelector('#tableBody').innerHTML = data.html;
             
-            // Update pagination
+            // Update pagination links
             if (data.pagination) {
-                const paginationContainer = document.getElementById('paginationContainer');
-                if (paginationContainer) {
-                    paginationContainer.innerHTML = data.pagination;
+                const paginationLinks = document.getElementById('paginationLinks');
+                if (paginationLinks) {
+                    paginationLinks.innerHTML = data.pagination;
+                }
+            }
+            
+            // Update pagination info
+            if (data.pagination_info) {
+                const paginationInfo = document.getElementById('paginationInfo');
+                if (paginationInfo) {
+                    const info = data.pagination_info;
+                    if (info.has_pages) {
+                        paginationInfo.textContent = `Showing ${info.first_item ?? 0} - ${info.last_item ?? 0} of ${info.total} entries`;
+                    } else {
+                        paginationInfo.textContent = `Showing ${info.total} entries`;
+                    }
                 }
             }
             
@@ -295,6 +347,9 @@ function initStatusToggle() {
                     btn.querySelector('.status-text').textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
                     btn.classList.remove('btn-success', 'btn-secondary');
                     btn.classList.add(data.status === 'active' ? 'btn-success' : 'btn-secondary');
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success(data.message || 'Status updated successfully');
+                    }
                 }
                 // Hide loading state
                 btn.dataset.loading = 'false';
@@ -338,7 +393,15 @@ function initOrderInputs() {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Show success feedback
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success('Order updated successfully');
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Order update error:', err);
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('Failed to update order');
                     }
                 });
             }, 500);

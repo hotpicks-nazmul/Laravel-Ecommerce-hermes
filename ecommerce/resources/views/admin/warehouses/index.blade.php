@@ -129,6 +129,13 @@
     </div>
 </div>
 
+<!-- Hidden Bulk Action Form -->
+<form id="bulkActionForm" method="POST" action="{{ route('admin.warehouses.bulk-action') }}" style="display: none;">
+    @csrf
+    <input type="hidden" id="bulkActionInput" name="action" value="">
+    <input type="hidden" id="bulkIdsInput" name="ids" value="">
+</form>
+
 <!-- Warehouses Table -->
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
@@ -179,25 +186,6 @@
 
 @push('styles')
 <style>
-    /* Override grid with flexbox for full width stat cards */
-    .stat-card-row {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        width: 100% !important;
-        gap: 16px !important;
-    }
-    
-    .stat-card-row .stat-card {
-        flex: 1 1 calc(25% - 16px) !important;
-        min-width: 200px !important;
-    }
-    
-    /* Ensure all cards are full width */
-    .card {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-    
     /* Status Toggle Styles */
     .status-toggle {
         min-width: 70px;
@@ -208,9 +196,6 @@
     }
     .table > :not(caption) > * > * {
         padding: 0.75rem 0.5rem;
-    }
-    .product-checkbox:checked + td img {
-        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.3);
     }
 </style>
 @endpush

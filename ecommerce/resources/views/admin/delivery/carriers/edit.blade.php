@@ -2,31 +2,6 @@
 
 @section('title', 'Edit Carrier')
 
-@push('styles')
-<style>
-    .image-upload-preview {
-        position: relative;
-        padding: 10px;
-        border: 2px dashed #dee2e6;
-        border-radius: 8px;
-    }
-    .image-upload-preview img {
-        max-width: 100%;
-        max-height: 200px;
-        border-radius: 4px;
-    }
-    .remove-image {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-    }
-    /* Add padding at bottom to prevent floating button overlap */
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-</style>
-@endpush
-
 @section('content')
 <form id="deleteForm" method="POST" action="{{ route('admin.delivery.carriers.destroy', $carrier->id) }}">
     @csrf
@@ -481,17 +456,17 @@
         </div>
         
         <!-- Floating Save Buttons -->
-<div class="floating-save-container">
-    <a href="{{ route('admin.delivery.carriers.index') }}" class="btn btn-secondary floating-reset-btn">
-        <i class="bi bi-x-lg me-1"></i> Cancel
-    </a>
-    <a href="#" class="btn btn-outline-danger floating-reset-btn" onclick="deleteCarrier(); return false;">
-        <i class="bi bi-trash me-1"></i> Delete
-    </a>
-    <button type="submit" form="carrierForm" class="btn btn-primary floating-save-btn">
-        <i class="bi bi-check-lg me-1"></i> Update Carrier
-    </button>
-</div>
+        <div class="floating-save-container">
+            <a href="{{ route('admin.delivery.carriers.index') }}" class="btn btn-secondary floating-reset-btn">
+                <i class="bi bi-x-lg me-1"></i> Cancel
+            </a>
+            <a href="#" class="btn btn-outline-danger floating-reset-btn" onclick="deleteCarrier(); return false;">
+                <i class="bi bi-trash me-1"></i> Delete
+            </a>
+            <button type="submit" form="carrierForm" class="btn btn-primary floating-save-btn">
+                <i class="bi bi-check-lg me-1"></i> Update Carrier
+            </button>
+        </div>
     </div>
 </div>
 
@@ -538,5 +513,30 @@ document.getElementById('slug').addEventListener('input', function() {
     this.dataset.auto = 'false';
 });
 </script>
+@endpush
+
+@push('styles')
+<style>
+    .image-upload-preview {
+        position: relative;
+        padding: 10px;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+    }
+    .image-upload-preview img {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 4px;
+    }
+    .remove-image {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+    }
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area.has-floating-save {
+        padding-bottom: 100px !important;
+    }
+</style>
 @endpush
 @endsection

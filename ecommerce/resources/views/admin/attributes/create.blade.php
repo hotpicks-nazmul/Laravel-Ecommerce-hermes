@@ -3,7 +3,6 @@
 @section('title', 'Create Attribute')
 
 @section('content')
-<div class="container-fluid">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -90,11 +89,6 @@
                         <div id="valuesContainer">
                             <!-- Value rows will be added here -->
                         </div>
-                        
-                        @if(session('old_values'))
-                        @foreach(session('old_values') as $index => $value)
-                        @endforeach
-                        @endif
                     </div>
                 </div>
             </form>
@@ -154,7 +148,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <!-- Floating Save Button -->
 <div class="floating-save-container">

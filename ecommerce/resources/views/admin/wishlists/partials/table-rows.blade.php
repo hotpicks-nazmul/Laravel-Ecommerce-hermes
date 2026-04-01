@@ -1,7 +1,7 @@
 @forelse($wishlists as $wishlist)
     <tr>
         <td>
-            <input type="checkbox" class="wishlist-checkbox" value="{{ $wishlist->id }}" onchange="toggleCheckbox({{ $wishlist->id }})">
+            <input type="checkbox" class="form-check-input wishlist-checkbox" value="{{ $wishlist->id }}" onchange="toggleCheckbox({{ $wishlist->id }})">
         </td>
         <td>
             <a href="{{ route('admin.wishlists.user', $wishlist->user->id) }}" class="text-decoration-none fw-semibold">
@@ -78,7 +78,7 @@
             <small class="text-muted">{{ $wishlist->created_at->format('h:i A') }}</small>
         </td>
         <td>
-            <div class="d-flex gap-1">
+            <div class="btn-group">
                 <a href="{{ route('admin.products.edit', $wishlist->product->id) }}" target="_blank" class="btn btn-sm btn-outline-primary" title="View Product">
                     <i class="bi bi-eye"></i>
                 </a>
@@ -93,12 +93,12 @@
     </tr>
 @empty
     <tr>
-        <td colspan="6" class="text-center py-4">
-            <div class="text-muted">
-                <i class="bi bi-heart" style="font-size: 2rem;"></i>
-                <p class="mt-2 mb-0">No wishlist items found</p>
-                <small>Wishlist items will appear here when customers add products to their wishlists</small>
-            </div>
+        <td colspan="6" class="text-center py-5">
+            <i class="bi bi-heart text-muted" style="font-size: 3rem;"></i>
+            <p class="text-muted mb-2 mt-2">No wishlist items found</p>
+            <a href="{{ route('admin.products.index') }}" class="btn btn-sm btn-primary mt-1">
+                <i class="bi bi-box-seam me-1"></i> Browse Products
+            </a>
         </td>
     </tr>
 @endforelse

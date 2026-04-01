@@ -7,7 +7,9 @@ use App\Models\ActivityLog;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 
 /**
  * System Controller for managing system settings and updates.
@@ -206,9 +208,21 @@ class SystemController extends Controller
         $phpVersion = PHP_VERSION;
         $laravelVersion = app()->version();
         
-        // Get database info
+        // Get database info (cross-database compatible)
         $dbType = DB::connection()->getDriverName();
-        $dbVersion = DB::select("SELECT version() as version")[0]->version ?? 'Unknown';
+        try {
+            if ($dbType === 'mysql') {
+                $dbVersion = DB::select("SELECT version() as version")[0]->version ?? 'Unknown';
+            } elseif ($dbType === 'pgsql') {
+                $dbVersion = DB::select("SELECT version() as version")[0]->version ?? 'Unknown';
+            } elseif ($dbType === 'sqlite') {
+                $dbVersion = DB::select("SELECT sqlite_version() as version")[0]->version ?? 'Unknown';
+            } else {
+                $dbVersion = 'Unknown';
+            }
+        } catch (\Exception $e) {
+            $dbVersion = 'Unknown';
+        }
         
         // Check required extensions
         $extensions = [
@@ -231,6 +245,51 @@ class SystemController extends Controller
             'bootstrap/cache' => is_writable(base_path('bootstrap/cache')),
         ];
         
+        // Calculate health metrics
+        $extensionsLoaded = count(array_filter($extensions));
+        $extensionsTotal = count($extensions);
+        $directoriesWritable = count(array_filter($directories));
+        $directoriesTotal = count($directories);
+        
+        // Check database connection
+        $dbConnected = false;
+        try {
+            DB::connection()->getPdo();
+            $dbConnected = true;
+        } catch (\Exception $e) {
+            $dbConnected = false;
+        }
+        
+        // Check cache functionality
+        $cacheWorking = false;
+        try {
+            Cache::put('health_check', true, 10);
+            $cacheWorking = Cache::get('health_check') === true;
+        } catch (\Exception $e) {
+            $cacheWorking = false;
+        }
+        
+        // Check session functionality
+        $sessionActive = true;
+        try {
+            session()->put('health_check', true);
+            $sessionActive = session()->get('health_check') === true;
+        } catch (\Exception $e) {
+            $sessionActive = false;
+        }
+        
+        // Calculate overall health percentage
+        $healthScore = 0;
+        $totalChecks = 5; // extensions, directories, db, cache, session
+        
+        if ($extensionsLoaded === $extensionsTotal) $healthScore++;
+        if ($directoriesWritable === $directoriesTotal) $healthScore++;
+        if ($dbConnected) $healthScore++;
+        if ($cacheWorking) $healthScore++;
+        if ($sessionActive) $healthScore++;
+        
+        $healthPercentage = round(($healthScore / $totalChecks) * 100);
+        
         $serverInfo = [
             'php_version' => $phpVersion,
             'laravel_version' => $laravelVersion,
@@ -244,6 +303,16 @@ class SystemController extends Controller
             'post_max_size' => ini_get('post_max_size'),
             'extensions' => $extensions,
             'directories' => $directories,
+            'health' => [
+                'percentage' => $healthPercentage,
+                'extensions_loaded' => $extensionsLoaded,
+                'extensions_total' => $extensionsTotal,
+                'directories_writable' => $directoriesWritable,
+                'directories_total' => $directoriesTotal,
+                'db_connected' => $dbConnected,
+                'cache_working' => $cacheWorking,
+                'session_active' => $sessionActive,
+            ],
         ];
         
         return view('admin.system.server-status', compact('serverInfo'));
@@ -344,13 +413,44 @@ class SystemController extends Controller
         
         $logs = $query->paginate(25);
         
-        // Stats
+        // Stats - calculate based on current filters
+        $statsQuery = ActivityLog::query();
+        if ($tab === 'admin') {
+            $statsQuery->admin();
+        } elseif ($tab === 'customer') {
+            $statsQuery->customer();
+        } elseif ($tab === 'system') {
+            $statsQuery->system();
+        }
+        if ($request->search) {
+            $statsQuery->where('description', 'like', "%{$request->search}%");
+        }
+        if ($request->date_range) {
+            $dates = explode(' to ', $request->date_range);
+            if (count($dates) === 2) {
+                $statsQuery->whereBetween('created_at', [$dates[0], $dates[1]]);
+            }
+        }
+        
         $stats = [
-            'total' => ActivityLog::count(),
+            'total' => $statsQuery->count(),
             'admin' => ActivityLog::admin()->count(),
             'customer' => ActivityLog::customer()->count(),
             'system' => ActivityLog::system()->count(),
         ];
+        
+        // AJAX response for live search
+        if ($request->ajax()) {
+            $html = view('admin.system.activity-logs.partials.table-rows', [
+                'logs' => $logs,
+            ])->render();
+            
+            return response()->json([
+                'html' => $html,
+                'stats' => $stats,
+                'pagination' => $logs->links()->toHtml(),
+            ]);
+        }
         
         return view('admin.system.activity-logs.index', [
             'logs' => $logs,
@@ -444,6 +544,13 @@ class SystemController extends Controller
         
         ActivityLog::whereIn('id', $request->ids)->delete();
         
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Activity logs deleted successfully!',
+            ]);
+        }
+        
         return redirect()->route('admin.system.activity-logs.index')
             ->with('success', 'Activity logs deleted successfully!');
     }
@@ -467,6 +574,13 @@ class SystemController extends Controller
             ActivityLog::customer()->delete();
         } elseif ($logType === 'system') {
             ActivityLog::system()->delete();
+        }
+        
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Activity logs cleared successfully!',
+            ]);
         }
         
         return redirect()->route('admin.system.activity-logs.index')

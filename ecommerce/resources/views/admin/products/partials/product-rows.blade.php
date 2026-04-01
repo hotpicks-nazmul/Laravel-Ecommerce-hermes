@@ -8,7 +8,15 @@
         stripos($product->short_description, $search) !== false
     );
 @endphp
-<tr data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-product-code="{{ $product->product_code ?? $product->sku }}" data-short-description="{{ $product->short_description ?? '' }}" class="{{ $isMatch ? 'table-warning' : '' }}">
+<tr data-id="{{ $product->id }}"
+    data-name="{{ $product->name }}"
+    data-product-code="{{ $product->product_code ?? $product->sku }}"
+    data-short-description="{{ $product->short_description ?? '' }}"
+    data-quantity="{{ $product->quantity }}"
+    data-price="{{ $product->price }}"
+    data-sale-price="{{ $product->sale_price ?? '' }}"
+    data-category-id="{{ $product->category_id ?? '' }}"
+    class="{{ $isMatch ? 'table-warning' : '' }}">
     <td>
         <input type="checkbox" class="form-check-input product-checkbox" value="{{ $product->id }}" onchange="updateBulkActions()">
     </td>
@@ -40,7 +48,7 @@
         <span class="badge bg-light text-dark">{{ $product->category->name ?? 'N/A' }}</span>
     </td>
     <td>
-        @if($product->sale_price)
+        @if($product->sale_price && $product->sale_price > 0)
             <del class="text-muted small">৳{{ number_format($product->price, 0) }}</del>
             <div class="text-danger fw-semibold">৳{{ number_format($product->sale_price, 0) }}</div>
         @else
@@ -48,11 +56,17 @@
         @endif
     </td>
     <td>
-        <span class="badge {{ $product->quantity > 10 ? 'bg-success' : ($product->quantity > 0 ? 'bg-warning text-dark' : 'bg-danger') }}">
+        @php
+            $lowStockThreshold = $product->low_stock_threshold ?? 10;
+            $isInStock = $product->quantity > $lowStockThreshold;
+            $isLowStock = $product->quantity > 0 && $product->quantity <= $lowStockThreshold;
+            $isOutOfStock = $product->quantity <= 0;
+        @endphp
+        <span class="badge {{ $isInStock ? 'bg-success' : ($isLowStock ? 'bg-warning text-dark' : 'bg-danger') }}">
             {{ $product->quantity }}
         </span>
-        @if($product->quantity <= 10 && $product->quantity > 0)
-        <i class="bi bi-exclamation-triangle text-warning ms-1" title="Low stock"></i>
+        @if($isLowStock)
+        <i class="bi bi-exclamation-triangle text-warning ms-1" title="Low stock (threshold: {{ $lowStockThreshold }})"></i>
         @endif
     </td>
     <td>
@@ -82,9 +96,9 @@
             <a href="{{ route('admin.products.duplicate', $product->id) }}" class="btn btn-sm btn-outline-secondary" title="Duplicate">
                 <i class="bi bi-copy"></i>
             </a>
-            <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this product?')">
+            <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" class="d-flex" onsubmit="return confirm('Are you sure you want to delete this product?')">
                 @csrf @method('DELETE')
-                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="Delete">
                     <i class="bi bi-trash"></i>
                 </button>
             </form>

@@ -592,13 +592,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         
-        .stat-card-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #212529;
-        }
-        .stat-card-warning .stat-card-value { color: #ffc107; }
-        
         .stat-card-icon {
             width: 48px;
             height: 48px;
@@ -652,6 +645,53 @@
         .stat-card-secondary .stat-card-icon { background: #e2e3e5; }
         .stat-card-secondary .stat-card-icon i:before { color: #6c757d !important; }
         .stat-card-secondary .stat-card-icon i { color: #6c757d !important; }
+        
+        /* Stat Card Row - 3 Columns (for payment breakdown, etc.) */
+        .stat-card-row-3 {
+            grid-template-columns: repeat(3, 1fr);
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
+        }
+        
+        @media (max-width: 992px) {
+            .stat-card-row-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .stat-card-row-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Stat Card Content Area */
+        .stat-card-content {
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .stat-card-label {
+            font-size: 13px;
+            color: #6c757d;
+            margin-bottom: 2px;
+        }
+        
+        .stat-card-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #212529;
+            line-height: 1.2;
+        }
+        .stat-card-warning .stat-card-value { color: #ffc107; }
+        
+        /* Stat Card Progress Bar */
+        .stat-card-progress {
+            width: 100%;
+            margin-top: 8px;
+        }
         
         /* Responsive */
         @media (max-width: 991.98px) {
@@ -734,6 +774,13 @@
         /* Add padding at bottom of content to prevent overlap with floating button */
         .content-area.has-floating-save {
             padding-bottom: 100px;
+        }
+        
+        /* Global: Fix delete button border-radius in btn-group with form wrapper */
+        .btn-group form.d-flex .btn,
+        .btn-group form .btn {
+            border-top-left-radius: 0 !important;
+            border-bottom-left-radius: 0 !important;
         }
         
         /* Admin Toast Notification */

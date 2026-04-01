@@ -46,20 +46,26 @@
                 <div class="col-lg-6">
                     <div class="mb-3">
                         <label for="tax_type" class="form-label">Tax Type</label>
-                        <select id="tax_type" name="tax_type" class="form-select">
+                        <select id="tax_type" name="tax_type" class="form-select @error('tax_type') is-invalid @enderror">
                             <option value="global" {{ ($taxSettings['tax_type'] ?? 'global') == 'global' ? 'selected' : '' }}>Global Tax</option>
                             <option value="location" {{ ($taxSettings['tax_type'] ?? 'global') == 'location' ? 'selected' : '' }}>Location Based Tax</option>
                         </select>
+                        @error('tax_type')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                         <div class="form-text">Global: Single tax rate for all locations. Location: Different rates based on customer location.</div>
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="mb-3">
-                        <label for="tax_calulation_address" class="form-label">Tax Calculation Address</label>
-                        <select id="tax_calulation_address" name="tax_calulation_address" class="form-select">
-                            <option value="shipping" {{ ($taxSettings['tax_calulation_address'] ?? 'shipping') == 'shipping' ? 'selected' : '' }}>Shipping Address</option>
-                            <option value="billing" {{ ($taxSettings['tax_calulation_address'] ?? 'shipping') == 'billing' ? 'selected' : '' }}>Billing Address</option>
+                        <label for="tax_calculation_address" class="form-label">Tax Calculation Address</label>
+                        <select id="tax_calculation_address" name="tax_calculation_address" class="form-select @error('tax_calculation_address') is-invalid @enderror">
+                            <option value="shipping" {{ ($taxSettings['tax_calculation_address'] ?? 'shipping') == 'shipping' ? 'selected' : '' }}>Shipping Address</option>
+                            <option value="billing" {{ ($taxSettings['tax_calculation_address'] ?? 'shipping') == 'billing' ? 'selected' : '' }}>Billing Address</option>
                         </select>
+                        @error('tax_calculation_address')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                         <div class="form-text">Which address to use for calculating tax</div>
                     </div>
                 </div>
@@ -216,46 +222,67 @@
                                     <div class="modal-body">
                                         <div class="mb-3">
                                             <label for="name{{ $tax->id }}" class="form-label">Tax Name <span class="text-danger">*</span></label>
-                                            <input type="text" id="name{{ $tax->id }}" name="name" class="form-control" value="{{ $tax->name }}" required>
+                                            <input type="text" id="name{{ $tax->id }}" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ $tax->name }}" required>
+                                            @error('name')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="mb-3">
                                                     <label for="country{{ $tax->id }}" class="form-label">Country</label>
-                                                    <input type="text" id="country{{ $tax->id }}" name="country" class="form-control" value="{{ $tax->country }}" placeholder="e.g., Bangladesh">
+                                                    <input type="text" id="country{{ $tax->id }}" name="country" class="form-control @error('country') is-invalid @enderror" value="{{ $tax->country }}" placeholder="e.g., Bangladesh">
+                                                    @error('country')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="mb-3">
                                                     <label for="state{{ $tax->id }}" class="form-label">State/Region</label>
-                                                    <input type="text" id="state{{ $tax->id }}" name="state" class="form-control" value="{{ $tax->state }}" placeholder="e.g., Dhaka">
+                                                    <input type="text" id="state{{ $tax->id }}" name="state" class="form-control @error('state') is-invalid @enderror" value="{{ $tax->state }}" placeholder="e.g., Dhaka">
+                                                    @error('state')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="mb-3">
                                             <label for="zip_code{{ $tax->id }}" class="form-label">Zip/Postal Code</label>
-                                            <input type="text" id="zip_code{{ $tax->id }}" name="zip_code" class="form-control" value="{{ $tax->zip_code }}" placeholder="e.g., 1200">
+                                            <input type="text" id="zip_code{{ $tax->id }}" name="zip_code" class="form-control @error('zip_code') is-invalid @enderror" value="{{ $tax->zip_code }}" placeholder="e.g., 1200">
+                                            @error('zip_code')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="mb-3">
                                                     <label for="rate{{ $tax->id }}" class="form-label">Tax Rate <span class="text-danger">*</span></label>
-                                                    <input type="number" id="rate{{ $tax->id }}" name="rate" class="form-control" value="{{ $tax->rate }}" min="0" max="100" step="0.01" required>
+                                                    <input type="number" id="rate{{ $tax->id }}" name="rate" class="form-control @error('rate') is-invalid @enderror" value="{{ $tax->rate }}" min="0" max="100" step="0.01" required>
+                                                    @error('rate')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="mb-3">
                                                     <label for="type{{ $tax->id }}" class="form-label">Type <span class="text-danger">*</span></label>
-                                                    <select id="type{{ $tax->id }}" name="type" class="form-select" required>
+                                                    <select id="type{{ $tax->id }}" name="type" class="form-select @error('type') is-invalid @enderror" required>
                                                         <option value="percentage" {{ $tax->type === 'percentage' ? 'selected' : '' }}>Percentage (%)</option>
                                                         <option value="fixed" {{ $tax->type === 'fixed' ? 'selected' : '' }}>Fixed Amount</option>
                                                     </select>
+                                                    @error('type')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="mb-3">
                                             <label for="sort_order{{ $tax->id }}" class="form-label">Sort Order</label>
-                                            <input type="number" id="sort_order{{ $tax->id }}" name="sort_order" class="form-control" value="{{ $tax->sort_order }}" min="0">
+                                            <input type="number" id="sort_order{{ $tax->id }}" name="sort_order" class="form-control @error('sort_order') is-invalid @enderror" value="{{ $tax->sort_order }}" min="0">
+                                            @error('sort_order')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
                                         </div>
                                         <div class="mb-3">
                                             <div class="form-check form-switch">
@@ -308,48 +335,69 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="name" class="form-label">Tax Name <span class="text-danger">*</span></label>
-                        <input type="text" id="name" name="name" class="form-control" placeholder="e.g., VAT" required>
+                        <input type="text" id="name" name="name" class="form-control @error('name') is-invalid @enderror" placeholder="e.g., VAT" value="{{ old('name') }}" required>
+                        @error('name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="country" class="form-label">Country</label>
-                                <input type="text" id="country" name="country" class="form-control" placeholder="e.g., Bangladesh">
+                                <input type="text" id="country" name="country" class="form-control @error('country') is-invalid @enderror" placeholder="e.g., Bangladesh" value="{{ old('country') }}">
+                                @error('country')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                                 <div class="form-text">Leave empty for global tax</div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="state" class="form-label">State/Region</label>
-                                <input type="text" id="state" name="state" class="form-control" placeholder="e.g., Dhaka">
+                                <input type="text" id="state" name="state" class="form-control @error('state') is-invalid @enderror" placeholder="e.g., Dhaka" value="{{ old('state') }}">
+                                @error('state')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label for="zip_code" class="form-label">Zip/Postal Code</label>
-                        <input type="text" id="zip_code" name="zip_code" class="form-control" placeholder="e.g., 1200">
+                        <input type="text" id="zip_code" name="zip_code" class="form-control @error('zip_code') is-invalid @enderror" placeholder="e.g., 1200" value="{{ old('zip_code') }}">
+                        @error('zip_code')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                         <div class="form-text">Leave empty to apply to all zip codes in the state</div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="rate" class="form-label">Tax Rate <span class="text-danger">*</span></label>
-                                <input type="number" id="rate" name="rate" class="form-control" placeholder="e.g., 15" min="0" max="100" step="0.01" required>
+                                <input type="number" id="rate" name="rate" class="form-control @error('rate') is-invalid @enderror" placeholder="e.g., 15" value="{{ old('rate') }}" min="0" max="100" step="0.01" required>
+                                @error('rate')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="type" class="form-label">Type <span class="text-danger">*</span></label>
-                                <select id="type" name="type" class="form-select" required>
-                                    <option value="percentage">Percentage (%)</option>
-                                    <option value="fixed">Fixed Amount</option>
+                                <select id="type" name="type" class="form-select @error('type') is-invalid @enderror" required>
+                                    <option value="percentage" {{ old('type') === 'percentage' ? 'selected' : '' }}>Percentage (%)</option>
+                                    <option value="fixed" {{ old('type') === 'fixed' ? 'selected' : '' }}>Fixed Amount</option>
                                 </select>
+                                @error('type')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label for="sort_order" class="form-label">Sort Order</label>
-                        <input type="number" id="sort_order" name="sort_order" class="form-control" value="0" min="0">
+                        <input type="number" id="sort_order" name="sort_order" class="form-control @error('sort_order') is-invalid @enderror" value="{{ old('sort_order', 0) }}" min="0">
+                        @error('sort_order')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="mb-3">
                         <div class="form-check form-switch">
@@ -373,12 +421,54 @@
     </div>
 </div>
 
+@endsection
+
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+    
+    /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+</style>
+@endpush
+
 @push('scripts')
 <script>
-    // Auto-dismiss alerts
-    setTimeout(function() {
-        $('.alert').fadeOut('slow');
-    }, 3000);
+    // Auto-dismiss alerts using vanilla JavaScript (no jQuery dependency)
+    document.addEventListener('DOMContentLoaded', function() {
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            setTimeout(function() {
+                var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                if (bsAlert) {
+                    bsAlert.close();
+                } else {
+                    alert.style.display = 'none';
+                }
+            }, 3000);
+        });
+    });
 </script>
 @endpush
-@endsection

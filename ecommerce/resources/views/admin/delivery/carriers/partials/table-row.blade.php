@@ -59,66 +59,26 @@
         </span>
     </td>
     <td>
-        <div class="dropdown">
-            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                <i class="bi bi-three-dots-vertical"></i>
+        <div class="btn-group">
+            <a href="{{ route('admin.delivery.carriers.edit', $carrier->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                <i class="bi bi-pencil"></i>
+            </a>
+            <button type="button" class="btn btn-sm btn-outline-success status-toggle" 
+                    onclick="toggleStatus({{ $carrier->id }})" 
+                    title="Toggle Status">
+                <i class="bi bi-{{ $carrier->is_active ? 'pause' : 'play' }}-circle"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                    <a class="dropdown-item" href="{{ route('admin.delivery.carriers.edit', $carrier->id) }}">
-                        <i class="bi bi-pencil me-2"></i>Edit
-                    </a>
-                </li>
-                <li>
-                    <button class="dropdown-item" onclick="toggleStatus({{ $carrier->id }})">
-                        <i class="bi bi-{{ $carrier->is_active ? 'pause' : 'play' }}-circle me-2"></i>
-                        {{ $carrier->is_active ? 'Deactivate' : 'Activate' }}
-                    </button>
-                </li>
-                <li>
-                    <button class="dropdown-item" onclick="toggleFeatured({{ $carrier->id }})">
-                        <i class="bi bi-star me-2"></i>
-                        {{ $carrier->is_featured ? 'Remove from Featured' : 'Mark as Featured' }}
-                    </button>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <button class="dropdown-item text-danger" onclick="deleteCarrier({{ $carrier->id }})">
-                        <i class="bi bi-trash me-2"></i>Delete
-                    </button>
-                </li>
-            </ul>
+            <button type="button" class="btn btn-sm btn-outline-info featured-toggle" 
+                    onclick="toggleFeatured({{ $carrier->id }})" 
+                    title="Toggle Featured">
+                <i class="bi bi-{{ $carrier->is_featured ? 'star-fill' : 'star' }}"></i>
+            </button>
+            <form action="{{ route('admin.delivery.carriers.destroy', $carrier->id) }}" method="POST" class="d-flex" onsubmit="return confirm('Are you sure you want to delete this carrier?')">
+                @csrf @method('DELETE')
+                <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="Delete">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
         </div>
     </td>
 </tr>
-
-@push('scripts')
-<script>
-function deleteCarrier(carrierId) {
-    if (!confirm('Are you sure you want to delete this carrier?')) return;
-    
-    fetch(`{{ route('admin.delivery.carriers.destroy', ':id') }}`.replace(':id', carrierId), {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message || 'Carrier deleted successfully', 'success');
-            // Reload the page or remove the row
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
-        } else {
-            showToast(data.message || 'Error deleting carrier', 'error');
-        }
-    })
-    .catch(err => {
-        showToast('Error deleting carrier', 'error');
-    });
-}
-</script>
-@endpush

@@ -43,7 +43,7 @@
                                 @error('subject')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <div class="form-text">Use {{variable}} to insert dynamic content</div>
+                                <div class="form-text">Use @{{variable}} to insert dynamic content</div>
                             </div>
                         </div>
                     </div>
@@ -63,7 +63,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                                 <div class="form-text">
-                                    HTML supported. Use {{variable}} to insert dynamic content.
+                                    HTML supported. Use @{{variable}} to insert dynamic content.
                                 </div>
                             </div>
                         </div>
@@ -174,9 +174,16 @@
             </div>
         </div>
     </div>
+</div>
 @endsection
 
 @push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
 @endpush
 
 @push('scripts')

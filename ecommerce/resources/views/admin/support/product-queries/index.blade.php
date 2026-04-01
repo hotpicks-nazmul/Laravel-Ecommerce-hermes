@@ -85,7 +85,7 @@
                     
                     <!-- Reset Button -->
                     <div class="col-lg-2 col-md-4 col-sm-8">
-                        <a href="{{ route('admin.support.product-queries.index') }}" class="btn btn-sm btn-outline-secondary">
+                        <a href="{{ route('admin.product-qa.index') }}" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-x-lg me-1"></i> Reset
                         </a>
                     </div>
@@ -120,7 +120,7 @@
     </div>
 
     <!-- Bulk Action Form -->
-    <form id="bulkActionForm" method="POST" action="{{ route('admin.support.product-queries.bulk-action') }}">
+    <form id="bulkActionForm" method="POST" action="{{ route('admin.product-qa.bulk-action') }}">
         @csrf
         <input type="hidden" name="action" id="bulkActionInput">
         <input type="hidden" name="ids" id="bulkIdsInput">
@@ -130,8 +130,8 @@
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="bg-light">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
                         <tr>
                             <th width="40">
                                 <input type="checkbox" class="form-check-input" id="selectAll">
@@ -205,13 +205,13 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('admin.support.product-queries.show', $qa->id) }}" class="btn btn-outline-primary" title="View & Answer">
+                                    <a href="{{ route('admin.product-qa.show', $qa->id) }}" class="btn btn-outline-primary" title="View & Answer">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                     <button type="button" class="btn btn-outline-warning toggle-featured" data-id="{{ $qa->id }}" title="{{ $qa->is_featured ? 'Unfeature' : 'Feature' }}">
                                         <i class="bi {{ $qa->is_featured ? 'bi-star-fill' : 'bi-star' }}"></i>
                                     </button>
-                                    <form action="{{ route('admin.support.product-queries.destroy', $qa->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this Q&A?')">
+                                    <form action="{{ route('admin.product-qa.destroy', $qa->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this Q&A?')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-outline-danger" title="Delete">
@@ -392,7 +392,8 @@
     document.querySelectorAll('.toggle-featured').forEach(btn => {
         btn.addEventListener('click', function() {
             const id = this.dataset.id;
-            fetch(`{{ route('admin.support.product-queries.index') }}/${id}/toggle-featured`, {
+            const url = "{{ route('admin.product-qa.toggle-featured', '__ID__') }}".replace('__ID__', id);
+            fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -463,7 +464,7 @@
         if (urlParams.get('per_page')) params.set('per_page', urlParams.get('per_page'));
         
         // AJAX request
-        fetch(`{{ route('admin.support.product-queries.index') }}?${params.toString()}&ajax=1`, {
+        fetch(`{{ route('admin.product-qa.index') }}?${params.toString()}&ajax=1`, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'

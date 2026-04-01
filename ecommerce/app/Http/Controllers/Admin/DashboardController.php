@@ -375,7 +375,7 @@ class DashboardController extends Controller
         $yearlySales = [];
         $yearlyLabels = [];
         for ($i = 11; $i >= 0; $i--) {
-            $month = now()->subMonths($i);
+            $month = now()->copy()->subMonths($i);
             $yearlyLabels[] = $month->format('M Y');
             $yearlySales[] = round(DB::table('orders')->where('payment_status', 'paid')
                 ->whereYear('created_at', $month->year)
@@ -389,6 +389,7 @@ class DashboardController extends Controller
             ->count();
         $returningCustomers = DB::table('orders')->where('payment_status', 'paid')
             ->whereBetween('created_at', [$start, $end])
+            ->whereNotNull('user_id')
             ->distinct('user_id')
             ->count('user_id');
         

@@ -309,73 +309,41 @@ function performLiveSearch(searchTerm) {
 
 // Update statistics cards
 function updateStats(stats) {
-    const statsContainer = document.getElementById('statsCards');
+    const statsContainer = document.querySelector('.stat-card-row');
     if (!statsContainer) return;
     
     statsContainer.innerHTML = `
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Total Orders</div>
-                    <div class="h4 mb-0 text-primary">${stats.total || 0}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon"><i class="bi bi-cart-fill"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Total Orders</span><span class="stat-card-value">${stats.total || 0}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Pending</div>
-                    <div class="h4 mb-0 text-warning">${stats.pending || 0}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon"><i class="bi bi-clock"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Pending</span><span class="stat-card-value">${stats.pending || 0}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Processing</div>
-                    <div class="h4 mb-0 text-info">${stats.processing || 0}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon"><i class="bi bi-gear"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Processing</span><span class="stat-card-value">${stats.processing || 0}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Confirmed</div>
-                    <div class="h4 mb-0 text-secondary">${stats.confirmed || 0}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-secondary">
+            <div class="stat-card-icon"><i class="bi bi-check2"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Confirmed</span><span class="stat-card-value">${stats.confirmed || 0}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Shipped</div>
-                    <div class="h4 mb-0 text-primary">${stats.shipped || 0}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon"><i class="bi bi-truck"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Shipped</span><span class="stat-card-value">${stats.shipped || 0}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Delivered</div>
-                    <div class="h4 mb-0 text-success">${stats.delivered || 0}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon"><i class="bi bi-check2-all"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Delivered</span><span class="stat-card-value">${stats.delivered || 0}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Cancelled</div>
-                    <div class="h4 mb-0 text-danger">${stats.cancelled || 0}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-danger">
+            <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Cancelled</span><span class="stat-card-value">${stats.cancelled || 0}</span></div>
         </div>
-        <div class="col-md-2 col-sm-4 col-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="text-muted small text-uppercase">Refunded</div>
-                    <div class="h4 mb-0" style="color: #6f42c1;">${stats.refunded || 0}</div>
-                </div>
-            </div>
+        <div class="stat-card stat-card-secondary">
+            <div class="stat-card-icon"><i class="bi bi-arrow-counterclockwise"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Refunded</span><span class="stat-card-value">${stats.refunded || 0}</span></div>
         </div>
     `;
 }

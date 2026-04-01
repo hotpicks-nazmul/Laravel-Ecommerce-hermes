@@ -208,4 +208,44 @@ class WarehouseController extends Controller
             'warehouses' => $warehouses
         ]);
     }
+
+    /**
+     * Handle bulk actions on warehouses.
+     */
+    public function bulkAction(Request $request)
+    {
+        $request->validate([
+            'action' => 'required|in:activate,deactivate,delete',
+            'ids' => 'required|string',
+        ]);
+
+        $ids = json_decode($request->ids, true);
+
+        if (empty($ids)) {
+            return back()->with('error', 'No warehouses selected.');
+        }
+
+        $warehouses = Warehouse::whereIn('id', $ids)->get();
+
+        switch ($request->action) {
+            case 'activate':
+                Warehouse::whereIn('id', $ids)->update(['is_active' => true]);
+                $message = $warehouses->count() . ' warehouse(s) activated successfully.';
+                break;
+
+            case 'deactivate':
+                Warehouse::whereIn('id', $ids)->update(['is_active' => false]);
+                $message = $warehouses->count() . ' warehouse(s) deactivated successfully.';
+                break;
+
+            case 'delete':
+                foreach ($warehouses as $warehouse) {
+                    $warehouse->delete();
+                }
+                $message = $warehouses->count() . ' warehouse(s) deleted successfully.';
+                break;
+        }
+
+        return back()->with('success', $message);
+    }
 }

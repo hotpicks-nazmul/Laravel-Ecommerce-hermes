@@ -1400,15 +1400,21 @@
        POS PAGE STYLES
        ============================================ */
     
-    /* POS Terminal */
+    /* POS Terminal - Full height layout */
     .pos-terminal {
-        min-height: calc(100vh - 200px);
+        height: calc(100vh - 140px);
+        display: flex;
+        flex-direction: column;
     }
     
     .pos-products-panel {
         background: var(--color-white);
         border-radius: var(--radius-lg);
         border: 1px solid var(--color-gray-200);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
     }
     
     .pos-search-bar {
@@ -1418,11 +1424,63 @@
     
     .pos-products-grid {
         background: var(--color-gray-50);
+        max-height: calc(100vh - 300px);
+        overflow-y: auto;
     }
     
+    /* POS Product Card */
+    .pos-product-card {
+        background: var(--color-white);
+        border: 1px solid var(--color-gray-200);
+        border-radius: var(--radius-lg);
+        padding: 12px;
+        cursor: pointer;
+        transition: all var(--transition-base);
+    }
+
+    .pos-product-card:hover {
+        border-color: var(--color-primary);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .pos-product-card .product-image {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        border-radius: var(--radius-md);
+        background: var(--color-gray-100);
+    }
+
+    .pos-product-card .product-name {
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin: 8px 0 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .pos-product-card .product-price {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--color-success);
+    }
+
+    .pos-product-card .product-stock {
+        font-size: 0.75rem;
+        color: var(--color-gray-500);
+    }
+    
+    /* POS Cart Panel */
     .pos-cart-panel {
+        background: var(--color-white);
         border-radius: var(--radius-lg);
         border: 1px solid var(--color-gray-200);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
     }
     
     .pos-cart-header {
@@ -1431,6 +1489,68 @@
     
     .pos-cart-items {
         background: var(--color-gray-50);
+    }
+
+    /* POS Cart Item */
+    .pos-cart-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background: var(--color-white);
+        border-radius: var(--radius-lg);
+        margin-bottom: 10px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .pos-cart-item .item-image {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: var(--radius-md);
+        background: var(--color-gray-100);
+        margin-right: 10px;
+    }
+
+    .pos-cart-item .item-details {
+        flex: 1;
+    }
+
+    .pos-cart-item .item-name {
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .pos-cart-item .item-price {
+        color: var(--color-gray-500);
+        font-size: 0.85rem;
+    }
+
+    .pos-cart-item .item-quantity {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .pos-cart-item .qty-btn {
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pos-cart-item .item-total {
+        font-weight: 600;
+        color: var(--color-success);
+    }
+
+    .pos-cart-item .remove-btn {
+        color: var(--color-danger);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
     }
     
     .pos-cart-summary {

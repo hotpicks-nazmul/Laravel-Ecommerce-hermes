@@ -172,41 +172,55 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Name <span class="text-danger">*</span></label>
-                                <input type="text" name="name" class="form-control" placeholder="My Webhook" required>
+                                <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" placeholder="My Webhook" value="{{ old('name') }}" required>
+                                @error('name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Event <span class="text-danger">*</span></label>
-                                <select name="event" class="form-select" required>
+                                <select name="event" class="form-select @error('event') is-invalid @enderror" required>
                                     @foreach($events as $value => $label)
-                                        <option value="{{ $value }}">{{ $label }} ({{ $value }})</option>
+                                        <option value="{{ $value }}" {{ old('event') == $value ? 'selected' : '' }}>{{ $label }} ({{ $value }})</option>
                                     @endforeach
                                 </select>
+                                @error('event')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Endpoint URL <span class="text-danger">*</span></label>
-                        <input type="url" name="url" class="form-control" placeholder="https://your-server.com/webhook" required>
+                        <input type="url" name="url" class="form-control @error('url') is-invalid @enderror" placeholder="https://your-server.com/webhook" value="{{ old('url') }}" required>
+                        @error('url')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                         <div class="form-text">The URL that will receive the webhook POST requests</div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">HTTP Method</label>
-                                <select name="method" class="form-select">
-                                    <option value="POST" selected>POST</option>
-                                    <option value="GET">GET</option>
-                                    <option value="PUT">PUT</option>
-                                    <option value="PATCH">PATCH</option>
+                                <select name="method" class="form-select @error('method') is-invalid @enderror">
+                                    @foreach(['POST', 'GET', 'PUT', 'PATCH'] as $method)
+                                        <option value="{{ $method }}" {{ old('method', 'POST') == $method ? 'selected' : '' }}>{{ $method }}</option>
+                                    @endforeach
                                 </select>
+                                @error('method')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Timeout (seconds)</label>
-                                <input type="number" name="timeout" class="form-control" value="30" min="5" max="300">
+                                <input type="number" name="timeout" class="form-control @error('timeout') is-invalid @enderror" value="{{ old('timeout', 30) }}" min="5" max="300">
+                                @error('timeout')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -214,21 +228,27 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Retry Count</label>
-                                <input type="number" name="retry_count" class="form-control" value="3" min="0" max="10">
+                                <input type="number" name="retry_count" class="form-control @error('retry_count') is-invalid @enderror" value="{{ old('retry_count', 3) }}" min="0" max="10">
+                                @error('retry_count')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                                 <div class="form-text">Number of retries on failure</div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Secret (Optional)</label>
-                                <input type="text" name="secret" class="form-control" placeholder="Your webhook secret">
+                                <input type="text" name="secret" class="form-control @error('secret') is-invalid @enderror" value="{{ old('secret') }}" placeholder="Your webhook secret">
+                                @error('secret')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                                 <div class="form-text">Used to verify webhook authenticity</div>
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="is_active" id="createWebhookActive" value="1" checked>
+                            <input class="form-check-input" type="checkbox" name="is_active" id="createWebhookActive" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
                             <label class="form-check-label" for="createWebhookActive">Active</label>
                         </div>
                     </div>
@@ -257,43 +277,61 @@
                 @csrf
                 @method('PUT')
                 <div class="modal-body">
+                    @php
+                        $isEditingWebhook = old('_editing_webhook_id') == $webhook->id;
+                    @endphp
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Name <span class="text-danger">*</span></label>
-                                <input type="text" name="name" class="form-control" value="{{ $webhook->name }}" required>
+                                <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ $isEditingWebhook ? old('name') : $webhook->name }}" required>
+                                @error('name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Event <span class="text-danger">*</span></label>
-                                <select name="event" class="form-select" required>
+                                <select name="event" class="form-select @error('event') is-invalid @enderror" required>
                                     @foreach($events as $value => $label)
-                                        <option value="{{ $value }}" {{ $webhook->event === $value ? 'selected' : '' }}>{{ $label }} ({{ $value }})</option>
+                                        <option value="{{ $value }}" {{ ($isEditingWebhook ? old('event') : $webhook->event) === $value ? 'selected' : '' }}>{{ $label }} ({{ $value }})</option>
                                     @endforeach
                                 </select>
+                                @error('event')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Endpoint URL <span class="text-danger">*</span></label>
-                        <input type="url" name="url" class="form-control" value="{{ $webhook->url }}" required>
+                        <input type="url" name="url" class="form-control @error('url') is-invalid @enderror" value="{{ $isEditingWebhook ? old('url') : $webhook->url }}" required>
+                        @error('url')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">HTTP Method</label>
-                                <select name="method" class="form-select">
+                                <select name="method" class="form-select @error('method') is-invalid @enderror">
                                     @foreach(['POST', 'GET', 'PUT', 'PATCH'] as $method)
-                                        <option value="{{ $method }}" {{ $webhook->method === $method ? 'selected' : '' }}>{{ $method }}</option>
+                                        <option value="{{ $method }}" {{ ($isEditingWebhook ? old('method') : $webhook->method) === $method ? 'selected' : '' }}>{{ $method }}</option>
                                     @endforeach
                                 </select>
+                                @error('method')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Timeout (seconds)</label>
-                                <input type="number" name="timeout" class="form-control" value="{{ $webhook->timeout }}" min="5" max="300">
+                                <input type="number" name="timeout" class="form-control @error('timeout') is-invalid @enderror" value="{{ $isEditingWebhook ? old('timeout') : $webhook->timeout }}" min="5" max="300">
+                                @error('timeout')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -301,19 +339,25 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Retry Count</label>
-                                <input type="number" name="retry_count" class="form-control" value="{{ $webhook->retry_count }}" min="0" max="10">
+                                <input type="number" name="retry_count" class="form-control @error('retry_count') is-invalid @enderror" value="{{ $isEditingWebhook ? old('retry_count') : $webhook->retry_count }}" min="0" max="10">
+                                @error('retry_count')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Secret (Optional)</label>
-                                <input type="text" name="secret" class="form-control" value="{{ $webhook->secret }}">
+                                <input type="text" name="secret" class="form-control @error('secret') is-invalid @enderror" value="{{ $isEditingWebhook ? old('secret') : $webhook->secret }}">
+                                @error('secret')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="is_active" id="editWebhookActive{{ $webhook->id }}" value="1" {{ $webhook->is_active ? 'checked' : '' }}>
+                            <input class="form-check-input" type="checkbox" name="is_active" id="editWebhookActive{{ $webhook->id }}" value="1" {{ ($isEditingWebhook ? old('is_active') : $webhook->is_active) ? 'checked' : '' }}>
                             <label class="form-check-label" for="editWebhookActive{{ $webhook->id }}">Active</label>
                         </div>
                     </div>

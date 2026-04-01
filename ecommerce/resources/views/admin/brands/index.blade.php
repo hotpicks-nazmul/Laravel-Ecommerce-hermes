@@ -7,23 +7,23 @@
 <div class="stat-card-row mb-4">
     <div class="stat-card stat-card-primary">
         <div class="stat-card-icon"><i class="bi bi-tag"></i></div>
-        <div class="stat-card-content"><span class="stat-card-label">Total</span><span class="stat-card-value" id="statTotal">{{ $stats['total'] ?? 0 }}</span></div>
+        <div class="stat-card-content"><span class="stat-card-label">Total</span><span class="stat-card-value" id="stat-total">{{ $stats['total'] ?? 0 }}</span></div>
     </div>
     <div class="stat-card stat-card-success">
         <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
-        <div class="stat-card-content"><span class="stat-card-label">Active</span><span class="stat-card-value" id="statActive">{{ $stats['active'] ?? 0 }}</span></div>
+        <div class="stat-card-content"><span class="stat-card-label">Active</span><span class="stat-card-value" id="stat-active">{{ $stats['active'] ?? 0 }}</span></div>
     </div>
     <div class="stat-card stat-card-secondary">
         <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
-        <div class="stat-card-content"><span class="stat-card-label">Inactive</span><span class="stat-card-value" id="statInactive">{{ $stats['inactive'] ?? 0 }}</span></div>
+        <div class="stat-card-content"><span class="stat-card-label">Inactive</span><span class="stat-card-value" id="stat-inactive">{{ $stats['inactive'] ?? 0 }}</span></div>
     </div>
     <div class="stat-card stat-card-info">
         <div class="stat-card-icon"><i class="bi bi-star"></i></div>
-        <div class="stat-card-content"><span class="stat-card-label">Featured</span><span class="stat-card-value" id="statFeatured">{{ $stats['featured'] ?? 0 }}</span></div>
+        <div class="stat-card-content"><span class="stat-card-label">Featured</span><span class="stat-card-value" id="stat-featured">{{ $stats['featured'] ?? 0 }}</span></div>
     </div>
     <div class="stat-card stat-card-warning">
         <div class="stat-card-icon"><i class="bi bi-box"></i></div>
-        <div class="stat-card-content"><span class="stat-card-label">With Products</span><span class="stat-card-value" id="statProducts">{{ $stats['with_products'] ?? 0 }}</span></div>
+        <div class="stat-card-content"><span class="stat-card-label">With Products</span><span class="stat-card-value" id="stat-with-products">{{ $stats['with_products'] ?? 0 }}</span></div>
     </div>
 </div>
 
@@ -222,11 +222,25 @@
 .brand-checkbox:checked + td img {
     box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.3);
 }
+/* Fix delete button border-radius to match btn-group siblings */
+.btn-group .delete-btn {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
 </style>
 @endpush
 
 @push('scripts')
 <script>
+// Helper function to show toast notifications
+function showToast(message, type = 'success') {
+    if (typeof toastr !== 'undefined') {
+        toastr[type](message);
+    } else {
+        alert(message);
+    }
+}
+
 let selectedBrands = new Set();
 
 // Toggle select all

@@ -25,7 +25,20 @@ class SeoController extends Controller
 
     public function updateMeta(Request $request)
     {
-        foreach ($request->except('_token') as $key => $value) {
+        $validated = $request->validate([
+            'site_meta_title' => 'nullable|string|max:100',
+            'site_meta_description' => 'nullable|string|max:300',
+            'site_meta_keywords' => 'nullable|string|max:500',
+            'google_analytics_id' => 'nullable|string|max:50',
+            'google_search_console_code' => 'nullable|string|max:500',
+            'facebook_pixel_id' => 'nullable|string|max:50',
+            'og_title' => 'nullable|string|max:100',
+            'og_description' => 'nullable|string|max:300',
+            'og_image' => 'nullable|string|max:500',
+            'twitter_card_type' => 'nullable|in:summary,summary_large_image',
+        ]);
+
+        foreach ($validated as $key => $value) {
             Setting::updateOrCreate(['key' => $key], ['value' => $value, 'group' => 'seo']);
         }
 
@@ -53,8 +66,8 @@ class SeoController extends Controller
     public function storeRedirect(Request $request)
     {
         $request->validate([
-            'from' => 'required|string',
-            'to' => 'required|string',
+            'from' => 'required|string|max:500',
+            'to' => 'required|string|max:500',
             'type' => 'required|in:301,302',
         ]);
 

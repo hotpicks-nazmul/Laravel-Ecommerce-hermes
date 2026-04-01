@@ -2,14 +2,6 @@
 
 @section('title', 'Delivery Zones')
 
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-</style>
-@endpush
-
 @section('content')
 <!-- Statistics Cards -->
 <div class="stat-card-row mb-4">

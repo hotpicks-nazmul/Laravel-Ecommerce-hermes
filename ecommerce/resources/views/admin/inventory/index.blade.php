@@ -85,9 +85,9 @@
                 </div>
                 
                 <!-- Reset Button -->
-                <div class="col-lg-1 col-md-2 col-sm-6">
-                    <a href="{{ route('admin.inventory.index') }}" class="btn btn-sm btn-outline-secondary w-100">
-                        <i class="bi bi-x-lg"></i>
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <a href="{{ route('admin.inventory.index') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-lg me-1"></i> Reset
                     </a>
                 </div>
             </div>
@@ -281,10 +281,6 @@
 
 @push('styles')
 <style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-    
     /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
     .stat-card-icon i,
     .stat-card-icon i::before,

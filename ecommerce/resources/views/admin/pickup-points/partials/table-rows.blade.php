@@ -35,7 +35,7 @@
         </form>
     </td>
     <td>
-        <div class="d-flex gap-1">
+        <div class="btn-group" role="group">
             <a href="{{ route('admin.pickup-points.show', $pickupPoint->id) }}" class="btn btn-sm btn-outline-primary" title="View">
                 <i class="bi bi-eye"></i>
             </a>

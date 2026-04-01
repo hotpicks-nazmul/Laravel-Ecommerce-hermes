@@ -2,42 +2,6 @@
 
 @section('title', 'System Update')
 
-@push('styles')
-<style>
-    /* Force Bootstrap Icons to display on this page */
-    .stat-card-icon i,
-    .stat-card-icon i::before,
-    .bi::before,
-    [class*="bi bi-"]::before {
-        display: inline-block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        font-family: 'bootstrap-icons' !important;
-    }
-    
-    /* Override icon colors for stat cards */
-    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
-    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
-    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
-    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
-    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
-    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
-    
-    /* Make the whole icon colored */
-    .stat-card-icon i { color: inherit !important; }
-    
-    /* Force specific icons used in Current System Status section */
-    .bi-check2-circle::before { content: "\F26D" !important; color: #198754 !important; }
-    .bi-cloud-download::before { content: "\F34A" !important; color: inherit !important; }
-    
-    /* Text color utility classes */
-    .text-success { color: #198754 !important; }
-    .text-primary { color: #0d6efd !important; }
-    .text-warning { color: #ffc107 !important; }
-    .text-danger { color: #dc3545 !important; }
-</style>
-@endpush
-
 @section('content')
 
 <!-- Stats Cards Row -->
@@ -93,64 +57,64 @@
 </div>
 @endif
 
-<form id="updateForm" method="POST" action="{{ route('admin.system.update.perform') }}">
-    @csrf
-    <div class="row">
-        <div class="col-lg-8">
-            <!-- Current Version Status -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2"></i>Current System Status</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-check2-circle text-success fs-4 me-3"></i>
-                                <div>
-                                    <div class="text-muted small">Current Version</div>
-                                    <div class="h4 mb-0 fw-bold">{{ $version['app_version'] ?? '1.0.0' }}</div>
-                                </div>
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Current Version Status -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2"></i>Current System Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-check2-circle text-success fs-4 me-3"></i>
+                            <div>
+                                <div class="text-muted small">Current Version</div>
+                                <div class="h4 mb-0 fw-bold">{{ $version['app_version'] ?? '1.0.0' }}</div>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-{{ ($version['update_available'] ?? '0') == '1' ? 'cloud-download text-warning' : 'check-circle text-success' }} fs-4 me-3"></i>
-                                <div>
-                                    <div class="text-muted small">Update Status</div>
-                                    <div class="h6 mb-0">
-                                        @if(($version['update_available'] ?? '0') == '1')
-                                            <span class="badge bg-warning text-dark">
-                                                <i class="bi bi-arrow-up me-1"></i> {{ $version['latest_version'] ?? '' }} Available
-                                            </span>
-                                        @else
-                                            <span class="badge bg-success">
-                                                <i class="bi bi-check me-1"></i> Up to Date
-                                            </span>
-                                        @endif
-                                    </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-{{ ($version['update_available'] ?? '0') == '1' ? 'cloud-download text-warning' : 'check-circle text-success' }} fs-4 me-3"></i>
+                            <div>
+                                <div class="text-muted small">Update Status</div>
+                                <div class="h6 mb-0">
+                                    @if(($version['update_available'] ?? '0') == '1')
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-arrow-up me-1"></i> {{ $version['latest_version'] ?? '' }} Available
+                                        </span>
+                                    @else
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check me-1"></i> Up to Date
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="row mt-3">
-                        <div class="col-md-6">
-                            <div class="text-muted small">Last Updated</div>
-                            <div class="fw-medium">
-                                {{ $version['last_updated'] ?? 'Never' }}
-                            </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="text-muted small">Last Updated</div>
+                        <div class="fw-medium">
+                            {{ $version['last_updated'] ?? 'Never' }}
                         </div>
-                        <div class="col-md-6">
-                            <div class="text-muted small">Last Check</div>
-                            <div class="fw-medium">
-                                {{ $settings['last_check'] ?? 'Never' }}
-                            </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-muted small">Last Check</div>
+                        <div class="fw-medium">
+                            {{ $settings['last_check'] ?? 'Never' }}
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Update Actions -->
+        <!-- Update Actions -->
+        <form id="updateForm" method="POST" action="{{ route('admin.system.update.perform') }}">
+            @csrf
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white py-3">
                     <h5 class="mb-0 fw-semibold"><i class="bi bi-arrow-repeat me-2"></i>Update Actions</h5>
@@ -181,182 +145,182 @@
                     </div>
                 </div>
             </div>
+        </form>
 
-            <!-- Server Information -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-semibold"><i class="bi bi-server me-2"></i>Server Information</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <div class="d-flex justify-content-between border-bottom pb-2">
-                                <span class="text-muted">PHP Version</span>
-                                <span class="fw-medium">{{ $serverInfo['php_version'] }}</span>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="d-flex justify-content-between border-bottom pb-2">
-                                <span class="text-muted">Laravel Version</span>
-                                <span class="fw-medium">{{ $serverInfo['laravel_version'] }}</span>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="d-flex justify-content-between border-bottom pb-2">
-                                <span class="text-muted">Database Type</span>
-                                <span class="fw-medium">{{ ucfirst($serverInfo['database_type']) }}</span>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="d-flex justify-content-between border-bottom pb-2">
-                                <span class="text-muted">Max Execution Time</span>
-                                <span class="fw-medium">{{ $serverInfo['max_execution_time'] }}s</span>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="d-flex justify-content-between border-bottom pb-2">
-                                <span class="text-muted">Memory Limit</span>
-                                <span class="fw-medium">{{ $serverInfo['memory_limit'] }}</span>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="d-flex justify-content-between border-bottom pb-2">
-                                <span class="text-muted">Upload Max Size</span>
-                                <span class="fw-medium">{{ $serverInfo['upload_max_filesize'] }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- Server Information -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-server me-2"></i>Server Information</h5>
             </div>
-        </div>
-
-        <div class="col-lg-4">
-            <!-- Update Settings -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-semibold"><i class="bi bi-gear me-2"></i>Update Settings</h5>
-                </div>
-                <div class="card-body">
-                    <form id="settingsForm" method="POST" action="{{ route('admin.system.update.settings') }}">
-                        @csrf
-                        <div class="form-check form-switch mb-3">
-                            <input class="form-check-input" type="checkbox" id="auto_check_updates" name="auto_check_updates" 
-                                   {{ ($settings['auto_check_updates'] ?? '1') == '1' ? 'checked' : '' }}>
-                            <label class="form-check-label" for="auto_check_updates">
-                                <i class="bi bi-clock text-primary me-1"></i> Auto Check Updates
-                            </label>
-                            <div class="form-text small">Automatically check for updates daily</div>
-                        </div>
-
-                        <div class="form-check form-switch mb-3">
-                            <input class="form-check-input" type="checkbox" id="auto_install_security" name="auto_install_security" 
-                                   {{ ($settings['auto_install_security'] ?? '0') == '1' ? 'checked' : '' }}>
-                            <label class="form-check-label" for="auto_install_security">
-                                <i class="bi bi-shield-check text-success me-1"></i> Auto Install Security
-                            </label>
-                            <div class="form-text small">Automatically install security patches</div>
-                        </div>
-
-                        <div class="form-check form-switch mb-3">
-                            <input class="form-check-input" type="checkbox" id="notify_on_update" name="notify_on_update" 
-                                   {{ ($settings['notify_on_update'] ?? '1') == '1' ? 'checked' : '' }}>
-                            <label class="form-check-label" for="notify_on_update">
-                                <i class="bi bi-bell text-warning me-1"></i> Notify on Update
-                            </label>
-                            <div class="form-text small">Send notification when update available</div>
-                        </div>
-
-                        <div class="form-check form-switch mb-3">
-                            <input class="form-check-input" type="checkbox" id="backup_before_update" name="backup_before_update" 
-                                   {{ ($settings['backup_before_update'] ?? '1') == '1' ? 'checked' : '' }}>
-                            <label class="form-check-label" for="backup_before_update">
-                                <i class="bi bi-cloud-arrow-up text-info me-1"></i> Backup Before Update
-                            </label>
-                            <div class="form-text small">Create backup before installing updates</div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="update_channel" class="form-label">Update Channel</label>
-                            <select id="update_channel" name="update_channel" class="form-select">
-                                <option value="stable" {{ ($settings['update_channel'] ?? 'stable') == 'stable' ? 'selected' : '' }}>
-                                    Stable (Recommended)
-                                </option>
-                                <option value="beta" {{ ($settings['update_channel'] ?? '') == 'beta' ? 'selected' : '' }}>
-                                    Beta
-                                </option>
-                                <option value="development" {{ ($settings['update_channel'] ?? '') == 'development' ? 'selected' : '' }}>
-                                    Development
-                                </option>
-                            </select>
-                            <div class="form-text">Choose which updates to receive</div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-check-lg me-1"></i> Save Settings
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- System Health -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-semibold"><i class="bi bi-heart-pulse me-2"></i>System Health</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bi bi-check-circle text-success me-3"></i>
-                        <div>
-                            <div class="fw-medium">Database Connection</div>
-                            <div class="text-muted small">Connected</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between border-bottom pb-2">
+                            <span class="text-muted">PHP Version</span>
+                            <span class="fw-medium">{{ $serverInfo['php_version'] }}</span>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bi bi-check-circle text-success me-3"></i>
-                        <div>
-                            <div class="fw-medium">Cache System</div>
-                            <div class="text-muted small">Working</div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between border-bottom pb-2">
+                            <span class="text-muted">Laravel Version</span>
+                            <span class="fw-medium">{{ $serverInfo['laravel_version'] }}</span>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bi bi-check-circle text-success me-3"></i>
-                        <div>
-                            <div class="fw-medium">File Storage</div>
-                            <div class="text-muted small">Writable</div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between border-bottom pb-2">
+                            <span class="text-muted">Database Type</span>
+                            <span class="fw-medium">{{ ucfirst($serverInfo['database_type']) }}</span>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-check-circle text-success me-3"></i>
-                        <div>
-                            <div class="fw-medium">Cron Jobs</div>
-                            <div class="text-muted small">Active</div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between border-bottom pb-2">
+                            <span class="text-muted">Max Execution Time</span>
+                            <span class="fw-medium">{{ $serverInfo['max_execution_time'] }}s</span>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Quick Links -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-semibold">Quick Links</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{ route('admin.system.server-status') }}" class="btn btn-sm btn-outline-secondary text-start">
-                            <i class="bi bi-server me-1"></i> Server Status
-                        </a>
-                        <a href="{{ route('admin.settings.file-system') }}" class="btn btn-sm btn-outline-secondary text-start">
-                            <i class="bi bi-hdd me-1"></i> File System & Cache
-                        </a>
-                        <a href="{{ route('admin.settings.index') }}" class="btn btn-sm btn-outline-secondary text-start">
-                            <i class="bi bi-gear me-1"></i> All Settings
-                        </a>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between border-bottom pb-2">
+                            <span class="text-muted">Memory Limit</span>
+                            <span class="fw-medium">{{ $serverInfo['memory_limit'] }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between border-bottom pb-2">
+                            <span class="text-muted">Upload Max Size</span>
+                            <span class="fw-medium">{{ $serverInfo['upload_max_filesize'] }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</form>
+
+    <div class="col-lg-4">
+        <!-- Update Settings -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-gear me-2"></i>Update Settings</h5>
+            </div>
+            <div class="card-body">
+                <form id="settingsForm" method="POST" action="{{ route('admin.system.update.settings') }}">
+                    @csrf
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="auto_check_updates" name="auto_check_updates" 
+                               {{ ($settings['auto_check_updates'] ?? '1') == '1' ? 'checked' : '' }}>
+                        <label class="form-check-label" for="auto_check_updates">
+                            <i class="bi bi-clock text-primary me-1"></i> Auto Check Updates
+                        </label>
+                        <div class="form-text small">Automatically check for updates daily</div>
+                    </div>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="auto_install_security" name="auto_install_security" 
+                               {{ ($settings['auto_install_security'] ?? '0') == '1' ? 'checked' : '' }}>
+                        <label class="form-check-label" for="auto_install_security">
+                            <i class="bi bi-shield-check text-success me-1"></i> Auto Install Security
+                        </label>
+                        <div class="form-text small">Automatically install security patches</div>
+                    </div>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="notify_on_update" name="notify_on_update" 
+                               {{ ($settings['notify_on_update'] ?? '1') == '1' ? 'checked' : '' }}>
+                        <label class="form-check-label" for="notify_on_update">
+                            <i class="bi bi-bell text-warning me-1"></i> Notify on Update
+                        </label>
+                        <div class="form-text small">Send notification when update available</div>
+                    </div>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="backup_before_update" name="backup_before_update" 
+                               {{ ($settings['backup_before_update'] ?? '1') == '1' ? 'checked' : '' }}>
+                        <label class="form-check-label" for="backup_before_update">
+                            <i class="bi bi-cloud-arrow-up text-info me-1"></i> Backup Before Update
+                        </label>
+                        <div class="form-text small">Create backup before installing updates</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="update_channel" class="form-label">Update Channel</label>
+                        <select id="update_channel" name="update_channel" class="form-select">
+                            <option value="stable" {{ ($settings['update_channel'] ?? 'stable') == 'stable' ? 'selected' : '' }}>
+                                Stable (Recommended)
+                            </option>
+                            <option value="beta" {{ ($settings['update_channel'] ?? '') == 'beta' ? 'selected' : '' }}>
+                                Beta
+                            </option>
+                            <option value="development" {{ ($settings['update_channel'] ?? '') == 'development' ? 'selected' : '' }}>
+                                Development
+                            </option>
+                        </select>
+                        <div class="form-text">Choose which updates to receive</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-lg me-1"></i> Save Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- System Health -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-heart-pulse me-2"></i>System Health</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-check-circle text-success me-3"></i>
+                    <div>
+                        <div class="fw-medium">Database Connection</div>
+                        <div class="text-muted small">Connected</div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-check-circle text-success me-3"></i>
+                    <div>
+                        <div class="fw-medium">Cache System</div>
+                        <div class="text-muted small">Working</div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-check-circle text-success me-3"></i>
+                    <div>
+                        <div class="fw-medium">File Storage</div>
+                        <div class="text-muted small">Writable</div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-check-circle text-success me-3"></i>
+                    <div>
+                        <div class="fw-medium">Cron Jobs</div>
+                        <div class="text-muted small">Active</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-semibold">Quick Links</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ route('admin.system.server-status') }}" class="btn btn-sm btn-outline-secondary text-start">
+                        <i class="bi bi-server me-1"></i> Server Status
+                    </a>
+                    <a href="{{ route('admin.settings.file-system') }}" class="btn btn-sm btn-outline-secondary text-start">
+                        <i class="bi bi-hdd me-1"></i> File System & Cache
+                    </a>
+                    <a href="{{ route('admin.settings.index') }}" class="btn btn-sm btn-outline-secondary text-start">
+                        <i class="bi bi-gear me-1"></i> All Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Install Update Modal -->
 <div class="modal fade" id="installUpdateModal" tabindex="-1" aria-labelledby="installUpdateModalLabel" aria-hidden="true">
@@ -404,6 +368,44 @@
     </div>
 </div>
 
+@endsection
+
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display on this page */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+    
+    /* Force specific icons used in Current System Status section */
+    .bi-check2-circle::before { content: "\F26D" !important; color: #198754 !important; }
+    .bi-cloud-download::before { content: "\F34A" !important; color: inherit !important; }
+    
+    /* Text color utility classes */
+    .text-success { color: #198754 !important; }
+    .text-primary { color: #0d6efd !important; }
+    .text-warning { color: #ffc107 !important; }
+    .text-danger { color: #dc3545 !important; }
+</style>
+@endpush
+
 @push('scripts')
 <script>
     // Update modal checkbox value
@@ -412,4 +414,3 @@
     });
 </script>
 @endpush
-@endsection

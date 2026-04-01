@@ -4,7 +4,7 @@
 
 @section('content')
 <!-- Header -->
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0">Staff Permissions</h4>
     <a href="{{ route('admin.staffs.index') }}" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left me-1"></i> Back to Staffs
@@ -99,12 +99,12 @@
                         @if(!$member->is_super_admin && $member->role !== 'super_admin')
                         <div class="modal fade" id="permissionsModal{{ $member->id }}" tabindex="-1" aria-labelledby="permissionsModalLabel{{ $member->id }}" aria-hidden="true">
                             <div class="modal-dialog modal-lg">
-                                <form action="{{ route('admin.staffs.permissions.update') }}" method="POST">
+                                <form action="{{ route('admin.staffs.permissions.update') }}" method="POST" id="permissionsForm{{ $member->id }}">
                                     @csrf
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <h5 class="modal-title" id="permissionsModalLabel{{ $member->id }}">
-                                                Manage Permissions - {{ $member->name }}
+                                                <i class="bi bi-shield-lock me-2"></i>Manage Permissions - {{ $member->name }}
                                             </h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
@@ -331,8 +331,12 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                <i class="bi bi-x-lg me-1"></i> Cancel
+                                            </button>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-check-lg me-1"></i> Save Changes
+                                            </button>
                                         </div>
                                     </div>
                                 </form>
@@ -356,3 +360,76 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display - same as reference page */
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+    // Handle form submission with AJAX for better UX
+    document.addEventListener('DOMContentLoaded', function() {
+        const permissionForms = document.querySelectorAll('[id^="permissionsForm"]');
+        
+        permissionForms.forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                
+                // Disable button and show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(form.closest('.modal'));
+                    if (modal) modal.hide();
+                    
+                    // Show success toast
+                    if (typeof adminToast !== 'undefined') {
+                        adminToast('success', 'Success!', data.message || 'Permissions updated successfully.');
+                    } else if (typeof toastr !== 'undefined') {
+                        toastr.success(data.message || 'Permissions updated successfully.');
+                    }
+                    
+                    // Reload page to reflect changes
+                    setTimeout(() => window.location.reload(), 500);
+                })
+                .catch(err => {
+                    // On error, submit form normally (fallback)
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    
+                    // Show error toast
+                    if (typeof adminToast !== 'undefined') {
+                        adminToast('error', 'Error!', 'Failed to update permissions. Please try again.');
+                    } else if (typeof toastr !== 'undefined') {
+                        toastr.error('Failed to update permissions.');
+                    }
+                });
+            });
+        });
+    });
+</script>
+@endpush

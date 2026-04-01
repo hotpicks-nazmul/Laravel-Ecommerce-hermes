@@ -6,7 +6,7 @@
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('admin.support.product-queries.index') }}">Product Queries</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.product-qa.index') }}">Product Queries</a></li>
             <li class="breadcrumb-item active">Question #{{ $product_qa->id }}</li>
         </ol>
     </nav>
@@ -51,7 +51,7 @@
                     {{ $product_qa->answer ? 'Edit Answer' : 'Provide Answer' }}
                 </h5>
                 
-                <form id="answerForm" method="POST" action="{{ route('admin.support.product-queries.update', $product_qa->id) }}">
+                <form id="answerForm" method="POST" action="{{ route('admin.product-qa.update', $product_qa->id) }}">
                     @csrf
                     @method('PUT')
                     
@@ -188,7 +188,7 @@
                 </div>
                 <div class="card-body p-2">
                     @foreach($relatedQA as $related)
-                        <a href="{{ route('admin.support.product-queries.show', $related->id) }}" class="text-decoration-none">
+                        <a href="{{ route('admin.product-qa.show', $related->id) }}" class="text-decoration-none">
                             <div class="related-qa-item">
                                 <div class="small text-muted mb-1">
                                     @if($related->status === 'pending')
@@ -214,11 +214,11 @@
 
 <!-- Floating Save Button -->
 <div class="floating-save-container">
-    <a href="{{ route('admin.support.product-queries.index') }}" class="btn btn-secondary floating-reset-btn">
+    <a href="{{ route('admin.product-qa.index') }}" class="btn btn-secondary floating-reset-btn">
         <i class="bi bi-x-lg me-1"></i> Cancel
     </a>
     @if($product_qa->exists)
-    <form action="{{ route('admin.support.product-queries.destroy', $product_qa->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this Q&A?')">
+    <form action="{{ route('admin.product-qa.destroy', $product_qa->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this Q&A?')">
         @csrf
         @method('DELETE')
         <button type="submit" class="btn btn-outline-danger floating-reset-btn">

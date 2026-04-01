@@ -2,6 +2,15 @@
 
 @section('title', 'File System & Cache')
 
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="row">
     <div class="col-12">
@@ -304,9 +313,9 @@
                 <div class="card-body">
                     <p class="text-muted mb-3">Clear different types of cache to refresh your application.</p>
                     
-                    <form action="{{ route('admin.settings.file-system.clear-cache') }}" method="POST" class="mb-3">
+                    <form action="{{ route('admin.settings.file-system.clear-cache') }}" method="POST" class="mb-3" id="clearCacheForm">
                         @csrf
-                        <button type="submit" class="btn btn-primary w-100">
+                        <button type="submit" class="btn btn-primary w-100" id="clearCacheBtn">
                             <i class="bi bi-trash me-1"></i> Clear All Cache
                         </button>
                     </form>
@@ -431,3 +440,29 @@
     </button>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    // Clear cache form submission with loading state
+    document.addEventListener('DOMContentLoaded', function() {
+        const clearCacheBtn = document.getElementById('clearCacheBtn');
+        const clearCacheForm = document.getElementById('clearCacheForm');
+        
+        if (clearCacheBtn && clearCacheForm) {
+            clearCacheBtn.addEventListener('click', function(e) {
+                if (!confirm('Are you sure you want to clear all cache? This will temporarily slow down the application.')) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Show loading state
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Clearing...';
+                
+                // Submit the form
+                clearCacheForm.submit();
+            });
+        }
+    });
+</script>
+@endpush

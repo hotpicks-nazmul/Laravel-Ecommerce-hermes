@@ -898,11 +898,13 @@ Route::prefix('warehouses')->middleware('permission:warehouse')->name('warehouse
     Route::get('/', [\App\Http\Controllers\Admin\WarehouseController::class, 'index'])->name('index');
     Route::get('/create', [\App\Http\Controllers\Admin\WarehouseController::class, 'create'])->name('create');
     Route::post('/', [\App\Http\Controllers\Admin\WarehouseController::class, 'store'])->name('store');
-    Route::get('/{id}', [\App\Http\Controllers\Admin\WarehouseController::class, 'show'])->name('show');
+    // Specific routes MUST come before wildcard routes (Preference.md #13 - Route Ordering)
     Route::get('/{id}/edit', [\App\Http\Controllers\Admin\WarehouseController::class, 'edit'])->name('edit');
     Route::put('/{id}', [\App\Http\Controllers\Admin\WarehouseController::class, 'update'])->name('update');
+    Route::get('/{id}', [\App\Http\Controllers\Admin\WarehouseController::class, 'show'])->name('show');
     Route::delete('/{id}', [\App\Http\Controllers\Admin\WarehouseController::class, 'destroy'])->name('destroy');
-    Route::get('/{id}/inventory', [\App\Http\Controllers\Admin\WarehouseController::class, 'inventory'])->name('inventory');
+    Route::post('/bulk-action', [\App\Http\Controllers\Admin\WarehouseController::class, 'bulkAction'])->name('bulk-action');
+    Route::patch('/{id}/toggle-status', [\App\Http\Controllers\Admin\WarehouseController::class, 'toggleStatus'])->name('toggle-status');
 });
 
 // Staff Management

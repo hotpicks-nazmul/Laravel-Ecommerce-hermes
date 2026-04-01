@@ -4,7 +4,7 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="stat-card-row mb-4">
+<div class="stat-card-row stat-card-row-6 mb-4">
     <div class="stat-card stat-card-primary">
         <div class="stat-card-icon"><i class="bi bi-grid-3x3-gap"></i></div>
         <div class="stat-card-content"><span class="stat-card-label">Total</span><span class="stat-card-value" id="statTotal">{{ $stats['total'] ?? 0 }}</span></div>
@@ -20,6 +20,14 @@
     <div class="stat-card stat-card-danger">
         <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
         <div class="stat-card-content"><span class="stat-card-label">Out of Stock</span><span class="stat-card-value" id="statOutOfStock">{{ $stats['out_of_stock'] ?? 0 }}</span></div>
+    </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Stock Value</span><span class="stat-card-value" id="statStockValue">৳{{ number_format($stats['total_stock_value'] ?? 0, 0) }}</span></div>
+    </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-tag"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Retail Value</span><span class="stat-card-value" id="statRetailValue">৳{{ number_format($stats['total_retail_value'] ?? 0, 0) }}</span></div>
     </div>
 </div>
 
@@ -376,29 +384,49 @@
 
 @push('styles')
 <style>
-.status-toggle {
-    min-width: 70px;
-    transition: all 0.2s;
-}
-.status-toggle:hover {
-    transform: scale(1.05);
-}
-.table > :not(caption) > * > * {
-    padding: 0.75rem 0.5rem;
-}
-.product-checkbox:checked + td img {
-    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.3);
-}
-/* Table styles */
-.table > :not(caption) > * > * {
-    padding: 0.75rem 0.5rem;
-}
-.product-checkbox:checked + td img {
-    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.3);
-}
-.table thead th {
-    background: #f8f9fa !important;
-}
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+    
+    .status-toggle {
+        min-width: 70px;
+        transition: all 0.2s;
+    }
+    .status-toggle:hover {
+        transform: scale(1.05);
+    }
+    .table > :not(caption) > * > * {
+        padding: 0.75rem 0.5rem;
+    }
+    .product-checkbox:checked + td img {
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.3);
+    }
+    .table thead th {
+        background: #f8f9fa !important;
+    }
+    
+    /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
 </style>
 @endpush
 
@@ -772,26 +800,21 @@ function updateStats(stats) {
         'total': 'statTotal',
         'active': 'statActive',
         'low_stock': 'statLowStock',
-        'out_of_stock': 'statOutOfStock'
+        'out_of_stock': 'statOutOfStock',
+        'total_stock_value': 'statStockValue',
+        'total_retail_value': 'statRetailValue'
     };
     
     Object.keys(statMap).forEach(key => {
         const el = document.getElementById(statMap[key]);
         if (el && stats[key] !== undefined) {
-            el.textContent = stats[key];
+            if (key === 'total_stock_value' || key === 'total_retail_value') {
+                el.textContent = '৳' + parseInt(stats[key]).toLocaleString();
+            } else {
+                el.textContent = stats[key];
+            }
         }
     });
-    
-    // Update stock value and retail value
-    const stockValueEl = document.getElementById('statStockValue');
-    if (stockValueEl && stats.total_stock_value !== undefined) {
-        stockValueEl.textContent = '৳' + parseInt(stats.total_stock_value).toLocaleString();
-    }
-    
-    const retailValueEl = document.getElementById('statRetailValue');
-    if (retailValueEl && stats.total_retail_value !== undefined) {
-        retailValueEl.textContent = '৳' + parseInt(stats.total_retail_value).toLocaleString();
-    }
     
     // Update low stock badge
     const lowStockBadge = document.getElementById('lowStockBadge');

@@ -32,7 +32,7 @@
     </td>
     <td style="white-space: nowrap;">
     <div class="small text-truncate" style="max-width: 120px;">
-        <span class="badge bg-primary">{{ $product->sku ?? 'N/A' }}</span>
+        <span class="badge bg-primary">{{ $product->product_code ?? $product->sku ?? 'N/A' }}</span>
     </div>
 </td>
     <td>{{ $product->category?->name ?? 'Uncategorized' }}</td>
@@ -54,15 +54,17 @@
         @endif
     </td>
     <td class="text-center">
-        <button type="button" class="btn btn-sm btn-outline-primary" onclick="showAdjustModal({{ $product->id }})" title="Adjust Stock">
-            <i class="bi bi-plus-slash"></i> Adjust
-        </button>
-        <button type="button" class="btn btn-sm btn-outline-info" onclick="showThresholdModal({{ $product->id }}, {{ $product->low_stock_threshold ?? 10 }})" title="Set Threshold">
-            <i class="bi bi-bell"></i>
-        </button>
-        <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit Product">
-            <i class="bi bi-pencil"></i>
-        </a>
+        <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="showAdjustModal({{ $product->id }})" title="Adjust Stock">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-info" onclick="showThresholdModal({{ $product->id }}, {{ $product->low_stock_threshold ?? 10 }})" title="Set Threshold">
+                <i class="bi bi-bell"></i>
+            </button>
+            <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit Product">
+                <i class="bi bi-pencil"></i>
+            </a>
+        </div>
     </td>
 </tr>
 @empty

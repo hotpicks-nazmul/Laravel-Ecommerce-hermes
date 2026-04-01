@@ -43,7 +43,7 @@
         </span>
     </td>
     <td>
-        <div class="d-flex gap-1">
+        <div class="btn-group">
             <button type="button" class="btn btn-sm btn-outline-primary" 
                 data-bs-toggle="modal" 
                 data-bs-target="#trackingModal{{ $order->id }}"
@@ -204,11 +204,9 @@
 </div>
 @empty
 <tr>
-    <td colspan="8" class="text-center py-4">
-        <div class="text-muted">
-            <i class="bi bi-inbox d-block mb-2" style="font-size: 2rem;"></i>
-            No shipments found
-        </div>
+    <td colspan="8" class="text-center py-5">
+        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mb-2 mt-2">No shipments found</p>
     </td>
 </tr>
 @endforelse

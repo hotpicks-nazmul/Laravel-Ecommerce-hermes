@@ -3,7 +3,6 @@
 @section('title', 'Subscriptions')
 
 @section('content')
-<div class="container-fluid">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -176,7 +175,17 @@
                     </thead>
                     <tbody id="tableBody">
                         @forelse($subscriptions as $subscription)
-                        <tr>
+                        @php
+                            $search = request('search');
+                            $isMatch = $search && (
+                                stripos($subscription->subscription_number, $search) !== false ||
+                                stripos($subscription->shipping_first_name, $search) !== false ||
+                                stripos($subscription->shipping_last_name, $search) !== false ||
+                                stripos($subscription->shipping_email, $search) !== false ||
+                                stripos($subscription->plan_name, $search) !== false
+                            );
+                        @endphp
+                        <tr class="{{ $isMatch ? 'table-warning' : '' }}">
                             <td>
                                 <input type="checkbox" class="form-check-input row-checkbox" 
                                        value="{{ $subscription->id }}" onclick="updateBulkActions()">
@@ -244,7 +253,7 @@
                                 @endif
                             </td>
                             <td>
-                                <div class="d-flex gap-1">
+                                <div class="btn-group">
                                     <a href="{{ route('admin.subscriptions.show', $subscription) }}" class="btn btn-sm btn-outline-primary" title="View">
                                         <i class="bi bi-eye"></i>
                                     </a>
@@ -280,7 +289,6 @@
         </div>
         @endif
     </div>
-</div>
 
 <!-- Bulk Action Form -->
 <form id="bulkActionForm" method="POST" action="{{ route('admin.subscriptions.bulk-action') }}" style="display: none;">
@@ -292,9 +300,12 @@
 
 @push('styles')
 <style>
-    /* Add padding at bottom to prevent floating button overlap */
-    .content-area {
-        padding-bottom: 100px !important;
+    /* Table action button styling */
+    .btn-group .btn {
+        border-radius: 0.375rem;
+    }
+    .btn-group .btn + .btn {
+        margin-left: -1px;
     }
 </style>
 @endpush

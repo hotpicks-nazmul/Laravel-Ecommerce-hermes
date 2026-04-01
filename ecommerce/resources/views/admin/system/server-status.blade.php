@@ -2,36 +2,6 @@
 
 @section('title', 'Server Status')
 
-@push('styles')
-<style>
-    /* Force Bootstrap Icons to display on this page */
-    .stat-card-icon i,
-    .stat-card-icon i::before,
-    .bi::before,
-    [class*="bi bi-"]::before {
-        display: inline-block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        font-family: 'bootstrap-icons' !important;
-    }
-    
-    /* Override icon colors for stat cards */
-    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
-    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
-    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
-    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
-    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
-    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
-    
-    /* Make the whole icon colored */
-    .stat-card-icon i { color: inherit !important; }
-    
-    /* Text color utility classes */
-    .text-success { color: #198754 !important; }
-    .text-danger { color: #dc3545 !important; }
-</style>
-@endpush
-
 @section('content')
 
 <!-- Stats Cards Row -->
@@ -223,21 +193,26 @@
                 <h5 class="mb-0 fw-semibold"><i class="bi bi-speedometer2 me-2"></i>Quick Stats</h5>
             </div>
             <div class="card-body">
+                @php
+                    $health = $serverInfo['health'] ?? [];
+                    $healthPercentage = $health['percentage'] ?? 0;
+                    $healthColor = $healthPercentage >= 80 ? 'success' : ($healthPercentage >= 50 ? 'warning' : 'danger');
+                @endphp
                 <div class="text-center mb-4">
-                    <div class="display-4 fw-bold text-success">100%</div>
+                    <div class="display-4 fw-bold text-{{ $healthColor }}">{{ $healthPercentage }}%</div>
                     <div class="text-muted">System Health</div>
                 </div>
                 <hr>
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-muted">Extensions Loaded</span>
                     <span class="fw-medium">
-                        {{ count(array_filter($serverInfo['extensions'])) }}/{{ count($serverInfo['extensions']) }}
+                        {{ $health['extensions_loaded'] ?? 0 }}/{{ $health['extensions_total'] ?? 0 }}
                     </span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-muted">Directories Writable</span>
                     <span class="fw-medium">
-                        {{ count(array_filter($serverInfo['directories'])) }}/{{ count($serverInfo['directories']) }}
+                        {{ $health['directories_writable'] ?? 0 }}/{{ $health['directories_total'] ?? 0 }}
                     </span>
                 </div>
             </div>
@@ -249,11 +224,16 @@
                 <h5 class="mb-0 fw-semibold"><i class="bi bi-heart-pulse me-2"></i>Health Status</h5>
             </div>
             <div class="card-body">
+                @php
+                    $dbConnected = $health['db_connected'] ?? false;
+                    $cacheWorking = $health['cache_working'] ?? false;
+                    $sessionActive = $health['session_active'] ?? false;
+                @endphp
                 <div class="d-flex align-items-center mb-3">
-                    <i class="bi bi-check-circle text-success me-3"></i>
+                    <i class="bi bi-{{ $dbConnected ? 'check-circle' : 'x-circle' }} text-{{ $dbConnected ? 'success' : 'danger' }} me-3"></i>
                     <div>
                         <div class="fw-medium">Database</div>
-                        <div class="text-muted small">Connected</div>
+                        <div class="text-muted small">{{ $dbConnected ? 'Connected' : 'Not Connected' }}</div>
                     </div>
                 </div>
                 <div class="d-flex align-items-center mb-3">
@@ -264,24 +244,27 @@
                     </div>
                 </div>
                 <div class="d-flex align-items-center mb-3">
-                    <i class="bi bi-check-circle text-success me-3"></i>
+                    <i class="bi bi-{{ $cacheWorking ? 'check-circle' : 'x-circle' }} text-{{ $cacheWorking ? 'success' : 'danger' }} me-3"></i>
                     <div>
                         <div class="fw-medium">Cache</div>
-                        <div class="text-muted small">Working</div>
+                        <div class="text-muted small">{{ $cacheWorking ? 'Working' : 'Not Working' }}</div>
                     </div>
                 </div>
                 <div class="d-flex align-items-center mb-3">
-                    <i class="bi bi-check-circle text-success me-3"></i>
+                    @php
+                        $dirsWritable = ($health['directories_writable'] ?? 0) === ($health['directories_total'] ?? 0);
+                    @endphp
+                    <i class="bi bi-{{ $dirsWritable ? 'check-circle' : 'x-circle' }} text-{{ $dirsWritable ? 'success' : 'danger' }} me-3"></i>
                     <div>
                         <div class="fw-medium">Storage</div>
-                        <div class="text-muted small">Writable</div>
+                        <div class="text-muted small">{{ $dirsWritable ? 'Writable' : 'Permission Issues' }}</div>
                     </div>
                 </div>
                 <div class="d-flex align-items-center">
-                    <i class="bi bi-check-circle text-success me-3"></i>
+                    <i class="bi bi-{{ $sessionActive ? 'check-circle' : 'x-circle' }} text-{{ $sessionActive ? 'success' : 'danger' }} me-3"></i>
                     <div>
                         <div class="fw-medium">Sessions</div>
-                        <div class="text-muted small">Active</div>
+                        <div class="text-muted small">{{ $sessionActive ? 'Active' : 'Not Active' }}</div>
                     </div>
                 </div>
             </div>
@@ -309,3 +292,29 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display on this page */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+</style>
+@endpush

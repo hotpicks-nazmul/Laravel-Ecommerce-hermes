@@ -2,14 +2,6 @@
 
 @section('title', 'Edit Warehouse')
 
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-</style>
-@endpush
-
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0"><i class="bi bi-building me-2"></i>Edit Warehouse</h4>
@@ -221,14 +213,39 @@
 
 @push('styles')
 <style>
-/* Global Card Styles */
+/* Add padding at bottom to prevent floating button overlap (Preference.md #2) */
+.content-area.has-floating-save {
+    padding-bottom: 100px;
+}
+
+/* Global Card Styles - matching reference page style */
 .card {
     border: none;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 .card-header.bg-white {
-    background-color: var(--color-white) !important;
+    background-color: #fff !important;
 }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-scroll to first error field
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+</script>
 @endpush

@@ -199,10 +199,10 @@
         <i class="bi bi-x-lg me-1"></i> Cancel
     </a>
     @if(!$addon->is_core)
-    <a href="{{ route('admin.addons.destroy', $addon->id) }}" class="btn btn-outline-danger floating-reset-btn"
-       onclick="event.preventDefault(); if(confirm('Are you sure you want to uninstall this addon?')) { document.getElementById('deleteForm').submit(); }">
+    <button type="button" class="btn btn-outline-danger floating-reset-btn"
+       onclick="if(confirm('Are you sure you want to uninstall this addon?')) { document.getElementById('deleteForm').submit(); }">
         <i class="bi bi-trash me-1"></i> Delete
-    </a>
+    </button>
     <form id="deleteForm" method="POST" action="{{ route('admin.addons.destroy', $addon->id) }}" style="display: none;">
         @csrf
         @method('DELETE')
@@ -212,10 +212,32 @@
         <i class="bi bi-check-lg me-1"></i> Update Addon
     </button>
 </div>
+@endsection
 
+@push('styles')
 <style>
     .content-area {
         padding-bottom: 100px !important;
     }
 </style>
-@endsection
+@endpush
+
+@push('scripts')
+<script>
+    // Auto-scroll to first error field
+    document.addEventListener('DOMContentLoaded', function() {
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+</script>
+@endpush

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\PaymentGateway;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Validator;
 
 class PaymentController extends Controller
 {
@@ -38,12 +40,16 @@ class PaymentController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:payment_gateways,slug',
             'description' => 'nullable|string',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048',
         ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
 
         $data = $request->except('_token');
         $data['is_active'] = $request->has('is_active');
@@ -68,12 +74,16 @@ class PaymentController extends Controller
     {
         $gateway = PaymentGateway::findOrFail($id);
 
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:payment_gateways,slug,' . $id,
             'description' => 'nullable|string',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048',
         ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
 
         $data = $request->except('_token', '_method');
         $data['is_active'] = $request->has('is_active');
@@ -107,7 +117,12 @@ class PaymentController extends Controller
         // Merge new credentials with existing ones
         $newCredentials = $request->except('_token');
         foreach ($newCredentials as $key => $value) {
-            $credentials[$key] = $value;
+            // Encrypt sensitive credential values
+            if (!empty($value) && !in_array($key, ['additional_settings', 'instructions', 'public_key'])) {
+                $credentials[$key] = Crypt::encryptString($value);
+            } else {
+                $credentials[$key] = $value;
+            }
         }
 
         $gateway->update(['credentials' => $credentials]);

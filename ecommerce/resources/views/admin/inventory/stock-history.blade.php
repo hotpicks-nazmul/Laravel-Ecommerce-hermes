@@ -27,7 +27,7 @@
             <div class="row g-2 align-items-end">
                 <div class="col-lg-3 col-md-4 col-sm-6">
                     <label class="form-label small text-muted">Product</label>
-                    <select name="product_id" id="filterProduct" class="form-select form-select-sm select2">
+                    <select name="product_id" id="filterProduct" class="form-select form-select-sm">
                         <option value="">All Products</option>
                         @foreach($products as $product)
                             <option value="{{ $product->id }}" {{ request('product_id') == $product->id ? 'selected' : '' }}>
@@ -58,13 +58,13 @@
                     <input type="date" name="date_to" id="filterDateTo" class="form-control form-control-sm" value="{{ request('date_to') }}">
                 </div>
                 
-                <div class="col-lg-2 col-md-2 col-sm-6">
+                <div class="col-lg-2 col-md-3 col-sm-6">
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-sm btn-primary">
-                            <i class="bi bi-search"></i>
+                            <i class="bi bi-search me-1"></i> Filter
                         </button>
                         <a href="{{ route('admin.inventory.stock-history') }}" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-x-lg"></i>
+                            <i class="bi bi-x-lg me-1"></i> Reset
                         </a>
                     </div>
                 </div>
@@ -114,24 +114,10 @@
     </div>
 </div>
 
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-</style>
-@endpush
+@endsection
 
 @push('scripts')
 <script>
-    // Initialize select2 if available
-    if (typeof $.fn.select2 !== 'undefined') {
-        $('.select2').select2({
-            placeholder: 'Select product',
-            allowClear: true
-        });
-    }
-
     // Auto-submit on filter change
     ['filterProduct', 'filterActionType', 'filterDateFrom', 'filterDateTo'].forEach(id => {
         const el = document.getElementById(id);
@@ -141,4 +127,3 @@
     });
 </script>
 @endpush
-@endsection

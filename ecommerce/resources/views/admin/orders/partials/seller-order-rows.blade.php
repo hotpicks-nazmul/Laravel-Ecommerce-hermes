@@ -62,7 +62,7 @@
         <small class="text-muted">{{ $order->created_at->format('H:i') }}</small>
     </td>
     <td>
-        <div class="d-flex gap-1">
+        <div class="btn-group">
             <a href="{{ route('admin.orders.seller.show', $order->id) }}" class="btn btn-sm btn-outline-primary" title="View Details">
                 <i class="bi bi-eye"></i>
             </a>

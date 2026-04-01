@@ -62,10 +62,15 @@ class StaffController extends Controller
 
         // If AJAX request, return JSON
         if ($request->ajax()) {
+            $showingText = '';
+            if ($staffs->hasPages()) {
+                $showingText = "Showing {$staffs->firstItem()} - {$staffs->lastItem()} of {$staffs->total()} staffs";
+            }
             return response()->json([
                 'html' => view('admin.staffs.partials.table-rows', compact('staffs'))->render(),
                 'stats' => $stats,
                 'pagination' => $staffs->links()->toHtml(),
+                'showing_text' => $showingText,
             ]);
         }
 
@@ -166,7 +171,7 @@ class StaffController extends Controller
             $avatar = $request->file('avatar');
             $avatarName = time() . '_' . $avatar->getClientOriginalName();
             $avatar->move(public_path('uploads/staffs'), $avatarName);
-            $staff->avatar = 'staffs/' . $avatarName;
+            $staff->avatar = 'uploads/staffs/' . $avatarName;
         }
 
         $staff->save();
@@ -252,14 +257,14 @@ class StaffController extends Controller
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
             // Delete old avatar
-            if ($staff->avatar && file_exists(public_path('uploads/' . $staff->avatar))) {
-                unlink(public_path('uploads/' . $staff->avatar));
+            if ($staff->avatar && file_exists(public_path($staff->avatar))) {
+                unlink(public_path($staff->avatar));
             }
             
             $avatar = $request->file('avatar');
             $avatarName = time() . '_' . $avatar->getClientOriginalName();
             $avatar->move(public_path('uploads/staffs'), $avatarName);
-            $staff->avatar = 'staffs/' . $avatarName;
+            $staff->avatar = 'uploads/staffs/' . $avatarName;
         }
 
         $staff->save();
@@ -283,8 +288,8 @@ class StaffController extends Controller
         }
 
         // Delete avatar
-        if ($staff->avatar && file_exists(public_path('uploads/' . $staff->avatar))) {
-            unlink(public_path('uploads/' . $staff->avatar));
+        if ($staff->avatar && file_exists(public_path($staff->avatar))) {
+            unlink(public_path($staff->avatar));
         }
 
         $staff->delete();
@@ -336,6 +341,19 @@ class StaffController extends Controller
 
         $warehouses = Warehouse::where('is_active', 1)->orderBy('name')->get();
 
+        // If AJAX request, return JSON
+        if ($request->ajax()) {
+            $showingText = '';
+            if ($staffs->hasPages()) {
+                $showingText = "Showing {$staffs->firstItem()} - {$staffs->lastItem()} of {$staffs->total()} staffs";
+            }
+            return response()->json([
+                'html' => view('admin.staffs.partials.warehouse-table-rows', compact('staffs'))->render(),
+                'pagination' => $staffs->links()->toHtml(),
+                'showing_text' => $showingText,
+            ]);
+        }
+
         return view('admin.staffs.warehouse', compact('staffs', 'warehouses'));
     }
 
@@ -372,6 +390,9 @@ class StaffController extends Controller
         
         // Staff cannot update permissions
         if ($currentUser->role === 'staff') {
+            if ($request->ajax()) {
+                return response()->json(['message' => 'Unauthorized access.'], 403);
+            }
             abort(403, 'Unauthorized access. Staff members cannot manage permissions.');
         }
         
@@ -389,6 +410,13 @@ class StaffController extends Controller
         
         $staff->permissions = $request->permissions ?? [];
         $staff->save();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Permissions updated successfully.',
+            ]);
+        }
 
         return redirect()->route('admin.staffs.permissions')
             ->with('success', 'Permissions updated successfully.');
@@ -412,7 +440,7 @@ class StaffController extends Controller
             'staff_ids.*' => 'exists:users,id',
         ]);
 
-        $staffIds = $request->staff_ids;
+        $staffIds = is_string($request->staff_ids) ? json_decode($request->staff_ids, true) : $request->staff_ids;
         $action = $request->action;
 
         switch ($action) {
@@ -427,8 +455,8 @@ class StaffController extends Controller
             case 'delete':
                 $staffs = User::whereIn('id', $staffIds)->get();
                 foreach ($staffs as $staff) {
-                    if ($staff->avatar && file_exists(public_path('uploads/' . $staff->avatar))) {
-                        unlink(public_path('uploads/' . $staff->avatar));
+                    if ($staff->avatar && file_exists(public_path($staff->avatar))) {
+                        unlink(public_path($staff->avatar));
                     }
                 }
                 User::whereIn('id', $staffIds)->delete();

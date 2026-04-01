@@ -254,131 +254,171 @@
 
 @push('styles')
 <style>
+    /* POS Terminal - Full height layout (Preference.md #21 - No extra padding/wrappers) */
     .pos-terminal {
-        height: calc(100vh - 120px);
-        margin: -1.5rem;
+        height: calc(100vh - 140px);
+        display: flex;
+        flex-direction: column;
     }
 
     .pos-products-panel {
-        background: #f8f9fa;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
     }
 
     .pos-products-grid {
-        max-height: calc(100vh - 250px);
+        max-height: calc(100vh - 300px);
+        overflow-y: auto;
     }
 
+    .pos-cart-panel {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* Product Card Styles */
     .pos-product-card {
-        background: white;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        padding: 10px;
+        border: 1px solid var(--color-gray-200, #e5e7eb);
+        border-radius: var(--radius-lg, 0.5rem);
+        padding: 12px;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
+        background: var(--color-white, #fff);
+        text-align: center;
     }
 
     .pos-product-card:hover {
-        border-color: #0d6efd;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-color: var(--color-primary, #4f46e5);
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
+        transform: translateY(-2px);
     }
 
     .pos-product-card .product-image {
         width: 100%;
         height: 100px;
         object-fit: cover;
-        border-radius: 4px;
-        background: #f0f0f0;
+        border-radius: var(--radius-md, 0.375rem);
+        margin-bottom: 8px;
+        background-color: var(--color-gray-100, #f3f4f6);
     }
 
     .pos-product-card .product-name {
-        font-size: 0.9rem;
+        font-size: 14px;
         font-weight: 500;
-        margin: 8px 0 4px;
+        color: var(--color-gray-800, #1f2937);
+        margin-bottom: 4px;
+        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
     }
 
     .pos-product-card .product-price {
-        font-size: 1rem;
+        font-size: 16px;
         font-weight: 700;
-        color: #198754;
+        color: var(--color-primary, #4f46e5);
+        margin-bottom: 2px;
     }
 
     .pos-product-card .product-stock {
-        font-size: 0.75rem;
-        color: #6c757d;
+        font-size: 12px;
+        color: var(--color-gray-500, #6b7280);
     }
 
-    .pos-cart-panel {
-        border-left: 1px solid #dee2e6;
-    }
-
+    /* Cart Item Styles */
     .pos-cart-item {
         display: flex;
         align-items: center;
         padding: 10px;
-        background: white;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        margin-bottom: 8px;
+        background: var(--color-white, #fff);
+        border-radius: var(--radius-md, 0.375rem);
+        border: 1px solid var(--color-gray-200, #e5e7eb);
     }
 
     .pos-cart-item .item-image {
-        width: 50px;
-        height: 50px;
+        width: 40px;
+        height: 40px;
         object-fit: cover;
-        border-radius: 4px;
-        background: #f0f0f0;
-        margin-right: 10px;
+        border-radius: var(--radius-sm, 0.25rem);
+        background-color: var(--color-gray-100, #f3f4f6);
+        flex-shrink: 0;
     }
 
     .pos-cart-item .item-details {
         flex: 1;
+        min-width: 0;
+        margin-left: 8px;
     }
 
     .pos-cart-item .item-name {
+        font-size: 13px;
         font-weight: 500;
-        font-size: 0.9rem;
+        color: var(--color-gray-800, #1f2937);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .pos-cart-item .item-price {
-        color: #6c757d;
-        font-size: 0.85rem;
+        font-size: 12px;
+        color: var(--color-gray-500, #6b7280);
     }
 
     .pos-cart-item .item-quantity {
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 4px;
     }
 
-    .pos-cart-item .qty-btn {
-        width: 28px;
-        height: 28px;
+    .pos-cart-item .item-quantity .qty-btn {
+        width: 24px;
+        height: 24px;
         padding: 0;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 12px;
     }
 
     .pos-cart-item .item-total {
+        font-size: 14px;
         font-weight: 600;
-        color: #198754;
+        color: var(--color-gray-800, #1f2937);
+        white-space: nowrap;
     }
 
     .pos-cart-item .remove-btn {
-        color: #dc3545;
         background: none;
         border: none;
+        color: var(--color-danger, #ef4444);
         cursor: pointer;
-        padding: 5px;
+        padding: 4px;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+
+    .pos-cart-item .remove-btn:hover {
+        opacity: 1;
+    }
+
+    /* Force Bootstrap Icons to display (same as inventory page) */
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
     }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-    let posCart = {};
+    let posCart = @json($cart ?? []);
     let discount = { type: 'fixed', value: 0, amount: 0 };
     let currentSubtotal = 0;
     let currentTotal = 0;
@@ -386,6 +426,10 @@
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
         loadCartFromSession();
+        // Load initial products if none are showing
+        if (Object.keys(posCart).length === 0) {
+            searchProducts();
+        }
     });
 
     // Product Search
@@ -727,9 +771,17 @@
     }
 
     function loadCartFromSession() {
-        // Initial load - cart should be empty on page load
-        posCart = {};
-        currentSubtotal = 0;
+        // Load cart from session data passed from controller
+        const cartKeys = Object.keys(posCart);
+        if (cartKeys.length > 0) {
+            currentSubtotal = 0;
+            cartKeys.forEach(key => {
+                const item = posCart[key];
+                currentSubtotal += item.price * item.quantity;
+            });
+        } else {
+            currentSubtotal = 0;
+        }
         updateCartUI();
     }
 

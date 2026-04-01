@@ -1,5 +1,15 @@
 @forelse($subscriptions as $subscription)
-<tr>
+@php
+    $search = request('search');
+    $isMatch = $search && (
+        stripos($subscription->subscription_number, $search) !== false ||
+        stripos($subscription->shipping_first_name, $search) !== false ||
+        stripos($subscription->shipping_last_name, $search) !== false ||
+        stripos($subscription->shipping_email, $search) !== false ||
+        stripos($subscription->plan_name, $search) !== false
+    );
+@endphp
+<tr class="{{ $isMatch ? 'table-warning' : '' }}">
     <td>
         <input type="checkbox" class="form-check-input row-checkbox" 
                value="{{ $subscription->id }}" onclick="updateBulkActions()">
@@ -67,7 +77,7 @@
         @endif
     </td>
     <td>
-        <div class="d-flex gap-1">
+        <div class="btn-group">
             <a href="{{ route('admin.subscriptions.show', $subscription) }}" class="btn btn-sm btn-outline-primary" title="View">
                 <i class="bi bi-eye"></i>
             </a>

@@ -226,6 +226,23 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+    /* Fix delete button border-radius to match btn-group siblings */
+    .btn-group .btn-outline-danger {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+    }
+    .btn-group .btn-outline-success {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+    }
+    .table > :not(caption) > * > * {
+        padding: 0.75rem 0.5rem;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 let searchTimeout;
@@ -327,44 +344,26 @@ function performLiveSearch(searchTerm) {
 // Update statistics cards
 function updateStats(stats) {
     const statMappings = {
-        'total': stats.total ?? 0,
-        'pending': stats.pending ?? 0,
-        'processing': stats.processing ?? 0,
-        'ready': stats.ready ?? 0,
-        'picked_up': stats.picked_up ?? 0,
-        'cancelled': stats.cancelled ?? 0,
+        'Total Orders': stats.total ?? 0,
+        'Pending': stats.pending ?? 0,
+        'Processing': stats.processing ?? 0,
+        'Ready': stats.ready ?? 0,
+        'Picked Up': stats.picked_up ?? 0,
+        'Cancelled': stats.cancelled ?? 0,
     };
     
-    // Get all stat card divs and update by matching text content
-    const statsCards = document.querySelectorAll('#statsCards .col-md-2');
-    statsCards.forEach(card => {
-        const label = card.querySelector('.text-uppercase');
-        if (label) {
-            const text = label.textContent.trim().toLowerCase();
-            let valueKey = null;
-            
-            if (text.includes('total')) valueKey = 'total';
-            else if (text.includes('pending')) valueKey = 'pending';
-            else if (text.includes('processing')) valueKey = 'processing';
-            else if (text.includes('ready')) valueKey = 'ready';
-            else if (text.includes('picked')) valueKey = 'picked_up';
-            else if (text.includes('cancelled')) valueKey = 'cancelled';
-            
-            if (valueKey !== null && statMappings[valueKey] !== undefined) {
-                const valueElement = card.querySelector('.h4');
-                if (valueElement) {
-                    valueElement.textContent = statMappings[valueKey];
-                }
+    // Get all stat cards and update by matching label text content
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach(card => {
+        const labelEl = card.querySelector('.stat-card-label');
+        const valueEl = card.querySelector('.stat-card-value');
+        if (labelEl && valueEl) {
+            const labelText = labelEl.textContent.trim();
+            if (statMappings[labelText] !== undefined) {
+                valueEl.textContent = statMappings[labelText];
             }
         }
     });
-}
-
-// Change per page
-function changePerPage(perPage) {
-    const params = new URLSearchParams(window.location.search);
-    params.set('per_page', perPage);
-    window.location.href = `${window.location.pathname}?${params.toString()}`;
 }
 
 // Change per page

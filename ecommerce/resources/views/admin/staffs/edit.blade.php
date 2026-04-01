@@ -79,8 +79,8 @@
                         <div class="col-md-4 mb-3">
                             @php
                                 $avatarUrl = $staff->avatar;
-                                if ($avatarUrl && !str_starts_with($avatarUrl, '/storage/') && !str_starts_with($avatarUrl, 'http')) {
-                                    $avatarUrl = '/storage/' . $avatarUrl;
+                                if ($avatarUrl && !str_starts_with($avatarUrl, '/') && !str_starts_with($avatarUrl, 'http')) {
+                                    $avatarUrl = '/' . $avatarUrl;
                                 }
                             @endphp
                             @if($avatarUrl)
@@ -123,7 +123,7 @@
                         @enderror
                     </div>
 
-                    @if(isset($allowedRoles) && count($allowedRoles) > 0)
+                    @if(isset($allowedRoles) && count($allowedRoles) > 1)
                     <div class="mb-3">
                         <label for="role" class="form-label">Role <span class="text-danger">*</span></label>
                         <select id="role" name="role" class="form-select @error('role') is-invalid @enderror" required>
@@ -137,6 +137,8 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+                    @else
+                        <input type="hidden" name="role" value="{{ old('role', $staff->role) }}">
                     @endif
 
                     <div class="form-check form-switch mb-3">

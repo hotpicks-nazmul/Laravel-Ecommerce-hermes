@@ -3,7 +3,6 @@
 @section('title', 'Quotations')
 
 @section('content')
-<div class="container-fluid">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -16,7 +15,7 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="stat-card-row mb-4">
+    <div class="stat-card-row stat-card-row-6 mb-4">
         <div class="stat-card stat-card-primary">
             <div class="stat-card-icon"><i class="bi bi-file-earmark-text"></i></div>
             <div class="stat-card-content"><span class="stat-card-label">Total</span><span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span></div>
@@ -152,7 +151,6 @@
             @endif
         </div>
     </div>
-</div>
 
 <!-- Bulk Action Form -->
 <form id="bulkActionForm" method="POST" action="{{ route('admin.quotations.bulk-action') }}" class="d-none">

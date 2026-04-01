@@ -124,15 +124,17 @@
         <i class="bi bi-check-lg me-1"></i> Install Addon
     </button>
 </div>
+@endsection
 
+@push('styles')
 <style>
     .content-area {
         padding-bottom: 100px !important;
     }
 </style>
-@endsection
+@endpush
 
-@section('scripts')
+@push('scripts')
 <script>
     // Load available addon templates
     document.addEventListener('DOMContentLoaded', function() {
@@ -191,5 +193,21 @@
             `;
         });
     });
+
+    // Auto-scroll to first error field
+    document.addEventListener('DOMContentLoaded', function() {
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
 </script>
-@endsection
+@endpush

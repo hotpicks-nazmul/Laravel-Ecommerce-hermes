@@ -49,7 +49,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="description" class="form-label">Description</label>
-                            <textarea id="description" name="description" form="storeForm" class="form-control @error('description') is-invalid @enderror" rows="2">{{ old('description', $store->description) }}</textarea>
+                            <textarea id="description" name="description" class="form-control @error('description') is-invalid @enderror" rows="2">{{ old('description', $store->description) }}</textarea>
                             @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -212,7 +212,7 @@
                     <div class="form-text">Enable to make this store visible</div>
                 </div>
                 <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" id="is_default" name="is_default" form="storeForm" {{ old('is_default', $store->is_default) ? 'checked' : '' }} {{ $store->is_default ? 'disabled' : '' }}>
+                    <input class="form-check-input" type="checkbox" id="is_default" name="is_default" form="storeForm" {{ old('is_default', $store->is_default) ? 'checked' : '' }}>
                     <label class="form-check-label" for="is_default">
                         <i class="bi bi-star text-warning me-1"></i> Default Store
                     </label>
@@ -245,6 +245,91 @@
                     <input type="number" id="sort_order" name="sort_order" form="storeForm" class="form-control @error('sort_order') is-invalid @enderror" value="{{ old('sort_order', $store->sort_order) }}" min="0">
                     <div class="form-text">Lower numbers appear first</div>
                     @error('sort_order')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+        </div>
+
+        <!-- Branding & Images -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-image me-2"></i>Branding</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="logo" class="form-label">Logo</label>
+                    @if($store->logo)
+                    <div class="mb-2">
+                        <img src="{{ $store->logo_url }}" alt="Current Logo" class="img-thumbnail" style="max-width: 100px; max-height: 100px;">
+                        <span class="text-muted ms-2">Current logo</span>
+                    </div>
+                    @endif
+                    <input type="file" id="logo" name="logo" form="storeForm" class="form-control @error('logo') is-invalid @enderror" accept="image/*" onchange="previewImage(this, 'logoPreview')">
+                    <div class="form-text">Store logo. Max 2MB. Recommended: 400x400px</div>
+                    @error('logo')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div id="logoPreview" class="mt-2"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="favicon" class="form-label">Favicon</label>
+                    @if($store->favicon)
+                    <div class="mb-2">
+                        <img src="{{ $store->favicon_url }}" alt="Current Favicon" style="max-width: 32px; max-height: 32px;">
+                        <span class="text-muted ms-2">Current favicon</span>
+                    </div>
+                    @endif
+                    <input type="file" id="favicon" name="favicon" form="storeForm" class="form-control @error('favicon') is-invalid @enderror" accept="image/*" onchange="previewImage(this, 'faviconPreview')">
+                    <div class="form-text">Browser tab icon. Max 1MB. Recommended: 32x32px</div>
+                    @error('favicon')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div id="faviconPreview" class="mt-2"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="banner" class="form-label">Banner</label>
+                    @if($store->banner)
+                    <div class="mb-2">
+                        <img src="{{ $store->banner_url }}" alt="Current Banner" class="img-thumbnail" style="max-width: 200px;">
+                        <span class="text-muted ms-2">Current banner</span>
+                    </div>
+                    @endif
+                    <input type="file" id="banner" name="banner" form="storeForm" class="form-control @error('banner') is-invalid @enderror" accept="image/*" onchange="previewImage(this, 'bannerPreview')">
+                    <div class="form-text">Store banner image. Max 5MB. Recommended: 1920x600px</div>
+                    @error('banner')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div id="bannerPreview" class="mt-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colors -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-palette me-2"></i>Colors</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="primary_color" class="form-label">Primary Color</label>
+                    <div class="input-group">
+                        <input type="color" id="primary_color" name="primary_color" form="storeForm" class="form-control form-control-color @error('primary_color') is-invalid @enderror" value="{{ old('primary_color', $store->primary_color ?? '#4f46e5') }}">
+                        <input type="text" id="primary_color_text" class="form-control" value="{{ old('primary_color', $store->primary_color ?? '#4f46e5') }}" oninput="syncColor('primary_color', this.value)">
+                    </div>
+                    <div class="form-text">Main brand color</div>
+                    @error('primary_color')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="mb-3">
+                    <label for="secondary_color" class="form-label">Secondary Color</label>
+                    <div class="input-group">
+                        <input type="color" id="secondary_color" name="secondary_color" form="storeForm" class="form-control form-control-color @error('secondary_color') is-invalid @enderror" value="{{ old('secondary_color', $store->secondary_color ?? '#7c3aed') }}">
+                        <input type="text" id="secondary_color_text" class="form-control" value="{{ old('secondary_color', $store->secondary_color ?? '#7c3aed') }}" oninput="syncColor('secondary_color', this.value)">
+                    </div>
+                    <div class="form-text">Accent/secondary brand color</div>
+                    @error('secondary_color')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
@@ -294,6 +379,14 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
     // Auto-generate slug from name
@@ -312,6 +405,37 @@
     
     slugInput.addEventListener('input', function() {
         slugInput.dataset.modified = 'true';
+    });
+
+    // Image preview function
+    function previewImage(input, previewId) {
+        const preview = document.getElementById(previewId);
+        preview.innerHTML = '';
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 150px; max-height: 100px;">';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Sync color picker with text input
+    function syncColor(colorId, value) {
+        const colorInput = document.getElementById(colorId);
+        const textInput = document.getElementById(colorId + '_text');
+        if (/^#[0-9A-F]{6}$/i.test(value)) {
+            colorInput.value = value;
+            textInput.value = value;
+        }
+    }
+
+    // Sync color picker changes to text input
+    document.getElementById('primary_color').addEventListener('input', function() {
+        document.getElementById('primary_color_text').value = this.value;
+    });
+    document.getElementById('secondary_color').addEventListener('input', function() {
+        document.getElementById('secondary_color_text').value = this.value;
     });
 </script>
 @endpush

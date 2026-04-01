@@ -5,18 +5,24 @@
 @section('content')
 
 <!-- Stats Cards -->
-<div class="stat-card-row mb-4">
-    <div class="stat-card stat-card-danger">
-        <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
-        <div class="stat-card-content"><span class="stat-card-label">Out of Stock</span><span class="stat-card-value" id="statCritical">{{ $stats['critical'] ?? 0 }}</span></div>
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card stat-card-danger">
+            <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Out of Stock</span><span class="stat-card-value" id="statCritical">{{ $stats['critical'] ?? 0 }}</span></div>
+        </div>
     </div>
-    <div class="stat-card stat-card-warning">
-        <div class="stat-card-icon"><i class="bi bi-exclamation-triangle"></i></div>
-        <div class="stat-card-content"><span class="stat-card-label">Critical Low</span><span class="stat-card-value" id="statWarning">{{ $stats['warning'] ?? 0 }}</span></div>
+    <div class="col-md-4">
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Critical Low</span><span class="stat-card-value" id="statWarning">{{ $stats['warning'] ?? 0 }}</span></div>
+        </div>
     </div>
-    <div class="stat-card stat-card-info">
-        <div class="stat-card-icon"><i class="bi bi-info-circle"></i></div>
-        <div class="stat-card-content"><span class="stat-card-label">Low Stock</span><span class="stat-card-value" id="statNotice">{{ $stats['notice'] ?? 0 }}</span></div>
+    <div class="col-md-4">
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon"><i class="bi bi-info-circle"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Low Stock</span><span class="stat-card-value" id="statNotice">{{ $stats['notice'] ?? 0 }}</span></div>
+        </div>
     </div>
 </div>
 
@@ -56,9 +62,9 @@
                     </select>
                 </div>
                 
-                <div class="col-lg-2 col-md-2 col-sm-6">
-                    <a href="{{ route('admin.inventory.stock-alerts') }}" class="btn btn-sm btn-outline-secondary w-100">
-                        <i class="bi bi-x-lg"></i> Reset
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <a href="{{ route('admin.inventory.stock-alerts') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-lg me-1"></i> Reset
                     </a>
                 </div>
             </div>
@@ -184,13 +190,32 @@
 
 @push('styles')
 <style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
     .alert-badge {
         font-size: 0.75rem;
         padding: 0.25rem 0.5rem;
     }
+    
+    /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
 </style>
 @endpush
 
@@ -252,7 +277,7 @@
                     document.getElementById('restockProductId').value = data.product.id;
                     document.getElementById('restockProductName').value = data.product.name;
                     document.getElementById('restockCurrentStock').value = data.product.quantity;
-                    document.getElementById('restockThreshold').value = data.product.low_stock_threshold;
+                    document.getElementById('restockThreshold').value = data.product.low_stock_threshold || 10;
                     document.getElementById('restockQuantity').value = 10;
                     new bootstrap.Modal(document.getElementById('restockModal')).show();
                 }
@@ -263,33 +288,44 @@
         e.preventDefault();
         
         const formData = new FormData(this);
-        
-        // Handle threshold separately
+        const productId = document.getElementById('restockProductId').value;
         const threshold = document.getElementById('restockThreshold').value;
-        if (threshold) {
+        
+        formData.set('adjustment_type', 'add');
+        
+        // First update threshold if provided, then adjust stock
+        const thresholdPromise = threshold ?
             fetch('{{ route('admin.inventory.threshold') }}', {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
                 body: new FormData(document.getElementById('restockForm'))
-            });
-        }
+            }).then(res => res.json()) :
+            Promise.resolve({ success: true });
         
-        formData.set('adjustment_type', 'add');
-        
-        fetch('{{ route('admin.inventory.adjust') }}', {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                bootstrap.Modal.getInstance(document.getElementById('restockModal')).hide();
-                toastr.success('Product restocked successfully');
-                setTimeout(() => window.location.reload(), 500);
-            }
-        })
-        .catch(err => toastr.error('Failed to restock product'));
+        thresholdPromise
+            .then(thresholdData => {
+                if (!thresholdData.success && threshold) {
+                    toastr.warning('Threshold update failed, but proceeding with stock adjustment');
+                }
+                
+                // Now adjust stock
+                return fetch('{{ route('admin.inventory.adjust') }}', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    body: formData
+                });
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('restockModal')).hide();
+                    toastr.success('Product restocked successfully');
+                    setTimeout(() => window.location.reload(), 500);
+                } else {
+                    toastr.error('Failed to restock product');
+                }
+            })
+            .catch(err => toastr.error('Failed to restock product'));
     });
 
     // Threshold Modal

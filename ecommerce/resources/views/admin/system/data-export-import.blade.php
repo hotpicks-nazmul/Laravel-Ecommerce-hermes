@@ -2,41 +2,6 @@
 
 @section('title', 'Data Export/Import')
 
-@push('styles')
-<style>
-    /* Force Bootstrap Icons to display on this page */
-    .stat-card-icon i,
-    .stat-card-icon i::before,
-    .bi::before,
-    [class*="bi bi-"]::before {
-        display: inline-block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        font-family: 'bootstrap-icons' !important;
-    }
-    
-    /* Override icon colors for stat cards */
-    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
-    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
-    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
-    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
-    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
-    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
-    
-    /* Make the whole icon colored */
-    .stat-card-icon i { color: inherit !important; }
-    
-    /* Text color classes */
-    .text-primary { color: #0d6efd !important; }
-    .text-success { color: #198754 !important; }
-    .text-warning { color: #ffc107 !important; }
-    .text-danger { color: #dc3545 !important; }
-    .text-info { color: #0dcaf0 !important; }
-    .text-secondary { color: #6c757d !important; }
-    .text-dark { color: #212529 !important; }
-</style>
-@endpush
-
 @section('content')
 
 <!-- Stats Cards Row -->
@@ -337,6 +302,9 @@
                                                 <option value="sliders">Sliders</option>
                                                 <option value="subscribers">Subscribers</option>
                                             </optgroup>
+                                            <optgroup label="Users & Customers">
+                                                <option value="users">Users</option>
+                                            </optgroup>
                                             <optgroup label="Content">
                                                 <option value="blogs">Blogs</option>
                                                 <option value="faqs">FAQs</option>
@@ -460,10 +428,37 @@
 
 @push('styles')
 <style>
-    /* Add padding at bottom to prevent floating button overlap */
-    .content-area {
-        padding-bottom: 100px !important;
+    /* Force Bootstrap Icons to display on this page */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
     }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+    
+    /* Text color classes */
+    .text-primary { color: #0d6efd !important; }
+    .text-success { color: #198754 !important; }
+    .text-warning { color: #ffc107 !important; }
+    .text-danger { color: #dc3545 !important; }
+    .text-info { color: #0dcaf0 !important; }
+    .text-secondary { color: #6c757d !important; }
+    .text-dark { color: #212529 !important; }
+    
     .bg-purple {
         background-color: rgba(138, 43, 226, 0.1) !important;
     }

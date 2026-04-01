@@ -1,5 +1,16 @@
+@php
+    $search = request('search');
+@endphp
 @forelse($orders as $order)
-<tr>
+@php
+    $isMatch = $search && (
+        stripos($order->order_number, $search) !== false ||
+        stripos($order->billing_full_name, $search) !== false ||
+        stripos($order->billing_email, $search) !== false ||
+        stripos($order->billing_phone, $search) !== false
+    );
+@endphp
+<tr class="{{ $isMatch ? 'table-warning' : '' }}">
     <td>
         <input type="checkbox" class="form-check-input order-checkbox" value="{{ $order->id }}">
     </td>
@@ -62,65 +73,25 @@
         <small class="text-muted">{{ $order->created_at->format('H:i') }}</small>
     </td>
     <td>
-        <div class="d-flex gap-1">
+        <div class="btn-group">
             <a href="{{ route('admin.orders.pickup-point.show', $order->id) }}" class="btn btn-sm btn-outline-primary" title="View Details">
                 <i class="bi bi-eye"></i>
             </a>
             <a href="{{ route('admin.orders.invoice', $order->id) }}" class="btn btn-sm btn-outline-secondary" title="Invoice" target="_blank">
                 <i class="bi bi-receipt"></i>
             </a>
-            <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                    <i class="bi bi-gear"></i>
+            @if(!$order->picked_up_at && $order->status !== 'cancelled')
+                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#markPickedUpModal{{ $order->id }}" title="Mark Picked Up">
+                    <i class="bi bi-box-seam"></i>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                        <a class="dropdown-item" href="{{ route('admin.orders.pickup-point.show', $order->id) }}">
-                            <i class="bi bi-eye me-2"></i> View Details
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{{ route('admin.orders.invoice', $order->id) }}" target="_blank">
-                            <i class="bi bi-receipt me-2"></i> View Invoice
-                        </a>
-                    </li>
-                    @if(!$order->picked_up_at && $order->status !== 'cancelled')
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <form action="{{ route('admin.orders.status', $order->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                <input type="hidden" name="status" value="processing">
-                                <button type="submit" class="dropdown-item">
-                                    <i class="bi bi-arrow-repeat me-2"></i> Mark Processing
-                                </button>
-                            </form>
-                        </li>
-                        <li>
-                            <form action="{{ route('admin.orders.status', $order->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                <input type="hidden" name="status" value="confirmed">
-                                <button type="submit" class="dropdown-item">
-                                    <i class="bi bi-check-circle me-2"></i> Mark Ready
-                                </button>
-                            </form>
-                        </li>
-                        <li>
-                            <button type="button" class="dropdown-item text-success" data-bs-toggle="modal" data-bs-target="#markPickedUpModal{{ $order->id }}">
-                                <i class="bi bi-box-seam me-2"></i> Mark Picked Up
-                            </button>
-                        </li>
-                        <li>
-                            <form action="{{ route('admin.orders.status', $order->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                <input type="hidden" name="status" value="cancelled">
-                                <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Are you sure?')">
-                                    <i class="bi bi-x-circle me-2"></i> Cancel Order
-                                </button>
-                            </form>
-                        </li>
-                    @endif
-                </ul>
-            </div>
+                <form action="{{ route('admin.orders.status', $order->id) }}" method="POST" class="d-flex" onsubmit="return confirm('Are you sure you want to cancel this order?')">
+                    @csrf
+                    <input type="hidden" name="status" value="cancelled">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel Order">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            @endif
         </div>
 
         <!-- Mark as Picked Up Modal -->
@@ -165,9 +136,11 @@
 @empty
 <tr>
     <td colspan="9" class="text-center py-5">
-        <i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
-        <p class="mb-0 text-muted">No pick-up point orders found.</p>
-        <small class="text-muted">Orders with pick-up point delivery will appear here.</small>
+        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mb-2 mt-2">No pick-up point orders found.</p>
+        <a href="{{ route('admin.orders.pickup-point') }}" class="btn btn-sm btn-outline-secondary mt-1">
+            <i class="bi bi-arrow-repeat me-1"></i> Refresh
+        </a>
     </td>
 </tr>
 @endforelse

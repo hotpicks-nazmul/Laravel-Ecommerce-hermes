@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="mb-4">
-    <h4 class="mb-0">Backup & Restore</h4>
+    <h4 class="mb-0"><i class="bi bi-cloud-arrow-up me-2"></i>Backup & Restore</h4>
 </div>
 
 <div class="row">
@@ -35,15 +35,18 @@
                 <form action="{{ route('admin.backup.restore') }}" method="POST" id="restoreForm" enctype="multipart/form-data">
                     @csrf
                     <div class="mb-3">
-                        <label for="backup_file" class="form-label">Select Backup File</label>
-                        <input type="file" id="backup_file" name="backup_file" class="form-control" accept=".zip" required>
+                        <label for="backup_file" class="form-label">Select Backup File <span class="text-danger">*</span></label>
+                        <input type="file" id="backup_file" name="backup_file" class="form-control @error('backup_file') is-invalid @enderror" accept=".zip" required>
+                        @error('backup_file')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                         <div class="form-text">Upload a .zip backup file</div>
                     </div>
                     <div class="alert alert-warning mb-3">
                         <i class="bi bi-exclamation-triangle me-1"></i> 
                         <strong>Warning:</strong> Restoring from a backup will replace your current data. Please create a backup of your current data before restoring.
                     </div>
-                    <button type="submit" form="restoreForm" class="btn btn-warning">
+                    <button type="submit" class="btn btn-warning">
                         <i class="bi bi-cloud-arrow-down me-1"></i> Restore Backup
                     </button>
                 </form>
@@ -53,7 +56,7 @@
         <!-- Existing Backups -->
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-header bg-white">
-                <h6 class="mb-0"><i class="bi bi-folder-check me-2"></i>Existing Backups</h6>
+                <h6 class="mb-0"><i class="bi bi-folder-check me-2"></i>Existing Backups ({{ count($files) }})</h6>
             </div>
             <div class="card-body p-0">
                 @if(count($files) > 0)
@@ -78,13 +81,13 @@
                                         <td>{{ \Carbon\Carbon::createFromTimestamp($file['created_at'])->format('M d, Y h:i A') }}</td>
                                         <td>
                                             <div class="d-flex gap-2">
-                                                <a href="{{ route('admin.backup.download', $file['name']) }}" class="btn btn-sm btn-outline-primary">
+                                                <a href="{{ route('admin.backup.download', $file['name']) }}" class="btn btn-sm btn-outline-primary" title="Download">
                                                     <i class="bi bi-download"></i>
                                                 </a>
                                                 <form action="{{ route('admin.backup.delete') }}" method="POST" class="d-inline">
                                                     @csrf
                                                     <input type="hidden" name="file" value="{{ $file['name'] }}">
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this backup?')">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this backup?')" title="Delete">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </form>
@@ -160,6 +163,21 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>

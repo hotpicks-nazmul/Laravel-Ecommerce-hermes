@@ -85,7 +85,7 @@
 <div class="tab-content" id="apiKeysTabsContent">
     @if($activeTab === 'api-keys')
         <!-- API Keys Tab -->
-        <div class="tab-pane fade show active" id="api-keys" role="tabpanel">
+        <div class="tab-pane fade {{ $activeTab === 'api-keys' ? 'show active' : '' }}" id="api-keys" role="tabpanel">
             <div class="row">
                 <div class="col-lg-8">
                     <!-- API Keys List -->
@@ -234,7 +234,7 @@
         </div>
     @else
         <!-- Webhooks Tab -->
-        <div class="tab-pane fade show active" id="webhooks" role="tabpanel">
+        <div class="tab-pane fade {{ $activeTab === 'webhooks' ? 'show active' : '' }}" id="webhooks" role="tabpanel">
             @include('admin.settings.api-keys.webhooks')
         </div>
     @endif
@@ -255,35 +255,50 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Name <span class="text-danger">*</span></label>
-                                <input type="text" name="name" class="form-control" placeholder="My API Key" required>
+                                <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" placeholder="My API Key" value="{{ old('name') }}" required>
+                                @error('name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Type <span class="text-danger">*</span></label>
-                                <select name="type" class="form-select" required>
+                                <select name="type" class="form-select @error('type') is-invalid @enderror" required>
                                     @foreach($types as $value => $label)
-                                        <option value="{{ $value }}">{{ $label }}</option>
+                                        <option value="{{ $value }}" {{ old('type') == $value ? 'selected' : '' }}>{{ $label }}</option>
                                     @endforeach
                                 </select>
+                                @error('type')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Description</label>
-                        <textarea name="description" class="form-control" rows="2" placeholder="Optional description..."></textarea>
+                        <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="2" placeholder="Optional description...">{{ old('description') }}</textarea>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Rate Limit (requests/min)</label>
-                                <input type="number" name="rate_limit" class="form-control" value="100" min="1" max="1000">
+                                <input type="number" name="rate_limit" class="form-control @error('rate_limit') is-invalid @enderror" value="{{ old('rate_limit', 100) }}" min="1" max="1000">
+                                @error('rate_limit')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Expires At</label>
-                                <input type="datetime-local" name="expires_at" class="form-control">
+                                <input type="datetime-local" name="expires_at" class="form-control @error('expires_at') is-invalid @enderror" value="{{ old('expires_at') }}">
+                                @error('expires_at')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                                 <div class="form-text">Leave empty for no expiration</div>
                             </div>
                         </div>
@@ -313,45 +328,63 @@
                 @csrf
                 @method('PUT')
                 <div class="modal-body">
+                    @php
+                        $isEditing = old('_editing_key_id') == $key->id;
+                    @endphp
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Name <span class="text-danger">*</span></label>
-                                <input type="text" name="name" class="form-control" value="{{ $key->name }}" required>
+                                <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ $isEditing ? old('name') : $key->name }}" required>
+                                @error('name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Type <span class="text-danger">*</span></label>
-                                <select name="type" class="form-select" required>
+                                <select name="type" class="form-select @error('type') is-invalid @enderror" required>
                                     @foreach($types as $value => $label)
-                                        <option value="{{ $value }}" {{ $key->type === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                        <option value="{{ $value }}" {{ ($isEditing ? old('type') : $key->type) === $value ? 'selected' : '' }}>{{ $label }}</option>
                                     @endforeach
                                 </select>
+                                @error('type')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Description</label>
-                        <textarea name="description" class="form-control" rows="2">{{ $key->description }}</textarea>
+                        <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="2">{{ $isEditing ? old('description') : $key->description }}</textarea>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Rate Limit (requests/min)</label>
-                                <input type="number" name="rate_limit" class="form-control" value="{{ $key->rate_limit }}" min="1" max="1000">
+                                <input type="number" name="rate_limit" class="form-control @error('rate_limit') is-invalid @enderror" value="{{ $isEditing ? old('rate_limit') : $key->rate_limit }}" min="1" max="1000">
+                                @error('rate_limit')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Expires At</label>
-                                <input type="datetime-local" name="expires_at" class="form-control" value="{{ $key->expires_at ? $key->expires_at->format('Y-m-d\TH:i') : '' }}">
+                                <input type="datetime-local" name="expires_at" class="form-control @error('expires_at') is-invalid @enderror" value="{{ $isEditing ? old('expires_at') : ($key->expires_at ? $key->expires_at->format('Y-m-d\TH:i') : '') }}">
+                                @error('expires_at')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="is_active" id="editActive{{ $key->id }}" value="1" {{ $key->is_active ? 'checked' : '' }}>
+                            <input class="form-check-input" type="checkbox" name="is_active" id="editActive{{ $key->id }}" value="1" {{ ($isEditing ? old('is_active') : $key->is_active) ? 'checked' : '' }}>
                             <label class="form-check-label" for="editActive{{ $key->id }}">Active</label>
                         </div>
                     </div>
@@ -368,6 +401,23 @@
 </div>
 @endforeach
 
+@endsection
+
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 function copyToClipboard(elementId) {
@@ -378,6 +428,21 @@ function copyToClipboard(elementId) {
         alert('Copied to clipboard!');
     });
 }
+
+// Reopen modals on validation errors
+document.addEventListener('DOMContentLoaded', function() {
+    @if($errors->any())
+        @if(old('name') || old('type') || old('url') || old('event'))
+            // Determine which modal to reopen based on active tab and form fields
+            @if($activeTab === 'webhooks' && (old('url') || old('event')))
+                var createWebhookModal = new bootstrap.Modal(document.getElementById('createWebhookModal'));
+                createWebhookModal.show();
+            @elseif($activeTab === 'api-keys')
+                var createKeyModal = new bootstrap.Modal(document.getElementById('createKeyModal'));
+                createKeyModal.show();
+            @endif
+        @endif
+    @endif
+});
 </script>
 @endpush
-@endsection

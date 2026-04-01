@@ -3,7 +3,6 @@
 @section('title', 'Delivery Schedules')
 
 @section('content')
-<div class="content-area">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -252,7 +251,6 @@
             @endif
         </div>
     </div>
-</div>
 
 <!-- Bulk Action Form -->
 <form id="bulkActionForm" method="POST" action="{{ route('admin.delivery.schedules.bulk-action') }}" style="display: none;">

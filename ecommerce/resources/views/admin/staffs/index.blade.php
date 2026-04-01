@@ -251,10 +251,9 @@
                 // Update pagination
                 const paginationContainer = document.querySelector('.card-footer');
                 if (paginationContainer && data.pagination) {
+                    const showingText = data.showing_text || '';
                     paginationContainer.innerHTML = `
-                        <div class="text-muted small">
-                            Showing {{ $staffs->firstItem() }} - {{ $staffs->lastItem() }} of {{ $staffs->total() }} staffs
-                        </div>
+                        <div class="text-muted small">${showingText}</div>
                         <div>${data.pagination}</div>
                     `;
                 }

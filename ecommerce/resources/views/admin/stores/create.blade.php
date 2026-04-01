@@ -48,7 +48,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="description" class="form-label">Description</label>
-                            <textarea id="description" name="description" form="storeForm" class="form-control @error('description') is-invalid @enderror" rows="2"></textarea>
+                            <textarea id="description" name="description" class="form-control @error('description') is-invalid @enderror" rows="2"></textarea>
                             @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -244,6 +244,73 @@
             </div>
         </div>
 
+        <!-- Branding & Images -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-image me-2"></i>Branding</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="logo" class="form-label">Logo</label>
+                    <input type="file" id="logo" name="logo" form="storeForm" class="form-control @error('logo') is-invalid @enderror" accept="image/*" onchange="previewImage(this, 'logoPreview')">
+                    <div class="form-text">Store logo. Max 2MB. Recommended: 400x400px</div>
+                    @error('logo')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div id="logoPreview" class="mt-2"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="favicon" class="form-label">Favicon</label>
+                    <input type="file" id="favicon" name="favicon" form="storeForm" class="form-control @error('favicon') is-invalid @enderror" accept="image/*" onchange="previewImage(this, 'faviconPreview')">
+                    <div class="form-text">Browser tab icon. Max 1MB. Recommended: 32x32px</div>
+                    @error('favicon')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div id="faviconPreview" class="mt-2"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="banner" class="form-label">Banner</label>
+                    <input type="file" id="banner" name="banner" form="storeForm" class="form-control @error('banner') is-invalid @enderror" accept="image/*" onchange="previewImage(this, 'bannerPreview')">
+                    <div class="form-text">Store banner image. Max 5MB. Recommended: 1920x600px</div>
+                    @error('banner')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div id="bannerPreview" class="mt-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colors -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-palette me-2"></i>Colors</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="primary_color" class="form-label">Primary Color</label>
+                    <div class="input-group">
+                        <input type="color" id="primary_color" name="primary_color" form="storeForm" class="form-control form-control-color @error('primary_color') is-invalid @enderror" value="#4f46e5">
+                        <input type="text" id="primary_color_text" class="form-control" value="#4f46e5" oninput="syncColor('primary_color', this.value)">
+                    </div>
+                    <div class="form-text">Main brand color</div>
+                    @error('primary_color')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="mb-3">
+                    <label for="secondary_color" class="form-label">Secondary Color</label>
+                    <div class="input-group">
+                        <input type="color" id="secondary_color" name="secondary_color" form="storeForm" class="form-control form-control-color @error('secondary_color') is-invalid @enderror" value="#7c3aed">
+                        <input type="text" id="secondary_color_text" class="form-control" value="#7c3aed" oninput="syncColor('secondary_color', this.value)">
+                    </div>
+                    <div class="form-text">Accent/secondary brand color</div>
+                    @error('secondary_color')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+        </div>
+
         <!-- SEO -->
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-header bg-white">
@@ -287,6 +354,14 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
     // Auto-generate slug from name
@@ -305,6 +380,37 @@
     
     slugInput.addEventListener('input', function() {
         slugInput.dataset.modified = 'true';
+    });
+
+    // Image preview function
+    function previewImage(input, previewId) {
+        const preview = document.getElementById(previewId);
+        preview.innerHTML = '';
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 150px; max-height: 100px;">';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Sync color picker with text input
+    function syncColor(colorId, value) {
+        const colorInput = document.getElementById(colorId);
+        const textInput = document.getElementById(colorId + '_text');
+        if (/^#[0-9A-F]{6}$/i.test(value)) {
+            colorInput.value = value;
+            textInput.value = value;
+        }
+    }
+
+    // Sync color picker changes to text input
+    document.getElementById('primary_color').addEventListener('input', function() {
+        document.getElementById('primary_color_text').value = this.value;
+    });
+    document.getElementById('secondary_color').addEventListener('input', function() {
+        document.getElementById('secondary_color_text').value = this.value;
     });
 </script>
 @endpush

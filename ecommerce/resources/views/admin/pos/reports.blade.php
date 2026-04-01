@@ -5,24 +5,40 @@
 @section('content')
 <div class="pos-reports-page">
     <!-- Date Range Filter -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="GET" class="row g-3 align-items-end">
-                <div class="col-md-3">
-                    <label class="form-label">From Date</label>
-                    <input type="date" name="date_from" class="form-control" value="{{ $dateFrom }}">
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body py-3">
+            <form method="GET" id="filterForm" class="row g-2 align-items-end">
+                <!-- From Date -->
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <label class="form-label small text-muted">From Date</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                        <input type="date" name="date_from" class="form-control" value="{{ $dateFrom }}">
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">To Date</label>
-                    <input type="date" name="date_to" class="form-control" value="{{ $dateTo }}">
+                <!-- To Date -->
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <label class="form-label small text-muted">To Date</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                        <input type="date" name="date_to" class="form-control" value="{{ $dateTo }}">
+                    </div>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">
+                <!-- Filter Button -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <button type="submit" class="btn btn-sm btn-primary w-100">
                         <i class="bi bi-search me-1"></i> Filter
                     </button>
                 </div>
-                <div class="col-md-4 text-end">
-                    <a href="{{ route('admin.pos.terminal') }}" class="btn btn-success">
+                <!-- Reset Button -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <a href="{{ route('admin.pos.reports') }}" class="btn btn-sm btn-outline-secondary w-100">
+                        <i class="bi bi-x-lg me-1"></i> Reset
+                    </a>
+                </div>
+                <!-- New Sale Button -->
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <a href="{{ route('admin.pos.terminal') }}" class="btn btn-sm btn-success w-100">
                         <i class="bi bi-plus-lg me-1"></i> New Sale
                     </a>
                 </div>
@@ -31,7 +47,7 @@
     </div>
 
     <!-- Summary Statistics -->
-    <div class="stat-card-row mb-4" id="statsCards">
+    <div class="stat-card-row stat-card-row-4 mb-4" id="statsCards">
         <div class="stat-card stat-card-primary">
             <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
             <div class="stat-card-content">
@@ -63,7 +79,7 @@
     </div>
 
     <!-- Payment Method Breakdown -->
-    <div class="stat-card-row mb-4">
+    <div class="stat-card-row stat-card-row-3 mb-4">
         <div class="stat-card stat-card-success">
             <div class="stat-card-icon"><i class="bi bi-cash-stack"></i></div>
             <div class="stat-card-content">
@@ -237,3 +253,9 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* POS Reports page - uses global stat-card styles from layout */
+</style>
+@endpush

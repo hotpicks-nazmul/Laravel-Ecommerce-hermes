@@ -4,40 +4,47 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="stat-card-row mb-4">
+<div class="stat-card-row stat-card-row-6 mb-4">
     <div class="stat-card stat-card-primary">
         <div class="stat-card-icon"><i class="bi bi-grid"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Total Categories</span>
-            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
+            <span class="stat-card-value" id="stat-total">{{ number_format($stats['total'] ?? 0) }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-success">
         <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Active</span>
-            <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
+            <span class="stat-card-value" id="stat-active">{{ number_format($stats['active'] ?? 0) }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-secondary">
         <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Inactive</span>
-            <span class="stat-card-value">{{ number_format($stats['inactive'] ?? 0) }}</span>
+            <span class="stat-card-value" id="stat-inactive">{{ number_format($stats['inactive'] ?? 0) }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-info">
         <div class="stat-card-icon"><i class="bi bi-star"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Featured</span>
-            <span class="stat-card-value">{{ number_format($stats['featured'] ?? 0) }}</span>
+            <span class="stat-card-value" id="stat-featured">{{ number_format($stats['featured'] ?? 0) }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-warning">
         <div class="stat-card-icon"><i class="bi bi-house"></i></div>
         <div class="stat-card-content">
-            <span class="stat-card-label">Home</span>
-            <span class="stat-card-value">{{ number_format($stats['home'] ?? 0) }}</span>
+            <span class="stat-card-label">Parents</span>
+            <span class="stat-card-value" id="stat-parents">{{ number_format($stats['parents'] ?? 0) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-bag"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">With Products</span>
+            <span class="stat-card-value" id="stat-with-products">{{ number_format($stats['with_products'] ?? 0) }}</span>
         </div>
     </div>
 </div>
@@ -324,6 +331,28 @@
 .children-row {
     background-color: #f8f9fa;
 }
+
+/* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+.stat-card-icon i,
+.stat-card-icon i::before,
+.bi::before,
+[class*="bi bi-"]::before {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-family: 'bootstrap-icons' !important;
+}
+
+/* Override icon colors for stat cards */
+.stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+.stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+.stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+.stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+.stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+.stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+
+/* Make the whole icon colored */
+.stat-card-icon i { color: inherit !important; }
 </style>
 @endpush
 

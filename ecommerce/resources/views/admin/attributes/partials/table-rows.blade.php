@@ -27,18 +27,18 @@
         </button>
     </td>
     <td>
-        <button type="button" class="btn btn-sm {{ $attribute->is_filterable ? 'btn-info' : 'btn-outline-secondary' }}" 
+        <button type="button" class="btn btn-sm {{ $attribute->is_filterable ? 'btn-info' : 'btn-outline-secondary' }}"
                 onclick="toggleFilterable({{ $attribute->id }})" title="Toggle Filterable">
-            <i class="bi {{ $attribute->is_filterable ? 'bi-funnel' : 'bi-funnel' }}"></i>
+            <i class="bi {{ $attribute->is_filterable ? 'bi-funnel' : 'bi-funnel-fill' }}"></i>
             {{ $attribute->is_filterable ? 'Yes' : 'No' }}
         </button>
     </td>
     <td>
-        <div class="btn-group btn-group-sm">
-            <a href="{{ route('admin.attributes.edit', $attribute->id) }}" class="btn btn-outline-primary" title="Edit">
+        <div class="d-flex gap-1">
+            <a href="{{ route('admin.attributes.edit', $attribute->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                 <i class="bi bi-pencil"></i>
             </a>
-            <button type="button" class="btn btn-outline-danger" onclick="deleteItem({{ $attribute->id }})" title="Delete">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteItem({{ $attribute->id }})" title="Delete">
                 <i class="bi bi-trash"></i>
             </button>
         </div>

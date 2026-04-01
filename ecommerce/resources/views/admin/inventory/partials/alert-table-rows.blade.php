@@ -28,7 +28,7 @@
     </td>
     <td style="white-space: nowrap;">
     <div class="small text-truncate" style="max-width: 120px;">
-        <span class="badge bg-primary">{{ $product->sku ?? 'N/A' }}</span>
+        <span class="badge bg-primary">{{ $product->product_code ?? $product->sku ?? 'N/A' }}</span>
     </div>
 </td>
     <td class="text-center">
@@ -49,15 +49,17 @@
         @endif
     </td>
     <td class="text-center">
-        <button type="button" class="btn btn-sm btn-success" onclick="showRestockModal({{ $product->id }})" title="Restock">
-            <i class="bi bi-plus-lg"></i> Restock
-        </button>
-        <button type="button" class="btn btn-sm btn-outline-info" onclick="showThresholdModal({{ $product->id }}, {{ $product->low_stock_threshold ?? 10 }})" title="Set Threshold">
-            <i class="bi bi-bell"></i>
-        </button>
-        <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
-            <i class="bi bi-pencil"></i>
-        </a>
+        <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-success" onclick="showRestockModal({{ $product->id }})" title="Restock">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-info" onclick="showThresholdModal({{ $product->id }}, {{ $product->low_stock_threshold ?? 10 }})" title="Set Threshold">
+                <i class="bi bi-bell"></i>
+            </button>
+            <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                <i class="bi bi-pencil"></i>
+            </a>
+        </div>
     </td>
 </tr>
 @empty

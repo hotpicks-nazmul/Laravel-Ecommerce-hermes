@@ -1,5 +1,13 @@
 @forelse($staffs as $staff)
-    <tr>
+    @php
+        $search = request('search');
+        $isMatch = $search && (
+            stripos($staff->name, $search) !== false || 
+            stripos($staff->email, $search) !== false ||
+            stripos($staff->phone, $search) !== false
+        );
+    @endphp
+    <tr class="{{ $isMatch ? 'table-warning' : '' }}">
         <td>
             <input type="checkbox" class="form-check-input staff-checkbox" value="{{ $staff->id }}">
         </td>
@@ -7,12 +15,12 @@
             <div class="d-flex align-items-center">
                 @php
                     $avatarUrl = $staff->avatar;
-                    if ($avatarUrl && !str_starts_with($avatarUrl, '/') && !str_starts_with($avatarUrl, 'http')) {
-                        $avatarUrl = '/' . $avatarUrl;
+                    if ($avatarUrl && !str_starts_with($avatarUrl, '/storage/') && !str_starts_with($avatarUrl, 'http')) {
+                        $avatarUrl = '/storage/' . $avatarUrl;
                     }
                 @endphp
                 @if($avatarUrl)
-                    <img src="{{ $avatarUrl }}" alt="{{ $staff->name }}" class="staff-avatar me-2">
+                    <img src="{{ $avatarUrl }}" alt="{{ $staff->name }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
                 @else
                     <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
                         <i class="bi bi-person text-white"></i>
@@ -27,12 +35,7 @@
                 </div>
             </div>
         </td>
-        <td>
-            {{ $staff->designation ?? 'N/A' }}
-            @if($staff->is_super_admin)
-                <span class="badge bg-warning text-dark ms-1">Super Admin</span>
-            @endif
-        </td>
+        <td>{{ $staff->designation ?? 'N/A' }}</td>
         <td>
             @if($staff->warehouse)
                 <span class="badge bg-info">{{ $staff->warehouse->name }}</span>
@@ -45,13 +48,11 @@
                 <span class="badge bg-success">Active</span>
             @elseif($staff->status === 'inactive')
                 <span class="badge bg-secondary">Inactive</span>
-            @elseif($staff->status === 'banned')
+            @else
                 <span class="badge bg-danger">Banned</span>
             @endif
         </td>
-        <td>
-            {{ $staff->created_at->format('M d, Y') }}
-        </td>
+        <td>{{ $staff->created_at->format('M d, Y') }}</td>
         <td>
             <div class="d-flex gap-1">
                 <a href="{{ route('admin.staffs.edit', $staff->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
@@ -70,8 +71,8 @@
 @empty
     <tr>
         <td colspan="7" class="text-center py-5">
-            <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
-            <p class="text-muted mb-2 mt-2">No staff members found</p>
+            <i class="bi bi-building text-muted" style="font-size: 3rem;"></i>
+            <p class="text-muted mb-2 mt-2">No warehouse staff found</p>
             <a href="{{ route('admin.staffs.create') }}" class="btn btn-sm btn-primary mt-1">
                 <i class="bi bi-plus-lg me-1"></i> Add First Staff
             </a>

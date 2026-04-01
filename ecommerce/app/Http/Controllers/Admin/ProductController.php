@@ -45,14 +45,14 @@ class ProductController extends Controller
             $query->where('is_active', $request->status === 'active');
         }
 
-        // Filter by stock status
+        // Filter by stock status (using dynamic low_stock_threshold)
         if ($request->stock_status) {
             switch ($request->stock_status) {
                 case 'in_stock':
-                    $query->where('quantity', '>', 10);
+                    $query->whereRaw('quantity > COALESCE(low_stock_threshold, 10)');
                     break;
                 case 'low_stock':
-                    $query->whereBetween('quantity', [1, 10]);
+                    $query->whereRaw('quantity > 0 AND quantity <= COALESCE(low_stock_threshold, 10)');
                     break;
                 case 'out_of_stock':
                     $query->where('quantity', '<=', 0);
@@ -98,13 +98,13 @@ class ProductController extends Controller
         $products = $query->paginate($perPage)->appends($request->query());
         $categories = Category::where('status', 'active')->get();
 
-        // Statistics for cards
+        // Statistics for cards (using dynamic low_stock_threshold)
         $stats = [
             'total' => Product::count(),
             'active' => Product::where('is_active', true)->count(),
             'inactive' => Product::where('is_active', false)->count(),
             'featured' => Product::where('is_featured', true)->count(),
-            'low_stock' => Product::whereBetween('quantity', [1, 10])->count(),
+            'low_stock' => Product::whereRaw('quantity > 0 AND quantity <= COALESCE(low_stock_threshold, 10)')->count(),
             'out_of_stock' => Product::where('quantity', '<=', 0)->count(),
         ];
 
@@ -306,7 +306,17 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
-            'sale_price' => 'nullable|numeric|min:0',
+            'sale_price' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                function ($attribute, $value, $fail) use ($request) {
+                    $price = $request->input('price', 0);
+                    if ($value > 0 && $value > $price) {
+                        $fail('Sale Price cannot be higher than Regular Price (' . $price . ').');
+                    }
+                },
+            ],
             'purchase_price' => 'nullable|numeric|min:0',
             'sku' => 'nullable|string|max:100',
             'product_code' => 'required|string|max:100',
@@ -370,8 +380,8 @@ class ProductController extends Controller
         $data['long_description'] = $request->description;
         $data['quantity'] = $request->stock;
         
-        // Auto-generate SKU based on date/time
-        $data['sku'] = 'SKU-' . date('YmdHis');
+        // Use submitted SKU if provided, otherwise auto-generate
+        $data['sku'] = $request->sku ?? 'SKU-' . date('YmdHis');
         
         // Set as in-house product by default
         $data['product_source'] = 'in_house';
@@ -1083,7 +1093,6 @@ class ProductController extends Controller
         $updated = 0;
         $skipped = 0;
         $errors = [];
-        $totalRows = count($data);
 
         try {
             if ($extension === 'csv' || $extension === 'txt') {
@@ -1100,6 +1109,9 @@ class ProductController extends Controller
             $headers = array_map(function ($header) {
                 return strtolower(trim(str_replace([' ', '-'], '_', $header)));
             }, $headers);
+
+            // Calculate total rows after parsing (for progress tracking)
+            $totalRows = count($data);
 
             foreach ($data as $rowIndex => $row) {
                 $rowNumber = $rowIndex + 2; // Account for header row
@@ -1309,10 +1321,10 @@ class ProductController extends Controller
         if ($request->stock_status) {
             switch ($request->stock_status) {
                 case 'in_stock':
-                    $query->where('quantity', '>', 10);
+                    $query->whereRaw('quantity > COALESCE(low_stock_threshold, 10)');
                     break;
                 case 'low_stock':
-                    $query->whereBetween('quantity', [1, 10]);
+                    $query->whereRaw('quantity > 0 AND quantity <= COALESCE(low_stock_threshold, 10)');
                     break;
                 case 'out_of_stock':
                     $query->where('quantity', '<=', 0);

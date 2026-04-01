@@ -271,27 +271,7 @@
 
 @push('styles')
 <style>
-    .stat-card {
-        transition: all 0.3s ease;
-    }
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
-    }
-    .stat-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-    }
-    .bg-success-subtle { background-color: rgba(25, 135, 84, 0.1) !important; }
-    .bg-danger-subtle { background-color: rgba(220, 53, 69, 0.1) !important; }
-    .bg-info-subtle { background-color: rgba(13, 202, 240, 0.1) !important; }
-    .bg-warning-subtle { background-color: rgba(255, 193, 7, 0.1) !important; }
-    .bg-primary-subtle { background-color: rgba(13, 110, 253, 0.1) !important; }
+    /* Status dot indicators for Order Status legend */
     .status-dot {
         width: 8px;
         height: 8px;

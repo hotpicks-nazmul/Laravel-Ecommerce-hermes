@@ -2,19 +2,6 @@
 
 @section('title', 'Delivery Boys')
 
-@push('styles')
-<style>
-    .icon-box {
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
-    }
-</style>
-@endpush
-
 @section('content')
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -28,40 +15,50 @@
 </div>
 
 <!-- Statistics Cards -->
-<div class="stat-card-row mb-4">
-    <div class="stat-card stat-card-primary">
-        <div class="stat-card-icon"><i class="bi bi-people-fill"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">Total</span>
-            <span class="stat-card-value">{{ $stats['total'] }}</span>
+<div class="row g-3 mb-4" id="statsCards">
+    <div class="col">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total</span>
+                <span class="stat-card-value" id="statTotal">{{ $stats['total'] }}</span>
+            </div>
         </div>
     </div>
-    <div class="stat-card stat-card-success">
-        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">Active</span>
-            <span class="stat-card-value">{{ $stats['active'] }}</span>
+    <div class="col">
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Active</span>
+                <span class="stat-card-value" id="statActive">{{ $stats['active'] }}</span>
+            </div>
         </div>
     </div>
-    <div class="stat-card stat-card-info">
-        <div class="stat-card-icon"><i class="bi bi-bicycle"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">Available</span>
-            <span class="stat-card-value">{{ $stats['available'] }}</span>
+    <div class="col">
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon"><i class="bi bi-bicycle"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Available</span>
+                <span class="stat-card-value" id="statAvailable">{{ $stats['available'] }}</span>
+            </div>
         </div>
     </div>
-    <div class="stat-card stat-card-warning">
-        <div class="stat-card-icon"><i class="bi bi-exclamation-triangle"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">On Delivery</span>
-            <span class="stat-card-value">{{ $stats['on_delivery'] }}</span>
+    <div class="col">
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">On Delivery</span>
+                <span class="stat-card-value" id="statOnDelivery">{{ $stats['on_delivery'] }}</span>
+            </div>
         </div>
     </div>
-    <div class="stat-card stat-card-secondary">
-        <div class="stat-card-icon"><i class="bi bi-calendar-minus-fill"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">On Leave</span>
-            <span class="stat-card-value">{{ $stats['on_leave'] }}</span>
+    <div class="col">
+        <div class="stat-card stat-card-secondary">
+            <div class="stat-card-icon"><i class="bi bi-calendar-minus-fill"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">On Leave</span>
+                <span class="stat-card-value" id="statOnLeave">{{ $stats['on_leave'] }}</span>
+            </div>
         </div>
     </div>
 </div>
@@ -77,13 +74,16 @@
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
                         <input type="text" name="search" id="liveSearch" class="form-control" placeholder="Search..." value="{{ $search }}">
+                        <span class="input-group-text" id="searchSpinner" style="display: none;">
+                            <div class="spinner-border spinner-border-sm"></div>
+                        </span>
                     </div>
                 </div>
 
                 <!-- Status Filter -->
                 <div class="col-6 col-lg-2 col-md-3">
                     <label class="form-label small text-muted">Status</label>
-                    <select name="status" class="form-select form-select-sm">
+                    <select name="status" id="filterStatus" class="form-select form-select-sm">
                         <option value="">All Status</option>
                         <option value="active" {{ $status == 'active' ? 'selected' : '' }}>Active</option>
                         <option value="inactive" {{ $status == 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -95,7 +95,7 @@
                 <!-- Zone Filter -->
                 <div class="col-6 col-lg-2 col-md-3">
                     <label class="form-label small text-muted">Zone</label>
-                    <select name="zone" class="form-select form-select-sm">
+                    <select name="zone" id="filterZone" class="form-select form-select-sm">
                         <option value="">All Zones</option>
                         @foreach($zones as $z)
                             <option value="{{ $z->id }}" {{ $z->id == $zone ? 'selected' : '' }}>{{ $z->name }}</option>
@@ -106,7 +106,7 @@
                 <!-- Availability Filter -->
                 <div class="col-6 col-lg-2 col-md-3">
                     <label class="form-label small text-muted">Availability</label>
-                    <select name="availability" class="form-select form-select-sm">
+                    <select name="availability" id="filterAvailability" class="form-select form-select-sm">
                         <option value="">All</option>
                         <option value="1" {{ $availability === '1' ? 'selected' : '' }}>Available</option>
                         <option value="0" {{ $availability === '0' ? 'selected' : '' }}>Unavailable</option>
@@ -131,8 +131,8 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <!-- Bulk Actions Bar -->
-        <div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
-            <div class="card-body py-2">
+        <div id="bulkActionsBar" style="display: none;" class="border-bottom">
+            <div class="p-3">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                     <div>
                         <span class="text-muted"><span id="selectedCount">0</span> selected</span>
@@ -181,7 +181,15 @@
                     </thead>
                     <tbody id="tableBody">
                         @forelse($deliveryBoys as $boy)
-                            <tr>
+                            @php
+                                $searchTerm = request('search');
+                                $isMatch = $searchTerm && (
+                                    stripos($boy->name, $searchTerm) !== false || 
+                                    stripos($boy->phone, $searchTerm) !== false ||
+                                    stripos($boy->email ?? '', $searchTerm) !== false
+                                );
+                            @endphp
+                            <tr class="{{ $isMatch ? 'table-warning' : '' }}">
                                 <td>
                                     <input type="checkbox" name="delivery_boys[]" value="{{ $boy->id }}" class="form-check-input row-checkbox">
                                 </td>
@@ -251,24 +259,22 @@
                                 <td>
                                     <div class="d-flex gap-1">
                                         <a href="{{ route('admin.delivery.delivery-boys.edit', $boy->id) }}" 
-                                           class="btn btn-sm btn-outline-primary" title="Edit">
+                                           class="btn btn-sm btn-light" title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <form method="POST" action="{{ route('admin.delivery.delivery-boys.toggle-availability', $boy->id) }}" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm {{ $boy->is_available ? 'btn-outline-success' : 'btn-outline-warning' }}" 
-                                                    title="{{ $boy->is_available ? 'Mark Unavailable' : 'Mark Available' }}">
-                                                <i class="bi {{ $boy->is_available ? 'bi-bicycle' : 'bi-pause-circle' }}"></i>
-                                            </button>
-                                        </form>
-                                        <form method="POST" action="{{ route('admin.delivery.delivery-boys.toggle-status', $boy->id) }}" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm {{ $boy->is_active ? 'btn-outline-success' : 'btn-outline-danger' }}" 
-                                                    title="{{ $boy->is_active ? 'Deactivate' : 'Activate' }}">
-                                                <i class="bi {{ $boy->is_active ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
-                                            </button>
-                                        </form>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        <button type="button" class="btn btn-sm btn-light toggle-availability" 
+                                                data-id="{{ $boy->id }}" 
+                                                data-available="{{ $boy->is_available ? 0 : 1 }}"
+                                                title="{{ $boy->is_available ? 'Mark Unavailable' : 'Mark Available' }}">
+                                            <i class="bi {{ $boy->is_available ? 'bi-bicycle' : 'bi-pause-circle' }}"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-light toggle-status" 
+                                                data-id="{{ $boy->id }}" 
+                                                data-active="{{ $boy->is_active ? 0 : 1 }}"
+                                                title="{{ $boy->is_active ? 'Deactivate' : 'Activate' }}">
+                                            <i class="bi {{ $boy->is_active ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-light text-danger" 
                                                 onclick="deleteDeliveryBoy({{ $boy->id }})" title="Delete">
                                             <i class="bi bi-trash"></i>
                                         </button>
@@ -297,8 +303,13 @@
 
         <!-- Pagination -->
         @if($deliveryBoys->hasPages())
-        <div class="card-footer bg-white d-flex justify-content-end py-3">
-            {{ $deliveryBoys->appends(request()->query())->links() }}
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
+            <div class="text-muted small">
+                Showing {{ $deliveryBoys->firstItem() }} - {{ $deliveryBoys->lastItem() }} of {{ $deliveryBoys->total() }} items
+            </div>
+            <div id="pagination">
+                {{ $deliveryBoys->appends(request()->query())->links() }}
+            </div>
         </div>
         @endif
     </div>
@@ -327,6 +338,14 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -391,13 +410,212 @@
         modal.show();
     }
 
-    // Live Search
-    let searchTimeout;
-    document.getElementById('liveSearch').addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            document.getElementById('filterForm').submit();
-        }, 500);
+    // Toggle Availability (AJAX)
+    document.querySelectorAll('.toggle-availability').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const available = this.dataset.available;
+            const icon = this.querySelector('i');
+            
+            fetch(`{{ route('admin.delivery.delivery-boys.toggle-availability', '') }}/${id}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    this.dataset.available = available;
+                    icon.className = available == 1 ? 'bi bi-bicycle' : 'bi bi-pause-circle';
+                    this.title = available == 1 ? 'Mark Unavailable' : 'Mark Available';
+                    
+                    // Update badge in status column
+                    const row = this.closest('tr');
+                    const statusCell = row.cells[6];
+                    const busyBadge = statusCell.querySelector('.badge.bg-success, .badge.bg-secondary');
+                    if (busyBadge) {
+                        if (available == 1) {
+                            busyBadge.className = 'badge bg-success ms-1';
+                            busyBadge.textContent = 'Available';
+                        } else {
+                            busyBadge.className = 'badge bg-secondary ms-1';
+                            busyBadge.textContent = 'Busy';
+                        }
+                    }
+                }
+            });
+        });
     });
+
+    // Toggle Status (AJAX)
+    document.querySelectorAll('.toggle-status').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const active = this.dataset.active;
+            const icon = this.querySelector('i');
+            
+            fetch(`{{ route('admin.delivery.delivery-boys.toggle-status', '') }}/${id}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    this.dataset.active = active;
+                    icon.className = active == 1 ? 'bi bi-toggle-on' : 'bi bi-toggle-off';
+                    this.title = active == 1 ? 'Deactivate' : 'Activate';
+                }
+            });
+        });
+    });
+
+    // Live Search with AJAX
+    let searchTimeout;
+    const searchInput = document.getElementById('liveSearch');
+    const searchSpinner = document.getElementById('searchSpinner');
+    
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchSpinner.style.display = 'block';
+        
+        searchTimeout = setTimeout(() => {
+            performLiveSearch();
+        }, 300);
+    });
+
+    // Filter dropdowns trigger search on change
+    ['filterStatus', 'filterZone', 'filterAvailability'].forEach(id => {
+        const select = document.getElementById(id);
+        if (select) {
+            select.addEventListener('change', function() {
+                performLiveSearch();
+            });
+        }
+    });
+
+    function performLiveSearch() {
+        const params = new URLSearchParams();
+        
+        const searchTerm = searchInput.value.trim();
+        if (searchTerm) params.set('search', searchTerm);
+        
+        const status = document.getElementById('filterStatus').value;
+        if (status) params.set('status', status);
+        
+        const zone = document.getElementById('filterZone').value;
+        if (zone) params.set('zone', zone);
+        
+        const availability = document.getElementById('filterAvailability').value;
+        if (availability) params.set('availability', availability);
+        
+        // Keep existing sort and per_page
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('sort')) params.set('sort', urlParams.get('sort'));
+        if (urlParams.get('per_page')) params.set('per_page', urlParams.get('per_page'));
+        
+        // AJAX request
+        fetch(`{{ route('admin.delivery.delivery-boys.index') }}?${params.toString()}&ajax=1`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            searchSpinner.style.display = 'none';
+            
+            if (data.html) {
+                // Update table body
+                document.querySelector('#tableBody').innerHTML = data.html;
+                
+                // Update stats
+                if (data.stats) {
+                    document.getElementById('statTotal').textContent = data.stats.total || 0;
+                    document.getElementById('statActive').textContent = data.stats.active || 0;
+                    document.getElementById('statAvailable').textContent = data.stats.available || 0;
+                    document.getElementById('statOnDelivery').textContent = data.stats.on_delivery || 0;
+                    document.getElementById('statOnLeave').textContent = data.stats.on_leave || 0;
+                }
+                
+                // Update pagination
+                if (data.pagination) {
+                    document.getElementById('pagination').innerHTML = data.pagination;
+                }
+                
+                // Update URL without reload
+                const newUrl = `${window.location.pathname}?${params.toString()}`;
+                window.history.pushState({}, '', newUrl);
+                
+                // Re-attach event listeners to new elements
+                attachRowEventListeners();
+            }
+        })
+        .catch(err => {
+            searchSpinner.style.display = 'none';
+            console.error('Search error:', err);
+        });
+    }
+
+    function attachRowEventListeners() {
+        // Re-attach checkbox listeners
+        document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectedCount);
+        });
+        
+        // Re-attach toggle availability
+        document.querySelectorAll('.toggle-availability').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const available = this.dataset.available;
+                const icon = this.querySelector('i');
+                
+                fetch(`{{ route('admin.delivery.delivery-boys.toggle-availability', '') }}/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        this.dataset.available = available;
+                        icon.className = available == 1 ? 'bi bi-bicycle' : 'bi bi-pause-circle';
+                        this.title = available == 1 ? 'Mark Unavailable' : 'Mark Available';
+                    }
+                });
+            });
+        });
+        
+        // Re-attach toggle status
+        document.querySelectorAll('.toggle-status').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const active = this.dataset.active;
+                const icon = this.querySelector('i');
+                
+                fetch(`{{ route('admin.delivery.delivery-boys.toggle-status', '') }}/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        this.dataset.active = active;
+                        icon.className = active == 1 ? 'bi bi-toggle-on' : 'bi bi-toggle-off';
+                        this.title = active == 1 ? 'Deactivate' : 'Activate';
+                    }
+                });
+            });
+        });
+    }
 </script>
 @endpush

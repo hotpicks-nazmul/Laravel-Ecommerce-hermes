@@ -1,5 +1,13 @@
 @foreach($categories as $index => $category)
-<tr>
+@php
+    $search = request('search');
+    $isMatch = $search && (
+        stripos($category->name, $search) !== false ||
+        stripos($category->slug ?? '', $search) !== false ||
+        stripos($category->description ?? '', $search) !== false
+    );
+@endphp
+<tr class="{{ $isMatch ? 'table-warning' : '' }}">
     <td class="ps-3">{{ $categories->firstItem() + $index }}</td>
     <td>
         <div class="d-flex align-items-center">

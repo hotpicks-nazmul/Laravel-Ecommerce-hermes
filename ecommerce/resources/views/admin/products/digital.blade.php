@@ -4,33 +4,33 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="stat-card-row mb-4">
+<div class="stat-card-row stat-card-row-6 mb-4">
     <div class="stat-card stat-card-primary">
         <div class="stat-card-icon"><i class="bi bi-collection"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Total</span>
-            <span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span>
+            <span class="stat-card-value" id="statTotal">{{ $stats['total'] ?? 0 }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-success">
         <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Active</span>
-            <span class="stat-card-value">{{ $stats['active'] ?? 0 }}</span>
+            <span class="stat-card-value" id="statActive">{{ $stats['active'] ?? 0 }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-info">
         <div class="stat-card-icon"><i class="bi bi-graph-up"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Total Sales</span>
-            <span class="stat-card-value">{{ $stats['total_sales'] ?? 0 }}</span>
+            <span class="stat-card-value" id="statTotalSales">{{ $stats['total_sales'] ?? 0 }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-warning">
         <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Inactive</span>
-            <span class="stat-card-value">{{ $stats['inactive'] ?? 0 }}</span>
+            <span class="stat-card-value" id="statInactive">{{ $stats['inactive'] ?? 0 }}</span>
         </div>
     </div>
 </div>
@@ -435,19 +435,41 @@
 
 @push('styles')
 <style>
-.status-toggle {
-    min-width: 70px;
-    transition: all 0.2s;
-}
-.status-toggle:hover {
-    transform: scale(1.05);
-}
-.table > :not(caption) > * > * {
-    padding: 0.75rem 0.5rem;
-}
-.product-checkbox:checked + td img {
-    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.3);
-}
+    .status-toggle {
+        min-width: 70px;
+        transition: all 0.2s;
+    }
+    .status-toggle:hover {
+        transform: scale(1.05);
+    }
+    .table > :not(caption) > * > * {
+        padding: 0.75rem 0.5rem;
+    }
+    .product-checkbox:checked + td img {
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.3);
+    }
+    
+    /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
 </style>
 @endpush
 
@@ -778,21 +800,152 @@ function changePerPage(value) {
 
 // Live search
 let searchTimeout;
-document.getElementById('liveSearch')?.addEventListener('input', function(e) {
+const searchInput = document.getElementById('liveSearch');
+const searchSpinner = document.getElementById('searchSpinner');
+
+searchInput?.addEventListener('input', function() {
     clearTimeout(searchTimeout);
-    const spinner = document.getElementById('searchSpinner');
-    spinner.style.display = 'block';
+    const searchTerm = this.value.trim();
     
+    // Show spinner
+    searchSpinner.style.display = 'block';
+    
+    // Debounce - wait 300ms after user stops typing
     searchTimeout = setTimeout(() => {
-        const url = new URL(window.location.href);
-        if (e.target.value) {
-            url.searchParams.set('search', e.target.value);
-        } else {
-            url.searchParams.delete('search');
-        }
-        url.searchParams.set('page', 1);
-        window.location.href = url.toString();
-    }, 500);
+        performLiveSearch(searchTerm);
+    }, 300);
 });
+
+// Filter dropdowns trigger search on change
+const filterSelects = ['filterCategory', 'filterFileType', 'filterLicense', 'filterStatus'];
+filterSelects.forEach(id => {
+    const select = document.getElementById(id);
+    if (select) {
+        select.addEventListener('change', function() {
+            performLiveSearch(searchInput.value.trim());
+        });
+    }
+});
+
+// Live search function
+function performLiveSearch(searchTerm) {
+    const searchSpinner = document.getElementById('searchSpinner');
+    
+    // Build query parameters
+    const params = new URLSearchParams();
+    
+    if (searchTerm) {
+        params.set('search', searchTerm);
+    }
+    
+    const category = document.getElementById('filterCategory').value;
+    if (category) params.set('category', category);
+    
+    const fileType = document.getElementById('filterFileType').value;
+    if (fileType) params.set('file_type', fileType);
+    
+    const license = document.getElementById('filterLicense').value;
+    if (license) params.set('requires_license', license);
+    
+    const status = document.getElementById('filterStatus').value;
+    if (status) params.set('status', status);
+    
+    // Keep existing sort and per_page
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('sort')) params.set('sort', urlParams.get('sort'));
+    if (urlParams.get('direction')) params.set('direction', urlParams.get('direction'));
+    if (urlParams.get('per_page')) params.set('per_page', urlParams.get('per_page'));
+    
+    // Make AJAX request
+    fetch(`{{ route('admin.products.digital.index') }}?${params.toString()}&ajax=1`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        searchSpinner.style.display = 'none';
+        
+        if (data.html) {
+            // Update table body
+            const tbody = document.querySelector('#productTableBody');
+            tbody.innerHTML = data.html;
+            
+            // Update pagination
+            if (data.pagination) {
+                document.getElementById('paginationLinks').innerHTML = data.pagination;
+            }
+            
+            // Update stats
+            updateStats(data.stats);
+            
+            // Update pagination info
+            if (data.total !== undefined) {
+                const info = `Showing 1 - ${Math.min(data.total, parseInt(params.get('per_page') || 25))} of ${data.total} products`;
+                document.getElementById('paginationInfo').textContent = info;
+            }
+            
+            // Reinitialize event listeners
+            reinitializeEventListeners();
+            
+            // Clear selection
+            clearSelection();
+            
+            // Update URL without reload
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            window.history.pushState({}, '', newUrl);
+        }
+    })
+    .catch(err => {
+        searchSpinner.style.display = 'none';
+        console.error('Search error:', err);
+    });
+}
+
+// Update stats cards
+function updateStats(stats) {
+    if (!stats) return;
+    
+    const statMap = {
+        'total': 'statTotal',
+        'active': 'statActive',
+        'inactive': 'statInactive',
+        'total_sales': 'statTotalSales',
+        'total_downloads': 'statTotalDownloads',
+        'total_revenue': 'statTotalRevenue',
+        'license_based': 'statLicense',
+        'available_licenses': 'statAvailableLicenses'
+    };
+    
+    Object.keys(statMap).forEach(key => {
+        const el = document.getElementById(statMap[key]);
+        if (el && stats[key] !== undefined) {
+            if (key === 'total_revenue') {
+                el.textContent = '৳' + parseInt(stats[key]).toLocaleString();
+            } else {
+                el.textContent = stats[key];
+            }
+        }
+    });
+}
+
+// Reinitialize event listeners after AJAX update
+function reinitializeEventListeners() {
+    // Status toggle
+    document.querySelectorAll('.status-toggle').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.closest('tr').querySelector('.product-checkbox').value;
+            toggleStatus(id);
+        });
+    });
+    
+    // Product checkboxes
+    document.querySelectorAll('.product-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            updateSelection(parseInt(this.value), this.checked);
+        });
+    });
+}
 </script>
 @endpush

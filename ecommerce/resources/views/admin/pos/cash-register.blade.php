@@ -58,50 +58,58 @@
         </div>
     </div>
 
-    <!-- Transactions Table -->
+    <!-- Transactions Table (Primary - Database Orders) -->
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white">
             <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Transactions - {{ $date }}</h5>
         </div>
         <div class="card-body p-0">
-            @if(count($transactions) > 0)
+            @if(count($dbOrders) > 0)
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
                             <th>Order #</th>
                             <th>Time</th>
-                            <th>Items</th>
+                            <th>Customer</th>
                             <th>Subtotal</th>
                             <th>Discount</th>
                             <th>Total</th>
                             <th>Payment</th>
-                            <th>Paid</th>
-                            <th>Change</th>
+                            <th>Status</th>
+                            <th style="width: 80px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($transactions as $transaction)
+                        @foreach($dbOrders as $order)
                         <tr>
                             <td>
-                                <span class="fw-medium">{{ $transaction['order_number'] }}</span>
+                                <span class="fw-medium">{{ $order->order_number }}</span>
                             </td>
-                            <td>{{ \Carbon\Carbon::parse($transaction['created_at'])->format('H:i:s') }}</td>
-                            <td>{{ count($transaction['items']) }}</td>
-                            <td>৳{{ number_format($transaction['subtotal'], 2) }}</td>
-                            <td>৳{{ number_format($transaction['discount'], 2) }}</td>
-                            <td class="fw-bold">৳{{ number_format($transaction['total'], 2) }}</td>
+                            <td>{{ $order->created_at->format('H:i:s') }}</td>
+                            <td>{{ $order->billing_first_name ?: 'Walk-in Customer' }}</td>
+                            <td>৳{{ number_format($order->subtotal, 2) }}</td>
+                            <td>৳{{ number_format($order->discount ?? 0, 2) }}</td>
+                            <td class="fw-bold">৳{{ number_format($order->total, 2) }}</td>
                             <td>
-                                @if($transaction['payment_method'] === 'cash')
+                                @if($order->payment_method === 'cash')
                                     <span class="badge bg-info">Cash</span>
-                                @elseif($transaction['payment_method'] === 'card')
+                                @elseif($order->payment_method === 'card')
                                     <span class="badge bg-primary">Card</span>
-                                @else
+                                @elseif($order->payment_method === 'digital_wallet')
                                     <span class="badge bg-warning">Digital</span>
+                                @else
+                                    <span class="badge bg-secondary">{{ ucfirst($order->payment_method) }}</span>
                                 @endif
                             </td>
-                            <td>৳{{ number_format($transaction['paid_amount'], 2) }}</td>
-                            <td class="text-success">৳{{ number_format($transaction['change'], 2) }}</td>
+                            <td>
+                                <span class="badge bg-success">{{ ucfirst($order->status) }}</span>
+                            </td>
+                            <td>
+                                <a href="{{ route('admin.orders.in-house.show', $order->id) }}" class="btn btn-sm btn-outline-primary" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -111,52 +119,36 @@
             <div class="text-center py-5">
                 <i class="bi bi-receipt text-muted" style="font-size: 3rem;"></i>
                 <p class="text-muted mt-2">No transactions for this date</p>
+                <a href="{{ route('admin.pos.terminal') }}" class="btn btn-sm btn-primary mt-2">
+                    <i class="bi bi-plus-lg me-1"></i> Make a Sale
+                </a>
             </div>
             @endif
         </div>
     </div>
-
-    <!-- Database Orders Section (if different from session) -->
-    @if(count($dbOrders) > 0)
-    <div class="card border-0 shadow-sm mt-4">
-        <div class="card-header bg-white">
-            <h5 class="mb-0"><i class="bi bi-database me-2"></i>Database Orders (Backup Check)</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Order #</th>
-                            <th>Date</th>
-                            <th>Total</th>
-                            <th>Payment</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($dbOrders as $order)
-                        <tr>
-                            <td>
-                                <a href="{{ route('admin.orders.in-house.show', $order->id) }}" class="fw-medium">
-                                    {{ $order->order_number }}
-                                </a>
-                            </td>
-                            <td>{{ $order->created_at->format('Y-m-d H:i:s') }}</td>
-                            <td class="fw-bold">৳{{ number_format($order->total, 2) }}</td>
-                            <td>
-                                <span class="badge bg-secondary">{{ ucfirst($order->payment_method) }}</span>
-                            </td>
-                            <td>
-                                <span class="badge bg-success">{{ ucfirst($order->status) }}</span>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    @endif
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display (same as inventory page) */
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+</style>
+@endpush

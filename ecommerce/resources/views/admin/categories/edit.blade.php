@@ -273,6 +273,15 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 // Auto-scroll to first error field on validation errors

@@ -193,7 +193,7 @@ function performLiveSearch(searchTerm) {
     if (urlParams.get('per_page')) params.set('per_page', urlParams.get('per_page'));
     
     // AJAX request
-    fetch(`{{ route('admin.multi-store.index') }}?${params.toString()}`, {
+    fetch(`{{ route('admin.multi-store.index') }}?${params.toString()}&ajax=1`, {
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json'
@@ -230,11 +230,11 @@ function performLiveSearch(searchTerm) {
 
 // Update statistics cards
 function updateStats(stats) {
-    const statCards = document.querySelectorAll('#statsCards .h4');
-    if (statCards[0]) statCards[0].textContent = stats.total ?? 0;
-    if (statCards[1]) statCards[1].textContent = stats.active ?? 0;
-    if (statCards[2]) statCards[2].textContent = stats.inactive ?? 0;
-    if (statCards[3]) statCards[3].textContent = stats.physical ?? 0;
+    const statValues = document.querySelectorAll('#statsCards .stat-card-value');
+    if (statValues[0]) statValues[0].textContent = stats.total ?? 0;
+    if (statValues[1]) statValues[1].textContent = stats.active ?? 0;
+    if (statValues[2]) statValues[2].textContent = stats.inactive ?? 0;
+    if (statValues[3]) statValues[3].textContent = stats.physical ?? 0;
 }
 
 // Change per page

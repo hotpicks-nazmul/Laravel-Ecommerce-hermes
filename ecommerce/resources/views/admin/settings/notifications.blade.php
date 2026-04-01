@@ -7,6 +7,33 @@
     <h4 class="mb-0">Notification Settings</h4>
 </div>
 
+<!-- Success/Error Alerts -->
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+@if($errors->any())
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    <ul class="mb-0">
+        @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
 <form action="{{ route('admin.settings.notifications.update') }}" method="POST" id="settings-form">
     @csrf
     
@@ -205,7 +232,10 @@
                     <div class="row">
                         <div class="col-md-12 mb-3">
                             <label for="admin_phone_for_sms" class="form-label">Admin Phone Number</label>
-                            <input type="text" id="admin_phone_for_sms" name="admin_phone_for_sms" form="settings-form" class="form-control" value="{{ old('admin_phone_for_sms', $settings['admin_phone_for_sms'] ?? '') }}" placeholder="+8801XXXXXXXXX">
+                            <input type="text" id="admin_phone_for_sms" name="admin_phone_for_sms" form="settings-form" class="form-control @error('admin_phone_for_sms') is-invalid @enderror" value="{{ old('admin_phone_for_sms', $settings['admin_phone_for_sms'] ?? '') }}" placeholder="+8801XXXXXXXXX">
+                            @error('admin_phone_for_sms')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Phone number for receiving SMS notifications</div>
                         </div>
                     </div>
@@ -318,7 +348,10 @@
                     <div class="row">
                         <div class="col-md-6">
                             <label for="low_stock_threshold" class="form-label">Low Stock Threshold</label>
-                            <input type="number" id="low_stock_threshold" name="low_stock_threshold" form="settings-form" class="form-control" value="{{ old('low_stock_threshold', $settings['low_stock_threshold'] ?? 10) }}" min="1">
+                            <input type="number" id="low_stock_threshold" name="low_stock_threshold" form="settings-form" class="form-control @error('low_stock_threshold') is-invalid @enderror" value="{{ old('low_stock_threshold', $settings['low_stock_threshold'] ?? 10) }}" min="1">
+                            @error('low_stock_threshold')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Alert when product quantity falls below this number</div>
                         </div>
                     </div>
@@ -353,10 +386,10 @@
                         <a href="{{ route('admin.settings.email') }}" class="btn btn-sm btn-outline-secondary text-start">
                             <i class="bi bi-envelope me-1"></i> Email Settings
                         </a>
-                        <a href="{{ route('admin.settings.seo') }}" class="btn btn-sm btn-outline-secondary text-start">
+                        <a href="{{ route('admin.marketing.bulk-sms.index') }}" class="btn btn-sm btn-outline-secondary text-start">
                             <i class="bi bi-chat-dots me-1"></i> SMS Gateway
                         </a>
-                        <a href="{{ route('admin.settings.seo') }}" class="btn btn-sm btn-outline-secondary text-start">
+                        <a href="{{ route('admin.marketing.push-notifications.index') }}" class="btn btn-sm btn-outline-secondary text-start">
                             <i class="bi bi-bell me-1"></i> Push Notifications
                         </a>
                         <a href="{{ route('admin.settings.order-configuration') }}" class="btn btn-sm btn-outline-secondary text-start">
@@ -390,8 +423,40 @@
 
 <!-- Floating Save Button -->
 <div class="floating-save-container">
+    <a href="{{ route('admin.settings.general') }}" class="btn btn-secondary floating-reset-btn">
+        <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
     <button type="submit" form="settings-form" class="btn btn-primary floating-save-btn">
         <i class="bi bi-check-lg me-1"></i> Save Settings
     </button>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-scroll to first error field
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+</script>
+@endpush

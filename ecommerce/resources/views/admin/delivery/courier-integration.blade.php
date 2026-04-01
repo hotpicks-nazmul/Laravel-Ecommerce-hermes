@@ -2,21 +2,6 @@
 
 @section('title', 'Courier Integration')
 
-@push('styles')
-<style>
-    .courier-card {
-        transition: all 0.2s ease;
-    }
-    .courier-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .courier-card.border-success {
-        background-color: rgba(25, 135, 84, 0.02);
-    }
-</style>
-@endpush
-
 @section('content')
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -79,7 +64,7 @@
                         <th>Base Rate</th>
                         <th>Tracking</th>
                         <th>COD</th>
-                        <th class="text-end">Actions</th>
+                        <th style="width: 120px;" class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -131,16 +116,18 @@
                             @endif
                         </td>
                         <td class="text-end">
-                            <a href="{{ route('admin.delivery.carriers.edit', $carrier->id) }}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-pencil"></i> Edit
-                            </a>
-                            <form action="{{ route('admin.delivery.carriers.toggle-status', $carrier->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('POST')
-                                <button type="submit" class="btn btn-sm btn-outline-{{ $carrier->is_active ? 'warning' : 'success' }}">
-                                    <i class="bi bi-{{ $carrier->is_active ? 'pause' : 'play' }}-fill"></i>
-                                </button>
-                            </form>
+                            <div class="btn-group">
+                                <a href="{{ route('admin.delivery.carriers.edit', $carrier->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form action="{{ route('admin.delivery.carriers.toggle-status', $carrier->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('POST')
+                                    <button type="submit" class="btn btn-sm btn-outline-{{ $carrier->is_active ? 'warning' : 'success' }}" title="Toggle Status">
+                                        <i class="bi bi-{{ $carrier->is_active ? 'pause' : 'play' }}-fill"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @endforeach
@@ -276,6 +263,21 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .courier-card {
+        transition: all 0.2s ease;
+    }
+    .courier-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .courier-card.border-success {
+        background-color: rgba(25, 135, 84, 0.02);
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>

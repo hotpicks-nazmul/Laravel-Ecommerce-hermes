@@ -118,7 +118,8 @@ class ApiKeyController extends Controller
         if ($validator->fails()) {
             return redirect()->back()
                 ->withErrors($validator)
-                ->withInput();
+                ->withInput()
+                ->with('_editing_key_id', $id);
         }
 
         $apiKey->name = $request->name;
@@ -242,7 +243,8 @@ class ApiKeyController extends Controller
         if ($validator->fails()) {
             return redirect()->back()
                 ->withErrors($validator)
-                ->withInput();
+                ->withInput()
+                ->with('_editing_webhook_id', $id);
         }
 
         $webhook->name = $request->name;

@@ -3,60 +3,59 @@
 @section('title', 'Delivery Reports')
 
 @section('content')
-<div class="content-area">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-1"><i class="bi bi-bar-chart me-2"></i>Delivery Reports</h4>
-            <p class="text-muted mb-0">Comprehensive delivery analytics and performance insights</p>
-        </div>
-        
-        <!-- Export Button -->
-        <div class="d-flex gap-2">
-            <a href="{{ route('admin.delivery.reports.export', ['date_range' => $dateRange]) }}" class="btn btn-success">
-                <i class="bi bi-file-earmark-excel me-1"></i> Export CSV
-            </a>
-        </div>
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-bar-chart me-2"></i>Delivery Reports</h4>
+        <p class="text-muted mb-0">Comprehensive delivery analytics and performance insights</p>
     </div>
-
-    <!-- Date Filter -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body py-3">
-            <form method="GET" class="d-flex align-items-center gap-3 flex-wrap">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-calendar3 text-muted"></i>
-                    <span class="text-muted">Date Range:</span>
-                </div>
-                <div class="d-flex gap-2 flex-wrap">
-                    <div class="btn-group" role="group">
-                        <input type="radio" class="btn-check" name="date_range" id="today" value="today" {{ $dateRange == 'today' ? 'checked' : '' }}>
-                        <label class="btn btn-sm btn-outline-secondary" for="today">Today</label>
-                        
-                        <input type="radio" class="btn-check" name="date_range" id="yesterday" value="yesterday" {{ $dateRange == 'yesterday' ? 'checked' : '' }}>
-                        <label class="btn btn-sm btn-outline-secondary" for="yesterday">Yesterday</label>
-                        
-                        <input type="radio" class="btn-check" name="date_range" id="this_week" value="this_week" {{ $dateRange == 'this_week' ? 'checked' : '' }}>
-                        <label class="btn btn-sm btn-outline-secondary" for="this_week">This Week</label>
-                        
-                        <input type="radio" class="btn-check" name="date_range" id="this_month" value="this_month" {{ $dateRange == 'this_month' ? 'checked' : '' }}>
-                        <label class="btn btn-sm btn-outline-secondary" for="this_month">This Month</label>
-                        
-                        <input type="radio" class="btn-check" name="date_range" id="last_30_days" value="last_30_days" {{ $dateRange == 'last_30_days' ? 'checked' : '' }}>
-                        <label class="btn btn-sm btn-outline-secondary" for="last_30_days">Last 30 Days</label>
-                        
-                        <input type="radio" class="btn-check" name="date_range" id="this_year" value="this_year" {{ $dateRange == 'this_year' ? 'checked' : '' }}>
-                        <label class="btn btn-sm btn-outline-secondary" for="this_year">This Year</label>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary btn-sm">
-                    <i class="bi bi-filter me-1"></i> Apply Filter
-                </button>
-            </form>
-        </div>
+    
+    <!-- Export Button -->
+    <div class="d-flex gap-2">
+        <a href="{{ route('admin.delivery.reports.export', ['date_range' => $dateRange]) }}" class="btn btn-success">
+            <i class="bi bi-file-earmark-excel me-1"></i> Export CSV
+        </a>
     </div>
+</div>
 
-    <!-- Statistics Cards -->
-    <div class="stat-card-row mb-4">
+<!-- Date Filter -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form method="GET" class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-calendar3 text-muted"></i>
+                <span class="text-muted">Date Range:</span>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="date_range" id="today" value="today" {{ $dateRange == 'today' ? 'checked' : '' }}>
+                    <label class="btn btn-sm btn-outline-secondary" for="today">Today</label>
+                    
+                    <input type="radio" class="btn-check" name="date_range" id="yesterday" value="yesterday" {{ $dateRange == 'yesterday' ? 'checked' : '' }}>
+                    <label class="btn btn-sm btn-outline-secondary" for="yesterday">Yesterday</label>
+                    
+                    <input type="radio" class="btn-check" name="date_range" id="this_week" value="this_week" {{ $dateRange == 'this_week' ? 'checked' : '' }}>
+                    <label class="btn btn-sm btn-outline-secondary" for="this_week">This Week</label>
+                    
+                    <input type="radio" class="btn-check" name="date_range" id="this_month" value="this_month" {{ $dateRange == 'this_month' ? 'checked' : '' }}>
+                    <label class="btn btn-sm btn-outline-secondary" for="this_month">This Month</label>
+                    
+                    <input type="radio" class="btn-check" name="date_range" id="last_30_days" value="last_30_days" {{ $dateRange == 'last_30_days' ? 'checked' : '' }}>
+                    <label class="btn btn-sm btn-outline-secondary" for="last_30_days">Last 30 Days</label>
+                    
+                    <input type="radio" class="btn-check" name="date_range" id="this_year" value="this_year" {{ $dateRange == 'this_year' ? 'checked' : '' }}>
+                    <label class="btn btn-sm btn-outline-secondary" for="this_year">This Year</label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-filter me-1"></i> Apply Filter
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="stat-card-row mb-4">
         <div class="stat-card stat-card-primary">
             <div class="stat-card-icon"><i class="bi bi-box-seam"></i></div>
             <div class="stat-card-content">
@@ -163,7 +162,7 @@
                                             {{ $zone['success_rate'] }}%
                                         </span>
                                     </td>
-                                    <td class="text-center">${{ number_format($zone['revenue'], 2) }}</td>
+                                    <td class="text-center">৳{{ number_format($zone['revenue'], 2) }}</td>
                                 </tr>
                                 @empty
                                 <tr>
@@ -330,7 +329,7 @@
                                     <td>
                                         <span class="badge bg-danger">{{ ucfirst($order->status) }}</span>
                                     </td>
-                                    <td>${{ number_format($order->total, 2) }}</td>
+                                    <td>৳{{ number_format($order->total, 2) }}</td>
                                     <td>{{ $order->created_at->format('M d, Y') }}</td>
                                 </tr>
                                 @empty
@@ -384,8 +383,8 @@
                                         </div>
                                     </td>
                                     <td class="text-center">{{ number_format($carrier['total_orders']) }}</td>
-                                    <td class="text-center">${{ number_format($carrier['shipping_revenue'], 2) }}</td>
-                                    <td class="text-center">${{ number_format($carrier['total_revenue'], 2) }}</td>
+                                    <td class="text-center">৳{{ number_format($carrier['shipping_revenue'], 2) }}</td>
+                                    <td class="text-center">৳{{ number_format($carrier['total_revenue'], 2) }}</td>
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -396,7 +395,6 @@
         </div>
     </div>
     @endif
-</div>
 
 @push('styles')
 <style>
@@ -435,9 +433,6 @@
     .progress-thin {
         height: 8px;
         border-radius: 4px;
-    }
-    .content-area {
-        padding-bottom: 100px !important;
     }
 </style>
 @endpush

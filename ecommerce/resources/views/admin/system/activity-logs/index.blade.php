@@ -2,83 +2,49 @@
 
 @section('title', 'Activity Logs')
 
-@push('styles')
-<style>
-    /* Force Bootstrap Icons to display on this page */
-    .stat-card-icon i,
-    .stat-card-icon i::before,
-    .bi::before,
-    [class*="bi bi-"]::before {
-        display: inline-block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        font-family: 'bootstrap-icons' !important;
-    }
-    
-    /* Override icon colors for stat cards */
-    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
-    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
-    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
-    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
-    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
-    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
-    
-    /* Make the whole icon colored */
-    .stat-card-icon i { color: inherit !important; }
-    
-    /* Pagination icon sizing - fix large icons */
-    .pagination .page-link i,
-    .pagination .page-link i::before,
-    .pagination .page-link .bi,
-    .pagination .page-link .bi::before {
-        font-size: 14px !important;
-        line-height: 1 !important;
-    }
-    
-    .page-item .page-link i,
-    .page-item .page-link i::before,
-    .page-item .page-link .bi,
-    .page-item .page-link .bi::before {
-        font-size: 14px !important;
-        line-height: 1 !important;
-    }
-</style>
-@endpush
-
 @section('content')
-<div class="mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0"><i class="bi bi-journal-text me-2"></i>Activity Logs</h4>
-    <p class="text-muted mb-0">Track all system activities and user actions</p>
+    <div class="d-flex gap-2">
+        @if($logs->total() > 0)
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#clearLogsModal">
+            <i class="bi bi-trash me-1"></i> Clear Logs
+        </button>
+        @endif
+        <a href="{{ route('admin.system.activity-logs.export', request()->query()) }}" class="btn btn-outline-success">
+            <i class="bi bi-download me-1"></i> Export
+        </a>
+    </div>
 </div>
 
 <!-- Stats Cards -->
-<div class="stat-card-row mb-4">
+<div class="stat-card-row stat-card-row-6 mb-4">
     <div class="stat-card stat-card-primary">
         <div class="stat-card-icon"><i class="bi bi-journal-text"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Total Logs</span>
-            <span class="stat-card-value">{{ number_format($stats['total']) }}</span>
+            <span class="stat-card-value" id="statTotal">{{ number_format($stats['total']) }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-success">
         <div class="stat-card-icon"><i class="bi bi-person-badge"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Admin Logs</span>
-            <span class="stat-card-value">{{ number_format($stats['admin']) }}</span>
+            <span class="stat-card-value" id="statAdmin">{{ number_format($stats['admin']) }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-info">
         <div class="stat-card-icon"><i class="bi bi-people"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Customer Logs</span>
-            <span class="stat-card-value">{{ number_format($stats['customer']) }}</span>
+            <span class="stat-card-value" id="statCustomer">{{ number_format($stats['customer']) }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-warning">
         <div class="stat-card-icon"><i class="bi bi-gear"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">System Logs</span>
-            <span class="stat-card-value">{{ number_format($stats['system']) }}</span>
+            <span class="stat-card-value" id="statSystem">{{ number_format($stats['system']) }}</span>
         </div>
     </div>
 </div>
@@ -116,7 +82,7 @@
             <input type="hidden" name="tab" value="{{ $tab }}">
             <div class="row g-2 align-items-end">
                 <!-- Search Input -->
-                <div class="col-lg-4 col-md-4 col-sm-6">
+                <div class="col-lg-3 col-md-4 col-sm-6">
                     <label class="form-label small text-muted">Search</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -138,50 +104,52 @@
                 <!-- Sort By -->
                 <div class="col-lg-2 col-md-3 col-sm-6">
                     <label class="form-label small text-muted">Sort By</label>
-                    <select name="sort" class="form-select form-select-sm">
+                    <select name="sort" id="filterSort" class="form-select form-select-sm">
                         <option value="recent" {{ $sortBy === 'recent' ? 'selected' : '' }}>Most Recent</option>
                         <option value="oldest" {{ $sortBy === 'oldest' ? 'selected' : '' }}>Oldest First</option>
                     </select>
                 </div>
                 
-                <!-- Filter Buttons -->
-                <div class="col-lg-3 col-md-5 col-sm-6">
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-sm btn-primary">
-                            <i class="bi bi-funnel me-1"></i> Filter
-                        </button>
-                        <a href="{{ route('admin.system.activity-logs.index', ['tab' => $tab]) }}" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-x-lg me-1"></i> Reset
-                        </a>
-                        <a href="{{ route('admin.system.activity-logs.export', request()->query()) }}" class="btn btn-sm btn-outline-success">
-                            <i class="bi bi-download me-1"></i> Export
-                        </a>
-                    </div>
+                <!-- Reset Button -->
+                <div class="col-lg-1 col-md-2 col-sm-6">
+                    <a href="{{ route('admin.system.activity-logs.index', ['tab' => $tab]) }}" class="btn btn-sm btn-outline-secondary w-100">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
                 </div>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Data Table Card -->
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-        <h6 class="mb-0"><i class="bi bi-table me-2"></i>Activity Log History</h6>
-        <div class="d-flex align-items-center gap-2">
-            <span class="text-muted small">Showing {{ $logs->firstItem() ?? 0 }} - {{ $logs->lastItem() ?? 0 }} of {{ $logs->total() }} logs</span>
-            @if($logs->total() > 0)
-            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#clearLogsModal">
-                <i class="bi bi-trash me-1"></i> Clear Logs
-            </button>
-            @endif
+<!-- Bulk Actions Bar -->
+<div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
+    <div class="card-body py-2">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted"><span id="selectedCount">0</span> selected</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="clearSelection()">
+                    Clear
+                </button>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-danger" onclick="deleteSelectedLogs()">
+                    <i class="bi bi-trash me-1"></i> Delete Selected
+                </button>
+            </div>
         </div>
     </div>
+</div>
+
+<!-- Data Table Card -->
+<div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 50px;">#</th>
+                        <th style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                        </th>
                         <th style="width: 100px;">Type</th>
                         <th>Description</th>
                         <th style="width: 150px;">User</th>
@@ -192,7 +160,9 @@
                 <tbody id="tableBody">
                     @forelse($logs as $index => $log)
                     <tr>
-                        <td>{{ $logs->firstItem() + $index }}</td>
+                        <td>
+                            <input type="checkbox" class="form-check-input log-checkbox" value="{{ $log->id }}" onchange="toggleItem(this)">
+                        </td>
                         <td>
                             @if($log->log_name === 'admin')
                             <span class="badge bg-success">
@@ -266,12 +236,12 @@
         </div>
         
         @if($logs->hasPages())
-        <div class="card-footer bg-white py-3 text-center">
-            <div class="d-inline-flex align-items-center gap-3">
-                <span class="text-muted small">
-                    Showing {{ $logs->firstItem() ?? 0 }} - {{ $logs->lastItem() ?? 0 }} of {{ $logs->total() }} logs
-                </span>
-                {{ $logs->appends(request()->query())->links('pagination::bootstrap-5') }}
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="text-muted small">
+                Showing {{ $logs->firstItem() ?? 0 }} - {{ $logs->lastItem() ?? 0 }} of {{ $logs->total() }} entries
+            </div>
+            <div>
+                {{ $logs->appends(request()->query())->links() }}
             </div>
         </div>
         @endif
@@ -319,6 +289,45 @@
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
+    /* Force Bootstrap Icons to display on this page */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+    
+    /* Pagination icon sizing - fix large icons */
+    .pagination .page-link i,
+    .pagination .page-link i::before,
+    .pagination .page-link .bi,
+    .pagination .page-link .bi::before {
+        font-size: 14px !important;
+        line-height: 1 !important;
+    }
+    
+    .page-item .page-link i,
+    .page-item .page-link i::before,
+    .page-item .page-link .bi,
+    .page-item .page-link .bi::before {
+        font-size: 14px !important;
+        line-height: 1 !important;
+    }
+    
     .table th {
         font-weight: 600;
         font-size: 0.85rem;
@@ -379,14 +388,155 @@ document.addEventListener('DOMContentLoaded', function() {
                 searchSpinner.style.display = 'block';
             }
             
-            // Debounce - wait 500ms after user stops typing
+            // Debounce - wait 300ms after user stops typing
             searchTimeout = setTimeout(() => {
-                if (searchSpinner) {
-                    searchSpinner.style.display = 'none';
-                }
-            }, 500);
+                performLiveSearch(searchTerm);
+            }, 300);
         });
     }
+    
+    // Filter dropdowns trigger search on change
+    const filterSort = document.getElementById('filterSort');
+    if (filterSort) {
+        filterSort.addEventListener('change', function() {
+            performLiveSearch(searchInput ? searchInput.value.trim() : '');
+        });
+    }
+    
+    // Live search function
+    function performLiveSearch(searchTerm) {
+        const params = new URLSearchParams();
+        
+        // Add tab
+        const tabInput = document.querySelector('input[name="tab"]');
+        if (tabInput) params.set('tab', tabInput.value);
+        
+        // Add search term
+        if (searchTerm) params.set('search', searchTerm);
+        
+        // Add date range
+        const dateRange = document.getElementById('dateRange');
+        if (dateRange && dateRange.value) params.set('date_range', dateRange.value);
+        
+        // Add sort
+        const sort = document.getElementById('filterSort');
+        if (sort) params.set('sort', sort.value);
+        
+        // AJAX request
+        fetch(`{{ route('admin.system.activity-logs.index') }}?${params.toString()}&ajax=1`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (searchSpinner) {
+                searchSpinner.style.display = 'none';
+            }
+            
+            if (data.html) {
+                // Update table body
+                document.querySelector('#tableBody').innerHTML = data.html;
+                
+                // Update URL without reload
+                const newUrl = `${window.location.pathname}?${params.toString()}`;
+                window.history.pushState({}, '', newUrl);
+            }
+            
+            if (data.stats) {
+                // Update stats
+                document.getElementById('statTotal').textContent = data.stats.total.toLocaleString();
+                document.getElementById('statAdmin').textContent = data.stats.admin.toLocaleString();
+                document.getElementById('statCustomer').textContent = data.stats.customer.toLocaleString();
+                document.getElementById('statSystem').textContent = data.stats.system.toLocaleString();
+            }
+        })
+        .catch(() => {
+            if (searchSpinner) {
+                searchSpinner.style.display = 'none';
+            }
+            // Fallback to form submit
+            document.getElementById('filterForm').submit();
+        });
+    }
+    
+    // Selection management
+    let selectedItems = new Set();
+    
+    window.toggleSelectAll = function() {
+        const selectAll = document.getElementById('selectAllCheckbox');
+        const checkboxes = document.querySelectorAll('.log-checkbox');
+        
+        if (selectAll.checked) {
+            checkboxes.forEach(cb => {
+                cb.checked = true;
+                selectedItems.add(cb.value);
+            });
+        } else {
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+                selectedItems.delete(cb.value);
+            });
+        }
+        updateBulkActions();
+    };
+    
+    window.toggleItem = function(checkbox) {
+        if (checkbox.checked) {
+            selectedItems.add(checkbox.value);
+        } else {
+            selectedItems.delete(checkbox.value);
+        }
+        updateBulkActions();
+    };
+    
+    window.updateBulkActions = function() {
+        const count = selectedItems.size;
+        document.getElementById('selectedCount').textContent = count;
+        document.getElementById('bulkActionsBar').style.display = count > 0 ? 'block' : 'none';
+    };
+    
+    window.clearSelection = function() {
+        selectedItems.clear();
+        document.getElementById('selectAllCheckbox').checked = false;
+        document.querySelectorAll('.log-checkbox').forEach(cb => cb.checked = false);
+        updateBulkActions();
+    };
+    
+    window.deleteSelectedLogs = function() {
+        if (selectedItems.size === 0) {
+            toastr.warning('Please select at least one log to delete');
+            return;
+        }
+        
+        if (!confirm('Are you sure you want to delete ' + selectedItems.size + ' log(s)?')) {
+            return;
+        }
+        
+        const ids = Array.from(selectedItems);
+        
+        fetch('{{ route('admin.system.activity-logs.destroy') }}', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ ids: ids })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success || data.message) {
+                toastr.success(data.message || 'Logs deleted successfully');
+                clearSelection();
+                setTimeout(() => window.location.reload(), 500);
+            }
+        })
+        .catch(err => {
+            toastr.error('Failed to delete logs');
+        });
+    };
 });
 </script>
 @endpush

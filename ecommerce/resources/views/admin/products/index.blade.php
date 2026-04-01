@@ -328,6 +328,11 @@
 .product-checkbox:checked + td img {
     box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.3);
 }
+/* Fix delete button border-radius to match btn-group siblings */
+.btn-group .delete-btn {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
 </style>
 @endpush
 
@@ -470,30 +475,31 @@ document.querySelectorAll('.featured-toggle').forEach(btn => {
 
 // Quick Edit Modal
 let quickEditModal;
+function openQuickEdit(btn) {
+    const row = btn.closest('tr');
+    const id = btn.dataset.id;
+    
+    // Get current values from row data attributes
+    document.getElementById('quickEditProductId').value = id;
+    document.getElementById('quickEditName').value = row.dataset.name || '';
+    document.getElementById('quickEditProductCode').value = row.dataset.productCode || '';
+    document.getElementById('quickEditShortDescription').value = row.dataset.shortDescription || '';
+    document.getElementById('quickEditPrice').value = row.dataset.price || '0';
+    document.getElementById('quickEditSalePrice').value = row.dataset.salePrice || '';
+    document.getElementById('quickEditQuantity').value = row.dataset.quantity || '0';
+    document.getElementById('quickEditCategory').value = row.dataset.categoryId || '';
+    
+    // Show modal
+    quickEditModal = new bootstrap.Modal(document.getElementById('quickEditModal'));
+    quickEditModal.show();
+}
+
+// Initialize quick edit buttons
 document.querySelectorAll('.quick-edit-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-        const row = this.closest('tr');
-        const id = this.dataset.id;
-        
-        // Get current values from row data attributes
-        document.getElementById('quickEditProductId').value = id;
-        document.getElementById('quickEditName').value = row.dataset.name || '';
-        document.getElementById('quickEditProductCode').value = row.dataset.productCode || '';
-        document.getElementById('quickEditShortDescription').value = row.dataset.shortDescription || '';
-        document.getElementById('quickEditPrice').value = extractPrice(row.querySelector('td:nth-child(6)'));
-        document.getElementById('quickEditQuantity').value = row.querySelector('.badge').textContent.trim();
-        
-        // Show modal
-        quickEditModal = new bootstrap.Modal(document.getElementById('quickEditModal'));
-        quickEditModal.show();
+        openQuickEdit(this);
     });
 });
-
-function extractPrice(cell) {
-    const text = cell.textContent.replace(/[^\d.]/g, '');
-    const prices = text.match(/\d+\.?\d*/g);
-    return prices ? prices[prices.length - 1] : '0';
-}
 
 function saveQuickEdit() {
     const id = document.getElementById('quickEditProductId').value;
@@ -667,9 +673,13 @@ function performLiveSearch(searchTerm) {
 
 // Update pagination
 function updatePagination(paginationHtml) {
-    const paginationContainer = document.querySelector('.card-footer .d-flex:last-child');
-    if (paginationContainer) {
-        paginationContainer.innerHTML = paginationHtml;
+    const paginationContainer = document.querySelector('.card-footer.bg-white');
+    if (paginationContainer && paginationHtml) {
+        // Find the pagination div (second child - after per-page selector)
+        const paginationDiv = paginationContainer.querySelector('div:nth-child(2)');
+        if (paginationDiv) {
+            paginationDiv.innerHTML = paginationHtml;
+        }
     }
 }
 
@@ -677,20 +687,36 @@ function updatePagination(paginationHtml) {
 function updateStats(stats) {
     if (!stats) return;
     
-    const statElements = {
-        'total': document.querySelector('.col-md-2:nth-child(1) .h4'),
-        'active': document.querySelector('.col-md-2:nth-child(2) .h4'),
-        'inactive': document.querySelector('.col-md-2:nth-child(3) .h4'),
-        'featured': document.querySelector('.col-md-2:nth-child(4) .h4'),
-        'low_stock': document.querySelector('.col-md-2:nth-child(5) .h4'),
-        'out_of_stock': document.querySelector('.col-md-2:nth-child(6) .h4')
+    // Map stat keys to their corresponding stat-card-value elements by label
+    const statCardMap = {
+        'total': 'Total Products',
+        'active': 'Active',
+        'inactive': 'Inactive',
+        'featured': 'Featured',
+        'low_stock': 'Low Stock',
+        'out_of_stock': 'Out of Stock'
     };
     
-    Object.keys(statElements).forEach(key => {
-        if (statElements[key] && stats[key] !== undefined) {
-            statElements[key].textContent = stats[key];
+    // Find all stat cards and update by matching label text
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach(card => {
+        const label = card.querySelector('.stat-card-label');
+        const value = card.querySelector('.stat-card-value');
+        if (label && value) {
+            const labelText = label.textContent.trim();
+            for (const [key, expectedLabel] of Object.entries(statCardMap)) {
+                if (labelText === expectedLabel && stats[key] !== undefined) {
+                    value.textContent = typeof stats[key] === 'number' ? number_format(stats[key]) : stats[key];
+                    break;
+                }
+            }
         }
     });
+}
+
+// Helper function to format numbers with commas
+function number_format(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 // Reinitialize event listeners after AJAX update
@@ -746,19 +772,7 @@ function reinitializeEventListeners() {
     // Quick edit buttons
     document.querySelectorAll('.quick-edit-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            const row = this.closest('tr');
-            const id = this.dataset.id;
-            
-            // Get current values from row data attributes
-            document.getElementById('quickEditProductId').value = id;
-            document.getElementById('quickEditName').value = row.dataset.name || '';
-            document.getElementById('quickEditProductCode').value = row.dataset.productCode || '';
-            document.getElementById('quickEditShortDescription').value = row.dataset.shortDescription || '';
-            document.getElementById('quickEditPrice').value = extractPrice(row.querySelector('td:nth-child(6)'));
-            document.getElementById('quickEditQuantity').value = row.querySelector('.badge').textContent.trim();
-            
-            quickEditModal = new bootstrap.Modal(document.getElementById('quickEditModal'));
-            quickEditModal.show();
+            openQuickEdit(this);
         });
     });
     

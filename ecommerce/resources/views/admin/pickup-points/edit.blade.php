@@ -2,14 +2,6 @@
 
 @section('title', 'Edit Pick-up Point - ' . $pickupPoint->name)
 
-@push('styles')
-<style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
-</style>
-@endpush
-
 @section('content')
 <div class="row">
     <div class="col-lg-8">
@@ -38,7 +30,7 @@
                             @enderror
                         </div>
                         <div class="col-md-6">
-                            <label for="code" class="form-label">Code <small class="text-muted">(Optional)</small></label>
+                            <label for="code" class="form-label">Code <span class="text-muted">(Optional)</span></label>
                             <input type="text" id="code" name="code" class="form-control @error('code') is-invalid @enderror" value="{{ old('code', $pickupPoint->code) }}">
                             @error('code')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -53,7 +45,7 @@
                             @enderror
                         </div>
                         <div class="col-md-6">
-                            <label for="email" class="form-label">Email <small class="text-muted">(Optional)</small></label>
+                            <label for="email" class="form-label">Email <span class="text-muted">(Optional)</span></label>
                             <input type="email" id="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $pickupPoint->email) }}">
                             @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -84,14 +76,14 @@
                             @enderror
                         </div>
                         <div class="col-md-6">
-                            <label for="state" class="form-label">State/Province <small class="text-muted">(Optional)</small></label>
+                            <label for="state" class="form-label">State/Province <span class="text-muted">(Optional)</span></label>
                             <input type="text" id="state" name="state" class="form-control @error('state') is-invalid @enderror" value="{{ old('state', $pickupPoint->state) }}">
                             @error('state')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="col-md-6">
-                            <label for="postcode" class="form-label">Postcode <small class="text-muted">(Optional)</small></label>
+                            <label for="postcode" class="form-label">Postcode <span class="text-muted">(Optional)</span></label>
                             <input type="text" id="postcode" name="postcode" class="form-control @error('postcode') is-invalid @enderror" value="{{ old('postcode', $pickupPoint->postcode) }}">
                             @error('postcode')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -115,14 +107,14 @@
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-12">
-                            <label for="opening_hours" class="form-label">Opening Hours <small class="text-muted">(Optional)</small></label>
+                            <label for="opening_hours" class="form-label">Opening Hours <span class="text-muted">(Optional)</span></label>
                             <textarea id="opening_hours" name="opening_hours" class="form-control @error('opening_hours') is-invalid @enderror" rows="3" placeholder="e.g.&#10;Mon-Fri: 9:00 AM - 6:00 PM&#10;Sat: 10:00 AM - 4:00 PM&#10;Sun: Closed">{{ old('opening_hours', $pickupPoint->opening_hours) }}</textarea>
                             @error('opening_hours')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="col-12">
-                            <label for="notes" class="form-label">Notes <small class="text-muted">(Optional)</small></label>
+                            <label for="notes" class="form-label">Notes <span class="text-muted">(Optional)</span></label>
                             <textarea id="notes" name="notes" class="form-control @error('notes') is-invalid @enderror" rows="2">{{ old('notes', $pickupPoint->notes) }}</textarea>
                             @error('notes')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -141,20 +133,20 @@
                 <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Settings</h6>
             </div>
             <div class="card-body">
-                <form id="settingsForm">
-                    <div class="mb-3">
-                        <div class="form-check form-switch">
-                            <input type="checkbox" name="is_active" class="form-check-input" id="isActive" value="1" {{ old('is_active', $pickupPoint->is_active) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="isActive">Active</label>
-                        </div>
-                        <div class="form-text">Inactive locations won't be available for selection</div>
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input type="checkbox" name="is_active" class="form-check-input" id="isActive" form="pickupPointForm" value="1" {{ old('is_active', $pickupPoint->is_active) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="isActive">
+                            <i class="bi bi-check-circle text-success me-1"></i> Active
+                        </label>
                     </div>
-                    <div class="mb-0">
-                        <label for="sort_order" class="form-label">Sort Order</label>
-                        <input type="number" id="sort_order" name="sort_order" class="form-control" value="{{ old('sort_order', $pickupPoint->sort_order) }}" min="0">
-                        <div class="form-text">Lower numbers appear first</div>
-                    </div>
-                </form>
+                    <div class="form-text">Inactive locations won't be available for selection</div>
+                </div>
+                <div class="mb-0">
+                    <label for="sort_order" class="form-label">Sort Order</label>
+                    <input type="number" id="sort_order" name="sort_order" class="form-control" form="pickupPointForm" value="{{ old('sort_order', $pickupPoint->sort_order) }}" min="0">
+                    <div class="form-text">Lower numbers appear first</div>
+                </div>
             </div>
         </div>
 
@@ -215,6 +207,14 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
     // Delete confirmation function
@@ -224,32 +224,20 @@
         }
     }
 
-    // Sync settings form with main form
-    document.getElementById('settingsForm').addEventListener('change', function() {
-        const mainForm = document.getElementById('pickupPointForm');
-        const settingsForm = document.getElementById('settingsForm');
-        
-        // Update or create hidden inputs in main form
-        ['is_active', 'sort_order'].forEach(field => {
-            let input = mainForm.querySelector(`input[name="${field}"]`);
-            const settingsInput = settingsForm.querySelector(`[name="${field}"]`);
-            
-            if (!input) {
-                input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = field;
-                mainForm.appendChild(input);
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-scroll to first error field
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
             }
-            
-            if (settingsInput.type === 'checkbox') {
-                input.value = settingsInput.checked ? '1' : '0';
-            } else {
-                input.value = settingsInput.value;
-            }
-        });
+        @endif
     });
-    
-    // Trigger initial sync
-    document.getElementById('settingsForm').dispatchEvent(new Event('change'));
 </script>
 @endpush

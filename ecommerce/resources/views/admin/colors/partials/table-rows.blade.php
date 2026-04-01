@@ -11,7 +11,7 @@
         <input type="checkbox" class="form-check-input item-checkbox" value="{{ $color->id }}">
     </td>
     <td>
-        <span class="color-swatch" style="background-color: {{ $color->hex_code }}; width: 32px; height: 32px; border-radius: 50%; display: inline-block; vertical-align: middle; border: 2px solid #fff; box-shadow: 0 0 0 1px #ddd;" title="{{ $color->name }}"></span>
+        <span class="color-swatch" style="background-color: {{ $color->hex_code }};" title="{{ $color->name }}"></span>
     </td>
     <td>
         <a href="{{ route('admin.colors.edit', $color->id) }}" class="text-decoration-none fw-medium">
