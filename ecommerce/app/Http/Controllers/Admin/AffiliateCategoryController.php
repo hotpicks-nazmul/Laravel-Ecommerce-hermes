@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AffiliateCategory;
 use App\Models\AffiliateProduct;
+use App\Helpers\ImageHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 
 class AffiliateCategoryController extends Controller
 {
@@ -16,11 +16,36 @@ class AffiliateCategoryController extends Controller
      * 
      * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        $categories = AffiliateCategory::withCount('products')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $query = AffiliateCategory::withCount('products');
+        
+        // Search
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function($q) use($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('slug', 'like', "%{$search}%");
+            });
+        }
+        
+        // Status filter
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+        
+        // Sorting
+        $sort = $request->sort ?? 'created_at';
+        $direction = $request->direction ?? 'desc';
+        $allowedSorts = ['name', 'commission_rate', 'created_at'];
+        
+        if (in_array($sort, $allowedSorts)) {
+            $query->orderBy($sort, $direction);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+        
+        $categories = $query->paginate(15);
         
         // Statistics for stat cards
         $stats = [
@@ -30,6 +55,13 @@ class AffiliateCategoryController extends Controller
             'total_products' => AffiliateProduct::count(),
             'avg_commission' => AffiliateCategory::avg('commission_rate') ?? 0,
         ];
+        
+        // AJAX response for live search
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('admin.affiliate.categories.partials.category-rows', compact('categories'))->render(),
+            ]);
+        }
         
         return view('admin.affiliate.categories.index', compact('categories', 'stats'));
     }
@@ -61,16 +93,28 @@ class AffiliateCategoryController extends Controller
             'status' => 'required|in:active,inactive',
         ]);
 
-        // Handle image upload
+        // Handle image upload using ImageHelper
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('affiliate-categories', 'public');
-            $validated['image'] = $imagePath;
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'affiliate-categories',
+                    1920,
+                    300,
+                    85
+                );
+                $validated['image'] = $imageResult['path'];
+                $validated['thumbnail'] = $imageResult['thumbnail'] ?? null;
+            }
         }
 
         // Generate slug if not provided
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['name']);
         }
+
+        // Handle status checkbox
+        $validated['status'] = $request->has('status') ? 'active' : 'inactive';
 
         AffiliateCategory::create($validated);
 
@@ -111,20 +155,32 @@ class AffiliateCategoryController extends Controller
             'status' => 'required|in:active,inactive',
         ]);
 
-        // Handle image upload
+        // Handle image upload using ImageHelper
         if ($request->hasFile('image')) {
             // Delete old image
             if ($category->image) {
-                Storage::disk('public')->delete($category->image);
+                ImageHelper::deleteImage($category->image, $category->thumbnail ?? null);
             }
-            $imagePath = $request->file('image')->store('affiliate-categories', 'public');
-            $validated['image'] = $imagePath;
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'affiliate-categories',
+                    1920,
+                    300,
+                    85
+                );
+                $validated['image'] = $imageResult['path'];
+                $validated['thumbnail'] = $imageResult['thumbnail'] ?? null;
+            }
         }
 
         // Generate slug if not provided
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['name']);
         }
+
+        // Handle status checkbox
+        $validated['status'] = $request->has('status') ? 'active' : 'inactive';
 
         $category->update($validated);
 
@@ -148,14 +204,70 @@ class AffiliateCategoryController extends Controller
                 ->with('error', 'Cannot delete category. It has associated products.');
         }
 
-        // Delete image
+        // Delete image using ImageHelper
         if ($category->image) {
-            Storage::disk('public')->delete($category->image);
+            ImageHelper::deleteImage($category->image, $category->thumbnail ?? null);
         }
 
         $category->delete();
 
         return redirect()->back()
             ->with('success', 'Affiliate category deleted successfully.');
+    }
+
+    /**
+     * Bulk action for categories
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function bulkAction(Request $request)
+    {
+        $request->validate([
+            'action' => 'required|in:activate,deactivate,delete',
+            'ids' => 'required|json',
+        ]);
+
+        $ids = json_decode($request->ids, true);
+        $action = $request->action;
+        
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'No categories selected.');
+        }
+
+        $categories = AffiliateCategory::whereIn('id', $ids)->get();
+
+        switch ($action) {
+            case 'activate':
+                $categories->each->update(['status' => 'active']);
+                return redirect()->back()->with('success', 'Selected categories activated.');
+                
+            case 'deactivate':
+                $categories->each->update(['status' => 'inactive']);
+                return redirect()->back()->with('success', 'Selected categories deactivated.');
+                
+            case 'delete':
+                // Check for categories with products
+                $categoriesWithProducts = $categories->filter(function($cat) {
+                    return $cat->products()->count() > 0;
+                });
+                
+                if ($categoriesWithProducts->isNotEmpty()) {
+                    $names = $categoriesWithProducts->pluck('name')->join(', ');
+                    return redirect()->back()->with('error', "Cannot delete these categories as they have products: {$names}");
+                }
+                
+                // Delete images and categories
+                $categories->each(function($category) {
+                    if ($category->image) {
+                        ImageHelper::deleteImage($category->image, $category->thumbnail ?? null);
+                    }
+                    $category->delete();
+                });
+                
+                return redirect()->back()->with('success', 'Selected categories deleted.');
+        }
+
+        return redirect()->back()->with('error', 'Invalid action.');
     }
 }

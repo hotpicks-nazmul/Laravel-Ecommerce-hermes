@@ -42,9 +42,10 @@ class RefundController extends Controller
             $query->where('reason', $request->reason);
         }
 
-        // Sorting
-        $sort = $request->sort ?? 'created_at';
-        $direction = $request->direction ?? 'desc';
+        // Sorting with whitelist
+        $sortableColumns = ['refund_number', 'refund_amount', 'status', 'created_at'];
+        $sort = $request->sort && in_array($request->sort, $sortableColumns) ? $request->sort : 'created_at';
+        $direction = in_array($request->direction, ['asc', 'desc']) ? $request->direction : 'desc';
         $query->orderBy($sort, $direction);
 
         // Pagination
@@ -101,7 +102,7 @@ class RefundController extends Controller
         // Sorting
         $sortableColumns = ['refund_number', 'refund_amount', 'status', 'created_at'];
         $sort = $request->sort && in_array($request->sort, $sortableColumns) ? $request->sort : 'created_at';
-        $direction = in_array($request->direction, ['asc', 'desc']) ? $request->direction : 'asc';
+        $direction = in_array($request->direction, ['asc', 'desc']) ? $request->direction : 'desc';
         $query->orderBy($sort, $direction);
 
         // Pagination
@@ -387,18 +388,21 @@ class RefundController extends Controller
     public function bulk(Request $request)
     {
         $request->validate([
-            'action' => 'required|string|in:approve,reject',
+            'action' => 'required|string|in:approve,reject,process',
             'ids' => 'required|json',
         ]);
 
         $ids = json_decode($request->ids, true);
         $action = $request->action;
 
-        $refunds = Refund::whereIn('id', $ids)->where('status', 'pending')->get();
+        // For approve/reject actions, only process pending refunds
+        // For process action, only process approved refunds
+        $statusFilter = $action === 'process' ? 'approved' : 'pending';
+        $refunds = Refund::whereIn('id', $ids)->where('status', $statusFilter)->get();
 
         if ($refunds->isEmpty()) {
             return redirect()->back()
-                ->with('error', 'No pending refunds selected.');
+                ->with('error', 'No refunds selected for this action.');
         }
 
         foreach ($refunds as $refund) {
@@ -420,13 +424,26 @@ class RefundController extends Controller
                     'processed_at' => now(),
                     'processed_by' => Auth::id(),
                 ]);
+            } elseif ($action === 'process') {
+                $refund->update([
+                    'status' => 'processed',
+                    'processed_at' => now(),
+                    'processed_by' => Auth::id(),
+                ]);
+
+                $order = $refund->order;
+                if ($order) {
+                    $order->update(['payment_status' => 'refunded']);
+                }
             }
         }
 
         $count = $refunds->count();
-        $message = $action === 'approve'
-            ? "{$count} refund(s) approved successfully."
-            : "{$count} refund(s) rejected successfully.";
+        $message = match ($action) {
+            'approve' => "{$count} refund(s) approved successfully.",
+            'reject' => "{$count} refund(s) rejected successfully.",
+            'process' => "{$count} refund(s) processed successfully.",
+        };
 
         return redirect()->back()->with('success', $message);
     }

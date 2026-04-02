@@ -10,3 +10,9 @@ Artisan::command('inspire', function () {
 
 // Schedule sitemap generation
 Schedule::command('sitemap:generate')->daily();
+
+// Schedule notification pruning (keep 30 days)
+Schedule::command('notifications:prune --days=30')->daily();
+
+// Schedule notification pruning (keep 30 days)
+Schedule::command('notifications:prune --days=30')->daily();

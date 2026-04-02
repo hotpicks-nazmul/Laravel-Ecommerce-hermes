@@ -35,7 +35,7 @@
     </div>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0"><i class="bi bi-cash-stack me-2"></i>Affiliate Payouts</h4>
 </div>
 
@@ -53,12 +53,50 @@
 </div>
 @endif
 
+<!-- Filters Card -->
 <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-3">
+        <form method="GET" id="filterForm">
+            <div class="row g-2 align-items-end">
+                <!-- Search Input -->
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <label class="form-label small text-muted">Search</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" id="liveSearch" class="form-control" 
+                               placeholder="Affiliate name..." value="{{ request('search') }}">
+                    </div>
+                </div>
+                
+                <!-- Status Filter -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Status</label>
+                    <select name="status" id="filterStatus" class="form-select form-select-sm">
+                        <option value="">All Status</option>
+                        <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Approved</option>
+                        <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                        <option value="paid" {{ request('status') === 'paid' ? 'selected' : '' }}>Paid</option>
+                    </select>
+                </div>
+                
+                <!-- Reset Button -->
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <a href="{{ route('admin.affiliate.payouts') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-lg me-1"></i> Reset
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Payouts Table -->
+<div class="card border-0 shadow-sm">
     <div class="card-header bg-white">
         <h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>All Payouts</h6>
     </div>
     <div class="card-body p-0">
-        @if($withdrawals->count() > 0)
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0" id="affiliatePayoutsTable">
                 <thead class="table-light">
@@ -73,10 +111,15 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($withdrawals as $withdrawal)
-                    <tr>
+                    @forelse($withdrawals as $withdrawal)
+                    @php
+                        $search = request('search');
+                        $affiliateName = $withdrawal->affiliate->user->name ?? '-';
+                        $isMatch = $search && stripos($affiliateName, $search) !== false;
+                    @endphp
+                    <tr class="{{ $isMatch ? 'table-warning' : '' }}">
                         <td>{{ $withdrawal->id }}</td>
-                        <td>{{ $withdrawal->affiliate->user->name ?? '-' }}</td>
+                        <td>{{ $affiliateName }}</td>
                         <td>${{ number_format($withdrawal->amount, 2) }}</td>
                         <td>{{ ucfirst($withdrawal->payment_method) }}</td>
                         <td>
@@ -90,27 +133,37 @@
                             <span class="badge bg-info">Paid</span>
                             @endif
                         </td>
-                        <td>{{ $withdrawal->requested_at->format('M d, Y H:i') }}</td>
+                        <td>{{ $withdrawal->created_at->format('M d, Y H:i') }}</td>
                         <td>
                             @if($withdrawal->status === 'pending')
-                            <form action="{{ route('admin.affiliate.payouts.approve', $withdrawal->id) }}" method="POST" style="display: inline;">
-                                @csrf
-                                <button type="submit" class="btn btn-sm btn-outline-success" title="Approve" onclick="return confirm('Are you sure you want to approve this payout?')">
-                                    <i class="bi bi-check-circle"></i>
-                                </button>
-                            </form>
-                            <form action="{{ route('admin.affiliate.payouts.reject', $withdrawal->id) }}" method="POST" style="display: inline;">
-                                @csrf
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject" onclick="return confirm('Are you sure you want to reject this payout?')">
-                                    <i class="bi bi-x-circle"></i>
-                                </button>
-                            </form>
+                            <div class="btn-group">
+                                <form action="{{ route('admin.affiliate.payouts.approve', $withdrawal->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Approve" onclick="return confirm('Are you sure you want to approve this payout?')">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                </form>
+                                <form action="{{ route('admin.affiliate.payouts.reject', $withdrawal->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject" onclick="return confirm('Are you sure you want to reject this payout?')">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </form>
+                            </div>
                             @else
                             <span class="text-muted">-</span>
                             @endif
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <i class="bi bi-cash-stack text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mb-2 mt-2">No payouts found</p>
+                            <p class="text-muted small">Payout requests will appear here once affiliates request withdrawals.</p>
+                        </td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -125,22 +178,46 @@
             </div>
         </div>
         @endif
-        @else
-        <div class="text-center py-5">
-            <i class="bi bi-cash-stack text-muted" style="font-size: 4rem;"></i>
-            <h5 class="mt-3 text-muted">No payouts found</h5>
-            <p class="text-muted">Payout requests will appear here once affiliates request withdrawals.</p>
-        </div>
-        @endif
     </div>
 </div>
 @endsection
 
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+</style>
+@endpush
+
 @push('scripts')
 <script>
-    $(document).ready(function() {
-        // Note: Using Laravel pagination, not DataTables
-        // This provides server-side pagination which is more scalable
+    // Filter dropdowns trigger search on change
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterStatus = document.getElementById('filterStatus');
+        if (filterStatus) {
+            filterStatus.addEventListener('change', function() {
+                document.getElementById('filterForm').submit();
+            });
+        }
     });
 </script>
 @endpush

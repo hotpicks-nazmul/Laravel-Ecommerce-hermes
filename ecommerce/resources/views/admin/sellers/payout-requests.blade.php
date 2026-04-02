@@ -98,7 +98,7 @@
                         <th>Bank Details</th>
                         <th>Status</th>
                         <th>Requested Date</th>
-                        <th style="width: 150px;">Actions</th>
+                        <th style="width: 120px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -190,8 +190,8 @@
                             <div>{{ $payout->created_at->format('d M Y') }}</div>
                             <small class="text-muted">{{ $payout->created_at->format('h:i A') }}</small>
                         </td>
-                        <td>
-                            <div class="d-flex gap-1">
+                        <td class="text-center">
+                            <div class="btn-group">
                                 <a href="{{ route('admin.sellers.payouts.show', $payout->id) }}" class="btn btn-sm btn-outline-secondary" title="View Details">
                                     <i class="bi bi-eye"></i>
                                 </a>
@@ -271,6 +271,9 @@
                         <td colspan="9" class="text-center py-5">
                             <i class="bi bi-cash-stack text-muted" style="font-size: 3rem;"></i>
                             <p class="text-muted mb-2 mt-2">No payout requests found</p>
+                            <a href="{{ route('admin.sellers.index') }}" class="btn btn-sm btn-outline-primary mt-1">
+                                <i class="bi bi-arrow-left me-1"></i> Back to Sellers
+                            </a>
                         </td>
                     </tr>
                     @endforelse
@@ -292,6 +295,14 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Stat card icon colors - only overrides not covered by global styles */
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-warning .stat-card-icon i { color: #ffc107 !important; }
+</style>
+@endpush
 
 @push('scripts')
 <script>

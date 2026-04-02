@@ -11,7 +11,6 @@ use App\Models\DeliveryBoy;
 use App\Models\Carrier;
 use App\Models\Order;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
@@ -405,7 +404,16 @@ class DeliveryController extends Controller
         
         // Upload logo
         if ($request->hasFile('logo')) {
-            $data['logo'] = $request->file('logo')->store('delivery-partners', 'public');
+            if (ImageHelper::isValidImage($request->file('logo'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('logo'),
+                    'delivery-partners',
+                    1920,
+                    300,
+                    85
+                );
+                $data['logo'] = ltrim($imageResult['path'], '/');
+            }
         }
         
         DeliveryPartner::create($data);
@@ -468,14 +476,23 @@ class DeliveryController extends Controller
         if ($request->hasFile('logo')) {
             // Delete old logo
             if ($partner->logo) {
-                Storage::disk('public')->delete($partner->logo);
+                ImageHelper::deleteImage($partner->logo);
             }
-            $data['logo'] = $request->file('logo')->store('delivery-partners', 'public');
+            if (ImageHelper::isValidImage($request->file('logo'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('logo'),
+                    'delivery-partners',
+                    1920,
+                    300,
+                    85
+                );
+                $data['logo'] = ltrim($imageResult['path'], '/');
+            }
         }
         
         // Remove logo if requested
         if ($request->has('remove_logo') && $partner->logo) {
-            Storage::disk('public')->delete($partner->logo);
+            ImageHelper::deleteImage($partner->logo);
             $data['logo'] = null;
         }
         
@@ -492,7 +509,7 @@ class DeliveryController extends Controller
     {
         // Delete logo
         if ($partner->logo) {
-            Storage::disk('public')->delete($partner->logo);
+            ImageHelper::deleteImage($partner->logo);
         }
         
         $partner->delete();
@@ -572,7 +589,7 @@ class DeliveryController extends Controller
                 // Delete logos
                 $partners = DeliveryPartner::whereIn('id', $ids)->whereNotNull('logo')->get();
                 foreach ($partners as $partner) {
-                    Storage::disk('public')->delete($partner->logo);
+                    ImageHelper::deleteImage($partner->logo);
                 }
                 
                 DeliveryPartner::whereIn('id', $ids)->delete();
@@ -744,7 +761,16 @@ class DeliveryController extends Controller
         
         // Upload logo
         if ($request->hasFile('logo')) {
-            $data['logo'] = $request->file('logo')->store('carriers', 'public');
+            if (ImageHelper::isValidImage($request->file('logo'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('logo'),
+                    'carriers',
+                    1920,
+                    300,
+                    85
+                );
+                $data['logo'] = ltrim($imageResult['path'], '/');
+            }
         }
         
         Carrier::create($data);
@@ -838,14 +864,23 @@ class DeliveryController extends Controller
         if ($request->hasFile('logo')) {
             // Delete old logo
             if ($carrier->logo) {
-                Storage::disk('public')->delete($carrier->logo);
+                ImageHelper::deleteImage($carrier->logo);
             }
-            $data['logo'] = $request->file('logo')->store('carriers', 'public');
+            if (ImageHelper::isValidImage($request->file('logo'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('logo'),
+                    'carriers',
+                    1920,
+                    300,
+                    85
+                );
+                $data['logo'] = ltrim($imageResult['path'], '/');
+            }
         }
         
         // Remove logo if requested
         if ($request->has('remove_logo') && $carrier->logo) {
-            Storage::disk('public')->delete($carrier->logo);
+            ImageHelper::deleteImage($carrier->logo);
             $data['logo'] = null;
         }
         
@@ -862,7 +897,7 @@ class DeliveryController extends Controller
     {
         // Delete logo
         if ($carrier->logo) {
-            Storage::disk('public')->delete($carrier->logo);
+            ImageHelper::deleteImage($carrier->logo);
         }
         
         $carrier->delete();
@@ -942,7 +977,7 @@ class DeliveryController extends Controller
                 // Delete logos
                 $carriers = Carrier::whereIn('id', $ids)->whereNotNull('logo')->get();
                 foreach ($carriers as $carrier) {
-                    Storage::disk('public')->delete($carrier->logo);
+                    ImageHelper::deleteImage($carrier->logo);
                 }
                 
                 Carrier::whereIn('id', $ids)->delete();

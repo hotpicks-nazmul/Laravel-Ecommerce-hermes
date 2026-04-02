@@ -186,15 +186,18 @@
                             @endif
                         </td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-outline-primary" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#editCommissionModal"
-                                    data-seller-id="{{ $seller->id }}"
-                                    data-seller-name="{{ $seller->name }}"
-                                    data-shop-name="{{ $seller->shop_name }}"
-                                    data-commission-rate="{{ $seller->commission_rate ?? $defaultCommission }}">
-                                <i class="bi bi-pencil"></i> Edit
-                            </button>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editCommissionModal"
+                                        data-seller-id="{{ $seller->id }}"
+                                        data-seller-name="{{ $seller->name }}"
+                                        data-shop-name="{{ $seller->shop_name }}"
+                                        data-commission-rate="{{ $seller->commission_rate ?? $defaultCommission }}"
+                                        title="Edit Commission">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     @empty
@@ -247,11 +250,14 @@
                     <div class="mb-3">
                         <label for="modalCommissionRate" class="form-label">Commission Rate (%) <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <input type="number" name="commission_rate" id="modalCommissionRate" 
-                                   class="form-control" min="0" max="100" step="0.01" required>
+                            <input type="number" name="commission_rate" id="modalCommissionRate"
+                                   class="form-control @error('commission_rate') is-invalid @enderror" min="0" max="100" step="0.01" required>
                             <span class="input-group-text"><i class="bi bi-percent"></i></span>
                         </div>
                         <div class="form-text">Enter a value between 0 and 100</div>
+                        @error('commission_rate')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -295,6 +301,26 @@
         document.getElementById('modalSellerName').value = shopName ? `${sellerName} (${shopName})` : sellerName;
         document.getElementById('modalCommissionRate').value = commissionRate;
     });
+
+    // Auto-show modal if there are validation errors for commission_rate
+    @if($errors->has('commission_rate'))
+        document.addEventListener('DOMContentLoaded', function() {
+            var modal = new bootstrap.Modal(document.getElementById('editCommissionModal'));
+            modal.show();
+            
+            // Auto-scroll to first error field
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        });
+    @endif
 
     // Debounced live search
     let searchTimeout;

@@ -136,11 +136,12 @@
             <div class="card-body">
                 <div class="mb-3">
                     <label for="image" class="form-label">Upload Image</label>
-                    <input type="file" id="image" name="image" form="productForm" class="form-control @error('image') is-invalid @enderror" accept="image/*">
+                    <input type="file" id="image" name="image" form="productForm" class="form-control @error('image') is-invalid @enderror" accept="image/*" onchange="previewFeaturedImage(this)">
                     <div class="form-text">Recommended size: 400x400 pixels. Max file size: 2MB</div>
                     @error('image')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
+                    <div id="featuredImagePreview" class="mt-2"></div>
                 </div>
             </div>
         </div>
@@ -157,3 +158,37 @@
     </button>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    // Preview featured image
+    function previewFeaturedImage(input) {
+        const preview = document.getElementById('featuredImagePreview');
+        preview.innerHTML = '';
+        
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 150px; max-height: 150px;">';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-scroll to first error field
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+</script>
+@endpush

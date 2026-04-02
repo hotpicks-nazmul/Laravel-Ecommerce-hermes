@@ -187,19 +187,19 @@
                                                 <span class="badge bg-secondary">Inactive</span>
                                             @endif
                                         </td>
-                                        <td style="width: 180px;">
-                                            <div class="d-flex gap-1">
-                                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editRewardModal{{ $reward->id }}" title="Edit">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
-                                                <a href="{{ route('admin.customers.loyalty.toggleReward', $reward->id) }}" class="btn btn-sm {{ $reward->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}" title="{{ $reward->is_active ? 'Deactivate' : 'Activate' }}">
-                                                    <i class="bi bi-toggle-on"></i>
-                                                </a>
-                                                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRewardModal{{ $reward->id }}" title="Delete">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
+                                         <td style="width: 120px;">
+                                             <div class="btn-group">
+                                                 <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editRewardModal{{ $reward->id }}" title="Edit">
+                                                     <i class="bi bi-pencil"></i>
+                                                 </button>
+                                                 <a href="{{ route('admin.customers.loyalty.toggleReward', $reward->id) }}" class="btn btn-sm {{ $reward->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}" title="{{ $reward->is_active ? 'Deactivate' : 'Activate' }}">
+                                                     <i class="bi bi-toggle-on"></i>
+                                                 </a>
+                                                 <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRewardModal{{ $reward->id }}" title="Delete">
+                                                     <i class="bi bi-trash"></i>
+                                                 </button>
+                                             </div>
+                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -355,6 +355,12 @@
                         <label class="form-label">Max Redemptions</label>
                         <input type="number" name="max_redemptions" class="form-control" value="{{ $reward->max_redemptions }}" min="1" placeholder="Unlimited if empty">
                     </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="edit_is_active{{ $reward->id }}" name="is_active" {{ $reward->is_active ? 'checked' : '' }}>
+                        <label class="form-check-label" for="edit_is_active{{ $reward->id }}">
+                            <i class="bi bi-check-circle text-success me-1"></i> Active
+                        </label>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -389,3 +395,12 @@
 </div>
 @endforeach
 @endsection
+
+@push('styles')
+<style>
+/* Add padding at bottom to prevent floating button overlap */
+.content-area {
+    padding-bottom: 100px !important;
+}
+</style>
+@endpush

@@ -4,7 +4,7 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="stat-card-row mb-4">
+<div class="stat-card-row mb-4" id="statsCards">
     <div class="stat-card stat-card-primary">
         <div class="stat-card-icon"><i class="bi bi-receipt"></i></div>
         <div class="stat-card-content">
@@ -163,6 +163,8 @@
     </div>
 </div>
 
+@endsection
+
 @push('scripts')
 <script>
     // Debounced live search
@@ -284,4 +286,3 @@
     }
 </script>
 @endpush
-@endsection

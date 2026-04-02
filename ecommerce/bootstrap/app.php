@@ -3,6 +3,14 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use App\Models\Order;
+use App\Models\Review;
+use App\Models\Product;
+use App\Models\User;
+use App\Observers\OrderObserver;
+use App\Observers\ReviewObserver;
+use App\Observers\ProductObserver;
+use App\Observers\UserObserver;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -35,3 +43,13 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Providers\MailServiceProvider::class,
     ])
     ->create();
+
+Order::observe(OrderObserver::class);
+Review::observe(ReviewObserver::class);
+Product::observe(ProductObserver::class);
+User::observe(UserObserver::class);
+
+Order::observe(OrderObserver::class);
+Review::observe(ReviewObserver::class);
+Product::observe(ProductObserver::class);
+User::observe(UserObserver::class);

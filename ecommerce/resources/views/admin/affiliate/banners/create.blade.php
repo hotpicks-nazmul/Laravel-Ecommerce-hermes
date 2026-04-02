@@ -22,24 +22,26 @@
 </div>
 @endif
 
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-header bg-white">
-                <h6 class="mb-0"><i class="bi bi-image me-2"></i>Banner Details</h6>
-            </div>
-            <div class="card-body">
-                <form id="bannerForm" method="POST" action="{{ route('admin.affiliate.banners.store') }}" enctype="multipart/form-data">
-                    @csrf
-                    
+<form id="bannerForm" method="POST" action="{{ route('admin.affiliate.banners.store') }}" enctype="multipart/form-data">
+    @csrf
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-image me-2"></i>Banner Details</h6>
+                </div>
+                <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="name" class="form-label">Banner Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}" required>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
+                            @error('name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label for="affiliate_id" class="form-label">Affiliate</label>
-                            <select class="form-select" id="affiliate_id" name="affiliate_id">
+                            <select class="form-select @error('affiliate_id') is-invalid @enderror" id="affiliate_id" name="affiliate_id">
                                 <option value="">General Banner (No specific affiliate)</option>
                                 @foreach($affiliates as $affiliate)
                                 <option value="{{ $affiliate->id }}" {{ old('affiliate_id') == $affiliate->id ? 'selected' : '' }}>
@@ -47,13 +49,19 @@
                                 </option>
                                 @endforeach
                             </select>
+                            @error('affiliate_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="image" class="form-label">Banner Image <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" id="image" name="image" accept="image/*" required onchange="previewImage(this)">
+                            <input type="file" class="form-control @error('image') is-invalid @enderror" id="image" name="image" accept="image/*" required onchange="previewImage(this)">
+                            @error('image')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">Supported formats: JPG, PNG, GIF, WebP. Max size: 2MB</div>
                         </div>
                         <div class="col-md-6">
@@ -67,11 +75,17 @@
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label for="width" class="form-label">Width (px)</label>
-                            <input type="number" class="form-control" id="width" name="width" value="{{ old('width', 728) }}" min="1">
+                            <input type="number" class="form-control @error('width') is-invalid @enderror" id="width" name="width" value="{{ old('width', 728) }}" min="1">
+                            @error('width')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-4">
                             <label for="height" class="form-label">Height (px)</label>
-                            <input type="number" class="form-control" id="height" name="height" value="{{ old('height', 90) }}" min="1">
+                            <input type="number" class="form-control @error('height') is-invalid @enderror" id="height" name="height" value="{{ old('height', 90) }}" min="1">
+                            @error('height')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-4">
                             <label for="presetSizes" class="form-label">Preset Sizes</label>
@@ -94,40 +108,49 @@
                             <label for="target_url" class="form-label">Target URL</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
-                                <input type="url" class="form-control" id="target_url" name="target_url" value="{{ old('target_url') }}" placeholder="https://example.com">
+                                <input type="url" class="form-control @error('target_url') is-invalid @enderror" id="target_url" name="target_url" value="{{ old('target_url') }}" placeholder="https://example.com">
                             </div>
+                            @error('target_url')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                             <div class="form-text">URL where users will be redirected when clicking the banner</div>
                         </div>
                         <div class="col-md-6">
                             <label for="status" class="form-label">Status</label>
-                            <select class="form-select" id="status" name="status">
+                            <select class="form-select @error('status') is-invalid @enderror" id="status" name="status">
                                 <option value="active" {{ old('status') === 'active' ? 'selected' : '' }}>Active</option>
                                 <option value="inactive" {{ old('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
                             </select>
+                            @error('status')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3">{{ old('description') }}</textarea>
+                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description') }}</textarea>
+                        @error('description')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
-                </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Help</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-2">Upload a banner image in common web formats (JPG, PNG, GIF, or WebP).</p>
+                    <p class="small text-muted mb-0">Choose a preset size or enter custom dimensions.</p>
+                </div>
             </div>
         </div>
     </div>
-    
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-header bg-white">
-                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Help</h6>
-            </div>
-            <div class="card-body">
-                <p class="small text-muted mb-2">Upload a banner image in common web formats (JPG, PNG, GIF, or WebP).</p>
-                <p class="small text-muted mb-0">Choose a preset size or enter custom dimensions.</p>
-            </div>
-        </div>
-    </div>
-</div>
+</form>
 
 <div class="floating-save-container">
     <a href="{{ route('admin.affiliate.banners.index') }}" class="btn btn-secondary floating-reset-btn">
@@ -138,6 +161,14 @@
     </button>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -155,10 +186,6 @@
         }
     }
     
-    function resetPreview() {
-        document.getElementById('imagePreview').innerHTML = '<span class="text-muted">No image selected</span>';
-    }
-    
     function applyPreset() {
         var preset = document.getElementById('presetSizes').value;
         if (preset) {
@@ -167,5 +194,17 @@
             document.getElementById('height').value = sizes[1];
         }
     }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        @if($errors->any())
+        var firstErrorField = document.querySelector('.is-invalid');
+        if (firstErrorField) {
+            setTimeout(function() {
+                firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstErrorField.focus();
+            }, 100);
+        }
+        @endif
+    });
 </script>
 @endpush

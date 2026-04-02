@@ -9,33 +9,34 @@
         <div class="stat-card-icon"><i class="bi bi-receipt"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Total</span>
-            <span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span>
+            <span class="stat-card-value" id="statTotal">{{ $stats['total'] ?? 0 }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-warning">
         <div class="stat-card-icon"><i class="bi bi-clock"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Pending</span>
-            <span class="stat-card-value">{{ $stats['pending'] ?? 0 }}</span>
+            <span class="stat-card-value" id="statPending">{{ $stats['pending'] ?? 0 }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-success">
         <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Approved</span>
-            <span class="stat-card-value">{{ $stats['approved'] ?? 0 }}</span>
+            <span class="stat-card-value" id="statApproved">{{ $stats['approved'] ?? 0 }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-danger">
         <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Rejected</span>
-            <span class="stat-card-value">{{ $stats['rejected'] ?? 0 }}</span>
+            <span class="stat-card-value" id="statRejected">{{ $stats['rejected'] ?? 0 }}</span>
         </div>
     </div>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">All Refunds</h4>
 </div>
 
@@ -94,13 +95,35 @@
                 </div>
                 
                 <!-- Reset Button -->
-                <div class="col-lg-1 col-md-4 col-sm-8">
+                <div class="col-lg-2 col-md-4 col-sm-8">
                     <a href="{{ route('admin.refunds.index') }}" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-x-lg me-1"></i> Reset
                     </a>
                 </div>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Bulk Actions Bar -->
+<div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
+    <div class="card-body py-2">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted"><span id="selectedCount">0</span> selected</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="clearSelection()">
+                    Clear Selection
+                </button>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-success" onclick="bulkAction('approve')">
+                    <i class="bi bi-check-circle me-1"></i> Approve
+                </button>
+                <button type="button" class="btn btn-sm btn-danger" onclick="bulkAction('reject')">
+                    <i class="bi bi-x-circle me-1"></i> Reject
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -111,7 +134,9 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 50px;">#</th>
+                        <th style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAllCheckbox" onclick="toggleSelectAll(this)">
+                        </th>
                         <th>
                             <a href="{{ route('admin.refunds.index', array_merge(request()->query(), ['sort' => 'refund_number', 'direction' => request('sort') == 'refund_number' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
                                 Refund Details
@@ -170,8 +195,76 @@
     </div>
 </div>
 
+<!-- Bulk Action Form -->
+<form id="bulkActionForm" method="POST" action="{{ route('admin.refunds.bulk') }}">
+    @csrf
+    <input type="hidden" name="action" id="bulkActionInput">
+    <input type="hidden" name="ids" id="bulkIdsInput">
+</form>
+
+@endsection
+
 @push('scripts')
 <script>
+    let selectedItems = new Set();
+
+    // Toggle select all on current page
+    function toggleSelectAll(checkbox) {
+        const checkboxes = document.querySelectorAll('.refund-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = checkbox.checked;
+            if (checkbox.checked) {
+                selectedItems.add(cb.value);
+            } else {
+                selectedItems.delete(cb.value);
+            }
+        });
+        updateBulkActions();
+    }
+
+    // Toggle single item selection
+    function toggleSelection(id, checkbox) {
+        if (checkbox.checked) {
+            selectedItems.add(id);
+        } else {
+            selectedItems.delete(id);
+        }
+        updateBulkActions();
+    }
+
+    // Clear selection
+    function clearSelection() {
+        selectedItems.clear();
+        document.getElementById('selectAllCheckbox').checked = false;
+        document.querySelectorAll('.refund-checkbox').forEach(cb => cb.checked = false);
+        updateBulkActions();
+    }
+
+    // Update bulk actions bar visibility
+    function updateBulkActions() {
+        const count = selectedItems.size;
+        document.getElementById('selectedCount').textContent = count;
+        document.getElementById('bulkActionsBar').style.display = count > 0 ? 'block' : 'none';
+    }
+
+    // Perform bulk action
+    function bulkAction(action) {
+        if (selectedItems.size === 0) {
+            alert('Please select at least one refund.');
+            return;
+        }
+        
+        const confirmMsg = action === 'approve' 
+            ? `Are you sure you want to approve ${selectedItems.size} refund(s)?`
+            : `Are you sure you want to reject ${selectedItems.size} refund(s)?`;
+        
+        if (!confirm(confirmMsg)) return;
+        
+        document.getElementById('bulkActionInput').value = action;
+        document.getElementById('bulkIdsInput').value = JSON.stringify(Array.from(selectedItems));
+        document.getElementById('bulkActionForm').submit();
+    }
+
     // Debounced live search
     let searchTimeout;
     const searchInput = document.getElementById('liveSearch');
@@ -239,49 +332,12 @@
                 // Update table body
                 document.querySelector('#tableBody').innerHTML = data.html;
                 
-                // Update pagination if needed
-                if (data.pagination) {
-                    const paginationContainer = document.querySelector('.card-footer div:last-child');
-                    if (paginationContainer) {
-                        paginationContainer.innerHTML = data.pagination;
-                    }
-                }
-                
                 // Update statistics cards
                 if (data.stats) {
-                    const statsContainer = document.querySelector('.stat-card-row');
-                    if (statsContainer) {
-                        statsContainer.innerHTML = `
-                            <div class="stat-card stat-card-primary">
-                                <div class="stat-card-icon"><i class="bi bi-receipt"></i></div>
-                                <div class="stat-card-content">
-                                    <span class="stat-card-label">Total</span>
-                                    <span class="stat-card-value">${data.stats.total ?? 0}</span>
-                                </div>
-                            </div>
-                            <div class="stat-card stat-card-warning">
-                                <div class="stat-card-icon"><i class="bi bi-clock"></i></div>
-                                <div class="stat-card-content">
-                                    <span class="stat-card-label">Pending</span>
-                                    <span class="stat-card-value">${data.stats.pending ?? 0}</span>
-                                </div>
-                            </div>
-                            <div class="stat-card stat-card-success">
-                                <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
-                                <div class="stat-card-content">
-                                    <span class="stat-card-label">Approved</span>
-                                    <span class="stat-card-value">${data.stats.approved ?? 0}</span>
-                                </div>
-                            </div>
-                            <div class="stat-card stat-card-danger">
-                                <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
-                                <div class="stat-card-content">
-                                    <span class="stat-card-label">Rejected</span>
-                                    <span class="stat-card-value">${data.stats.rejected ?? 0}</span>
-                                </div>
-                            </div>
-                        `;
-                    }
+                    document.getElementById('statTotal').textContent = data.stats.total || 0;
+                    document.getElementById('statPending').textContent = data.stats.pending || 0;
+                    document.getElementById('statApproved').textContent = data.stats.approved || 0;
+                    document.getElementById('statRejected').textContent = data.stats.rejected || 0;
                 }
                 
                 // Update URL without reload
@@ -298,4 +354,3 @@
     }
 </script>
 @endpush
-@endsection

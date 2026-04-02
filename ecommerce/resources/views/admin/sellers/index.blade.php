@@ -4,7 +4,7 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="stat-card-row mb-4">
+<div class="stat-card-row stat-card-row-6 mb-4">
     <div class="stat-card stat-card-primary">
         <div class="stat-card-icon"><i class="bi bi-people-fill"></i></div>
         <div class="stat-card-content">
@@ -109,9 +109,9 @@
                 </div>
 
                 <!-- Reset Button -->
-                <div class="col-lg-1 col-md-3 col-sm-6">
-                    <a href="{{ route('admin.sellers.index') }}" class="btn btn-outline-secondary btn-sm w-100">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <a href="{{ route('admin.sellers.index') }}" class="btn btn-sm btn-outline-secondary w-100">
+                        <i class="bi bi-x-lg me-1"></i> Reset
                     </a>
                 </div>
             </div>

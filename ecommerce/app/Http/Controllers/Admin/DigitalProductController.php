@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\ImageHelper;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
@@ -15,14 +16,10 @@ use Illuminate\Support\Facades\DB;
 
 class DigitalProductController extends Controller
 {
-    /**
-     * Display digital products list with advanced filtering.
-     */
     public function index(Request $request)
     {
         $query = Product::with('digitalCategory', 'category')->digital()->inHouse();
 
-        // Search by name, SKU, Product Code, or description
         if ($request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -33,27 +30,22 @@ class DigitalProductController extends Controller
             });
         }
 
-        // Filter by category (digital category)
         if ($request->category) {
             $query->where('digital_category_id', $request->category);
         }
 
-        // Filter by file type
         if ($request->file_type) {
             $query->where('file_type', $request->file_type);
         }
 
-        // Filter by status
         if ($request->status !== null && $request->status !== '') {
             $query->where('is_active', $request->status === 'active');
         }
 
-        // Filter by license requirement
         if ($request->requires_license !== null && $request->requires_license !== '') {
             $query->where('requires_license_key', $request->requires_license === 'yes');
         }
 
-        // Filter by price range
         if ($request->price_min) {
             $query->where('price', '>=', $request->price_min);
         }
@@ -61,7 +53,6 @@ class DigitalProductController extends Controller
             $query->where('price', '<=', $request->price_max);
         }
 
-        // Filter by date range
         if ($request->date_from) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
@@ -69,7 +60,6 @@ class DigitalProductController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        // Sorting
         $sortField = $request->sort ?? 'created_at';
         $sortDirection = $request->direction ?? 'desc';
         
@@ -80,13 +70,11 @@ class DigitalProductController extends Controller
             $query->latest();
         }
 
-        // Per page
         $perPage = $request->per_page ?? 25;
 
         $products = $query->paginate($perPage)->appends($request->query());
         $categories = DigitalCategory::where('status', 'active')->get();
         
-        // Get unique file types for filter
         $fileTypes = Product::digital()->inHouse()
             ->whereNotNull('file_type')
             ->distinct()
@@ -94,7 +82,6 @@ class DigitalProductController extends Controller
             ->sort()
             ->values();
 
-        // Statistics for digital products
         $stats = [
             'total' => Product::digital()->inHouse()->count(),
             'active' => Product::digital()->inHouse()->where('is_active', true)->count(),
@@ -116,7 +103,6 @@ class DigitalProductController extends Controller
             )->where('status', 'available')->count(),
         ];
 
-        // Return JSON for AJAX requests
         if ($request->ajax || $request->ajax == '1' || $request->wantsJson()) {
             $html = view('admin.products.partials.digital-product-rows', compact('products'))->render();
             
@@ -136,9 +122,6 @@ class DigitalProductController extends Controller
         return view('admin.products.digital', compact('products', 'categories', 'fileTypes', 'stats'));
     }
 
-    /**
-     * Show create form for digital product.
-     */
     public function create(Request $request)
     {
         $categories = DigitalCategory::getFlattenedTree();
@@ -146,9 +129,6 @@ class DigitalProductController extends Controller
         return view('admin.products.digital-create', compact('categories', 'preselectedCategory'));
     }
 
-    /**
-     * Store new digital product.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -165,8 +145,7 @@ class DigitalProductController extends Controller
             'images.*' => 'nullable|image|max:5120',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
-            // Digital product specific validations
-            'digital_file' => 'required_without:download_link|file|max:512000', // 500MB max
+            'digital_file' => 'required_without:download_link|file|max:512000',
             'download_link' => 'nullable|url|max:500',
             'download_limit' => 'nullable|integer|min:0',
             'download_expiry_days' => 'nullable|integer|min:0',
@@ -176,7 +155,7 @@ class DigitalProductController extends Controller
             'auto_generate_license' => 'boolean',
             'installation_instructions' => 'nullable|string',
             'system_requirements' => 'nullable|string',
-            'additional_files.*' => 'nullable|file|max:102400', // 100MB max each
+            'additional_files.*' => 'nullable|file|max:102400',
         ]);
 
         DB::beginTransaction();
@@ -187,29 +166,40 @@ class DigitalProductController extends Controller
             $data['is_digital'] = true;
             $data['product_source'] = 'in_house';
             $data['created_by'] = auth()->id();
-            $data['quantity'] = 999999; // Digital products have unlimited quantity
-            $data['digital_category_id'] = $request->category_id; // Map to digital_category_id
+            $data['quantity'] = 999999;
+            $data['digital_category_id'] = $request->category_id;
             
-            // Handle featured image upload
             if ($request->hasFile('image')) {
-                $image = $request->file('image');
-                $imageName = Str::random(40) . '.' . $image->getClientOriginalExtension();
-                $image->storeAs('public/products', $imageName);
-                $data['featured_image'] = 'products/' . $imageName;
+                if (ImageHelper::isValidImage($request->file('image'))) {
+                    $imageResult = ImageHelper::processImage(
+                        $request->file('image'),
+                        'products',
+                        1920,
+                        300,
+                        85
+                    );
+                    $data['featured_image'] = ltrim($imageResult['path'], '/');
+                    $data['featured_thumbnail'] = isset($imageResult['thumbnail']) ? ltrim($imageResult['thumbnail'], '/') : null;
+                }
             }
 
-            // Handle gallery images
             if ($request->hasFile('images')) {
                 $gallery = [];
                 foreach ($request->file('images') as $galleryImage) {
-                    $imageName = Str::random(40) . '.' . $galleryImage->getClientOriginalExtension();
-                    $galleryImage->storeAs('public/products', $imageName);
-                    $gallery[] = 'products/' . $imageName;
+                    if (ImageHelper::isValidImage($galleryImage)) {
+                        $imageResult = ImageHelper::processImage(
+                            $galleryImage,
+                            'products',
+                            1920,
+                            300,
+                            85
+                        );
+                        $gallery[] = ltrim($imageResult['path'], '/');
+                    }
                 }
                 $data['gallery'] = $gallery;
             }
 
-            // Handle digital file upload
             if ($request->hasFile('digital_file')) {
                 $file = $request->file('digital_file');
                 $fileName = Str::random(40) . '.' . $file->getClientOriginalExtension();
@@ -223,7 +213,6 @@ class DigitalProductController extends Controller
                 $data['file_format'] = strtoupper($file->getClientOriginalExtension());
             }
 
-            // Handle additional files
             if ($request->hasFile('additional_files')) {
                 $additionalFiles = [];
                 foreach ($request->file('additional_files') as $additionalFile) {
@@ -243,7 +232,6 @@ class DigitalProductController extends Controller
 
             $product = Product::create($data);
 
-            // Generate license keys if required
             if ($request->requires_license_key && $request->auto_generate_license) {
                 $licenseCount = $request->license_count ?? 10;
                 LicenseKey::generateMultiple($licenseCount, $product->id);
@@ -259,9 +247,6 @@ class DigitalProductController extends Controller
         }
     }
 
-    /**
-     * Show edit form for digital product.
-     */
     public function edit($id)
     {
         $product = Product::with('licenseKeys')->findOrFail($id);
@@ -273,7 +258,6 @@ class DigitalProductController extends Controller
 
         $categories = DigitalCategory::getFlattenedTree();
         
-        // Get license key stats
         $licenseStats = [
             'total' => $product->licenseKeys()->count(),
             'available' => $product->licenseKeys()->available()->count(),
@@ -284,9 +268,6 @@ class DigitalProductController extends Controller
         return view('admin.products.digital-edit', compact('product', 'categories', 'licenseStats'));
     }
 
-    /**
-     * Update digital product.
-     */
     public function update(Request $request, $id)
     {
         $product = Product::findOrFail($id);
@@ -310,7 +291,6 @@ class DigitalProductController extends Controller
             'images.*' => 'nullable|image|max:5120',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
-            // Digital product specific validations
             'digital_file' => 'nullable|file|max:512000',
             'download_link' => 'nullable|url|max:500',
             'download_limit' => 'nullable|integer|min:0',
@@ -329,42 +309,49 @@ class DigitalProductController extends Controller
             $data = $request->except(['description', 'digital_file', 'additional_files', '_token', '_method']);
             $data['slug'] = Str::slug($request->name);
             $data['long_description'] = $request->description;
-            $data['digital_category_id'] = $request->category_id; // Map to digital_category_id
+            $data['digital_category_id'] = $request->category_id;
 
-            // Handle featured image upload
             if ($request->hasFile('image')) {
-                // Delete old image
                 if ($product->featured_image) {
-                    Storage::delete('public/' . $product->featured_image);
+                    ImageHelper::deleteImage($product->featured_image, $product->featured_thumbnail ?? null);
                 }
-                
-                $image = $request->file('image');
-                $imageName = Str::random(40) . '.' . $image->getClientOriginalExtension();
-                $image->storeAs('public/products', $imageName);
-                $data['featured_image'] = 'products/' . $imageName;
+                if (ImageHelper::isValidImage($request->file('image'))) {
+                    $imageResult = ImageHelper::processImage(
+                        $request->file('image'),
+                        'products',
+                        1920,
+                        300,
+                        85
+                    );
+                    $data['featured_image'] = ltrim($imageResult['path'], '/');
+                    $data['featured_thumbnail'] = isset($imageResult['thumbnail']) ? ltrim($imageResult['thumbnail'], '/') : null;
+                }
             }
 
-            // Handle gallery images
             if ($request->hasFile('images')) {
-                // Delete old gallery images
                 if ($product->gallery) {
                     foreach ($product->gallery as $oldImage) {
-                        Storage::delete('public/' . $oldImage);
+                        ImageHelper::deleteImage($oldImage);
                     }
                 }
                 
                 $gallery = [];
                 foreach ($request->file('images') as $galleryImage) {
-                    $imageName = Str::random(40) . '.' . $galleryImage->getClientOriginalExtension();
-                    $galleryImage->storeAs('public/products', $imageName);
-                    $gallery[] = 'products/' . $imageName;
+                    if (ImageHelper::isValidImage($galleryImage)) {
+                        $imageResult = ImageHelper::processImage(
+                            $galleryImage,
+                            'products',
+                            1920,
+                            300,
+                            85
+                        );
+                        $gallery[] = ltrim($imageResult['path'], '/');
+                    }
                 }
                 $data['gallery'] = $gallery;
             }
 
-            // Handle digital file upload
             if ($request->hasFile('digital_file')) {
-                // Delete old file
                 if ($product->file_path) {
                     Storage::delete('public/' . $product->file_path);
                 }
@@ -381,7 +368,6 @@ class DigitalProductController extends Controller
                 $data['file_format'] = strtoupper($file->getClientOriginalExtension());
             }
 
-            // Handle additional files
             if ($request->hasFile('additional_files')) {
                 $additionalFiles = $product->additional_files ?? [];
                 
@@ -412,9 +398,6 @@ class DigitalProductController extends Controller
         }
     }
 
-    /**
-     * Delete digital product.
-     */
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
@@ -426,31 +409,26 @@ class DigitalProductController extends Controller
 
         DB::beginTransaction();
         try {
-            // Delete digital files
             if ($product->file_path) {
                 Storage::delete('public/' . $product->file_path);
             }
             
-            // Delete additional files
             if ($product->additional_files) {
                 foreach ($product->additional_files as $file) {
                     Storage::delete('public/' . $file['path']);
                 }
             }
             
-            // Delete featured image
             if ($product->featured_image) {
-                Storage::delete('public/' . $product->featured_image);
+                ImageHelper::deleteImage($product->featured_image, $product->featured_thumbnail ?? null);
             }
             
-            // Delete gallery images
             if ($product->gallery) {
                 foreach ($product->gallery as $image) {
-                    Storage::delete('public/' . $image);
+                    ImageHelper::deleteImage($image);
                 }
             }
             
-            // Delete license keys
             $product->licenseKeys()->delete();
             
             $product->delete();
@@ -465,9 +443,6 @@ class DigitalProductController extends Controller
         }
     }
 
-    /**
-     * Toggle status.
-     */
     public function toggleStatus($id)
     {
         $product = Product::findOrFail($id);
@@ -480,9 +455,6 @@ class DigitalProductController extends Controller
         ]);
     }
 
-    /**
-     * Toggle featured.
-     */
     public function toggleFeatured($id)
     {
         $product = Product::findOrFail($id);
@@ -495,9 +467,6 @@ class DigitalProductController extends Controller
         ]);
     }
 
-    /**
-     * Generate license keys for product.
-     */
     public function generateLicenseKeys(Request $request, $id)
     {
         $product = Product::findOrFail($id);
@@ -524,16 +493,12 @@ class DigitalProductController extends Controller
         ]);
     }
 
-    /**
-     * Get license keys for product.
-     */
     public function getLicenseKeys(Request $request, $id)
     {
         $product = Product::findOrFail($id);
         
         $query = $product->licenseKeys();
 
-        // Filter by status
         if ($request->status) {
             $query->where('status', $request->status);
         }
@@ -547,9 +512,6 @@ class DigitalProductController extends Controller
         ]);
     }
 
-    /**
-     * Export license keys.
-     */
     public function exportLicenseKeys($id)
     {
         $product = Product::findOrFail($id);
@@ -579,9 +541,6 @@ class DigitalProductController extends Controller
         ]);
     }
 
-    /**
-     * Delete license key.
-     */
     public function deleteLicenseKey($id, $keyId)
     {
         $licenseKey = LicenseKey::where('product_id', $id)->findOrFail($keyId);
@@ -601,9 +560,6 @@ class DigitalProductController extends Controller
         ]);
     }
 
-    /**
-     * Disable license key.
-     */
     public function disableLicenseKey($id, $keyId)
     {
         $licenseKey = LicenseKey::where('product_id', $id)->findOrFail($keyId);
@@ -615,9 +571,6 @@ class DigitalProductController extends Controller
         ]);
     }
 
-    /**
-     * Bulk action for digital products.
-     */
     public function bulkAction(Request $request)
     {
         $request->validate([
@@ -646,13 +599,20 @@ class DigitalProductController extends Controller
                 
             case 'delete':
                 foreach ($products as $product) {
-                    // Delete files
                     if ($product->file_path) {
                         Storage::delete('public/' . $product->file_path);
                     }
                     if ($product->additional_files) {
                         foreach ($product->additional_files as $file) {
                             Storage::delete('public/' . $file['path']);
+                        }
+                    }
+                    if ($product->featured_image) {
+                        ImageHelper::deleteImage($product->featured_image, $product->featured_thumbnail ?? null);
+                    }
+                    if ($product->gallery) {
+                        foreach ($product->gallery as $image) {
+                            ImageHelper::deleteImage($image);
                         }
                     }
                     $product->licenseKeys()->delete();
@@ -678,9 +638,6 @@ class DigitalProductController extends Controller
         return redirect()->back()->with('success', $message);
     }
 
-    /**
-     * Export digital products.
-     */
     public function export(Request $request)
     {
         $products = Product::digital()->inHouse()
@@ -712,9 +669,6 @@ class DigitalProductController extends Controller
         ]);
     }
 
-    /**
-     * Delete additional file.
-     */
     public function deleteAdditionalFile($id, $index)
     {
         $product = Product::findOrFail($id);
@@ -728,10 +682,8 @@ class DigitalProductController extends Controller
             ], 404);
         }
 
-        // Delete file from storage
         Storage::delete('public/' . $additionalFiles[$index]['path']);
         
-        // Remove from array
         unset($additionalFiles[$index]);
         $additionalFiles = array_values($additionalFiles);
         
@@ -743,9 +695,6 @@ class DigitalProductController extends Controller
         ]);
     }
 
-    /**
-     * Download statistics.
-     */
     public function downloadStats($id)
     {
         $product = Product::findOrFail($id);

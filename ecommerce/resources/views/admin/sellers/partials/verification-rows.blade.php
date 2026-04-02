@@ -66,13 +66,13 @@
             </a>
             
             @if($seller->verification_status !== 'verified')
-            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#approveModal{{ $seller->id }}" data-bs-tooltip="tooltip" title="Approve">
+            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#approveModal{{ $seller->id }}" title="Approve">
                 <i class="bi bi-check-lg"></i>
             </button>
             @endif
             
             @if($seller->verification_status !== 'rejected')
-            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ $seller->id }}" data-bs-tooltip="tooltip" title="Reject">
+            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ $seller->id }}" title="Reject">
                 <i class="bi bi-x-lg"></i>
             </button>
             @endif

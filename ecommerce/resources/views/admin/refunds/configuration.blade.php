@@ -91,31 +91,37 @@
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label">Refund Window (Days)</label>
-                        <div class="form-text mb-2">Number of days after delivery during which refunds can be requested</div>
-                        
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <div class="input-group">
-                                <input type="number" class="form-control" id="refund_within_days" name="refund_within_days" 
-                                       value="{{ old('refund_within_days', $settings['refund_within_days'] ?? 30) }}" min="1" max="365">
-                                    <span class="input-group-text">days</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                     <div class="mb-4">
+                         <label class="form-label">Refund Window (Days) <span class="text-danger">*</span></label>
+                         <div class="form-text mb-2">Number of days after delivery during which refunds can be requested</div>
+                         
+                         <div class="row g-3">
+                             <div class="col-md-4">
+                                 <div class="input-group">
+                                 <input type="number" class="form-control @error('refund_within_days') is-invalid @enderror" id="refund_within_days" name="refund_within_days" 
+                                        value="{{ old('refund_within_days', $settings['refund_within_days'] ?? 30) }}" min="1" max="365" required>
+                                     <span class="input-group-text">days</span>
+                                 </div>
+                                 @error('refund_within_days')
+                                     <div class="invalid-feedback">{{ $message }}</div>
+                                 @enderror
+                             </div>
+                         </div>
+                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label">Refund Method</label>
-                        <div class="form-text mb-2">How refunds should be processed</div>
-                        
-                        <select class="form-select" id="refund_method" name="refund_method">
-                            <option value="original_payment" {{ old('refund_method', $settings['refund_method'] ?? 'original_payment') == 'original_payment' ? 'selected' : '' }}>Original Payment Method</option>
-                            <option value="store_credit" {{ old('refund_method', $settings['refund_method'] ?? '') == 'store_credit' ? 'selected' : '' }}>Store Credit</option>
-                            <option value="bank_transfer" {{ old('refund_method', $settings['refund_method'] ?? '') == 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
-                        </select>
-                    </div>
+                     <div class="mb-4">
+                         <label class="form-label">Refund Method <span class="text-danger">*</span></label>
+                         <div class="form-text mb-2">How refunds should be processed</div>
+                         
+                         <select class="form-select @error('refund_method') is-invalid @enderror" id="refund_method" name="refund_method" required>
+                             <option value="original_payment" {{ old('refund_method', $settings['refund_method'] ?? 'original_payment') == 'original_payment' ? 'selected' : '' }}>Original Payment Method</option>
+                             <option value="store_credit" {{ old('refund_method', $settings['refund_method'] ?? '') == 'store_credit' ? 'selected' : '' }}>Store Credit</option>
+                             <option value="bank_transfer" {{ old('refund_method', $settings['refund_method'] ?? '') == 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
+                         </select>
+                         @error('refund_method')
+                             <div class="invalid-feedback">{{ $message }}</div>
+                         @enderror
+                     </div>
                 </form>
             </div>
         </div>
@@ -183,5 +189,25 @@
         padding-bottom: 100px !important;
     }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-scroll to first error field
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+</script>
 @endpush
 @endsection

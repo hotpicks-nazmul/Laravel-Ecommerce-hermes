@@ -11,7 +11,7 @@
 </div>
 
 <!-- Statistics Cards -->
-<div class="stat-card-row mb-4">
+<div class="stat-card-row stat-card-row-6 mb-4">
     <div class="stat-card stat-card-primary">
         <div class="stat-card-icon"><i class="bi bi-cash-stack"></i></div>
         <div class="stat-card-content">
@@ -159,6 +159,32 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    .stat-card-danger .stat-card-icon i::before { color: #dc3545 !important; }
+    .stat-card-secondary .stat-card-icon i::before { color: #6c757d !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+</style>
+@endpush
 
 @push('scripts')
 <script>

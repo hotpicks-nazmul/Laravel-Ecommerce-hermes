@@ -35,6 +35,7 @@
     </div>
 </div>
 
+<!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">Affiliate Withdrawals</h4>
 </div>
@@ -58,12 +59,48 @@
     <div class="card-body py-3">
         <form method="GET" id="filterForm">
             <div class="row g-2 align-items-end">
+                <!-- Search -->
                 <div class="col-lg-3 col-md-4 col-sm-6">
                     <label class="form-label small text-muted">Search</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" name="search" id="liveSearch" class="form-control" placeholder="Search by name..." value="{{ $search ?? '' }}">
+                        <input type="text" name="search" id="liveSearch" class="form-control" placeholder="Search by name..." value="{{ request('search') }}">
+                        <span class="input-group-text" id="searchSpinner" style="display: none;">
+                            <div class="spinner-border spinner-border-sm" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </span>
                     </div>
+                </div>
+
+                <!-- Status -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Status</label>
+                    <select name="status" id="filterStatus" class="form-select form-select-sm">
+                        <option value="">All Status</option>
+                        <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Approved</option>
+                        <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                        <option value="paid" {{ request('status') === 'paid' ? 'selected' : '' }}>Paid</option>
+                    </select>
+                </div>
+
+                <!-- Per Page -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Per Page</label>
+                    <select name="per_page" id="perPage" class="form-select form-select-sm">
+                        <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                        <option value="15" {{ request('per_page') == 15 || !request('per_page') ? 'selected' : '' }}>15</option>
+                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    </select>
+                </div>
+
+                <!-- Reset -->
+                <div class="col-lg-2 col-md-4 col-sm-8">
+                    <a href="{{ route('admin.affiliate.withdrawals.index') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-lg me-1"></i> Reset
+                    </a>
                 </div>
             </div>
         </form>
@@ -95,9 +132,8 @@
 <!-- Table Card -->
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
-        @if($withdrawals->count() > 0)
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="affiliateWithdrawalsTable">
+            <table class="table table-hover align-middle mb-0" id="withdrawalsTable">
                 <thead class="table-light">
                     <tr>
                         <th style="width: 40px;">
@@ -113,58 +149,12 @@
                         <th style="width: 120px;">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @foreach($withdrawals as $withdrawal)
-                    <tr>
-                        <td>
-                            <input type="checkbox" class="form-check-input row-checkbox" value="{{ $withdrawal->id }}">
-                        </td>
-                        <td>{{ $withdrawal->id }}</td>
-                        <td>{{ $withdrawal->affiliate->user->name ?? '-' }}</td>
-                        <td>${{ number_format($withdrawal->amount, 2) }}</td>
-                        <td>{{ ucfirst($withdrawal->payment_method) }}</td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#detailsModal{{ $withdrawal->id }}">
-                                <i class="bi bi-eye"></i> View
-                            </button>
-                        </td>
-                        <td>
-                            @if($withdrawal->status === 'pending')
-                            <span class="badge bg-warning">Pending</span>
-                            @elseif($withdrawal->status === 'approved')
-                            <span class="badge bg-success">Approved</span>
-                            @elseif($withdrawal->status === 'rejected')
-                            <span class="badge bg-danger">Rejected</span>
-                            @else
-                            <span class="badge bg-info">Paid</span>
-                            @endif
-                        </td>
-                        <td>{{ $withdrawal->requested_at->format('M d, Y H:i') }}</td>
-                        <td>
-                            <a href="{{ route('admin.affiliate.withdrawals.show', $withdrawal->id) }}" class="btn btn-sm btn-outline-info" title="View Details">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            @if($withdrawal->status === 'pending')
-                            <form action="{{ route('admin.affiliate.withdrawals.approve', $withdrawal->id) }}" method="POST" style="display: inline;">
-                                @csrf
-                                <button type="submit" class="btn btn-sm btn-outline-success" title="Approve" onclick="return confirm('Are you sure you want to approve this withdrawal?')">
-                                    <i class="bi bi-check-circle"></i>
-                                </button>
-                            </form>
-                            <form action="{{ route('admin.affiliate.withdrawals.reject', $withdrawal->id) }}" method="POST" style="display: inline;">
-                                @csrf
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject" onclick="return confirm('Are you sure you want to reject this withdrawal?')">
-                                    <i class="bi bi-x-circle"></i>
-                                </button>
-                            </form>
-                            @endif
-                        </td>
-                    </tr>
-                    @endforeach
+                <tbody id="tableBody">
+                    @include('admin.affiliate.withdrawals.partials.withdrawal-rows')
                 </tbody>
             </table>
         </div>
-        
+
         @if($withdrawals->hasPages())
         <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div class="text-muted small">
@@ -175,135 +165,193 @@
             </div>
         </div>
         @endif
-        @else
-        <table class="table table-hover align-middle mb-0">
-            <tbody>
-                <tr>
-                    <td colspan="9" class="text-center py-5">
-                        <i class="bi bi-wallet2 text-muted" style="font-size: 3rem;"></i>
-                        <p class="text-muted mb-2 mt-2">No withdrawals found</p>
-                        <p class="text-muted small">Withdrawal requests will appear here once affiliates request payouts.</p>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        @endif
     </div>
 </div>
 
-{{-- Payment Details Modals --}}
-@foreach($withdrawals ?? [] as $withdrawal)
-<div class="modal fade" id="detailsModal{{ $withdrawal->id }}" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Payment Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <pre class="bg-light p-3 rounded">{{ $withdrawal->payment_details }}</pre>
-            </div>
-        </div>
-    </div>
-</div>
-@endforeach
+<!-- Bulk Action Form -->
+<form id="bulkActionForm" method="POST" action="{{ route('admin.affiliate.withdrawals.bulk') }}">
+    @csrf
+    <input type="hidden" name="action" id="bulkActionInput">
+    <input type="hidden" name="ids" id="bulkIdsInput">
+</form>
 @endsection
+
+@push('styles')
+<style>
+.table > :not(caption) > * > * {
+    padding: 0.75rem 0.5rem;
+}
+</style>
+@endpush
 
 @push('scripts')
 <script>
-    $(document).ready(function() {
-        // Initialize DataTable
-        $('#affiliateWithdrawalsTable').DataTable({
-            pageLength: 15,
-            order: [[7, 'desc']], // Sort by Requested At column
-            columnDefs: [
-                { orderable: false, targets: [0, 5, 8] } // Checkbox, Account Details, Actions
-            ]
+let selectedItems = new Set();
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle select all checkbox
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = this.checked;
+                if (this.checked) {
+                    selectedItems.add(cb.value);
+                } else {
+                    selectedItems.delete(cb.value);
+                }
+            });
+            updateBulkActions();
         });
-        
-        // Live search with debounce
-        let searchTimeout;
-        $('#liveSearch').on('keyup', function() {
+    }
+
+    // Handle individual row checkbox
+    document.addEventListener('change', '.row-checkbox', function(e) {
+        if (e.target.checked) {
+            selectedItems.add(e.target.value);
+        } else {
+            selectedItems.delete(e.target.value);
+        }
+        updateBulkActions();
+    });
+
+    // Live search with debounce
+    let searchTimeout;
+    const searchInput = document.getElementById('liveSearch');
+    const searchSpinner = document.getElementById('searchSpinner');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(function() {
-                $('#filterForm').submit();
+            const searchTerm = this.value.trim();
+            searchSpinner.style.display = 'block';
+            searchTimeout = setTimeout(() => {
+                performLiveSearch(searchTerm);
             }, 300);
         });
-        
-        // Handle select all checkbox
-        $('#selectAllCheckbox').on('change', function() {
-            $('.row-checkbox').prop('checked', $(this).prop('checked'));
-            updateBulkActionsBar();
-        });
-        
-        // Handle individual row checkbox
-        $(document).on('change', '.row-checkbox', function() {
-            updateBulkActionsBar();
-        });
-        
-        function updateBulkActionsBar() {
-            const selectedCount = $('.row-checkbox:checked').length;
-            if (selectedCount > 0) {
-                $('#bulkActionsBar').show();
-                $('#selectedCount').text(selectedCount);
-            } else {
-                $('#bulkActionsBar').hide();
+    }
+
+    // Filter dropdowns trigger search on change
+    const filterSelects = ['filterStatus', 'perPage'];
+    filterSelects.forEach(id => {
+        const select = document.getElementById(id);
+        if (select) {
+            select.addEventListener('change', function() {
+                performLiveSearch(searchInput ? searchInput.value.trim() : '');
+            });
+        }
+    });
+});
+
+function performLiveSearch(searchTerm) {
+    const searchSpinner = document.getElementById('searchSpinner');
+    const params = new URLSearchParams();
+
+    if (searchTerm) params.set('search', searchTerm);
+
+    const status = document.getElementById('filterStatus');
+    if (status && status.value) params.set('status', status.value);
+
+    const perPage = document.getElementById('perPage');
+    if (perPage && perPage.value) params.set('per_page', perPage.value);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('page')) params.set('page', urlParams.get('page'));
+
+    fetch(`{{ route('admin.affiliate.withdrawals.index') }}?${params.toString()}&ajax=1`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        searchSpinner.style.display = 'none';
+
+        if (data.html) {
+            document.getElementById('tableBody').innerHTML = data.html;
+            updateStats(data.stats);
+            clearSelection();
+
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            window.history.pushState({}, '', newUrl);
+        }
+    })
+    .catch(err => {
+        searchSpinner.style.display = 'none';
+        console.error('Search error:', err);
+    });
+}
+
+function updateStats(stats) {
+    if (!stats) return;
+    const statCardMap = {
+        'total': 'Total Withdrawals',
+        'pending': 'Pending',
+        'approved': 'Approved',
+        'total_amount': 'Total Paid'
+    };
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach(card => {
+        const label = card.querySelector('.stat-card-label');
+        const value = card.querySelector('.stat-card-value');
+        if (label && value) {
+            const labelText = label.textContent.trim();
+            for (const [key, expectedLabel] of Object.entries(statCardMap)) {
+                if (labelText === expectedLabel && stats[key] !== undefined) {
+                    value.textContent = typeof stats[key] === 'number' ? stats[key].toLocaleString() : stats[key];
+                    if (key === 'total_amount') {
+                        value.textContent = '$' + parseFloat(stats[key]).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    }
+                    break;
+                }
             }
         }
-        
-        // Clear selection function
-        window.clearSelection = function() {
-            $('.row-checkbox').prop('checked', false);
-            $('#selectAllCheckbox').prop('checked', false);
-            $('#bulkActionsBar').hide();
-        };
-        
-        // Bulk action function
-        window.bulkAction = function(action) {
-            const selectedIds = $('.row-checkbox:checked').map(function() {
-                return $(this).val();
-            }).get();
-            
-            if (selectedIds.length === 0) {
-                alert('Please select at least one withdrawal');
-                return;
-            }
-            
-            const confirmMessage = action === 'approve' 
-                ? 'Are you sure you want to approve ' + selectedIds.length + ' withdrawal(s)?'
-                : 'Are you sure you want to reject ' + selectedIds.length + ' withdrawal(s)?';
-            
-            if (!confirm(confirmMessage)) {
-                return;
-            }
-            
-            // Create and submit a form
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '{{ route('admin.affiliate.withdrawals.bulk') }}';
-            
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = '_token';
-            csrfInput.value = csrfToken;
-            form.appendChild(csrfInput);
-            
-            const actionInput = document.createElement('input');
-            actionInput.type = 'hidden';
-            actionInput.name = 'action';
-            actionInput.value = action;
-            form.appendChild(actionInput);
-            
-            const idsInput = document.createElement('input');
-            idsInput.type = 'hidden';
-            idsInput.name = 'ids';
-            idsInput.value = JSON.stringify(selectedIds);
-            form.appendChild(idsInput);
-            
-            document.body.appendChild(form);
-            form.submit();
-        };
     });
+}
+
+function updateBulkActions() {
+    const count = selectedItems.size;
+    document.getElementById('selectedCount').textContent = count;
+    document.getElementById('bulkActionsBar').style.display = count > 0 ? 'block' : 'none';
+
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = allChecked && checkboxes.length > 0;
+    }
+}
+
+function clearSelection() {
+    selectedItems.clear();
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    checkboxes.forEach(cb => cb.checked = false);
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+    }
+    updateBulkActions();
+}
+
+function bulkAction(action) {
+    if (selectedItems.size === 0) {
+        alert('Please select at least one withdrawal');
+        return;
+    }
+
+    const confirmMessage = action === 'approve'
+        ? 'Are you sure you want to approve ' + selectedItems.size + ' withdrawal(s)?'
+        : 'Are you sure you want to reject ' + selectedItems.size + ' withdrawal(s)?';
+
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+
+    document.getElementById('bulkActionInput').value = action;
+    document.getElementById('bulkIdsInput').value = JSON.stringify(Array.from(selectedItems));
+    document.getElementById('bulkActionForm').submit();
+}
 </script>
 @endpush

@@ -12,9 +12,15 @@
                 <i class="bi bi-box-arrow-in-right me-1"></i> Login as Customer
             </button>
         </form>
-        <a href="{{ route('admin.customers.index') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Back to Customers
-        </a>
+        @if(str_contains(url()->previous(), 'customers/loyalty'))
+            <a href="{{ route('admin.customers.loyalty.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Loyalty Points
+            </a>
+        @else
+            <a href="{{ route('admin.customers.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Customers
+            </a>
+        @endif
     </div>
 </div>
 

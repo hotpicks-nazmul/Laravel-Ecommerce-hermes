@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\ImageHelper;
 use App\Models\Color;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 
 class ColorController extends Controller
 {
@@ -90,10 +90,16 @@ class ColorController extends Controller
         // Handle image upload
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imageName = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
-            $image->storeAs('public/colors', $imageName);
-            $imagePath = 'storage/colors/' . $imageName;
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'colors',
+                    1920,
+                    300,
+                    85
+                );
+                $imagePath = ltrim($imageResult['path'], '/');
+            }
         }
 
         $color = Color::create([
@@ -138,14 +144,19 @@ class ColorController extends Controller
         // Handle image upload
         if ($request->hasFile('image')) {
             // Delete old image
-            if ($color->image && Storage::exists('public/' . str_replace('storage/', '', $color->image))) {
-                Storage::delete('public/' . str_replace('storage/', '', $color->image));
+            if ($color->image) {
+                ImageHelper::deleteImage($color->image);
             }
-
-            $image = $request->file('image');
-            $imageName = time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
-            $image->storeAs('public/colors', $imageName);
-            $validated['image'] = 'storage/colors/' . $imageName;
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'colors',
+                    1920,
+                    300,
+                    85
+                );
+                $validated['image'] = ltrim($imageResult['path'], '/');
+            }
         }
 
         $color->update([
@@ -169,8 +180,8 @@ class ColorController extends Controller
     public function destroy(Color $color)
     {
         // Delete image
-        if ($color->image && Storage::exists('public/' . str_replace('storage/', '', $color->image))) {
-            Storage::delete('public/' . str_replace('storage/', '', $color->image));
+        if ($color->image) {
+            ImageHelper::deleteImage($color->image);
         }
 
         $color->delete();
@@ -229,8 +240,8 @@ class ColorController extends Controller
             case 'delete':
                 $colors = Color::whereIn('id', $ids)->get();
                 foreach ($colors as $color) {
-                    if ($color->image && Storage::exists('public/' . str_replace('storage/', '', $color->image))) {
-                        Storage::delete('public/' . str_replace('storage/', '', $color->image));
+                    if ($color->image) {
+                        ImageHelper::deleteImage($color->image);
                     }
                 }
                 Color::whereIn('id', $ids)->delete();

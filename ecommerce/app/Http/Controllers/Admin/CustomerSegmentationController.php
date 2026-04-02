@@ -27,7 +27,19 @@ class CustomerSegmentationController extends Controller
             $query->where('is_active', $request->status);
         }
 
-        $segments = $query->with('creator')->latest()->paginate(15);
+        // Sorting
+        $sort = $request->get('sort', 'created_at');
+        $direction = $request->get('direction', 'desc');
+        $validSorts = ['name', 'created_at', 'customer_count'];
+        if (in_array($sort, $validSorts)) {
+            $query->orderBy($sort, $direction);
+        } else {
+            $query->latest();
+        }
+
+        // Pagination
+        $perPage = $request->get('per_page', 15);
+        $segments = $query->with('creator')->paginate($perPage);
 
         // Get statistics
         $stats = [
@@ -35,6 +47,18 @@ class CustomerSegmentationController extends Controller
             'active_segments' => CustomerSegment::where('is_active', true)->count(),
             'total_customers_segmented' => CustomerSegment::sum('customer_count'),
         ];
+
+        // AJAX response for live search
+        if ($request->ajax()) {
+            $html = view('admin.customers.segmentation.partials.table-rows', compact('segments'))->render();
+
+            return response()->json([
+                'html' => $html,
+                'stats' => $stats,
+                'pagination' => $segments->links()->toHtml(),
+                'total' => $segments->total(),
+            ]);
+        }
 
         return view('admin.customers.segmentation.index', compact('segments', 'stats'));
     }
@@ -132,11 +156,15 @@ class CustomerSegmentationController extends Controller
     {
         $segment->load('creator');
 
-        // Get customers in this segment
+        // Get customers in this segment with eager loaded orders
         $customers = User::where('role', 'customer')
             ->whereHas('customerSegments', function ($q) use ($segment) {
                 $q->where('customer_segments.id', $segment->id);
             })
+            ->withCount('orders')
+            ->with(['orders' => function ($q) {
+                $q->select('id', 'user_id', 'grand_total');
+            }])
             ->latest()
             ->paginate(20);
 

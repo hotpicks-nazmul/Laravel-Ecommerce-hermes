@@ -63,20 +63,12 @@
                 <a href="{{ route('admin.customers.membership.edit', $plan->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                     <i class="bi bi-pencil"></i>
                 </a>
-                <form action="{{ route('admin.customers.membership.toggle-status', $plan->id) }}" method="POST" class="d-inline">
-                    @csrf
-                    @method('POST')
-                    <button type="submit" class="btn btn-sm btn-outline-{{ $plan->is_active ? 'warning' : 'success' }}" title="{{ $plan->is_active ? 'Deactivate' : 'Activate' }}">
-                        <i class="bi bi-{{ $plan->is_active ? 'pause' : 'play' }}-fill"></i>
-                    </button>
-                </form>
-                <form action="{{ route('admin.customers.membership.toggle-featured', $plan->id) }}" method="POST" class="d-inline">
-                    @csrf
-                    @method('POST')
-                    <button type="submit" class="btn btn-sm btn-outline-{{ $plan->is_featured ? 'warning' : 'secondary' }}" title="{{ $plan->is_featured ? 'Unfeature' : 'Feature' }}">
-                        <i class="bi bi-star{{ $plan->is_featured ? '-fill' : '' }}"></i>
-                    </button>
-                </form>
+                <button type="button" class="btn btn-sm btn-outline-{{ $plan->is_active ? 'warning' : 'success' }} status-toggle" data-id="{{ $plan->id }}" title="{{ $plan->is_active ? 'Deactivate' : 'Activate' }}">
+                    <i class="bi bi-{{ $plan->is_active ? 'pause' : 'play' }}-fill"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-{{ $plan->is_featured ? 'warning' : 'secondary' }} featured-toggle" data-id="{{ $plan->id }}" title="{{ $plan->is_featured ? 'Unfeature' : 'Feature' }}">
+                    <i class="bi bi-star{{ $plan->is_featured ? '-fill' : '' }}"></i>
+                </button>
                 <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $plan->id }}">
                     <i class="bi bi-trash"></i>
                 </button>

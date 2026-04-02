@@ -6,7 +6,7 @@
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">Affiliate Reports</h4>
-    <a href="{{ route('admin.affiliate.reports.export') }}" class="btn btn-primary">
+    <a href="{{ route('admin.affiliate.reports.export', request()->query()) }}" class="btn btn-primary">
         <i class="bi bi-download me-1"></i>Export Report
     </a>
 </div>
@@ -140,11 +140,21 @@
         
         @if($affiliates->hasPages())
         <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div class="text-muted small">
-                Showing {{ $affiliates->firstItem() }} - {{ $affiliates->lastItem() }} of {{ $affiliates->total() }} affiliates
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">Show:</span>
+                <select class="form-select form-select-sm" style="width: auto;" onchange="changePerPage(this.value)">
+                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                    <option value="15" {{ request('per_page') == 15 || !request('per_page') ? 'selected' : '' }}>15</option>
+                    <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                </select>
+                <span class="text-muted small">per page</span>
             </div>
             <div>
                 {{ $affiliates->links() }}
+            </div>
+            <div class="text-muted small">
+                Showing {{ $affiliates->firstItem() }} - {{ $affiliates->lastItem() }} of {{ $affiliates->total() }} affiliates
             </div>
         </div>
         @endif
@@ -154,50 +164,6 @@
 
 @push('styles')
 <style>
-.stat-card {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease;
-    height: 100%;
-    padding: 20px;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-}
-
-.stat-card-icon {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    font-size: 22px;
-}
-.stat-card-primary .stat-card-icon { background: #e8f4fd; color: #0d6efd; }
-.stat-card-success .stat-card-icon { background: #d1e7dd; color: #198754; }
-.stat-card-info .stat-card-icon { background: #cff4fc; color: #0dcaf0; }
-.stat-card-warning .stat-card-icon { background: #fff3cd; color: #ffc107; }
-
-.stat-card-content {
-    display: flex;
-    flex-direction: column;
-    text-align: left;
-}
-.stat-card-label {
-    font-size: 13px;
-    color: #6c757d;
-    margin-bottom: 2px;
-}
-.stat-card-value {
-    font-size: 24px;
-    font-weight: 700;
-    color: #212529;
-    line-height: 1.2;
-}
-
 /* Search highlighting */
 .table-warning {
     --bs-table-bg: #fff3cd;
@@ -209,6 +175,17 @@
 <script>
 let selectedItems = new Set();
 let searchTimeout;
+
+// Format number consistently (matches PHP number_format)
+function formatNumber(num, decimals = 0) {
+    if (num === null || num === undefined) return '0';
+    const parsed = parseFloat(num);
+    if (isNaN(parsed)) return '0';
+    return parsed.toLocaleString('en-US', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+    });
+}
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
@@ -253,6 +230,9 @@ document.addEventListener('DOMContentLoaded', function() {
             performLiveSearch(searchTerm);
         });
     }
+    
+    // Initialize checkbox listeners
+    initCheckboxListeners();
 });
 
 // Live search function
@@ -272,7 +252,7 @@ function performLiveSearch(searchTerm) {
     if (urlParams.get('page')) params.set('page', urlParams.get('page'));
     
     // AJAX request
-    fetch(`{{ route('admin.affiliate.reports') }}?${params.toString()}`, {
+    fetch(`{{ route('admin.affiliate.reports') }}?${params.toString()}&ajax=1`, {
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json'
@@ -287,12 +267,12 @@ function performLiveSearch(searchTerm) {
             // Update table body
             document.getElementById('tableBody').innerHTML = data.html;
             
-            // Update stats
+            // Update stats with consistent formatting
             if (data.stats) {
-                document.getElementById('statTotalAffiliates').textContent = data.stats.total_affiliates;
-                document.getElementById('statTotalSales').textContent = '$' + data.stats.total_sales.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                document.getElementById('statTotalCommissions').textContent = '$' + data.stats.total_commissions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                document.getElementById('statTotalClicks').textContent = data.stats.total_clicks.toLocaleString();
+                document.getElementById('statTotalAffiliates').textContent = formatNumber(data.stats.total_affiliates);
+                document.getElementById('statTotalSales').textContent = '$' + formatNumber(data.stats.total_sales, 2);
+                document.getElementById('statTotalCommissions').textContent = '$' + formatNumber(data.stats.total_commissions, 2);
+                document.getElementById('statTotalClicks').textContent = formatNumber(data.stats.total_clicks);
             }
             
             // Update URL without reload
@@ -403,9 +383,12 @@ function bulkExport() {
     window.location.href = `{{ route('admin.affiliate.reports.export') }}?${params.toString()}`;
 }
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    initCheckboxListeners();
-});
+// Change per page
+function changePerPage(value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('per_page', value);
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+}
 </script>
 @endpush

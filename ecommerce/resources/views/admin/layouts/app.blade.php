@@ -925,6 +925,39 @@
             background: #a8a8a8;
         }
         
+        .notification-item-wrapper {
+            display: flex;
+            align-items: flex-start;
+            position: relative;
+            border-bottom: 1px solid #f0f0f0;
+            transition: opacity 0.3s;
+        }
+        
+        .notification-item-wrapper .notification-item {
+            flex: 1;
+            padding: 12px 16px;
+            white-space: normal;
+            transition: background-color 0.2s;
+        }
+        
+        .notification-item-wrapper .notification-delete-btn {
+            opacity: 0;
+            padding: 12px 8px;
+            color: #dc3545;
+            font-size: 0.75rem;
+            transition: opacity 0.2s;
+        }
+        
+        .notification-item-wrapper:hover .notification-delete-btn {
+            opacity: 1;
+        }
+        
+        .notification-error {
+            background-color: #fff3cd;
+            border-radius: 4px;
+            margin: 8px;
+        }
+        
         /* Hide original save buttons when floating is active */
         .original-save-container {
             display: none;
@@ -2272,20 +2305,80 @@
     
     <!-- Notification System JavaScript -->
     <script>
-        // Notification functions
-        function loadNotifications() {
-            fetch('{{ route('admin.notifications.recent') }}', {
+        let previousUnreadCount = null;
+        let notificationSoundEnabled = true;
+        let notificationAudio = new Audio('{{ asset('sounds/notification.mp3') }}');
+        let notificationPage = 1;
+        let notificationsLoading = false;
+        let notificationsHasMore = true;
+        
+        function loadNotifications(reset = true) {
+            if (notificationsLoading) return;
+            notificationsLoading = true;
+            
+            if (reset) {
+                notificationPage = 1;
+                notificationsHasMore = true;
+            }
+            
+            fetch('{{ route('admin.notifications.recent') }}?page=' + notificationPage, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
                 }
             })
-            .then(response => response.json())
-            .then(data => {
-                updateNotificationBadge(data.unread_count);
-                updateNotificationList(data.notifications);
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
             })
-            .catch(error => console.error('Error loading notifications:', error));
+            .then(data => {
+                if (reset && previousUnreadCount !== null && data.unread_count > previousUnreadCount) {
+                    playNotificationSound();
+                }
+                previousUnreadCount = data.unread_count;
+                updateNotificationBadge(data.unread_count);
+                updateNotificationList(data.notifications, reset);
+                notificationsHasMore = data.has_more;
+                notificationPage = data.current_page + 1;
+                hideNotificationError();
+                notificationsLoading = false;
+            })
+            .catch(error => {
+                console.error('Error loading notifications:', error);
+                showNotificationError();
+                notificationsLoading = false;
+            });
+        }
+        
+        function loadMoreNotifications() {
+            if (notificationsLoading || !notificationsHasMore) return;
+            loadNotifications(false);
+        }
+        
+        function playNotificationSound() {
+            if (notificationSoundEnabled) {
+                notificationAudio.play().catch(e => console.log('Audio play failed:', e));
+            }
+        }
+        
+        function showNotificationError() {
+            const list = document.getElementById('notificationList');
+            if (list && !list.querySelector('.notification-error')) {
+                list.innerHTML = `
+                    <div class="notification-error text-center py-4">
+                        <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                        <p class="mb-0 mt-2 small text-muted">Failed to load notifications</p>
+                        <button class="btn btn-sm btn-link mt-2" onclick="loadNotifications()">Retry</button>
+                    </div>
+                `;
+            }
+        }
+        
+        function hideNotificationError() {
+            const list = document.getElementById('notificationList');
+            if (list && list.querySelector('.notification-error')) {
+                list.innerHTML = '';
+            }
         }
         
         function updateNotificationBadge(count) {
@@ -2300,11 +2393,11 @@
             }
         }
         
-        function updateNotificationList(notifications) {
+        function updateNotificationList(notifications, reset = true) {
             const list = document.getElementById('notificationList');
             if (!list) return;
             
-            if (!notifications || notifications.length === 0) {
+            if (reset && (!notifications || notifications.length === 0)) {
                 list.innerHTML = `
                     <div class="text-center py-4">
                         <i class="bi bi-bell-slash text-muted" style="font-size: 2rem;"></i>
@@ -2336,7 +2429,7 @@
                 'product': 'bi-box-seam'
             };
             
-            let html = '';
+            let html = reset ? '' : list.innerHTML.replace(/<button class="btn btn-sm btn-link text-primary load-more-btn"[^>]*>.*?<\/button>/, '');
             notifications.forEach(function(notification) {
                 const color = typeColors[notification.type] || 'primary';
                 const icon = typeIcons[notification.type] || 'bi-bell';
@@ -2344,22 +2437,31 @@
                 const link = notification.link || '#';
                 
                 html += `
-                    <a href="${link}" class="dropdown-item notification-item ${notification.is_read ? '' : 'unread'}" onclick="handleNotificationClick(event, ${notification.id}, '${link}')">
-                        <div class="d-flex align-items-start">
-                            <div class="bg-${color} bg-opacity-10 rounded p-2 me-2">
-                                <i class="bi ${icon} text-${color}"></i>
-                            </div>
-                            <div class="flex-grow-1 overflow-hidden">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <strong class="small">${notification.title}</strong>
-                                    <small class="text-muted">${timeAgo}</small>
+                    <div class="notification-item-wrapper">
+                        <a href="${link}" class="dropdown-item notification-item ${notification.is_read ? '' : 'unread'}" onclick="handleNotificationClick(event, ${notification.id}, '${link}')">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-${color} bg-opacity-10 rounded p-2 me-2">
+                                    <i class="bi ${icon} text-${color}"></i>
                                 </div>
-                                <p class="mb-0 small text-muted text-truncate">${notification.message}</p>
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <strong class="small">${notification.title}</strong>
+                                        <small class="text-muted">${timeAgo}</small>
+                                    </div>
+                                    <p class="mb-0 small text-muted text-truncate">${notification.message}</p>
+                                </div>
                             </div>
-                        </div>
-                    </a>
+                        </a>
+                        <button class="btn btn-sm btn-link text-danger notification-delete-btn" onclick="deleteNotification(event, ${notification.id})" title="Delete notification">
+                            <i class="bi bi-x small"></i>
+                        </button>
+                    </div>
                 `;
             });
+            
+            if (notificationsHasMore) {
+                html += `<button class="btn btn-sm btn-link text-primary load-more-btn" onclick="loadMoreNotifications()" style="width: 100%; border-top: 1px solid #f0f0f0;">Load More</button>`;
+            }
             
             list.innerHTML = html;
         }
@@ -2367,7 +2469,6 @@
         function handleNotificationClick(event, notificationId, link) {
             event.preventDefault();
             
-            // Mark as read
             fetch('{{ route('admin.notifications.mark-read') }}', {
                 method: 'POST',
                 headers: {
@@ -2380,12 +2481,39 @@
             .then(response => response.json())
             .then(data => {
                 updateNotificationBadge(data.unread_count);
-                // Navigate to the link
                 if (link && link !== '#') {
                     window.location.href = link;
                 }
             })
             .catch(error => console.error('Error marking notification as read:', error));
+        }
+        
+        function deleteNotification(event, notificationId) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const wrapper = event.target.closest('.notification-item-wrapper');
+            
+            fetch(`/admin/notifications/${notificationId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (wrapper) {
+                    wrapper.style.opacity = '0';
+                    wrapper.style.transition = 'opacity 0.3s';
+                    setTimeout(() => wrapper.remove(), 300);
+                }
+                if (data.unread_count !== undefined) {
+                    updateNotificationBadge(data.unread_count);
+                }
+            })
+            .catch(error => console.error('Error deleting notification:', error));
         }
         
         function markAllNotificationsAsRead() {
@@ -2404,11 +2532,8 @@
             .catch(error => console.error('Error marking all as read:', error));
         }
         
-        // Load notifications on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadNotifications();
-            
-            // Refresh notifications every 30 seconds
             setInterval(loadNotifications, 30000);
         });
     </script>

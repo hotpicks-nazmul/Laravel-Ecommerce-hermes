@@ -4,49 +4,41 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-md col-6">
-        <div class="stat-card stat-card-warning">
-            <div class="stat-card-icon">
-                <i class="bi bi-hourglass-split"></i>
-            </div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">Pending Verification</span>
-                <span class="stat-card-value" id="stat-pending">{{ $stats['pending'] ?? 0 }}</span>
-            </div>
+<div class="stat-card-row mb-4">
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon">
+            <i class="bi bi-hourglass-split"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Pending Verification</span>
+            <span class="stat-card-value" id="stat-pending">{{ $stats['pending'] ?? 0 }}</span>
         </div>
     </div>
-    <div class="col-md col-6">
-        <div class="stat-card stat-card-danger">
-            <div class="stat-card-icon">
-                <i class="bi bi-x-circle"></i>
-            </div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">Rejected</span>
-                <span class="stat-card-value" id="stat-rejected">{{ $stats['rejected'] ?? 0 }}</span>
-            </div>
+    <div class="stat-card stat-card-danger">
+        <div class="stat-card-icon">
+            <i class="bi bi-x-circle"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Rejected</span>
+            <span class="stat-card-value" id="stat-rejected">{{ $stats['rejected'] ?? 0 }}</span>
         </div>
     </div>
-    <div class="col-md col-6">
-        <div class="stat-card stat-card-success">
-            <div class="stat-card-icon">
-                <i class="bi bi-check-circle"></i>
-            </div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">Verified</span>
-                <span class="stat-card-value" id="stat-verified">{{ $stats['verified'] ?? 0 }}</span>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Verified</span>
+            <span class="stat-card-value" id="stat-verified">{{ $stats['verified'] ?? 0 }}</span>
         </div>
     </div>
-    <div class="col-md col-6">
-        <div class="stat-card stat-card-primary">
-            <div class="stat-card-icon">
-                <i class="bi bi-people"></i>
-            </div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">Total Sellers</span>
-                <span class="stat-card-value" id="stat-total">{{ $stats['total'] ?? 0 }}</span>
-            </div>
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon">
+            <i class="bi bi-people"></i>
+        </div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Total Sellers</span>
+            <span class="stat-card-value" id="stat-total">{{ $stats['total'] ?? 0 }}</span>
         </div>
     </div>
 </div>
@@ -193,13 +185,13 @@
                                 </a>
                                 
                                 @if($seller->verification_status !== 'verified')
-                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#approveModal{{ $seller->id }}" data-bs-tooltip="tooltip" title="Approve">
+                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#approveModal{{ $seller->id }}" title="Approve">
                                     <i class="bi bi-check-lg"></i>
                                 </button>
                                 @endif
                                 
                                 @if($seller->verification_status !== 'rejected')
-                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ $seller->id }}" data-bs-tooltip="tooltip" title="Reject">
+                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ $seller->id }}" title="Reject">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
                                 @endif
@@ -291,15 +283,16 @@
         </div>
 
         <!-- Pagination inside card-body -->
-        @php $hasPages = $sellers->hasPages(); @endphp
-        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 pagination-container" @if(!$hasPages) style="display: none;" @endif>
+        @if($sellers->hasPages())
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 pagination-container">
             <div class="text-muted small">
-                Showing {{ $sellers->firstItem() ?? 0 }} - {{ $sellers->lastItem() ?? 0 }} of {{ $sellers->total() }} requests
+                Showing {{ $sellers->firstItem() }} - {{ $sellers->lastItem() }} of {{ $sellers->total() }} requests
             </div>
             <div class="pagination-links">
                 {{ $sellers->appends(request()->query())->links() }}
             </div>
         </div>
+        @endif
     </div>
 </div>
 @endsection
@@ -312,52 +305,6 @@
         border-radius: 4px;
         object-fit: cover;
         background-color: #f8f9fa;
-    }
-    .stat-card {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 16px;
-        padding: 20px 24px;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        border: 1px solid #f0f0f0;
-        transition: all 0.2s ease;
-    }
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .stat-card-icon {
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 10px;
-        font-size: 22px;
-    }
-    .stat-card-primary .stat-card-icon { background: #e8f4fd; color: #0d6efd; }
-    .stat-card-warning .stat-card-icon { background: #fff3cd; color: #ffc107; }
-    .stat-card-success .stat-card-icon { background: #d1e7dd; color: #198754; }
-    .stat-card-danger .stat-card-icon { background: #f8d7da; color: #dc3545; }
-
-    .stat-card-content {
-        display: flex;
-        flex-direction: column;
-        text-align: left;
-    }
-    .stat-card-label {
-        font-size: 13px;
-        color: #6c757d;
-        margin-bottom: 2px;
-    }
-    .stat-card-value {
-        font-size: 24px;
-        font-weight: 700;
-        color: #212529;
-        line-height: 1.2;
     }
 </style>
 @endpush
@@ -390,18 +337,22 @@
                 document.querySelector('#tableBody').innerHTML = data.html;
                 
                 // Update pagination
-                const paginationContainer = document.querySelector('.card-footer');
+                const paginationContainer = document.querySelector('.pagination-container');
                 if (data.pagination) {
                     if (paginationContainer) {
+                        paginationContainer.style.display = 'flex';
                         paginationContainer.innerHTML = data.pagination;
                     } else {
                         // Create pagination container if it doesn't exist
                         const cardBody = document.querySelector('.card-body');
                         const paginationDiv = document.createElement('div');
-                        paginationDiv.className = 'card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2';
+                        paginationDiv.className = 'card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 pagination-container';
                         paginationDiv.innerHTML = data.pagination;
                         cardBody.appendChild(paginationDiv);
                     }
+                } else if (paginationContainer) {
+                    // Hide pagination if no pages
+                    paginationContainer.style.display = 'none';
                 }
 
                 // Update stats

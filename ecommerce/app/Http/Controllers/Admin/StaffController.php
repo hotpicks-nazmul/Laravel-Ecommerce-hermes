@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\ImageHelper;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
@@ -168,10 +169,16 @@ class StaffController extends Controller
 
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
-            $avatar = $request->file('avatar');
-            $avatarName = time() . '_' . $avatar->getClientOriginalName();
-            $avatar->move(public_path('uploads/staffs'), $avatarName);
-            $staff->avatar = 'uploads/staffs/' . $avatarName;
+            if (ImageHelper::isValidImage($request->file('avatar'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('avatar'),
+                    'staffs',
+                    512,
+                    150,
+                    85
+                );
+                $staff->avatar = ltrim($imageResult['path'], '/');
+            }
         }
 
         $staff->save();
@@ -257,14 +264,19 @@ class StaffController extends Controller
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
             // Delete old avatar
-            if ($staff->avatar && file_exists(public_path($staff->avatar))) {
-                unlink(public_path($staff->avatar));
+            if ($staff->avatar) {
+                ImageHelper::deleteImage($staff->avatar);
             }
-            
-            $avatar = $request->file('avatar');
-            $avatarName = time() . '_' . $avatar->getClientOriginalName();
-            $avatar->move(public_path('uploads/staffs'), $avatarName);
-            $staff->avatar = 'uploads/staffs/' . $avatarName;
+            if (ImageHelper::isValidImage($request->file('avatar'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('avatar'),
+                    'staffs',
+                    512,
+                    150,
+                    85
+                );
+                $staff->avatar = ltrim($imageResult['path'], '/');
+            }
         }
 
         $staff->save();
@@ -288,8 +300,8 @@ class StaffController extends Controller
         }
 
         // Delete avatar
-        if ($staff->avatar && file_exists(public_path($staff->avatar))) {
-            unlink(public_path($staff->avatar));
+        if ($staff->avatar) {
+            ImageHelper::deleteImage($staff->avatar);
         }
 
         $staff->delete();
@@ -455,8 +467,8 @@ class StaffController extends Controller
             case 'delete':
                 $staffs = User::whereIn('id', $staffIds)->get();
                 foreach ($staffs as $staff) {
-                    if ($staff->avatar && file_exists(public_path($staff->avatar))) {
-                        unlink(public_path($staff->avatar));
+                    if ($staff->avatar) {
+                        ImageHelper::deleteImage($staff->avatar);
                     }
                 }
                 User::whereIn('id', $staffIds)->delete();

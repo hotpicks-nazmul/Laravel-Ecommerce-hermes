@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AffiliateBanner;
 use App\Models\Affiliate;
+use App\Helpers\ImageHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -66,10 +67,20 @@ class AffiliateBannerController extends Controller
             'status' => 'required|in:active,inactive',
         ]);
 
-        // Handle image upload
+        // Handle image upload using ImageHelper
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('affiliate-banners', 'public');
-            $validated['image'] = $imagePath;
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'affiliate-banners',
+                    1920,
+                    300,
+                    85
+                );
+                
+                $validated['image'] = $imageResult['path'];
+                $validated['thumbnail'] = $imageResult['thumbnail'] ?? null;
+            }
         }
 
         AffiliateBanner::create($validated);
@@ -117,14 +128,25 @@ class AffiliateBannerController extends Controller
             'status' => 'required|in:active,inactive',
         ]);
 
-        // Handle image upload
+        // Handle image upload using ImageHelper
         if ($request->hasFile('image')) {
-            // Delete old image
-            if ($banner->image) {
-                Storage::disk('public')->delete($banner->image);
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                // Delete old image
+                if ($banner->image) {
+                    ImageHelper::deleteImage($banner->image, $banner->thumbnail ?? null);
+                }
+                
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'affiliate-banners',
+                    1920,
+                    300,
+                    85
+                );
+                
+                $validated['image'] = $imageResult['path'];
+                $validated['thumbnail'] = $imageResult['thumbnail'] ?? null;
             }
-            $imagePath = $request->file('image')->store('affiliate-banners', 'public');
-            $validated['image'] = $imagePath;
         }
 
         $banner->update($validated);
@@ -143,9 +165,9 @@ class AffiliateBannerController extends Controller
     {
         $banner = AffiliateBanner::findOrFail($id);
 
-        // Delete image
+        // Delete image using ImageHelper
         if ($banner->image) {
-            Storage::disk('public')->delete($banner->image);
+            ImageHelper::deleteImage($banner->image, $banner->thumbnail ?? null);
         }
 
         $banner->delete();

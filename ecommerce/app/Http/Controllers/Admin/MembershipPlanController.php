@@ -221,7 +221,18 @@ class MembershipPlanController extends Controller
         ]);
 
         $status = $membershipPlan->is_active ? 'activated' : 'deactivated';
-        flash()->success("Membership plan {$status} successfully!");
+        $message = "Membership plan {$status} successfully!";
+
+        // Check if AJAX request
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'is_active' => $membershipPlan->is_active,
+            ]);
+        }
+
+        flash()->success($message);
 
         return back();
     }
@@ -236,7 +247,18 @@ class MembershipPlanController extends Controller
         ]);
 
         $status = $membershipPlan->is_featured ? 'featured' : 'unfeatured';
-        flash()->success("Membership plan {$status} successfully!");
+        $message = "Membership plan {$status} successfully!";
+
+        // Check if AJAX request
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'is_featured' => $membershipPlan->is_featured,
+            ]);
+        }
+
+        flash()->success($message);
 
         return back();
     }

@@ -310,10 +310,19 @@
     </div>
 </form>
 
+<!-- Delete Form -->
+<form id="deleteForm" action="{{ route('admin.customers.membership.destroy', $membershipPlan->id) }}" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+
 <!-- Floating Buttons -->
 <div class="floating-save-container">
     <a href="{{ route('admin.customers.membership.index') }}" class="btn btn-secondary floating-reset-btn">
         <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
+    <a href="#" class="btn btn-outline-danger floating-reset-btn" onclick="event.preventDefault(); if(confirm('Are you sure you want to delete this membership plan?')) { document.getElementById('deleteForm').submit(); }">
+        <i class="bi bi-trash me-1"></i> Delete
     </a>
     <button type="submit" form="itemForm" class="btn btn-primary floating-save-btn">
         <i class="bi bi-check-lg me-1"></i> Update Plan

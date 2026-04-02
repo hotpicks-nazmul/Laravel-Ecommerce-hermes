@@ -194,12 +194,14 @@
     
     // Mark as read
     function markAsRead(id) {
-        fetch(`/admin/notifications/${id}/read`, {
+        fetch('{{ route('admin.notifications.mark-read') }}', {
             method: 'POST',
             headers: {
+                'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
+            },
+            body: JSON.stringify({ ids: [id] })
         })
         .then(response => response.json())
         .then(data => {

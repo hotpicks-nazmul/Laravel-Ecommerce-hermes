@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AffiliateProduct;
 use App\Models\AffiliateCategory;
+use App\Helpers\ImageHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 
 class AffiliateProductController extends Controller
 {
@@ -18,6 +18,8 @@ class AffiliateProductController extends Controller
      */
     public function index(Request $request)
     {
+        $affiliateCategories = AffiliateCategory::where('status', 'active')->get();
+        
         $products = AffiliateProduct::with('category')
             ->when($request->search, function($query) use ($request) {
                 $query->where('name', 'like', '%' . $request->search . '%')
@@ -40,7 +42,14 @@ class AffiliateProductController extends Controller
             'avg_price' => AffiliateProduct::avg('price') ?? 0,
         ];
         
-        return view('admin.affiliate.products.index', compact('products', 'stats'));
+        // AJAX response for live search
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('admin.affiliate.products.partials.table-rows', compact('products'))->render(),
+            ]);
+        }
+        
+        return view('admin.affiliate.products.index', compact('products', 'stats', 'affiliateCategories'));
     }
 
     /**
@@ -75,10 +84,19 @@ class AffiliateProductController extends Controller
             'status' => 'required|in:active,inactive',
         ]);
 
-        // Handle image upload
+        // Handle image upload using ImageHelper
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('affiliate-products', 'public');
-            $validated['image'] = $imagePath;
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'affiliate-products',
+                    1920,
+                    300,
+                    85
+                );
+                $validated['image'] = $imageResult['path'];
+                $validated['thumbnail'] = $imageResult['thumbnail'] ?? null;
+            }
         }
 
         // Generate slug if not provided
@@ -142,14 +160,23 @@ class AffiliateProductController extends Controller
             'status' => 'required|in:active,inactive',
         ]);
 
-        // Handle image upload
+        // Handle image upload using ImageHelper
         if ($request->hasFile('image')) {
             // Delete old image
             if ($product->image) {
-                Storage::disk('public')->delete($product->image);
+                ImageHelper::deleteImage($product->image, $product->thumbnail ?? null);
             }
-            $imagePath = $request->file('image')->store('affiliate-products', 'public');
-            $validated['image'] = $imagePath;
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'affiliate-products',
+                    1920,
+                    300,
+                    85
+                );
+                $validated['image'] = $imageResult['path'];
+                $validated['thumbnail'] = $imageResult['thumbnail'] ?? null;
+            }
         }
 
         // Generate slug if not provided
@@ -173,9 +200,9 @@ class AffiliateProductController extends Controller
     {
         $product = AffiliateProduct::findOrFail($id);
 
-        // Delete image
+        // Delete image using ImageHelper
         if ($product->image) {
-            Storage::disk('public')->delete($product->image);
+            ImageHelper::deleteImage($product->image, $product->thumbnail ?? null);
         }
 
         $product->delete();

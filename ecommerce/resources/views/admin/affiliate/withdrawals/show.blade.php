@@ -34,7 +34,7 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label text-muted small">Payment Method</label>
-                            <p class="mb-0">{{ ucfirst($withdrawal->payment_method) }}</p>
+                            <p class="mb-0">{{ ucfirst($withdrawal->payment_method ?? '-') }}</p>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -56,15 +56,16 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label text-muted small">Requested At</label>
-                            <p class="mb-0">{{ $withdrawal->requested_at->format('M d, Y H:i') }}</p>
+                            <p class="mb-0">{{ $withdrawal->requested_at ? $withdrawal->requested_at->format('M d, Y H:i') : '-' }}</p>
                         </div>
                     </div>
                     @if($withdrawal->processed_at)
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label text-muted small">Processed At</label>
-                            <p class="mb-0">{{ $withdrawal->processed_at->format('M d, Y H:i') }}</p>
+                            <label class="form-label text-muted small">Requested At</label>
+                            <p class="mb-0">{{ $withdrawal->requested_at ? $withdrawal->requested_at->format('M d, Y H:i') : '-' }}</p>
                         </div>
+                    </div>
                     </div>
                     @endif
                 </div>

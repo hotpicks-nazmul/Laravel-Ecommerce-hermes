@@ -35,7 +35,7 @@
     </div>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">Affiliate Banners</h4>
     <a href="{{ route('admin.affiliate.banners.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg me-1"></i>Add New Banner
@@ -72,10 +72,18 @@
                     @forelse($banners as $banner)
                     <tr>
                         <td>
-                            @if($banner->image)
-                            <img src="{{ asset('storage/' . $banner->image) }}" alt="{{ $banner->name }}" style="max-width: 80px; max-height: 50px; object-fit: contain;">
+                            @php
+                                $imageUrl = $banner->image;
+                                if($imageUrl && !str_starts_with($imageUrl, '/storage/') && !str_starts_with($imageUrl, 'http')) {
+                                    $imageUrl = '/storage/' . $imageUrl;
+                                }
+                            @endphp
+                            @if($imageUrl)
+                            <img src="{{ asset($imageUrl) }}" alt="{{ $banner->name }}" style="width: 80px; height: 50px; object-fit: cover;" class="rounded">
                             @else
-                            <span class="text-muted">No image</span>
+                            <div class="bg-secondary rounded d-flex align-items-center justify-content-center" style="width: 80px; height: 50px;">
+                                <i class="bi bi-image text-white"></i>
+                            </div>
                             @endif
                         </td>
                         <td>{{ $banner->name }}</td>
@@ -105,7 +113,7 @@
                                 <a href="{{ route('admin.affiliate.banners.edit', $banner->id) }}" class="btn btn-outline-primary" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <form action="{{ route('admin.affiliate.banners.destroy', $banner->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this banner?')">
+                                <form action="{{ route('admin.affiliate.banners.destroy', $banner->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this banner?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-outline-danger" title="Delete">

@@ -42,12 +42,12 @@
         <small class="text-muted">{{ $refund->created_at->format('M d, Y') }}</small>
     </td>
     <td>
-        <div class="d-flex gap-1">
+        <div class="btn-group">
             <a href="{{ route('admin.refunds.show', $refund->id) }}" class="btn btn-sm btn-outline-primary" title="View Details">
                 <i class="bi bi-eye"></i>
             </a>
             @if($refund->status === 'pending')
-            <button type="button" class="btn btn-sm btn-outline-success" title="Approve" 
+            <button type="button" class="btn btn-sm btn-outline-success" title="Approve"
                     data-bs-toggle="modal" data-bs-target="#approveModal{{ $refund->id }}">
                 <i class="bi bi-check-lg"></i>
             </button>
@@ -197,6 +197,9 @@
     <td colspan="9" class="text-center py-5">
         <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
         <p class="text-muted mb-2 mt-2">No refund requests found</p>
+        <a href="{{ route('admin.refunds.configuration') }}" class="btn btn-sm btn-primary mt-1">
+            <i class="bi bi-gear me-1"></i> Configure Refund Settings
+        </a>
     </td>
 </tr>
 @endforelse

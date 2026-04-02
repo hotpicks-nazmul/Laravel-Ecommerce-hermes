@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\ImageHelper;
 use App\Models\Setting;
 use App\Models\Category;
 use Illuminate\Http\Request;
@@ -224,16 +225,20 @@ class HomePageController extends Controller
         
         // Handle logo file upload
         if ($request->hasFile('site_logo')) {
-            $file = $request->file('site_logo');
-            $path = $file->store('logo', 'public');
-            $settings['site_logo'] = Storage::url($path);
-            
-            // Delete old logo if exists
-            $oldSetting = Setting::where('key', 'site_logo')->first();
-            if ($oldSetting && $oldSetting->value) {
-                $oldPath = str_replace('/storage/', '', $oldSetting->value);
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
+            if (ImageHelper::isValidImage($request->file('site_logo'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('site_logo'),
+                    'logo',
+                    512,
+                    150,
+                    85
+                );
+                $settings['site_logo'] = $imageResult['path'];
+                
+                // Delete old logo if exists
+                $oldSetting = Setting::where('key', 'site_logo')->first();
+                if ($oldSetting && $oldSetting->value) {
+                    ImageHelper::deleteImage($oldSetting->value);
                 }
             }
         }

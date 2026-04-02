@@ -1,5 +1,7 @@
 @extends('admin.layouts.app')
 
+@section('title', $segment->name . ' - Customer Segmentation')
+
 @section('content')
 <!-- Header with Back Button -->
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -200,7 +202,7 @@
                         </td>
                         <td>
                             <span class="badge bg-primary bg-opacity-10 text-primary">
-                                {{ $customer->orders->count() }}
+                                {{ $customer->orders_count }}
                             </span>
                         </td>
                         <td>

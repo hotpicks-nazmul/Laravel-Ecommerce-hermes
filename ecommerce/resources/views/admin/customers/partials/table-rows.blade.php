@@ -24,19 +24,21 @@
     </td>
     <td>{{ $customer->created_at->format('d M, Y') }}</td>
     <td style="width: 140px;">
-        <button type="button" class="btn btn-sm {{ $customer->status === 'active' ? 'btn-outline-warning' : 'btn-outline-success' }} status-toggle" data-id="{{ $customer->id }}" title="{{ $customer->status === 'active' ? 'Deactivate' : 'Activate' }}">
-            <i class="bi bi-{{ $customer->status === 'active' ? 'pause-circle' : 'check-circle' }}"></i>
-        </button>
-        <a href="{{ route('admin.customers.show', $customer->id) }}" class="btn btn-sm btn-outline-primary" title="View">
-            <i class="bi bi-eye"></i>
-        </a>
-        <form action="{{ route('admin.customers.destroy', $customer->id) }}" method="POST" class="d-inline delete-form">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this customer?')">
-                <i class="bi bi-trash"></i>
+        <div class="btn-group">
+            <a href="{{ route('admin.customers.show', $customer->id) }}" class="btn btn-sm btn-outline-primary" title="View">
+                <i class="bi bi-eye"></i>
+            </a>
+            <button type="button" class="btn btn-sm {{ $customer->status === 'active' ? 'btn-outline-warning' : 'btn-outline-success' }} status-toggle" data-id="{{ $customer->id }}" title="{{ $customer->status === 'active' ? 'Deactivate' : 'Activate' }}">
+                <i class="bi bi-{{ $customer->status === 'active' ? 'pause-circle' : 'check-circle' }}"></i>
             </button>
-        </form>
+            <form action="{{ route('admin.customers.destroy', $customer->id) }}" method="POST" class="d-flex" onsubmit="return confirm('Are you sure you want to delete this customer?')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="Delete">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        </div>
     </td>
 </tr>
 @empty

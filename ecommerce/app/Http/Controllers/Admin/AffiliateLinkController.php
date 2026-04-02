@@ -33,7 +33,20 @@ class AffiliateLinkController extends Controller
             $query->where('status', $request->status);
         }
         
-        $links = $query->orderBy('created_at', 'desc')->paginate(15);
+        // Sorting
+        $sort = $request->sort ?? 'created_at';
+        $direction = $request->direction ?? 'desc';
+        $allowedSorts = ['id', 'name', 'clicks', 'conversions', 'created_at'];
+        
+        if (in_array($sort, $allowedSorts)) {
+            $query->orderBy($sort, $direction);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+        
+        // Pagination
+        $perPage = $request->per_page ?? 15;
+        $links = $query->paginate($perPage);
         
         // Statistics for stat cards
         $stats = [
@@ -43,6 +56,13 @@ class AffiliateLinkController extends Controller
             'total_clicks' => AffiliateLink::sum('clicks'),
             'total_conversions' => AffiliateLink::sum('conversions'),
         ];
+        
+        // AJAX response
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('admin.affiliate.links.partials.link-rows', compact('links'))->render(),
+            ]);
+        }
         
         return view('admin.affiliate.links.index', compact('links', 'stats'));
     }

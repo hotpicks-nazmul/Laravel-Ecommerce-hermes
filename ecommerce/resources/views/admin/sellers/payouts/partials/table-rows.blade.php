@@ -83,8 +83,8 @@
         <div>{{ $payout->created_at->format('d M Y') }}</div>
         <small class="text-muted">{{ $payout->created_at->format('h:i A') }}</small>
     </td>
-    <td>
-        <div class="d-flex gap-1">
+    <td class="text-center">
+        <div class="btn-group">
             <a href="{{ route('admin.sellers.payouts.show', $payout->id) }}" class="btn btn-sm btn-outline-primary" title="View Details">
                 <i class="bi bi-eye"></i>
             </a>

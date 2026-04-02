@@ -3,16 +3,16 @@
 @section('title', 'Media Library')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0"><i class="bi bi-images me-2"></i>Media Library</h4>
 </div>
 
 <!-- Filter and Search Bar -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-        <form method="GET" action="{{ route('admin.media.index') }}" class="row g-3">
-            <div class="col-md-2">
-                <label class="form-label small text-muted mb-1">Filter by Type</label>
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-3">
+        <form method="GET" action="{{ route('admin.media.index') }}" class="row g-2 align-items-end" id="filterForm">
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <label class="form-label small text-muted">Filter by Type</label>
                 <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="all" {{ request('type', 'all') == 'all' ? 'selected' : '' }}>All Files</option>
                     <option value="images" {{ request('type') == 'images' ? 'selected' : '' }}>Images</option>
@@ -20,40 +20,63 @@
                     <option value="documents" {{ request('type') == 'documents' ? 'selected' : '' }}>Documents</option>
                 </select>
             </div>
-            <div class="col-md-4">
-                <label class="form-label small text-muted mb-1">Search Files</label>
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <label class="form-label small text-muted">Search Files</label>
                 <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" name="search" class="form-control" placeholder="Search by filename..." value="{{ request('search') }}">
                     <button class="btn btn-outline-primary" type="submit">
                         <i class="bi bi-search"></i>
                     </button>
-                    @if(request('search') || request('type'))
+                    @if(request('search') || request('type') != 'all')
                     <a href="{{ route('admin.media.index') }}" class="btn btn-outline-secondary" type="button">
-                        <i class="bi bi-x-circle"></i>
+                        <i class="bi bi-x-lg"></i>
                     </a>
                     @endif
                 </div>
             </div>
-            <div class="col-md-2">
-                <label class="form-label small text-muted mb-1">Per Page</label>
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <label class="form-label small text-muted">Per Page</label>
                 <select name="per_page" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="25" {{ request('per_page', 25) == 25 ? 'selected' : '' }}>25 per page</option>
                     <option value="50" {{ request('per_page', 25) == 50 ? 'selected' : '' }}>50 per page</option>
                     <option value="100" {{ request('per_page', 25) == 100 ? 'selected' : '' }}>100 per page</option>
                 </select>
             </div>
-            <div class="col-md-4 d-flex align-items-end">
+            <div class="col-lg-5 col-md-6 col-sm-6 d-flex align-items-end">
                 <div class="text-muted small">
                     <i class="bi bi-info-circle me-1"></i>
-                    Showing {{ $paginator->total() }} total files
+                    Showing {{ $paginator->firstItem() }} - {{ $paginator->lastItem() }} of {{ $paginator->total() }} files
                 </div>
             </div>
         </form>
     </div>
 </div>
 
+<!-- Bulk Actions Bar -->
+<div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
+    <div class="card-body py-2">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted"><span id="selectedCount">0</span> selected</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="selectAll()">
+                    Select All
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
+                    Clear Selection
+                </button>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-danger" onclick="bulkDelete()">
+                    <i class="bi bi-trash me-1"></i> Delete Selected
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Upload Area -->
-<div class="upload-area mb-4" id="uploadArea">
+<div class="upload-area mb-3" id="uploadArea">
     <form id="uploadForm" enctype="multipart/form-data">
         @csrf
         <input type="file" name="files[]" id="fileInput" multiple accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" style="display: none;">
@@ -82,17 +105,18 @@
         <div class="media-grid p-3" id="mediaGrid">
             @foreach($paginator as $file)
             <div class="media-item" data-path="{{ $file['path'] }}" onclick="viewFile('{{ $file['path'] }}')">
-                <input type="checkbox" class="form-check-input checkbox" 
-                       onclick="event.stopPropagation();">
+                <input type="checkbox" class="form-check-input media-checkbox" 
+                       value="{{ $file['path'] }}"
+                       onclick="event.stopPropagation(); toggleSelection(this);">
                 
                 <div class="actions">
-                    <button class="btn btn-sm btn-outline-primary" title="View" onclick="event.stopPropagation(); viewFile('{{ $file['path'] }}')">
+                    <button class="btn btn-sm btn-outline-primary action-btn-view" title="View" onclick="event.stopPropagation(); viewFile('{{ $file['path'] }}')">
                         <i class="bi bi-eye"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-info" title="Copy URL" onclick="event.stopPropagation(); copyUrl('{{ $file['url'] }}')">
+                    <button class="btn btn-sm btn-outline-info action-btn-copy" title="Copy URL" onclick="event.stopPropagation(); copyUrl('{{ $file['url'] }}')">
                         <i class="bi bi-clipboard"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" title="Delete" onclick="event.stopPropagation(); deleteFile('{{ $file['path'] }}')">
+                    <button class="btn btn-sm btn-outline-danger action-btn-delete" title="Delete" onclick="event.stopPropagation(); deleteFile('{{ $file['path'] }}')">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
@@ -124,32 +148,29 @@
                 </div>
                 <nav aria-label="Page navigation">
                     <ul class="pagination pagination-sm mb-0">
-                        {{-- Previous Page Link --}}
                         @if ($paginator->onFirstPage())
                         <li class="page-item disabled">
                             <span class="page-link">‹</span>
                         </li>
                         @else
                         <li class="page-item">
-                            <a class="page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev">‹</a>
+                            <a class="page-link" href="{{ $paginator->previousPageUrl() }}&{{ http_build_query(request()->except('page')) }}" rel="prev">‹</a>
                         </li>
                         @endif
 
-                        {{-- Numbered Links --}}
                         @for ($i = 1; $i <= $paginator->lastPage(); $i++)
                             @if ($i >= $paginator->currentPage() - 2 && $i <= $paginator->currentPage() + 2)
                                 @if ($i == $paginator->currentPage())
                                 <li class="page-item active"><span class="page-link">{{ $i }}</span></li>
                                 @else
-                                <li class="page-item"><a class="page-link" href="{{ $paginator->url($i) }}">{{ $i }}</a></li>
+                                <li class="page-item"><a class="page-link" href="{{ $paginator->url($i) }}&{{ http_build_query(request()->except('page')) }}">{{ $i }}</a></li>
                                 @endif
                             @endif
                         @endfor
 
-                        {{-- Next Page Link --}}
                         @if ($paginator->hasMorePages())
                         <li class="page-item">
-                            <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next">›</a>
+                            <a class="page-link" href="{{ $paginator->nextPageUrl() }}&{{ http_build_query(request()->except('page')) }}" rel="next">›</a>
                         </li>
                         @else
                         <li class="page-item disabled">
@@ -234,7 +255,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle text-danger me-2"></i>Confirm Delete</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -266,10 +287,23 @@
     </div>
 </div>
 
-<form id="deleteForm" method="POST">
-    @csrf
-    @method('DELETE')
-</form>
+<!-- Error Message Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-x-circle me-2"></i>Error</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="errorMessage" class="mb-0"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('styles')
@@ -295,7 +329,12 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     
-    .media-item .checkbox {
+    .media-item.selected {
+        border-color: #0d6efd;
+        background-color: #e7f1ff;
+    }
+    
+    .media-item .media-checkbox {
         position: absolute;
         top: 8px;
         left: 8px;
@@ -304,12 +343,8 @@
         transition: opacity 0.2s;
     }
     
-    .media-item:hover .checkbox,
-    .media-item.selected .checkbox {
-        opacity: 1;
-    }
-    
-    .media-item.selected .checkbox {
+    .media-item:hover .media-checkbox,
+    .media-item.selected .media-checkbox {
         opacity: 1;
     }
     
@@ -379,48 +414,6 @@
         background-color: #e7f1ff;
     }
     
-    /* Custom Pagination Styles - Compact */
-    .pagination {
-        margin: 0;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        gap: 2px;
-    }
-    
-    .pagination .page-item .page-link {
-        border-radius: 4px;
-        border: 1px solid #dee2e6;
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
-        min-width: 32px;
-        text-align: center;
-        color: #495057;
-        background-color: #fff;
-    }
-    
-    .pagination .page-item .page-link i {
-        font-size: 0.7rem;
-    }
-    
-    .pagination .page-item .page-link:hover {
-        background-color: #e9ecef;
-        border-color: #dee2e6;
-    }
-    
-    .pagination .page-item.active .page-link {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-        color: #fff;
-    }
-    
-    .pagination .page-item.disabled .page-link {
-        color: #6c757d;
-        background-color: #fff;
-        border-color: #dee2e6;
-    }
-    
-    /* Fix filename overflow in modal */
     #fileDetailsModal .fw-medium {
         word-wrap: break-word;
         word-break: break-all;
@@ -428,7 +421,6 @@
         max-width: 100%;
     }
     
-    /* Custom Modal Styles */
     #fileDetailsModal .modal-header {
         background-color: #f8f9fa;
         border-bottom: 1px solid #dee2e6;
@@ -449,223 +441,13 @@
         max-height: 400px;
         object-fit: contain;
     }
-    
-    #fileDetailsModal .table td {
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #f0f0f0;
-    }
-    
-    #fileDetailsModal .table td:first-child {
-        width: 80px;
-        font-weight: 500;
-        color: #6c757d;
-    }
-    
-    /* Non-image file preview in modal */
-    #fileDetailsModal .file-preview-icon {
-        height: 200px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-    }
-    
-    #fileDetailsModal .file-preview-icon i {
-        font-size: 5rem;
-        color: #6c757d;
-    }
-    
-    /* ============================================
-       CONSISTENT TABLE STYLES
-       ============================================ */
-    .table {
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-    
-    .table thead th {
-        background-color: #f8f9fa;
-        border-bottom: 2px solid #dee2e6;
-        font-weight: 600;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.025em;
-        color: #495057;
-        padding: 0.75rem 0.5rem;
-        white-space: nowrap;
-    }
-    
-    .table tbody tr {
-        transition: background-color 0.15s ease-in-out;
-    }
-    
-    .table tbody tr:hover {
-        background-color: rgba(13, 110, 253, 0.04);
-    }
-    
-    .table td {
-        vertical-align: middle;
-        padding: 0.75rem 0.5rem;
-    }
-    
-    /* ============================================
-       CONSISTENT PAGINATION STYLES
-       ============================================ */
-    .card-footer {
-        border-top: 1px solid #dee2e6;
-    }
-    
-    .pagination {
-        margin: 0;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        gap: 2px;
-    }
-    
-    .pagination .page-item .page-link {
-        border-radius: 6px;
-        border: 1px solid #dee2e6;
-        padding: 0.375rem 0.75rem;
-        font-size: 0.875rem;
-        color: #495057;
-        background-color: #fff;
-        transition: all 0.15s ease;
-    }
-    
-    .pagination .page-item .page-link:hover {
-        background-color: #e9ecef;
-        border-color: #dee2e6;
-        color: #0d6efd;
-    }
-    
-    .pagination .page-item.active .page-link {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-        color: #fff;
-    }
-    
-    .pagination .page-item.disabled .page-link {
-        color: #6c757d;
-        background-color: #fff;
-        border-color: #dee2e6;
-        cursor: not-allowed;
-    }
-    
-    /* ============================================
-       CONSISTENT CARD STYLES
-       ============================================ */
-    .card {
-        border: 1px solid #e9ecef;
-        border-radius: 10px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-        transition: box-shadow 0.2s ease;
-    }
-    
-    .card:hover {
-        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    }
-    
-    .card-header {
-        background-color: #f8f9fa;
-        border-bottom: 1px solid #e9ecef;
-        padding: 1rem 1.25rem;
-    }
-    
-    .card-body {
-        padding: 1.25rem;
-    }
-    
-    .card-footer {
-        background-color: #f8f9fa;
-        border-top: 1px solid #e9ecef;
-        padding: 1rem 1.25rem;
-    }
-    
-    /* ============================================
-       STAT CARD ROW STYLES (Available for use)
-       ============================================ */
-    .stat-card-row {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
-    }
-    
-    .stat-card-row .stat-card {
-        min-height: 80px;
-        align-items: stretch;
-    }
-    
-    .stat-card {
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 16px;
-    }
-    
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    .stat-card .stat-card-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
-        flex-shrink: 0;
-    }
-    
-    .stat-card-primary .stat-card-icon { background: #e8f4fd; color: #0d6efd; }
-    .stat-card-success .stat-card-icon { background: #d1e7dd; color: #198754; }
-    .stat-card-info .stat-card-icon { background: #cff4fc; color: #0dcaf0; }
-    .stat-card-warning .stat-card-icon { background: #fff3cd; color: #ffc107; }
-    .stat-card-danger .stat-card-icon { background: #f8d7da; color: #dc3545; }
-    .stat-card-secondary .stat-card-icon { background: #e2e3e5; color: #6c757d; }
-    
-    .stat-card-content {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-    }
-    
-    .stat-card-label {
-        font-size: 13px;
-        color: #6c757d;
-        margin-bottom: 2px;
-    }
-    
-    .stat-card-value {
-        font-size: 24px;
-        font-weight: 700;
-        color: #212529;
-    }
-    
-    @media (max-width: 992px) {
-        .stat-card-row {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-    
-    @media (max-width: 576px) {
-        .stat-card-row {
-            grid-template-columns: 1fr;
-        }
-    }
 </style>
 @endpush
 
 @push('scripts')
 <script>
 let currentDeletePath = '';
+let selectedFiles = new Set();
 
 // Drag and drop
 const uploadArea = document.getElementById('uploadArea');
@@ -732,25 +514,32 @@ function uploadFiles(files) {
                 showSuccessModal(data.message);
                 setTimeout(() => location.reload(), 1500);
             } else {
-                showSuccessModal(data.message || 'Upload failed');
+                showErrorModal(data.message || 'Upload failed');
             }
         } catch (e) {
-            showSuccessModal('Upload failed');
+            showErrorModal('Upload failed');
         }
     };
     
     xhr.onerror = function() {
         progressDiv.style.display = 'none';
-        showSuccessModal('Upload failed: Network error');
+        showErrorModal('Upload failed: Network error');
     };
     
     xhr.send(formData);
 }
 
-// Show success modal (instead of alert)
+// Show success modal
 function showSuccessModal(message) {
     document.getElementById('successMessage').textContent = message;
     const modal = new bootstrap.Modal(document.getElementById('successModal'));
+    modal.show();
+}
+
+// Show error modal
+function showErrorModal(message) {
+    document.getElementById('errorMessage').textContent = message;
+    const modal = new bootstrap.Modal(document.getElementById('errorModal'));
     modal.show();
 }
 
@@ -767,7 +556,6 @@ function viewFile(path) {
                 document.getElementById('modalType').textContent = file.extension.toUpperCase();
                 document.getElementById('modalUrl').value = file.url;
                 
-                // Show dimensions for images
                 const dimensionsContainer = document.getElementById('dimensionsContainer');
                 if (file.dimensions) {
                     dimensionsContainer.style.display = 'block';
@@ -776,7 +564,6 @@ function viewFile(path) {
                     dimensionsContainer.style.display = 'none';
                 }
                 
-                // Show/hide image preview based on file type
                 const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
                 const isImage = imageExtensions.includes(file.extension.toLowerCase());
                 
@@ -805,6 +592,8 @@ function viewFile(path) {
 function copyUrl(url) {
     navigator.clipboard.writeText(window.location.origin + url).then(() => {
         showSuccessModal('URL copied to clipboard');
+    }).catch(() => {
+        showErrorModal('Failed to copy URL');
     });
 }
 
@@ -844,10 +633,96 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', function()
                 showSuccessModal(data.message);
                 setTimeout(() => location.reload(), 1500);
             } else {
-                showSuccessModal(data.message || 'Delete failed');
+                showErrorModal(data.message || 'Delete failed');
             }
+        })
+        .catch(() => {
+            showErrorModal('Delete failed: Network error');
         });
     }
 });
+
+// Bulk selection functionality
+function toggleSelection(checkbox) {
+    const mediaItem = checkbox.closest('.media-item');
+    const path = checkbox.value;
+    
+    if (checkbox.checked) {
+        selectedFiles.add(path);
+        mediaItem.classList.add('selected');
+    } else {
+        selectedFiles.delete(path);
+        mediaItem.classList.remove('selected');
+    }
+    
+    updateBulkActions();
+}
+
+function selectAll() {
+    const checkboxes = document.querySelectorAll('.media-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+        selectedFiles.add(checkbox.value);
+        checkbox.closest('.media-item').classList.add('selected');
+    });
+    updateBulkActions();
+}
+
+function clearSelection() {
+    const checkboxes = document.querySelectorAll('.media-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+        checkbox.closest('.media-item').classList.remove('selected');
+    });
+    selectedFiles.clear();
+    updateBulkActions();
+}
+
+function updateBulkActions() {
+    const count = selectedFiles.size;
+    document.getElementById('selectedCount').textContent = count;
+    document.getElementById('bulkActionsBar').style.display = count > 0 ? 'block' : 'none';
+}
+
+function bulkDelete() {
+    if (selectedFiles.size === 0) {
+        showErrorModal('Please select at least one file to delete.');
+        return;
+    }
+    
+    if (!confirm(`Are you sure you want to delete ${selectedFiles.size} file(s)? This action cannot be undone.`)) {
+        return;
+    }
+    
+    const paths = Array.from(selectedFiles);
+    let deletePromises = paths.map(path => {
+        return fetch('{{ route("admin.media.destroy") }}', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ path: path })
+        }).then(response => response.json());
+    });
+    
+    Promise.all(deletePromises)
+        .then(results => {
+            const successCount = results.filter(r => r.success).length;
+            const errorCount = results.length - successCount;
+            
+            if (errorCount === 0) {
+                showSuccessModal(`${successCount} file(s) deleted successfully.`);
+            } else {
+                showSuccessModal(`${successCount} file(s) deleted. ${errorCount} failed.`);
+            }
+            
+            clearSelection();
+            setTimeout(() => location.reload(), 1500);
+        })
+        .catch(() => {
+            showErrorModal('Bulk delete failed: Network error');
+        });
+}
 </script>
 @endpush

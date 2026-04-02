@@ -170,6 +170,11 @@ class Notification extends Model
      */
     public static function notifyUser($user, $type, $title, $message, $link = null, $data = null)
     {
+        $preferenceKey = self::getPreferenceKeyForType($type);
+        if ($preferenceKey && !self::isNotificationEnabled($user, 'push', $preferenceKey)) {
+            return null;
+        }
+
         return self::create([
             'type' => $type,
             'title' => $title,
@@ -181,6 +186,38 @@ class Notification extends Model
             'is_read' => false,
             'data' => $data,
         ]);
+    }
+
+    /**
+     * Map notification type to preference key.
+     */
+    protected static function getPreferenceKeyForType($type)
+    {
+        $mapping = [
+            'order' => 'order_updates',
+            'review' => 'new_products',
+            'stock' => 'order_updates',
+            'refund' => 'order_updates',
+            'customer' => 'promotional',
+            'support' => 'new_products',
+            'system' => 'promotional',
+            'product' => 'new_products',
+        ];
+
+        return $mapping[$type] ?? null;
+    }
+
+    /**
+     * Check if notification is enabled for user.
+     */
+    protected static function isNotificationEnabled($user, $type, $key)
+    {
+        $preference = UserNotificationPreference::where('user_id', $user->id)
+            ->where('type', $type)
+            ->where('key', $key)
+            ->first();
+
+        return $preference ? $preference->enabled : true;
     }
 
     /**

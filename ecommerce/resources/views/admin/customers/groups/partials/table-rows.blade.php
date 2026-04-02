@@ -28,18 +28,18 @@
         @endif
     </td>
     <td>
-        <div class="btn-group btn-group-sm">
-            <a href="{{ route('admin.customers.groups.edit', $customerGroup->id) }}" class="btn btn-outline-primary" title="Edit">
+        <div class="btn-group">
+            <a href="{{ route('admin.customers.groups.edit', $customerGroup->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                 <i class="bi bi-pencil"></i>
             </a>
             <form action="{{ route('admin.customers.groups.toggle-status', $customerGroup->id) }}" method="POST" class="d-inline">
                 @csrf
                 @method('POST')
-                <button type="submit" class="btn btn-outline-{{ $customerGroup->is_active ? 'warning' : 'success' }}" title="{{ $customerGroup->is_active ? 'Deactivate' : 'Activate' }}">
+                <button type="submit" class="btn btn-sm btn-outline-{{ $customerGroup->is_active ? 'warning' : 'success' }}" title="{{ $customerGroup->is_active ? 'Deactivate' : 'Activate' }}">
                     <i class="bi bi-{{ $customerGroup->is_active ? 'pause-fill' : 'play-fill' }}"></i>
                 </button>
             </form>
-            <button type="button" class="btn btn-outline-danger" title="Delete" onclick="confirmDelete('delete-form-{{ $customerGroup->id }}')">
+            <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" onclick="confirmDelete('delete-form-{{ $customerGroup->id }}')">
                 <i class="bi bi-trash"></i>
             </button>
             <form id="delete-form-{{ $customerGroup->id }}" action="{{ route('admin.customers.groups.destroy', $customerGroup->id) }}" method="POST" class="d-none">

@@ -68,6 +68,9 @@
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
                         <input type="text" name="search" id="liveSearch" class="form-control" placeholder="Search products..." value="{{ request('search') }}">
+                        <span class="input-group-text" id="searchSpinner" style="display: none;">
+                            <div class="spinner-border spinner-border-sm"></div>
+                        </span>
                     </div>
                 </div>
                 
@@ -86,7 +89,7 @@
                     <label class="form-label small text-muted">Category</label>
                     <select name="category" id="filterCategory" class="form-select form-select-sm">
                         <option value="">All Categories</option>
-                        @foreach(\App\Models\AffiliateCategory::where('status', 'active')->get() as $cat)
+                        @foreach($affiliateCategories as $cat)
                         <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                         @endforeach
                     </select>
@@ -94,8 +97,8 @@
                 
                 <!-- Clear Filters -->
                 <div class="col-lg-2 col-md-3 col-sm-6">
-                    <a href="{{ route('admin.affiliate.products.index') }}" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-x-circle me-1"></i>Clear
+                    <a href="{{ route('admin.affiliate.products.index') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-lg me-1"></i> Reset
                     </a>
                 </div>
             </div>
@@ -103,7 +106,6 @@
     </div>
 </div>
 
-@if($products->count() > 0)
 <!-- Table Card -->
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
@@ -127,18 +129,31 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    @foreach($products as $product)
-                    <tr>
+                    @forelse($products as $product)
+                    @php
+                        $search = request('search');
+                        $isMatch = $search && (
+                            stripos($product->name, $search) !== false || 
+                            stripos($product->description ?? '', $search) !== false
+                        );
+                    @endphp
+                    <tr class="{{ $isMatch ? 'table-warning' : '' }}">
                         <td>
                             <input type="checkbox" class="form-check-input row-checkbox" value="{{ $product->id }}">
                         </td>
                         <td>{{ $product->id }}</td>
                         <td>
-                            @if($product->image)
-                            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                            @php
+                                $imageUrl = $product->image;
+                                if($imageUrl && !str_starts_with($imageUrl, '/storage/') && !str_starts_with($imageUrl, 'http')) {
+                                    $imageUrl = '/storage/' . $imageUrl;
+                                }
+                            @endphp
+                            @if($imageUrl)
+                            <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
                             @else
-                            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                <i class="bi bi-box text-muted"></i>
+                            <div class="bg-secondary rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="bi bi-image text-white"></i>
                             </div>
                             @endif
                         </td>
@@ -162,79 +177,144 @@
                             @endif
                         </td>
                         <td>
-                            <a href="{{ route('admin.affiliate.products.show', $product->id) }}" class="btn btn-sm btn-outline-info" title="View">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            <a href="{{ route('admin.affiliate.products.edit', $product->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <form action="{{ route('admin.affiliate.products.destroy', $product->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this product?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+                            <div class="d-flex gap-1">
+                                <a href="{{ route('admin.affiliate.products.show', $product->id) }}" class="btn btn-sm btn-outline-info" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ route('admin.affiliate.products.edit', $product->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form action="{{ route('admin.affiliate.products.destroy', $product->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this product?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="11" class="text-center py-5">
+                            <i class="bi bi-folder text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mb-2 mt-2">No products found</p>
+                            <a href="{{ route('admin.affiliate.products.create') }}" class="btn btn-sm btn-primary mt-1">
+                                <i class="bi bi-plus-lg me-1"></i> Add First Product
+                            </a>
+                        </td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
+        
+        <!-- Pagination inside card-body -->
+        @if($products->hasPages())
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="text-muted small">
+                Showing {{ $products->firstItem() }} - {{ $products->lastItem() }} of {{ $products->total() }} items
+            </div>
+            <div>
+                {{ $products->appends(request()->query())->links() }}
+            </div>
+        </div>
+        @endif
     </div>
 </div>
-
-<!-- Pagination -->
-<div class="d-flex justify-content-center mt-4">
-    {{ $products->links() }}
-</div>
-@else
-<!-- Empty State -->
-<div class="card border-0 shadow-sm">
-    <div class="card-body text-center py-5">
-        <i class="bi bi-box text-muted" style="font-size: 4rem;"></i>
-        <h5 class="mt-3 text-muted">No products found</h5>
-        <p class="text-muted">Start by creating a new affiliate product.</p>
-        <a href="{{ route('admin.affiliate.products.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-2"></i>Add New Product
-        </a>
-    </div>
-</div>
-@endif
 @endsection
 
 @push('scripts')
 <script>
-    $(document).ready(function() {
-        // Initialize DataTable only if table has data
-        if ($('#affiliateProductsTable').length > 0) {
-            $('#affiliateProductsTable').DataTable({
-                pageLength: 15,
-                order: [[1, 'desc']],
-                columnDefs: [
-                    { orderable: false, targets: [0, 2, 10] }
-                ]
+    document.addEventListener('DOMContentLoaded', function() {
+        // Select all checkbox
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                document.querySelectorAll('.row-checkbox').forEach(function(checkbox) {
+                    checkbox.checked = this.checked;
+                }.bind(this));
             });
         }
         
-        // Select all checkbox
-        $('#selectAllCheckbox').on('change', function() {
-            $('.row-checkbox').prop('checked', $(this).prop('checked'));
-        });
-        
-        // Filter form submission
-        $('#filterForm').on('change', 'select', function() {
-            $('#filterForm').submit();
-        });
-        
-        // Live search with debounce
+        // Debounced live search
         let searchTimeout;
-        $('#liveSearch').on('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(function() {
-                $('#filterForm').submit();
-            }, 500);
+        const searchInput = document.getElementById('liveSearch');
+        const searchSpinner = document.getElementById('searchSpinner');
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const searchTerm = this.value.trim();
+                
+                // Show spinner
+                if (searchSpinner) searchSpinner.style.display = 'block';
+                
+                // Debounce - wait 300ms after user stops typing
+                searchTimeout = setTimeout(() => {
+                    performLiveSearch(searchTerm);
+                }, 300);
+            });
+        }
+        
+        // Filter dropdowns trigger search on change
+        const filterSelects = ['filterStatus', 'filterCategory'];
+        filterSelects.forEach(function(id) {
+            const select = document.getElementById(id);
+            if (select) {
+                select.addEventListener('change', function() {
+                    performLiveSearch(searchInput ? searchInput.value.trim() : '');
+                });
+            }
         });
+        
+        // Live search function
+        function performLiveSearch(searchTerm) {
+            const params = new URLSearchParams();
+            
+            if (searchTerm) params.set('search', searchTerm);
+            
+            // Add filter values
+            const status = document.getElementById('filterStatus');
+            if (status && status.value) params.set('status', status.value);
+            
+            const category = document.getElementById('filterCategory');
+            if (category && category.value) params.set('category', category.value);
+            
+            // Keep existing sort and per_page
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('sort')) params.set('sort', urlParams.get('sort'));
+            if (urlParams.get('per_page')) params.set('per_page', urlParams.get('per_page'));
+            
+            // AJAX request
+            fetch(`{{ route('admin.affiliate.products.index') }}?${params.toString()}&ajax=1`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (searchSpinner) searchSpinner.style.display = 'none';
+                
+                if (data.html) {
+                    // Update table body
+                    document.querySelector('#tableBody').innerHTML = data.html;
+                    
+                    // Update URL without reload
+                    const newUrl = `${window.location.pathname}?${params.toString()}`;
+                    window.history.pushState({}, '', newUrl);
+                } else {
+                    // Fallback: submit form normally
+                    document.getElementById('filterForm').submit();
+                }
+            })
+            .catch(() => {
+                if (searchSpinner) searchSpinner.style.display = 'none';
+                // Fallback: submit form normally
+                document.getElementById('filterForm').submit();
+            });
+        }
     });
 </script>
 @endpush

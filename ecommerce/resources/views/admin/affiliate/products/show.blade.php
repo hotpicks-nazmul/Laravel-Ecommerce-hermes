@@ -100,7 +100,13 @@
             </div>
             <div class="card-body text-center">
                 @if($product->image)
-                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="img-fluid rounded" style="max-width: 100%; max-height: 300px; object-fit: contain;">
+                @php
+                    $imageUrl = $product->image;
+                    if($imageUrl && !str_starts_with($imageUrl, '/storage/') && !str_starts_with($imageUrl, 'http')) {
+                        $imageUrl = '/storage/' . $imageUrl;
+                    }
+                @endphp
+                <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="img-fluid rounded" style="max-width: 100%; max-height: 300px; object-fit: contain;">
                 @else
                 <div class="bg-light rounded p-5">
                     <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>

@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\ImageHelper;
 use App\Models\PaymentGateway;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Validator;
 
@@ -58,8 +57,16 @@ class PaymentController extends Controller
 
         // Handle logo upload
         if ($request->hasFile('logo')) {
-            $path = $request->file('logo')->store('payment-logos', 'public');
-            $data['logo'] = $path;
+            if (ImageHelper::isValidImage($request->file('logo'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('logo'),
+                    'payment-logos',
+                    1920,
+                    300,
+                    85
+                );
+                $data['logo'] = ltrim($imageResult['path'], '/');
+            }
         }
 
         PaymentGateway::create($data);
@@ -94,10 +101,18 @@ class PaymentController extends Controller
         if ($request->hasFile('logo')) {
             // Delete old logo
             if ($gateway->logo) {
-                Storage::disk('public')->delete($gateway->logo);
+                ImageHelper::deleteImage($gateway->logo);
             }
-            $path = $request->file('logo')->store('payment-logos', 'public');
-            $data['logo'] = $path;
+            if (ImageHelper::isValidImage($request->file('logo'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('logo'),
+                    'payment-logos',
+                    1920,
+                    300,
+                    85
+                );
+                $data['logo'] = ltrim($imageResult['path'], '/');
+            }
         }
 
         $gateway->update($data);
@@ -150,7 +165,7 @@ class PaymentController extends Controller
 
         // Delete logo if exists
         if ($gateway->logo) {
-            Storage::disk('public')->delete($gateway->logo);
+            ImageHelper::deleteImage($gateway->logo);
         }
 
         $gateway->delete();

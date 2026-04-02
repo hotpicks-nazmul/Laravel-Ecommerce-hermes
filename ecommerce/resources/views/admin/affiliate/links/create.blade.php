@@ -78,6 +78,9 @@
                                 <label for="affiliate_code" class="form-label">Affiliate Code</label>
                                 <div class="input-group">
                                     <input type="text" class="form-control @error('affiliate_code') is-invalid @enderror" id="affiliate_code" name="affiliate_code" value="{{ old('affiliate_code') }}">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="generateCode()">
+                                        <i class="bi bi-arrow-repeat me-1"></i> Generate
+                                    </button>
                                 </div>
                                 @error('affiliate_code')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -149,3 +152,25 @@
     </button>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+    function generateCode() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let code = '';
+        for (let i = 0; i < 10; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        document.getElementById('affiliate_code').value = code;
+    }
+</script>
+@endpush

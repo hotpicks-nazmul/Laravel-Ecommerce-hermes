@@ -142,7 +142,7 @@
                                 <th class="text-center">Points Spent</th>
                                 <th class="text-center">Total Spent</th>
                                 <th class="text-center">Join Date</th>
-                                <th style="width: 180px;" class="text-center">Actions</th>
+                                 <th style="width: 120px;" class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
@@ -177,22 +177,22 @@
                                     <td class="text-center">
                                         <div class="small text-muted">{{ $customer->created_at->format('M d, Y') }}</div>
                                     </td>
-                                    <td class="text-center">
-                                        <div class="d-flex gap-1 justify-content-center">
-                                            <a href="{{ route('admin.customers.loyalty.show', $customer->id) }}" class="btn btn-sm btn-outline-primary" title="View Details">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-success" title="Add Points" data-bs-toggle="modal" data-bs-target="#addPointsModal{{ $customer->id }}">
-                                                <i class="bi bi-plus-circle"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" title="Deduct Points" data-bs-toggle="modal" data-bs-target="#deductPointsModal{{ $customer->id }}">
-                                                <i class="bi bi-dash-circle"></i>
-                                            </button>
-                                            <a href="{{ route('admin.customers.show', $customer->id) }}" class="btn btn-sm btn-outline-secondary" title="View Profile">
-                                                <i class="bi bi-person"></i>
-                                            </a>
-                                        </div>
-                                    </td>
+                                     <td class="text-center">
+                                         <div class="btn-group">
+                                             <a href="{{ route('admin.customers.loyalty.show', $customer->id) }}" class="btn btn-sm btn-outline-primary" title="View Details">
+                                                 <i class="bi bi-eye"></i>
+                                             </a>
+                                             <button class="btn btn-sm btn-outline-success" title="Add Points" data-bs-toggle="modal" data-bs-target="#addPointsModal{{ $customer->id }}">
+                                                 <i class="bi bi-plus-circle"></i>
+                                             </button>
+                                             <button class="btn btn-sm btn-outline-warning" title="Deduct Points" data-bs-toggle="modal" data-bs-target="#deductPointsModal{{ $customer->id }}">
+                                                 <i class="bi bi-dash-circle"></i>
+                                             </button>
+                                             <a href="{{ route('admin.customers.show', $customer->id) }}" class="btn btn-sm btn-outline-secondary" title="View Profile">
+                                                 <i class="bi bi-person"></i>
+                                             </a>
+                                         </div>
+                                     </td>
                                 </tr>
 
                                 <!-- Add Points Modal -->
@@ -358,37 +358,41 @@
             </div>
         </div>
         @endif
-
-        <style>
-        .avatar-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        </style>
-
-        <script>
-        // Auto-submit form on filter change
-        document.querySelectorAll('#filterForm select, #filterForm input[type="number"]').forEach(element => {
-            element.addEventListener('change', function() {
-                document.getElementById('filterForm').submit();
-            });
-        });
-
-        // Live search with debounce
-        let searchTimeout;
-        const searchInput = document.getElementById('liveSearch');
-
-        searchInput.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(function() {
-                document.getElementById('filterForm').submit();
-            }, 500);
-        });
-        </script>
 @endsection
+
+@push('styles')
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+</style>
+@endpush
+
+@push('scripts')
+<script>
+// Auto-submit form on filter change
+document.querySelectorAll('#filterForm select, #filterForm input[type="number"]').forEach(element => {
+    element.addEventListener('change', function() {
+        document.getElementById('filterForm').submit();
+    });
+});
+
+// Live search with debounce
+let searchTimeout;
+const searchInput = document.getElementById('liveSearch');
+
+searchInput.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(function() {
+        document.getElementById('filterForm').submit();
+    }, 500);
+});
+</script>
+@endpush

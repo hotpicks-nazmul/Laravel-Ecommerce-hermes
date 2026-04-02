@@ -9,28 +9,28 @@
         <div class="stat-card-icon"><i class="bi bi-collection"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Total Groups</span>
-            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
+            <span class="stat-card-value" id="stat-total">{{ number_format($stats['total'] ?? 0) }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-success">
         <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Active</span>
-            <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
+            <span class="stat-card-value" id="stat-active">{{ number_format($stats['active'] ?? 0) }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-secondary">
         <div class="stat-card-icon"><i class="bi bi-pause-circle"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Inactive</span>
-            <span class="stat-card-value">{{ number_format($stats['inactive'] ?? 0) }}</span>
+            <span class="stat-card-value" id="stat-inactive">{{ number_format($stats['inactive'] ?? 0) }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-info">
         <div class="stat-card-icon"><i class="bi bi-percent"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">With Discount</span>
-            <span class="stat-card-value">{{ number_format($stats['with_discount'] ?? 0) }}</span>
+            <span class="stat-card-value" id="stat-with-discount">{{ number_format($stats['with_discount'] ?? 0) }}</span>
         </div>
     </div>
 </div>
@@ -207,9 +207,7 @@
     // Filter change events
     document.getElementById('filterStatus')?.addEventListener('change', fetchResults);
     document.getElementById('filterSort')?.addEventListener('change', fetchResults);
-    document.getElementById('perPage')?.addEventListener('change', () => {
-        filterForm.submit();
-    });
+    document.getElementById('perPage')?.addEventListener('change', fetchResults);
 
     // Delete confirmation
     function confirmDelete(formId) {

@@ -207,6 +207,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the notifications for this user.
+     */
+    public function notifications()
+    {
+        return $this->morphMany(\App\Models\Notification::class, 'notifiable');
+    }
+
+    /**
      * Get the customer group this user belongs to
      */
     public function customerGroup()

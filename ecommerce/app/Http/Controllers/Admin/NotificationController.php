@@ -69,24 +69,6 @@ class NotificationController extends Controller
     }
 
     /**
-     * Get recent unread notifications for the dropdown.
-     */
-    public function recent()
-    {
-        $notifications = Notification::forAdmin()
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
-
-        $unreadCount = Notification::forAdmin()->unread()->count();
-
-        return response()->json([
-            'notifications' => $notifications,
-            'unread_count' => $unreadCount,
-        ]);
-    }
-
-    /**
      * Mark a notification as read.
      */
     public function markAsRead($id)
@@ -133,16 +115,27 @@ class NotificationController extends Controller
     }
 
     /**
-     * Delete a notification.
+     * Get recent unread notifications for the dropdown.
      */
-    public function destroy($id)
+    public function recent(Request $request)
     {
-        $notification = Notification::forAdmin()->findOrFail($id);
-        $notification->delete();
+        $page = $request->get('page', 1);
+        $perPage = 10;
+
+        $notifications = Notification::forAdmin()
+            ->orderBy('created_at', 'desc')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+
+        $total = Notification::forAdmin()->count();
+        $unreadCount = Notification::forAdmin()->unread()->count();
 
         return response()->json([
-            'success' => true,
-            'unread_count' => Notification::forAdmin()->unread()->count(),
+            'notifications' => $notifications,
+            'unread_count' => $unreadCount,
+            'has_more' => $page * $perPage < $total,
+            'current_page' => $page,
         ]);
     }
 

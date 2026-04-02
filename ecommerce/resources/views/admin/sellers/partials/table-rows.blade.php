@@ -1,14 +1,42 @@
 @forelse($sellers as $seller)
-<tr>
+@php
+    $search = request('search');
+    $isMatch = $search && (
+        stripos($seller->name, $search) !== false ||
+        stripos($seller->email, $search) !== false ||
+        stripos($seller->shop_name, $search) !== false
+    );
+@endphp
+<tr class="{{ $isMatch ? 'table-warning' : '' }}">
     <td>
         <input type="checkbox" class="form-check-input seller-checkbox" value="{{ $seller->id }}">
     </td>
     <td>
         <div class="d-flex align-items-center">
-            @if($seller->shop_logo && file_exists(public_path('uploads/shop_logos/' . $seller->shop_logo)))
-                <img src="{{ asset('uploads/shop_logos/' . $seller->shop_logo) }}" alt="{{ $seller->shop_name ?? $seller->name }}" class="shop-logo-thumb me-2">
-            @elseif($seller->avatar && file_exists(public_path('uploads/avatars/' . $seller->avatar)))
-                <img src="{{ asset('uploads/avatars/' . $seller->avatar) }}" alt="{{ $seller->name }}" class="seller-avatar me-2">
+            @if($seller->shop_logo)
+                @php
+                    $logoUrl = $seller->shop_logo;
+                    if($logoUrl && !str_starts_with($logoUrl, '/storage/') && !str_starts_with($logoUrl, 'http')) {
+                        $logoUrl = '/storage/uploads/shop_logos/' . $logoUrl;
+                    }
+                @endphp
+                @if(file_exists(public_path('uploads/shop_logos/' . $seller->shop_logo)))
+                    <img src="{{ asset('uploads/shop_logos/' . $seller->shop_logo) }}" alt="{{ $seller->shop_name ?? $seller->name }}" class="shop-logo-thumb me-2">
+                @else
+                    <img src="{{ $logoUrl }}" alt="{{ $seller->shop_name ?? $seller->name }}" class="shop-logo-thumb me-2">
+                @endif
+            @elseif($seller->avatar)
+                @php
+                    $avatarUrl = $seller->avatar;
+                    if($avatarUrl && !str_starts_with($avatarUrl, '/storage/') && !str_starts_with($avatarUrl, 'http')) {
+                        $avatarUrl = '/storage/uploads/avatars/' . $avatarUrl;
+                    }
+                @endphp
+                @if(file_exists(public_path('uploads/avatars/' . $seller->avatar)))
+                    <img src="{{ asset('uploads/avatars/' . $seller->avatar) }}" alt="{{ $seller->name }}" class="seller-avatar me-2">
+                @else
+                    <img src="{{ $avatarUrl }}" alt="{{ $seller->name }}" class="seller-avatar me-2">
+                @endif
             @else
                 <div class="seller-avatar me-2 bg-light d-flex align-items-center justify-content-center">
                     <i class="bi bi-person text-muted"></i>
@@ -27,7 +55,7 @@
         @if($seller->shop_name)
             <div class="fw-medium">{{ $seller->shop_name }}</div>
             <div class="small text-muted">
-                <span class="badge bg-{{ $seller->seller_type === 'company' ? 'primary' : '-secondary' }}">
+                <span class="badge bg-{{ $seller->seller_type === 'company' ? 'primary' : 'secondary' }}">
                     {{ ucfirst($seller->seller_type) }}
                 </span>
             </div>

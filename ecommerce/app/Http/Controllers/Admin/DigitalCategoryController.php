@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\DigitalCategory;
+use App\Helpers\ImageHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
@@ -137,10 +137,17 @@ class DigitalCategoryController extends Controller
         // Handle image upload
         if ($request->hasFile('image')) {
             try {
-                $image = $request->file('image');
-                $imageName = Str::random(40) . '.' . $image->getClientOriginalExtension();
-                $image->storeAs('public/digital-categories', $imageName);
-                $data['image'] = 'digital-categories/' . $imageName;
+                if (ImageHelper::isValidImage($request->file('image'))) {
+                    $imageResult = ImageHelper::processImage(
+                        $request->file('image'),
+                        'digital-categories',
+                        1920,
+                        300,
+                        85
+                    );
+                    $data['image'] = ltrim($imageResult['path'], '/');
+                    $data['thumbnail'] = isset($imageResult['thumbnail']) ? ltrim($imageResult['thumbnail'], '/') : null;
+                }
             } catch (\Exception $e) {
                 Log::error('Digital category image upload failed: ' . $e->getMessage());
                 return back()->withInput()->with('error', 'Failed to upload image. Please try again.');
@@ -198,15 +205,21 @@ class DigitalCategoryController extends Controller
         // Handle image upload
         if ($request->hasFile('image')) {
             try {
-                // Delete old image
-                if ($digitalCategory->image) {
-                    Storage::delete('public/' . $digitalCategory->image);
+                if (ImageHelper::isValidImage($request->file('image'))) {
+                    // Delete old image
+                    if ($digitalCategory->image) {
+                        ImageHelper::deleteImage($digitalCategory->image, $digitalCategory->thumbnail ?? null);
+                    }
+                    $imageResult = ImageHelper::processImage(
+                        $request->file('image'),
+                        'digital-categories',
+                        1920,
+                        300,
+                        85
+                    );
+                    $data['image'] = ltrim($imageResult['path'], '/');
+                    $data['thumbnail'] = isset($imageResult['thumbnail']) ? ltrim($imageResult['thumbnail'], '/') : null;
                 }
-                
-                $image = $request->file('image');
-                $imageName = Str::random(40) . '.' . $image->getClientOriginalExtension();
-                $image->storeAs('public/digital-categories', $imageName);
-                $data['image'] = 'digital-categories/' . $imageName;
             } catch (\Exception $e) {
                 Log::error('Digital category image update failed: ' . $e->getMessage());
                 return back()->withInput()->with('error', 'Failed to update image. Please try again.');
@@ -237,7 +250,7 @@ class DigitalCategoryController extends Controller
 
         // Delete image
         if ($digitalCategory->image) {
-            Storage::delete('public/' . $digitalCategory->image);
+            ImageHelper::deleteImage($digitalCategory->image, $digitalCategory->thumbnail ?? null);
         }
 
         $digitalCategory->delete();

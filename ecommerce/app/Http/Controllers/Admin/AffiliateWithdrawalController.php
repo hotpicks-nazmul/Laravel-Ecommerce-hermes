@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AffiliateWithdrawal;
 use App\Models\Affiliate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AffiliateWithdrawalController extends Controller
 {
@@ -13,23 +14,33 @@ class AffiliateWithdrawalController extends Controller
      * Display list of affiliate withdrawals
      * 
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View|\Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
     {
         $search = $request->get('search');
+        $status = $request->get('status');
+        $perPage = $request->get('per_page', 15);
         
-        $withdrawals = AffiliateWithdrawal::with('affiliate.user')
-            ->when($search, function ($query) use ($search) {
-                $query->whereHas('affiliate.user', function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
-                })
-                ->orWhere('id', 'like', "%{$search}%")
-                ->orWhere('amount', 'like', "%{$search}%");
+        $query = AffiliateWithdrawal::with('affiliate.user');
+        
+        // Search filter
+        $query->when($search, function ($q) use ($search) {
+            $q->whereHas('affiliate.user', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
             })
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->orWhere('id', 'like', "%{$search}%")
+            ->orWhere('amount', 'like', "%{$search}%");
+        });
+        
+        // Status filter
+        $query->when($status, function ($q) use ($status) {
+            $q->where('status', $status);
+        });
+        
+        $withdrawals = $query->orderBy('created_at', 'desc')
+            ->paginate($perPage);
         
         // Statistics for stat cards
         $stats = [
@@ -40,6 +51,14 @@ class AffiliateWithdrawalController extends Controller
             'total_amount' => AffiliateWithdrawal::where('status', 'approved')->sum('amount'),
             'pending_amount' => AffiliateWithdrawal::where('status', 'pending')->sum('amount'),
         ];
+        
+        // AJAX response for live search
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('admin.affiliate.withdrawals.partials.withdrawal-rows', compact('withdrawals'))->render(),
+                'stats' => $stats,
+            ]);
+        }
         
         return view('admin.affiliate.withdrawals.index', compact('withdrawals', 'search', 'stats'));
     }
@@ -72,7 +91,7 @@ class AffiliateWithdrawalController extends Controller
             return redirect()->back()->with('error', 'Only pending withdrawals can be approved.');
         }
 
-        \DB::transaction(function () use ($withdrawal) {
+        DB::transaction(function () use ($withdrawal) {
             $withdrawal->update([
                 'status' => 'approved',
                 'processed_at' => now(),
@@ -100,7 +119,7 @@ class AffiliateWithdrawalController extends Controller
             return redirect()->back()->with('error', 'Only pending withdrawals can be rejected.');
         }
 
-        \DB::transaction(function () use ($withdrawal) {
+        DB::transaction(function () use ($withdrawal) {
             $withdrawal->update([
                 'status' => 'rejected',
                 'processed_at' => now(),
@@ -137,7 +156,7 @@ class AffiliateWithdrawalController extends Controller
             return redirect()->back()->with('error', 'No pending withdrawals selected.');
         }
         
-        \DB::transaction(function () use ($withdrawals, $action) {
+        DB::transaction(function () use ($withdrawals, $action) {
             foreach ($withdrawals as $withdrawal) {
                 if ($action === 'approve') {
                     $withdrawal->update([

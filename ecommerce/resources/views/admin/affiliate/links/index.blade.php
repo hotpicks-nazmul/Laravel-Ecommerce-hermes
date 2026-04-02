@@ -4,33 +4,41 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="stat-card-row mb-4">
-    <div class="stat-card stat-card-primary">
-        <div class="stat-card-icon"><i class="bi bi-link"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">Total Links</span>
-            <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
+<div class="row g-3 mb-4">
+    <div class="col">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-card-icon"><i class="bi bi-link"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Links</span>
+                <span class="stat-card-value">{{ number_format($stats['total'] ?? 0) }}</span>
+            </div>
         </div>
     </div>
-    <div class="stat-card stat-card-success">
-        <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">Active</span>
-            <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
+    <div class="col">
+        <div class="stat-card stat-card-success">
+            <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Active</span>
+                <span class="stat-card-value">{{ number_format($stats['active'] ?? 0) }}</span>
+            </div>
         </div>
     </div>
-    <div class="stat-card stat-card-info">
-        <div class="stat-card-icon"><i class="bi bi-cursor"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">Total Clicks</span>
-            <span class="stat-card-value">{{ number_format($stats['total_clicks'] ?? 0) }}</span>
+    <div class="col">
+        <div class="stat-card stat-card-info">
+            <div class="stat-card-icon"><i class="bi bi-cursor"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Total Clicks</span>
+                <span class="stat-card-value">{{ number_format($stats['total_clicks'] ?? 0) }}</span>
+            </div>
         </div>
     </div>
-    <div class="stat-card stat-card-warning">
-        <div class="stat-card-icon"><i class="bi bi-graph-up"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">Conversions</span>
-            <span class="stat-card-value">{{ number_format($stats['total_conversions'] ?? 0) }}</span>
+    <div class="col">
+        <div class="stat-card stat-card-warning">
+            <div class="stat-card-icon"><i class="bi bi-graph-up"></i></div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Conversions</span>
+                <span class="stat-card-value">{{ number_format($stats['total_conversions'] ?? 0) }}</span>
+            </div>
         </div>
     </div>
 </div>
@@ -52,6 +60,9 @@
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
                         <input type="text" name="search" id="liveSearch" class="form-control" placeholder="Search links..." value="{{ request('search') }}">
+                        <span class="input-group-text" id="searchSpinner" style="display: none;">
+                            <div class="spinner-border spinner-border-sm"></div>
+                        </span>
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-3 col-sm-4">
@@ -96,89 +107,98 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 60px;">ID</th>
-                        <th>Link Name</th>
+                        <th style="width: 60px;">
+                            <a href="{{ route('admin.affiliate.links.index', array_merge(request()->query(), ['sort' => 'id', 'direction' => request('sort') == 'id' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                ID
+                                @if(request('sort') == 'id')
+                                    <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
+                                @endif
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ route('admin.affiliate.links.index', array_merge(request()->query(), ['sort' => 'name', 'direction' => request('sort') == 'name' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Link Name
+                                @if(request('sort') == 'name')
+                                    <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
+                                @endif
+                            </a>
+                        </th>
                         <th>Affiliate</th>
                         <th>Product</th>
                         <th style="width: 200px;">Code</th>
-                        <th style="width: 80px;">Clicks</th>
-                        <th style="width: 100px;">Conversions</th>
+                        <th style="width: 80px;">
+                            <a href="{{ route('admin.affiliate.links.index', array_merge(request()->query(), ['sort' => 'clicks', 'direction' => request('sort') == 'clicks' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Clicks
+                                @if(request('sort') == 'clicks')
+                                    <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
+                                @endif
+                            </a>
+                        </th>
+                        <th style="width: 100px;">
+                            <a href="{{ route('admin.affiliate.links.index', array_merge(request()->query(), ['sort' => 'conversions', 'direction' => request('sort') == 'conversions' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                Conversions
+                                @if(request('sort') == 'conversions')
+                                    <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
+                                @endif
+                            </a>
+                        </th>
                         <th style="width: 90px;">Status</th>
                         <th style="width: 120px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    @if($links->count() > 0)
-                        @foreach($links as $link)
-                        <tr>
-                            <td>{{ $link->id }}</td>
-                            <td>
-                                <div class="fw-semibold">{{ $link->name }}</div>
-                                @if($link->description)
-                                <small class="text-muted">{{ Str::limit($link->description, 50) }}</small>
-                                @endif
-                            </td>
-                            <td>{{ $link->affiliate->user->name ?? '-' }}</td>
-                            <td>{{ $link->product->name ?? '-' }}</td>
-                            <td>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control form-control-sm" value="{{ $link->full_url }}" readonly id="link{{ $link->id }}">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="copyLink('link{{ $link->id }}')">
-                                        <i class="bi bi-clipboard"></i>
-                                    </button>
-                                </div>
-                            </td>
-                            <td class="text-center">{{ number_format($link->clicks) }}</td>
-                            <td class="text-center">{{ number_format($link->conversions) }}</td>
-                            <td>
-                                @if($link->status === 'active')
-                                <span class="badge bg-success">Active</span>
-                                @else
-                                <span class="badge bg-danger">Inactive</span>
-                                @endif
-                            </td>
-                            <td>
-                                <a href="{{ route('admin.affiliate.links.edit', $link->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form action="{{ route('admin.affiliate.links.destroy', $link->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this link?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        @endforeach
-                    @else
-                    <tr>
-                        <td colspan="9" class="text-center py-5">
-                            <i class="bi bi-link text-muted" style="font-size: 3rem;"></i>
-                            <p class="text-muted mb-2 mt-2">No affiliate links found</p>
-                            <a href="{{ route('admin.affiliate.links.create') }}" class="btn btn-sm btn-primary mt-1">
-                                <i class="bi bi-plus-lg me-1"></i> Add First Link
-                            </a>
-                        </td>
-                    </tr>
-                    @endif
+                    @include('admin.affiliate.links.partials.link-rows')
                 </tbody>
             </table>
         </div>
         
         @if($links->hasPages())
         <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div class="text-muted small">
-                Showing {{ $links->firstItem() ?? 0 }} - {{ $links->lastItem() ?? 0 }} of {{ $links->total() }} links
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">Show:</span>
+                <select class="form-select form-select-sm" style="width: auto;" onchange="changePerPage(this.value)">
+                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                    <option value="15" {{ request('per_page') == 15 || !request('per_page') ? 'selected' : '' }}>15</option>
+                    <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                </select>
+                <span class="text-muted small">per page</span>
             </div>
             <div>
                 {{ $links->appends(request()->query())->links() }}
+            </div>
+            <div class="text-muted small">
+                Showing {{ $links->firstItem() ?? 0 }} - {{ $links->lastItem() ?? 0 }} of {{ $links->total() }} links
             </div>
         </div>
         @endif
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Force Bootstrap Icons to display */
+    .stat-card-icon i,
+    .stat-card-icon i::before,
+    .bi::before,
+    [class*="bi bi-"]::before {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-family: 'bootstrap-icons' !important;
+    }
+    
+    /* Override icon colors for stat cards */
+    .stat-card-primary .stat-card-icon i::before { color: #0d6efd !important; }
+    .stat-card-success .stat-card-icon i::before { color: #198754 !important; }
+    .stat-card-info .stat-card-icon i::before { color: #0dcaf0 !important; }
+    .stat-card-warning .stat-card-icon i::before { color: #ffc107 !important; }
+    
+    /* Make the whole icon colored */
+    .stat-card-icon i { color: inherit !important; }
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -197,17 +217,71 @@
         setTimeout(() => toast.remove(), 3000);
     }
 
-    // Live search functionality
+    // Change per page
+    function changePerPage(value) {
+        const params = new URLSearchParams(window.location.search);
+        params.set('per_page', value);
+        window.location.href = '{{ route('admin.affiliate.links.index') }}?' + params.toString();
+    }
+
+    // Live Search
     let searchTimeout;
     const searchInput = document.getElementById('liveSearch');
+    const searchSpinner = document.getElementById('searchSpinner');
     const filterForm = document.getElementById('filterForm');
 
     if (searchInput) {
         searchInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(function() {
-                filterForm.submit();
+            const searchTerm = this.value.trim();
+            searchSpinner.style.display = 'block';
+            searchTimeout = setTimeout(() => {
+                performLiveSearch(searchTerm);
             }, 300);
+        });
+    }
+
+    // Filter dropdowns
+    const filterStatus = document.getElementById('filterStatus');
+    if (filterStatus) {
+        filterStatus.addEventListener('change', function() {
+            performLiveSearch(searchInput ? searchInput.value.trim() : '');
+        });
+    }
+
+    function performLiveSearch(searchTerm) {
+        const params = new URLSearchParams();
+        
+        if (searchTerm) params.set('search', searchTerm);
+        
+        const status = document.getElementById('filterStatus').value;
+        if (status) params.set('status', status);
+
+        // Keep existing sort and per_page
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('sort')) params.set('sort', urlParams.get('sort'));
+        if (urlParams.get('direction')) params.set('direction', urlParams.get('direction'));
+        if (urlParams.get('per_page')) params.set('per_page', urlParams.get('per_page'));
+        
+        fetch(`{{ route('admin.affiliate.links.index') }}?${params.toString()}&ajax=1`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            searchSpinner.style.display = 'none';
+            
+            if (data.html) {
+                document.querySelector('#tableBody').innerHTML = data.html;
+                const newUrl = `${window.location.pathname}?${params.toString()}`;
+                window.history.pushState({}, '', newUrl);
+            }
+        })
+        .catch(() => {
+            searchSpinner.style.display = 'none';
+            filterForm.submit();
         });
     }
 </script>

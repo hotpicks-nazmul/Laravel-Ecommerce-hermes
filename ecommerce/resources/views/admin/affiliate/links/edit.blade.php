@@ -181,11 +181,27 @@
     <a href="{{ route('admin.affiliate.links.index') }}" class="btn btn-secondary floating-reset-btn">
         <i class="bi bi-x-lg me-1"></i> Cancel
     </a>
+    <form action="{{ route('admin.affiliate.links.destroy', $link->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this link?')">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-outline-danger floating-reset-btn">
+            <i class="bi bi-trash me-1"></i> Delete
+        </button>
+    </form>
     <button type="submit" form="itemForm" class="btn btn-primary floating-save-btn">
         <i class="bi bi-check-lg me-1"></i> Update Link
     </button>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>

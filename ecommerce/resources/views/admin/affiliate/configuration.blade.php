@@ -41,45 +41,63 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Enable Affiliate System</label>
-                            <select class="form-select" name="affiliate_enabled" form="settingsForm">
+                            <select class="form-select @error('affiliate_enabled') is-invalid @enderror" name="affiliate_enabled" form="settingsForm">
                                 <option value="1" {{ $settings['affiliate_enabled'] ? 'selected' : '' }}>Yes</option>
                                 <option value="0" {{ !$settings['affiliate_enabled'] ? 'selected' : '' }}>No</option>
                             </select>
+                            @error('affiliate_enabled')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Default Commission Rate (%) <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="default_commission_rate" form="settingsForm" step="0.01" min="0" max="100" value="{{ $settings['default_commission_rate'] }}" required>
+                            <input type="number" class="form-control @error('default_commission_rate') is-invalid @enderror" name="default_commission_rate" form="settingsForm" step="0.01" min="0" max="100" value="{{ old('default_commission_rate', $settings['default_commission_rate']) }}" required>
+                            @error('default_commission_rate')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Minimum Withdrawal Amount ($) <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="min_withdrawal_amount" form="settingsForm" step="0.01" min="0" value="{{ $settings['min_withdrawal_amount'] }}" required>
+                            <input type="number" class="form-control @error('min_withdrawal_amount') is-invalid @enderror" name="min_withdrawal_amount" form="settingsForm" step="0.01" min="0" value="{{ old('min_withdrawal_amount', $settings['min_withdrawal_amount']) }}" required>
                             <div class="form-text">Minimum amount affiliates can withdraw</div>
+                            @error('min_withdrawal_amount')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Cookie Lifetime (Days) <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="cookie_lifetime" form="settingsForm" min="1" max="365" value="{{ $settings['cookie_lifetime'] }}" required>
+                            <input type="number" class="form-control @error('cookie_lifetime') is-invalid @enderror" name="cookie_lifetime" form="settingsForm" min="1" max="365" value="{{ old('cookie_lifetime', $settings['cookie_lifetime']) }}" required>
                             <div class="form-text">How long affiliate tracking cookies last</div>
+                            @error('cookie_lifetime')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Affiliate Registration</label>
-                            <select class="form-select" name="affiliate_registration" form="settingsForm">
-                                <option value="auto" {{ $settings['affiliate_registration'] === 'auto' ? 'selected' : '' }}>Auto Approve</option>
-                                <option value="manual" {{ $settings['affiliate_registration'] === 'manual' ? 'selected' : '' }}>Manual Approval</option>
+                            <select class="form-select @error('affiliate_registration') is-invalid @enderror" name="affiliate_registration" form="settingsForm">
+                                <option value="auto" {{ old('affiliate_registration', $settings['affiliate_registration']) === 'auto' ? 'selected' : '' }}>Auto Approve</option>
+                                <option value="manual" {{ old('affiliate_registration', $settings['affiliate_registration']) === 'manual' ? 'selected' : '' }}>Manual Approval</option>
                             </select>
                             <div class="form-text">Auto approve will automatically approve new affiliate registrations</div>
+                            @error('affiliate_registration')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Commission Type</label>
-                            <select class="form-select" name="commission_type" form="settingsForm">
-                                <option value="percentage" {{ $settings['commission_type'] === 'percentage' ? 'selected' : '' }}>Percentage</option>
-                                <option value="fixed" {{ $settings['commission_type'] === 'fixed' ? 'selected' : '' }}>Fixed Amount</option>
+                            <select class="form-select @error('commission_type') is-invalid @enderror" name="commission_type" form="settingsForm">
+                                <option value="percentage" {{ old('commission_type', $settings['commission_type']) === 'percentage' ? 'selected' : '' }}>Percentage</option>
+                                <option value="fixed" {{ old('commission_type', $settings['commission_type']) === 'fixed' ? 'selected' : '' }}>Fixed Amount</option>
                             </select>
+                            @error('commission_type')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -114,3 +132,32 @@
     </button>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Add padding at bottom to prevent floating button overlap */
+    .content-area {
+        padding-bottom: 100px !important;
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-scroll to first error field
+        @if($errors->any())
+            var firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                setTimeout(function() {
+                    firstErrorField.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    firstErrorField.focus();
+                }, 100);
+            }
+        @endif
+    });
+</script>
+@endpush

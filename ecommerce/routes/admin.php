@@ -1048,6 +1048,7 @@ Route::prefix('affiliate')->middleware('permission:affiliate')->name('affiliate.
         Route::get('/{id}/edit', [\App\Http\Controllers\Admin\AffiliateCategoryController::class, 'edit'])->name('edit');
         Route::put('/{id}', [\App\Http\Controllers\Admin\AffiliateCategoryController::class, 'update'])->name('update');
         Route::delete('/{id}', [\App\Http\Controllers\Admin\AffiliateCategoryController::class, 'destroy'])->name('destroy');
+        Route::post('/bulk-action', [\App\Http\Controllers\Admin\AffiliateCategoryController::class, 'bulkAction'])->name('bulk-action');
     });
 
     // Affiliate Products

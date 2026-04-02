@@ -173,13 +173,27 @@ class AffiliateController extends Controller
     /**
      * Display affiliate payouts
      * 
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\View\View
      */
-    public function payouts()
+    public function payouts(Request $request)
     {
-        $withdrawals = AffiliateWithdrawal::with('affiliate.user')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $query = AffiliateWithdrawal::with('affiliate.user');
+        
+        // Search by affiliate name
+        if ($request->search) {
+            $search = $request->search;
+            $query->whereHas('affiliate.user', function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+        
+        // Filter by status
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+        
+        $withdrawals = $query->orderBy('created_at', 'desc')->paginate(15);
         
         // Statistics for stat cards
         $stats = [
@@ -253,22 +267,71 @@ class AffiliateController extends Controller
 
     /**
      * Display affiliate requests
-     * 
-     * @return \Illuminate\View\View
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\View\View|\Illuminate\Http\JsonResponse
      */
-    public function requests()
+    public function requests(Request $request)
     {
-        $requests = AffiliateRequest::with('user')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $query = AffiliateRequest::with('user');
         
-        // Statistics for stat cards
+        // Search by user name, email, or website
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->whereHas('user', function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                })
+                ->orWhere('website', 'like', "%{$search}%");
+            });
+        }
+        
+        // Filter by status
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+        
+        // Sorting
+        $sort = $request->sort ?? 'created_at';
+        $direction = $request->direction ?? 'desc';
+        $query->orderBy($sort, $direction);
+        
+        // Pagination with per_page support
+        $perPage = $request->per_page ?? 15;
+        $requests = $query->paginate($perPage);
+        
+        // Statistics for stat cards (based on filters)
+        $statsQuery = AffiliateRequest::query();
+        if ($request->search) {
+            $search = $request->search;
+            $statsQuery->where(function($q) use ($search) {
+                $q->whereHas('user', function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                })
+                ->orWhere('website', 'like', "%{$search}%");
+            });
+        }
+        if ($request->status) {
+            $statsQuery->where('status', $request->status);
+        }
+        
         $stats = [
-            'total' => AffiliateRequest::count(),
-            'pending' => AffiliateRequest::where('status', 'pending')->count(),
-            'approved' => AffiliateRequest::where('status', 'approved')->count(),
-            'rejected' => AffiliateRequest::where('status', 'rejected')->count(),
+            'total' => (clone $statsQuery)->count(),
+            'pending' => (clone $statsQuery)->where('status', 'pending')->count(),
+            'approved' => (clone $statsQuery)->where('status', 'approved')->count(),
+            'rejected' => (clone $statsQuery)->where('status', 'rejected')->count(),
         ];
+        
+        // AJAX response for live search
+        if ($request->ajax()) {
+            $html = view('admin.affiliate.partials.request-rows', compact('requests'))->render();
+            return response()->json([
+                'html' => $html,
+                'stats' => $stats
+            ]);
+        }
         
         return view('admin.affiliate.requests', compact('requests', 'stats'));
     }
@@ -364,7 +427,9 @@ class AffiliateController extends Controller
         $direction = $request->direction ?? 'desc';
         $query->orderBy($sort, $direction);
         
-        $affiliates = $query->paginate(15);
+        // Pagination with per_page support
+        $perPage = $request->per_page ?? 15;
+        $affiliates = $query->paginate($perPage);
         
         // Calculate stats based on filters
         $statsQuery = Affiliate::query();

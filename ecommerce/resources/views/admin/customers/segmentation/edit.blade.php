@@ -1,5 +1,7 @@
 @extends('admin.layouts.app')
 
+@section('title', 'Edit Customer Segment')
+
 @section('content')
 <!-- Header with Back Button -->
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -294,7 +296,7 @@
             }
         });
 
-        fetch('{{ route("admin.customers.segmentation.index") }}/preview?' + params.toString(), {
+        fetch('{{ route("admin.customers.segmentation.preview") }}?' + params.toString(), {
             method: 'GET',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',

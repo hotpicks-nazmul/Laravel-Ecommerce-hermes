@@ -3,27 +3,22 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\ImageHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class MediaController extends Controller
 {
-    /**
-     * Display media library
-     */
     public function index(Request $request)
     {
-        // Get ALL files recursively from the public disk
         $allFiles = Storage::disk('public')->allFiles();
         
-        // Remove files in temp or cache folders if any
         $allFiles = array_filter($allFiles, function($file) {
             $folder = explode('/', $file)[0];
             return !in_array($folder, ['cache', 'tmp', 'logs']);
         });
         
-        // Get file details
         $files = array_map(function ($file) {
             $fullPath = storage_path('app/public/' . $file);
             $fileInfo = [
@@ -36,7 +31,6 @@ class MediaController extends Controller
                 'is_image' => in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']),
             ];
             
-            // Get image dimensions for images
             if ($fileInfo['is_image'] && file_exists($fullPath)) {
                 try {
                     $imageInfo = getimagesize($fullPath);
@@ -52,7 +46,6 @@ class MediaController extends Controller
             return $fileInfo;
         }, $allFiles);
         
-        // Filter by type
         $type = $request->get('type');
         if ($type && $type !== 'all') {
             $files = array_filter($files, function($file) use ($type) {
@@ -67,7 +60,6 @@ class MediaController extends Controller
             });
         }
         
-        // Filter by search
         $search = $request->get('search');
         if ($search) {
             $search = strtolower($search);
@@ -76,15 +68,10 @@ class MediaController extends Controller
             });
         }
         
-        // Sort by modification date (newest first)
         usort($files, function ($a, $b) {
             return $b['modified'] - $a['modified'];
         });
         
-        // Convert to collection for pagination
-        $filesCollection = collect($files);
-        
-        // Paginate using LengthAwarePaginator
         $perPage = request()->get('per_page', 25);
         $currentPage = request()->get('page', 1);
         $totalFiles = count($files);
@@ -100,9 +87,6 @@ class MediaController extends Controller
         return view('admin.media.index', compact('paginator'));
     }
 
-    /**
-     * Upload files
-     */
     public function upload(Request $request)
     {
         $files = $request->file('files') ?? ($request->file('file') ? [$request->file('file')] : []);
@@ -141,26 +125,49 @@ class MediaController extends Controller
                 continue;
             }
             
-            $originalName = $file->getClientOriginalName();
-            $extension = $file->getClientOriginalExtension();
-            $nameWithoutExt = pathinfo($originalName, PATHINFO_FILENAME);
-            $slugName = Str::slug($nameWithoutExt);
+            $isImage = in_array($file->getMimeType(), [
+                'image/jpeg', 'image/png', 'image/gif', 'image/webp'
+            ]);
             
-            $newName = $slugName . '.' . $extension;
-            $counter = 1;
-            while (Storage::disk('public')->exists('uploads/' . $newName)) {
-                $newName = $slugName . '-' . $counter . '.' . $extension;
-                $counter++;
+            if ($isImage && ImageHelper::isValidImage($file)) {
+                $imageResult = ImageHelper::processImage(
+                    $file,
+                    'uploads',
+                    1920,
+                    300,
+                    85
+                );
+                $path = ltrim($imageResult['path'], '/');
+                $newName = basename($path);
+                
+                $uploaded[] = [
+                    'name' => $newName,
+                    'path' => $path,
+                    'url' => Storage::url($path),
+                    'size' => $file->getSize(),
+                ];
+            } else {
+                $originalName = $file->getClientOriginalName();
+                $extension = $file->getClientOriginalExtension();
+                $nameWithoutExt = pathinfo($originalName, PATHINFO_FILENAME);
+                $slugName = Str::slug($nameWithoutExt);
+                
+                $newName = $slugName . '.' . $extension;
+                $counter = 1;
+                while (Storage::disk('public')->exists('uploads/' . $newName)) {
+                    $newName = $slugName . '-' . $counter . '.' . $extension;
+                    $counter++;
+                }
+                
+                $path = $file->storeAs('uploads', $newName, 'public');
+                
+                $uploaded[] = [
+                    'name' => $newName,
+                    'path' => $path,
+                    'url' => Storage::url($path),
+                    'size' => $file->getSize(),
+                ];
             }
-            
-            $path = $file->storeAs('uploads', $newName, 'public');
-            
-            $uploaded[] = [
-                'name' => $newName,
-                'path' => $path,
-                'url' => Storage::url($path),
-                'size' => $file->getSize(),
-            ];
         }
         
         if (empty($uploaded) && !empty($errors)) {
@@ -180,9 +187,6 @@ class MediaController extends Controller
         ]);
     }
 
-    /**
-     * Delete a file
-     */
     public function destroy(Request $request)
     {
         $filePath = $request->get('path');
@@ -203,13 +207,6 @@ class MediaController extends Controller
             ], 404);
         }
         
-        if (Storage::disk('public')->directoryExists($filePath)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot delete directory through this endpoint',
-            ], 400);
-        }
-        
         Storage::disk('public')->delete($filePath);
         
         return response()->json([
@@ -218,9 +215,44 @@ class MediaController extends Controller
         ]);
     }
 
-    /**
-     * Get file details (AJAX)
-     */
+    public function bulkDelete(Request $request)
+    {
+        $paths = $request->input('paths', []);
+        
+        if (empty($paths)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No files selected for deletion',
+            ], 400);
+        }
+        
+        $deleted = 0;
+        $errors = [];
+        
+        foreach ($paths as $filePath) {
+            $filePath = str_replace('..', '', $filePath);
+            
+            if (Storage::disk('public')->exists($filePath)) {
+                Storage::disk('public')->delete($filePath);
+                $deleted++;
+            } else {
+                $errors[] = basename($filePath) . ' not found';
+            }
+        }
+        
+        $message = $deleted . ' file(s) deleted successfully';
+        if (!empty($errors)) {
+            $message .= '. ' . count($errors) . ' failed.';
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'deleted' => $deleted,
+            'errors' => $errors,
+        ]);
+    }
+
     public function show(Request $request)
     {
         $filePath = $request->get('path');
@@ -263,9 +295,6 @@ class MediaController extends Controller
         ]);
     }
 
-    /**
-     * Format file size
-     */
     private function formatFileSize($bytes)
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
