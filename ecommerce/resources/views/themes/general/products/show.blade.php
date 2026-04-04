@@ -464,13 +464,13 @@
                 @endphp
                 
                 <div class="image-zoom-wrapper">
-                    <div class="image-zoom-container rounded-lg" id="mainImageContainer" onmousemove="handleMouseMove(event)" onmouseleave="handleMouseLeave()">
+                    <div class="image-zoom-container rounded-lg" id="mainImageContainer" onmousemove="if(typeof handleMouseMove==='function')handleMouseMove(event)" onmouseleave="if(typeof handleMouseLeave==='function')handleMouseLeave()">
                         <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="rounded-lg" id="mainProductImage" data-src="{{ $imageUrl }}">
                         <div class="zoom-lens" id="zoomLens"></div>
                         
                         <!-- Zoom Controls -->
                         <div class="zoom-controls">
-                            <button class="zoom-control-btn" onclick="event.stopPropagation(); openLightbox()" title="Fullscreen">
+                            <button class="zoom-control-btn" onclick="event.stopPropagation(); if(typeof openLightbox==='function')openLightbox()" title="Fullscreen">
                                 <i class="bi bi-fullscreen"></i>
                             </button>
                         </div>
@@ -484,7 +484,7 @@
                 @if(!empty($galleryImages) || $imagePath)
                 <div class="gallery-thumbnails">
                     @if($imagePath)
-                    <img src="{{ $imageUrl }}" alt="Main Image" class="gallery-thumb active" onclick="changeImage(this, '{{ $imageUrl }}')">
+                    <img src="{{ $imageUrl }}" alt="Main Image" class="gallery-thumb active" onclick="if(typeof changeImage==='function')changeImage(this, {{ Js::from($imageUrl) }})">
                     @endif
                     @foreach($galleryImages as $index => $galleryImage)
                         @php
@@ -495,7 +495,7 @@
                                 $galleryUrl = asset($galleryImage);
                             }
                         @endphp
-                        <img src="{{ $galleryUrl }}" alt="Gallery Image {{ $index + 1 }}" class="gallery-thumb" onclick="changeImage(this, '{{ $galleryUrl }}')">
+                        <img src="{{ $galleryUrl }}" alt="Gallery Image {{ $index + 1 }}" class="gallery-thumb" onclick="if(typeof changeImage==='function')changeImage(this, {{ Js::from($galleryUrl) }})">
                     @endforeach
                 </div>
                 @endif
@@ -614,7 +614,7 @@
                            class="w-20 border rounded-lg px-3 py-2 text-center">
                     
                     @if($product->quantity > 0)
-                    <button onclick="addToCartWithVariants({{ $product->id }}, document.getElementById('quantity').value)" 
+                    <button onclick="if(typeof addToCartWithVariants==='function')addToCartWithVariants({{ $product->id }}, document.getElementById('quantity').value)" 
                             class="flex-1 text-white py-3 rounded-lg hover:opacity-90 transition-opacity font-medium" style="background-color: var(--theme-primary, #4f46e5);">
                         <i class="bi bi-cart-plus mr-2"></i>Add to Cart
                     </button>
@@ -624,7 +624,7 @@
                     </button>
                     @endif
                     
-                    <button onclick="addToWishlist({{ $product->id }})" 
+                    <button onclick="if(typeof addToWishlist==='function')addToWishlist({{ $product->id }})" 
                             class="bg-gray-200 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-300 transition-colors">
                         <i class="bi bi-heart"></i>
                     </button>
@@ -635,7 +635,7 @@
                 <div class="mt-8 border-t pt-6">
                     <h3 class="font-bold text-lg mb-3">Description</h3>
                     <div class="text-gray-600 prose">
-                        {{ $product->long_description }}
+                        {!! nl2br(e($product->long_description)) !!}
                     </div>
                 </div>
                 @endif
@@ -690,7 +690,7 @@
                                     Write Review
                                 </button>
                             @else
-                                <button type="button" class="bg-halal-green text-white px-4 py-2 rounded-lg hover:bg-halal-dark transition-colors font-medium flex items-center gap-2 text-sm" onclick="openReviewModal()">
+                                <button type="button" class="bg-halal-green text-white px-4 py-2 rounded-lg hover:bg-halal-dark transition-colors font-medium flex items-center gap-2 text-sm" onclick="if(typeof openReviewModal==='function')openReviewModal()">
                                     <i class="bi bi-pencil-square"></i>
                                     Write Review
                                 </button>
@@ -869,7 +869,7 @@
                     @endphp
                     <div class="flex items-center gap-3">
                         <span class="text-sm text-gray-500">{{ $qaCount }} questions</span>
-                        <button type="button" class="bg-halal-green text-white px-4 py-2 rounded-lg hover:bg-halal-dark transition-colors font-medium flex items-center gap-2 text-sm" onclick="openQuestionModal()">
+                        <button type="button" class="bg-halal-green text-white px-4 py-2 rounded-lg hover:bg-halal-dark transition-colors font-medium flex items-center gap-2 text-sm" onclick="if(typeof openQuestionModal==='function')openQuestionModal()">
                             <i class="bi bi-question-circle"></i>
                             Ask Question
                         </button>
@@ -973,7 +973,7 @@
 
 <!-- Ask Question Popup Modal - Custom Design -->
 <div class="popup-modal" id="askQuestionModal" style="display: none;">
-    <div class="popup-overlay" onclick="closeQuestionModal()"></div>
+    <div class="popup-overlay" onclick="if(typeof closeQuestionModal==='function')closeQuestionModal()"></div>
     <div class="popup-content">
         <!-- Header with gradient -->
         <div class="popup-header">
@@ -988,7 +988,7 @@
                     <p class="text-white/70 text-sm mb-0">Get answers from our community</p>
                 </div>
             </div>
-            <button type="button" class="popup-close" onclick="closeQuestionModal()">
+            <button type="button" class="popup-close" onclick="if(typeof closeQuestionModal==='function')closeQuestionModal()">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
@@ -1077,7 +1077,7 @@
                 <!-- Footer -->
                 <div class="popup-footer">
                     <div class="flex items-center justify-end gap-3 w-full">
-                        <button type="button" class="popup-btn-cancel" onclick="closeQuestionModal()">
+                        <button type="button" class="popup-btn-cancel" onclick="if(typeof closeQuestionModal==='function')closeQuestionModal()">
                             Cancel
                         </button>
                         <button type="submit" class="popup-btn-submit">
@@ -1094,7 +1094,7 @@
 <!-- Review Popup Modal - Custom Design -->
 @auth
 <div class="popup-modal" id="reviewModal" style="display: none;">
-    <div class="popup-overlay" onclick="closeReviewModal()"></div>
+    <div class="popup-overlay" onclick="if(typeof closeReviewModal==='function')closeReviewModal()"></div>
     <div class="popup-content">
         <!-- Header with gradient -->
         <div class="popup-header popup-header-review">
@@ -1109,7 +1109,7 @@
                     <p class="text-white/70 text-sm mb-0">Share your experience with others</p>
                 </div>
             </div>
-            <button type="button" class="popup-close" onclick="closeReviewModal()">
+            <button type="button" class="popup-close" onclick="if(typeof closeReviewModal==='function')closeReviewModal()">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
@@ -1209,7 +1209,7 @@
                 <!-- Footer -->
                 <div class="popup-footer">
                     <div class="flex items-center justify-end gap-3 w-full">
-                        <button type="button" class="popup-btn-cancel" onclick="closeReviewModal()">
+                        <button type="button" class="popup-btn-cancel" onclick="if(typeof closeReviewModal==='function')closeReviewModal()">
                             Cancel
                         </button>
                         <button type="submit" class="popup-btn-submit popup-btn-review">
@@ -1538,7 +1538,7 @@ document.querySelectorAll('.qa-vote-btn').forEach(btn => {
 @endpush
 
 <!-- Lightbox Overlay -->
-<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+<div class="lightbox-overlay" id="lightbox" onclick="if(typeof closeLightbox==='function')closeLightbox()">
     <span class="lightbox-close">&times;</span>
     <img src="" alt="Product Image" id="lightboxImage">
     <div class="lightbox-controls">

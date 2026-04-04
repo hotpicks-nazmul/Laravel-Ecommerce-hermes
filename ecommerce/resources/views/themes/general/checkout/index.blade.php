@@ -6,40 +6,209 @@
 <div class="container mx-auto px-4 py-8">
     <h1 class="text-3xl font-bold text-gray-800 mb-8">Checkout</h1>
     
-    <div id="checkoutContent">
-        <!-- Content will be loaded here -->
+    @if($cart->isEmpty())
+    <div class="text-center py-12">
+        <div class="w-24 h-24 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <i class="bi bi-cart-x text-4xl text-gray-400"></i>
+        </div>
+        <h4 class="text-gray-600 font-medium mb-2">Your cart is empty</h4>
+        <a href="{{ route('cart.index') }}" class="inline-block bg-halal-green text-white px-6 py-2 rounded-full hover:bg-halal-dark transition-colors">
+            Go to Cart
+        </a>
     </div>
+    @else
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2">
+            <!-- Order Items -->
+            <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
+                <h3 class="text-lg font-bold mb-4">Order Items</h3>
+                @foreach($cart->items as $item)
+                <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm mb-4" id="checkout-item-{{ $item['product_id'] }}">
+                    @php
+                        $imageUrl = isset($item['image']) 
+                            ? (str_starts_with($item['image'], 'http') ? $item['image'] 
+                            : (str_starts_with($item['image'], '/storage/') ? $item['image'] 
+                            : (str_starts_with($item['image'], '/uploads/') ? asset($item['image']) 
+                            : asset('storage/' . $item['image'])))) 
+                            : 'https://via.placeholder.com/80';
+                    @endphp
+                    <img src="{{ $imageUrl }}" alt="{{ $item['name'] }}" class="w-16 h-16 object-cover rounded-lg">
+                    <div class="flex-1">
+                        <h4 class="font-medium text-gray-800">{{ $item['name'] }}</h4>
+                        <p class="text-halal-green font-bold">৳{{ number_format($item['price'], 2) }}</p>
+                        <div class="flex items-center space-x-2 mt-2">
+                            <button onclick="updateCheckoutItem({{ $item['product_id'] }}, {{ $item['quantity'] - 1 }})" class="w-7 h-7 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
+                                <i class="bi bi-dash text-sm"></i>
+                            </button>
+                            <span class="font-medium" id="qty-{{ $item['product_id'] }}">{{ $item['quantity'] }}</span>
+                            <button onclick="updateCheckoutItem({{ $item['product_id'] }}, {{ $item['quantity'] + 1 }})" class="w-7 h-7 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
+                                <i class="bi bi-plus text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-gray-800">৳{{ number_format($item['price'] * $item['quantity'], 2) }}</p>
+                        <button onclick="removeCheckoutItem({{ $item['product_id'] }})" class="text-red-500 hover:text-red-700 text-sm mt-1">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            
+            <!-- Billing Details -->
+            <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
+                <h3 class="text-lg font-bold mb-4">Billing Details</h3>
+                <form id="checkoutForm" onsubmit="processCheckout(event)">
+                    @csrf
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                            <input type="text" name="billing_first_name" value="{{ $user->first_name ?? '' }}" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                            <input type="text" name="billing_last_name" value="{{ $user->last_name ?? '' }}" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                            <input type="email" name="billing_email" value="{{ $user->email ?? '' }}" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+                            <input type="tel" name="billing_phone" value="{{ $user->phone ?? '' }}" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Address *</label>
+                            <input type="text" name="billing_address" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                            <input type="text" name="billing_city" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green" onchange="updateShippingOptions()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">State *</label>
+                            <input type="text" name="billing_state" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green" onchange="updateShippingOptions()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Postcode *</label>
+                            <input type="text" name="billing_postcode" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Country *</label>
+                            <select name="billing_country" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
+                                <option value="Bangladesh" selected>Bangladesh</option>
+                                <option value="India">India</option>
+                                <option value="Pakistan">Pakistan</option>
+                                <option value="UAE">UAE</option>
+                                <option value="Saudi Arabia">Saudi Arabia</option>
+                                <option value="United Kingdom">United Kingdom</option>
+                                <option value="United States">United States</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Order Notes</label>
+                            <textarea name="notes" rows="3" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green" placeholder="Notes about your order, e.g. special notes for delivery"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Shipping Method -->
+                    <div class="mt-6">
+                        <h4 class="font-medium mb-3">Shipping Method</h4>
+                        <div id="shippingOptionsContainer" class="space-y-2">
+                            @php
+                                $defaultDelivery = $cart->getSubtotal() >= 500 ? 0 : 60;
+                            @endphp
+                            <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 {{ $defaultDelivery === 0 ? 'border-halal-green bg-green-50' : '' }}">
+                                <input type="radio" name="shipping_method" value="home_delivery" checked 
+                                    class="mr-3" onchange="selectShippingMethod('home_delivery', {{ $defaultDelivery }})">
+                                <div class="flex-1">
+                                    <div class="font-medium">Home Delivery</div>
+                                    <div class="text-sm text-gray-500">3-5 business days</div>
+                                </div>
+                                <div class="font-medium {{ $defaultDelivery === 0 ? 'text-halal-green' : '' }}">
+                                    {{ $defaultDelivery === 0 ? 'Free' : '৳' . $defaultDelivery }}
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Method -->
+                    <div class="mt-6">
+                        <h4 class="font-medium mb-3">Payment Method</h4>
+                        <div class="space-y-2">
+                            @forelse($paymentGateways as $gateway)
+                            <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 {{ $loop->first ? 'border-halal-green bg-green-50' : '' }}">
+                                <input type="radio" name="payment_method" value="{{ $gateway->slug }}" {{ $loop->first ? 'checked' : '' }} class="mr-3">
+                                @if($gateway->logo)
+                                <img src="{{ Storage::url($gateway->logo) }}" alt="{{ $gateway->name }}" class="w-8 h-8 object-contain mr-2">
+                                @else
+                                <i class="bi bi-credit-card mr-2"></i>
+                                @endif
+                                <span>{{ $gateway->name }}</span>
+                                @if($gateway->test_mode)
+                                <span class="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">Test</span>
+                                @endif
+                            </label>
+                            @empty
+                            <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input type="radio" name="payment_method" value="cod" checked class="mr-3">
+                                <span>Cash on Delivery</span>
+                            </label>
+                            @endforelse
+                        </div>
+                    </div>
+                    
+                    <!-- Terms -->
+                    <div class="mt-6">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="terms" required class="mr-2">
+                            <span class="text-sm text-gray-600">I agree to the <a href="{{ route('terms') }}" class="text-halal-green hover:underline">Terms and Conditions</a></span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="bg-white p-6 rounded-lg shadow-sm h-fit sticky top-24">
+            <h3 class="text-lg font-bold mb-4">Order Summary</h3>
+            <div class="space-y-2 mb-4">
+                <div class="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span id="checkoutSubtotal">৳{{ number_format($cart->getSubtotal(), 2) }}</span>
+                </div>
+                <div class="flex justify-between text-gray-600">
+                    <span>Delivery</span>
+                    <span id="checkoutDelivery" class="{{ $defaultDelivery === 0 ? 'text-halal-green' : '' }}">{{ $defaultDelivery === 0 ? 'Free' : '৳' . $defaultDelivery }}</span>
+                </div>
+                <hr>
+                <div class="flex justify-between font-bold text-lg">
+                    <span>Total</span>
+                    <span id="checkoutTotal" class="text-halal-green">৳{{ number_format($cart->getSubtotal() + $defaultDelivery, 2) }}</span>
+                </div>
+            </div>
+            @if($defaultDelivery === 0)
+            <div id="freeDeliveryMessage" class="text-halal-green text-sm mb-4">
+                <i class="bi bi-truck mr-1"></i>You have free delivery!
+            </div>
+            @endif
+            <button type="submit" form="checkoutForm" class="w-full bg-halal-green text-white py-3 rounded-lg font-medium hover:bg-halal-dark transition-colors">
+                Place Order
+            </button>
+            <a href="{{ route('cart.index') }}" class="block w-full text-center py-3 text-halal-green hover:underline mt-2">
+                <i class="bi bi-arrow-left mr-1"></i> Back to Cart
+            </a>
+        </div>
+    </div>
+    @endif
 </div>
 
 <script>
-let checkoutItems = [];
-let checkoutSubtotal = 0;
-let checkoutDelivery = 0;
-let checkoutTotal = 0;
+let checkoutSubtotal = {{ $cart->getSubtotal() }};
+let checkoutDelivery = {{ $defaultDelivery }};
+let checkoutTotal = checkoutSubtotal + checkoutDelivery;
 let selectedShippingMethod = 'home_delivery';
-
-async function loadCheckoutData() {
-    try {
-        const response = await fetch('/api/cart/items', {
-            credentials: 'same-origin'
-        });
-        const data = await response.json();
-        
-        checkoutItems = data.items || [];
-        checkoutSubtotal = parseFloat(data.subtotal) || 0;
-        checkoutDelivery = parseFloat(data.delivery) || 0;
-        checkoutTotal = parseFloat(data.total) || 0;
-        
-        if (checkoutItems.length === 0) {
-            window.location.href = '{{ route("cart.index") }}';
-            return;
-        }
-        
-        renderCheckoutPage();
-    } catch (error) {
-        console.error('Error loading checkout:', error);
-    }
-}
 
 async function updateShippingOptions() {
     const city = document.querySelector('input[name="billing_city"]')?.value || '';
@@ -89,7 +258,6 @@ function selectShippingMethod(method, cost) {
     checkoutTotal = checkoutSubtotal + checkoutDelivery;
     updateOrderSummary();
     
-    // Update radio button styling
     document.querySelectorAll('input[name="shipping_method"]').forEach(radio => {
         const label = radio.closest('label');
         if (radio.value === method) {
@@ -120,184 +288,6 @@ function updateOrderSummary() {
     }
 }
 
-function renderCheckoutPage() {
-    const checkoutContent = document.getElementById('checkoutContent');
-    
-    let itemsHtml = checkoutItems.map(item => {
-        const imageUrl = item.image || 'https://via.placeholder.com/80';
-        return `
-            <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm mb-4">
-                <img src="${imageUrl}" alt="${item.name}" class="w-16 h-16 object-cover rounded-lg">
-                <div class="flex-1">
-                    <h4 class="font-medium text-gray-800">${item.name}</h4>
-                    <p class="text-halal-green font-bold">৳${parseFloat(item.price).toLocaleString()}</p>
-                    <div class="flex items-center space-x-2 mt-2">
-                        <button onclick="updateCheckoutItem(${item.product_id}, ${item.quantity - 1})" class="w-7 h-7 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
-                            <i class="bi bi-dash text-sm"></i>
-                        </button>
-                        <span class="font-medium">${item.quantity}</span>
-                        <button onclick="updateCheckoutItem(${item.product_id}, ${item.quantity + 1})" class="w-7 h-7 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
-                            <i class="bi bi-plus text-sm"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <p class="font-bold text-gray-800">৳${(item.price * item.quantity).toLocaleString()}</p>
-                    <button onclick="removeCheckoutItem(${item.product_id})" class="text-red-500 hover:text-red-700 text-sm mt-1">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    checkoutContent.innerHTML = `
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2">
-                <!-- Order Items -->
-                <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
-                    <h3 class="text-lg font-bold mb-4">Order Items</h3>
-                    ${itemsHtml}
-                </div>
-                
-                <!-- Billing Details -->
-                <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
-                    <h3 class="text-lg font-bold mb-4">Billing Details</h3>
-                    <form id="checkoutForm" onsubmit="processCheckout(event)">
-                        @csrf
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
-                                <input type="text" name="billing_first_name" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
-                                <input type="text" name="billing_last_name" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-                                <input type="email" name="billing_email" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
-                                <input type="tel" name="billing_phone" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Address *</label>
-                                <input type="text" name="billing_address" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">City *</label>
-                                <input type="text" name="billing_city" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green" onchange="updateShippingOptions()">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">State *</label>
-                                <input type="text" name="billing_state" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green" onchange="updateShippingOptions()">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Postcode *</label>
-                                <input type="text" name="billing_postcode" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Country *</label>
-                                <select name="billing_country" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
-                                    <option value="Bangladesh">Bangladesh</option>
-                                </select>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Order Notes</label>
-                                <textarea name="notes" rows="3" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green" placeholder="Notes about your order, e.g. special notes for delivery"></textarea>
-                            </div>
-                        </div>
-                        
-                        <!-- Shipping Method -->
-                        <div class="mt-6">
-                            <h4 class="font-medium mb-3">Shipping Method</h4>
-                            <div id="shippingOptionsContainer" class="space-y-2">
-                                <!-- Default: Home Delivery -->
-                                <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 border-halal-green bg-green-50">
-                                    <input type="radio" name="shipping_method" value="home_delivery" checked 
-                                        class="mr-3" onchange="selectShippingMethod('home_delivery', ${checkoutDelivery})">
-                                    <div class="flex-1">
-                                        <div class="font-medium">Home Delivery</div>
-                                        <div class="text-sm text-gray-500">3-5 business days</div>
-                                    </div>
-                                    <div class="font-medium ${checkoutDelivery === 0 ? 'text-halal-green' : ''}">
-                                        ${checkoutDelivery === 0 ? 'Free' : '৳' + checkoutDelivery.toLocaleString()}
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <!-- Payment Method -->
-                        <div class="mt-6">
-                            <h4 class="font-medium mb-3">Payment Method</h4>
-                            <div class="space-y-2">
-                                @forelse($paymentGateways as $gateway)
-                                <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 {{ $loop->first ? 'border-halal-green bg-green-50' : '' }}">
-                                    <input type="radio" name="payment_method" value="{{ $gateway->slug }}" {{ $loop->first ? 'checked' : '' }} class="mr-3">
-                                    @if($gateway->logo)
-                                    <img src="{{ Storage::url($gateway->logo) }}" alt="{{ $gateway->name }}" class="w-8 h-8 object-contain mr-2">
-                                    @else
-                                    <i class="bi bi-credit-card mr-2"></i>
-                                    @endif
-                                    <span>{{ $gateway->name }}</span>
-                                    @if($gateway->test_mode)
-                                    <span class="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">Test</span>
-                                    @endif
-                                </label>
-                                @empty
-                                <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                                    <input type="radio" name="payment_method" value="cod" checked class="mr-3">
-                                    <span>Cash on Delivery</span>
-                                </label>
-                                @endforelse
-                            </div>
-                        </div>
-                        
-                        <!-- Terms -->
-                        <div class="mt-6">
-                            <label class="flex items-center">
-                                <input type="checkbox" name="terms" required class="mr-2">
-                                <span class="text-sm text-gray-600">I agree to the <a href="{{ route('pages.terms') }}" class="text-halal-green hover:underline">Terms and Conditions</a></span>
-                            </label>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Order Summary -->
-            <div class="bg-white p-6 rounded-lg shadow-sm h-fit sticky top-24">
-                <h3 class="text-lg font-bold mb-4">Order Summary</h3>
-                <div class="space-y-2 mb-4">
-                    <div class="flex justify-between text-gray-600">
-                        <span>Subtotal</span>
-                        <span id="checkoutSubtotal">৳${checkoutSubtotal.toLocaleString()}</span>
-                    </div>
-                    <div class="flex justify-between text-gray-600">
-                        <span>Delivery</span>
-                        <span id="checkoutDelivery" class="${checkoutDelivery === 0 ? 'text-halal-green' : ''}">${checkoutDelivery === 0 ? 'Free' : '৳' + checkoutDelivery}</span>
-                    </div>
-                    <hr>
-                    <div class="flex justify-between font-bold text-lg">
-                        <span>Total</span>
-                        <span id="checkoutTotal" class="text-halal-green">৳${checkoutTotal.toLocaleString()}</span>
-                    </div>
-                </div>
-                <div id="freeDeliveryMessage" class="text-halal-green text-sm mb-4" style="display: ${checkoutDelivery === 0 ? 'block' : 'none'}">
-                    <i class="bi bi-truck mr-1"></i>You have free delivery!
-                </div>
-                <button type="submit" form="checkoutForm" class="w-full bg-halal-green text-white py-3 rounded-lg font-medium hover:bg-halal-dark transition-colors">
-                    Place Order
-                </button>
-                <a href="{{ route('cart.index') }}" class="block w-full text-center py-3 text-halal-green hover:underline mt-2">
-                    <i class="bi bi-arrow-left mr-1"></i> Back to Cart
-                </a>
-            </div>
-        </div>
-    `;
-}
-
 async function updateCheckoutItem(productId, quantity) {
     if (quantity < 1) {
         removeCheckoutItem(productId);
@@ -318,15 +308,7 @@ async function updateCheckoutItem(productId, quantity) {
         const data = await response.json();
         
         if (data.success) {
-            // Reload checkout data
-            await loadCheckoutData();
-            
-            // Also update the sidebar if available
-            if (typeof loadCart === 'function') {
-                loadCart();
-            }
-            
-            showCheckoutNotification('Cart updated!', 'success');
+            window.location.reload();
         }
     } catch (error) {
         console.error('Error updating cart:', error);
@@ -348,15 +330,7 @@ async function removeCheckoutItem(productId) {
         const data = await response.json();
         
         if (data.success) {
-            // Reload checkout data
-            await loadCheckoutData();
-            
-            // Also update the sidebar if available
-            if (typeof loadCart === 'function') {
-                loadCart();
-            }
-            
-            showCheckoutNotification('Item removed', 'success');
+            window.location.reload();
         }
     } catch (error) {
         console.error('Error removing from cart:', error);
@@ -405,7 +379,5 @@ function showCheckoutNotification(message, type) {
         notification.remove();
     }, 3000);
 }
-
-document.addEventListener('DOMContentLoaded', loadCheckoutData);
 </script>
 @endsection

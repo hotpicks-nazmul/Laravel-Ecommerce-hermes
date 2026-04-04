@@ -122,12 +122,12 @@
             <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
                 <div class="bundle-price-tag d-inline-block">
                     @if($bundle->original_price > $bundle->final_price)
-                        <div class="original">${{ number_format($bundle->original_price, 2) }}</div>
+                        <div class="original">৳{{ number_format($bundle->original_price, 2) }}</div>
                     @endif
-                    <div class="price">${{ number_format($bundle->final_price, 2) }}</div>
+                    <div class="price">৳{{ number_format($bundle->final_price, 2) }}</div>
                     @if($bundle->savings > 0)
                         <span class="savings">
-                            <i class="bi bi-piggy-bank me-1"></i>Save ${{ number_format($bundle->savings, 2) }}
+                            <i class="bi bi-piggy-bank me-1"></i>Save ৳{{ number_format($bundle->savings, 2) }}
                         </span>
                     @endif
                 </div>
@@ -168,10 +168,10 @@
                         </div>
                         <div class="text-end" style="min-width: 100px;">
                             @if($item->custom_price)
-                                <div class="text-success fw-semibold">${{ number_format($item->custom_price, 2) }}</div>
-                                <small class="text-decoration-line-through text-muted">${{ number_format($item->product->final_price, 2) }}</small>
+                                <div class="text-success fw-semibold">৳{{ number_format($item->custom_price, 2) }}</div>
+                                <small class="text-decoration-line-through text-muted">৳{{ number_format($item->product->final_price, 2) }}</small>
                             @else
-                                <div class="fw-semibold">${{ number_format($item->product->final_price, 2) }}</div>
+                                <div class="fw-semibold">৳{{ number_format($item->product->final_price, 2) }}</div>
                             @endif
                         </div>
                     </div>
@@ -181,17 +181,17 @@
                     <div class="border-top pt-3 mt-3">
                         <div class="d-flex justify-content-between mb-2">
                             <span>Original Total:</span>
-                            <strong>${{ number_format($bundle->original_price, 2) }}</strong>
+                            <strong>৳{{ number_format($bundle->original_price, 2) }}</strong>
                         </div>
                         @if($bundle->savings > 0)
                         <div class="d-flex justify-content-between mb-2 text-success">
                             <span><i class="bi bi-tag-fill me-1"></i>Bundle Discount:</span>
-                            <strong>-${{ number_format($bundle->savings, 2) }}</strong>
+                            <strong>-৳{{ number_format($bundle->savings, 2) }}</strong>
                         </div>
                         @endif
                         <div class="d-flex justify-content-between h5 mb-0">
                             <span>Bundle Price:</span>
-                            <strong class="text-success">${{ number_format($bundle->final_price, 2) }}</strong>
+                            <strong class="text-success">৳{{ number_format($bundle->final_price, 2) }}</strong>
                         </div>
                     </div>
                 </div>
@@ -245,10 +245,10 @@
                 
                 <!-- Price Summary -->
                 <div class="text-center mb-4">
-                    <div class="h2 text-success mb-0">${{ number_format($bundle->final_price, 2) }}</div>
+                    <div class="h2 text-success mb-0">৳{{ number_format($bundle->final_price, 2) }}</div>
                     @if($bundle->original_price > $bundle->final_price)
                         <small class="text-muted">
-                            <del>${{ number_format($bundle->original_price, 2) }}</del>
+                            <del>৳{{ number_format($bundle->original_price, 2) }}</del>
                             <span class="text-success ms-2">Save {{ $bundle->discount_percentage }}%</span>
                         </small>
                     @endif
@@ -296,7 +296,7 @@
                     </small>
                     <div class="progress mt-2" style="height: 6px;">
                         <div class="progress-bar bg-success" 
-                             style="width: {{ ($bundle->total_purchases / $bundle->max_purchases) * 100 }}%"></div>
+                             style="width: {{ $bundle->max_purchases > 0 ? ($bundle->total_purchases / $bundle->max_purchases) * 100 : 0 }}%"></div>
                     </div>
                 </div>
                 @endif
@@ -310,7 +310,7 @@
                     @if($bundle->savings > 0)
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <i class="bi bi-check-circle-fill text-success"></i>
-                        <span>Save ${{ number_format($bundle->savings, 2) }}</span>
+                        <span>Save ৳{{ number_format($bundle->savings, 2) }}</span>
                     </div>
                     @endif
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -348,9 +348,9 @@
                     <h6 class="card-title">{{ $relatedBundle->name }}</h6>
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <span class="h5 text-success mb-0">${{ number_format($relatedBundle->final_price, 2) }}</span>
+                            <span class="h5 text-success mb-0">৳{{ number_format($relatedBundle->final_price, 2) }}</span>
                             @if($relatedBundle->original_price > $relatedBundle->final_price)
-                                <small class="text-muted text-decoration-line-through ms-1">${{ number_format($relatedBundle->original_price, 2) }}</small>
+                                <small class="text-muted text-decoration-line-through ms-1">৳{{ number_format($relatedBundle->original_price, 2) }}</small>
                             @endif
                         </div>
                         <a href="{{ route('bundles.show', $relatedBundle->slug) }}" class="btn btn-sm btn-outline-primary">

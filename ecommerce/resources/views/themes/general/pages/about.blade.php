@@ -59,7 +59,8 @@
             <div class="row justify-content-center">
                 <div class="col-lg-8">
                     <div class="bg-white rounded-4 p-4 p-md-5 shadow-sm">
-                        {!! $page->content !!}
+                        {{-- Content is expected to be HTML from admin editor. Ensure admin input is sanitized. --}}
+                        {!! class_exists('Purifier') ? Purifier::clean($page->content) : $page->content !!}
                     </div>
                 </div>
             </div>

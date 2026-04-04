@@ -158,15 +158,24 @@ class CartController extends Controller
     protected function getCart()
     {
         if (Auth::check()) {
-            return Cart::findOrCreateForUser(Auth::id());
+            return Cart::firstOrCreate(['user_id' => Auth::id()]);
         }
 
-        $sessionId = session()->get('cart_session_id');
-        if (!$sessionId) {
-            $sessionId = Str::random(40);
-            session()->put('cart_session_id', $sessionId);
+        $cartId = session()->get('cart_id');
+        if ($cartId) {
+            $cart = Cart::where('id', $cartId)->whereNull('user_id')->first();
+            if ($cart) {
+                return $cart;
+            }
         }
 
-        return Cart::findOrCreateForUser(null, $sessionId);
+        // Create new cart for guest
+        $cart = Cart::create([
+            'session_id' => Str::random(40),
+            'user_id' => null,
+            'items' => []
+        ]);
+        session()->put('cart_id', $cart->id);
+        return $cart;
     }
 }

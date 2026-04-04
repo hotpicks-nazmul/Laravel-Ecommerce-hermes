@@ -10,7 +10,7 @@ if (!$frontendLanguageSwitcher) {
     return;
 }
 
-$languages = Language::where('is_active', true)->orderBy('sort_order')->get();
+$languages = \Cache::remember('active_languages', 3600, function() { return \App\Models\Language::where('is_active', true)->orderBy('sort_order')->get(); });
 $currentLocale = session('locale', 'en');
 $currentLanguage = $languages->firstWhere('code', $currentLocale) ?? Language::getDefault();
 $isRTL = $currentLanguage->is_rtl ?? false;
@@ -30,7 +30,8 @@ $isRTL = $currentLanguage->is_rtl ?? false;
     <div class="hidden absolute {{ $isRTL ? 'left-0' : 'right-0' }} mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-200" id="language-menu">
         @foreach($languages as $language)
         <a href="{{ route('language.switch', ['lang' => $language->code]) }}" 
-           class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ $language->code === $currentLocale ? 'bg-gray-50 font-medium' : '' }}">
+           class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ $language->code === $currentLocale ? 'bg-gray-50 font-medium' : '' }}"
+           aria-label="{{ $language->native_name ?? $language->name }}">
             <span class="mr-2">{{ $language->flag }}</span>
             <span>{{ $language->native_name ?? $language->name }}</span>
             @if($language->is_default)

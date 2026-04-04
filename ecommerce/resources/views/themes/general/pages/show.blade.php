@@ -30,7 +30,8 @@
         @endif
         
         <div class="prose prose-lg max-w-none">
-            {!! $page->content !!}
+            {{-- Content is expected to be HTML from admin editor. Ensure admin input is sanitized. --}}
+            {!! class_exists('Purifier') ? Purifier::clean($page->content) : $page->content !!}
         </div>
         
         <!-- Back to Home Link -->

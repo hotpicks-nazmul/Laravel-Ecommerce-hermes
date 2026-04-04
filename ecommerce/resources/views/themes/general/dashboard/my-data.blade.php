@@ -52,9 +52,12 @@
                     <a href="{{ route('account.notifications') }}" class="flex items-center p-3 rounded-lg text-gray-600 hover:bg-gray-50 mb-1">
                         <i class="bi bi-bell mr-3"></i> Notifications
                     </a>
-                    <a href="{{ route('logout') }}" class="flex items-center p-3 rounded-lg text-red-600 hover:bg-red-50">
-                        <i class="bi bi-box-arrow-right mr-3"></i> Logout
-                    </a>
+                    <form action="{{ route('logout') }}" method="POST" class="mb-1">
+                        @csrf
+                        <button type="submit" class="w-full flex items-center p-3 rounded-lg text-red-600 hover:bg-red-50">
+                            <i class="bi bi-box-arrow-right mr-3"></i> Logout
+                        </button>
+                    </form>
                 </nav>
             </div>
         </div>

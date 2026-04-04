@@ -254,4 +254,36 @@ class Cart extends Model
             return $price * $item['quantity'];
         }, $items));
     }
+    /**
+     * Check if cart is empty.
+     */
+    public function isEmpty()
+    {
+        return empty($this->items) || count($this->items) === 0;
+    }
+
+    /**
+     * Get the subtotal (alias for getSubtotal).
+     */
+    public function getSubtotalAttribute()
+    {
+        return $this->getSubtotal();
+    }
+
+    /**
+     * Get total items count.
+     */
+    public function getTotalItemsAttribute()
+    {
+        return $this->getItemCount();
+    }
+
+    /**
+     * Clear the cart.
+     */
+    public function clear()
+    {
+        $this->items = [];
+        $this->save();
+    }
 }

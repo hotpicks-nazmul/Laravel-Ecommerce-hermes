@@ -100,7 +100,7 @@
                             @foreach($order->items->take(3) as $item)
                             <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
                                 @if($item->product && $item->product->featured_image)
-                                <img src="{{ Storage::url($item->product->featured_image) }}" alt="{{ $item->product_name }}" class="w-full h-full object-cover">
+                                <img src="{{ $item->product->featured_image }}" alt="{{ $item->product_name }}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://via.placeholder.com/64?text=No+Image'">
                                 @else
                                 <div class="w-full h-full flex items-center justify-center">
                                     <i class="bi bi-image text-gray-400"></i>

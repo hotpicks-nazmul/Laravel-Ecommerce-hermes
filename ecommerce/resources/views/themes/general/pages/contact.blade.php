@@ -769,7 +769,7 @@
                     <span class="hero-stat-label">Support Available</span>
                 </div>
                 <div class="hero-stat">
-                    <span class="hero-stat-value"><1hr</span>
+                    <span class="hero-stat-value">&lt;1hr</span>
                     <span class="hero-stat-label">Response Time</span>
                 </div>
                 <div class="hero-stat">
@@ -1058,8 +1058,9 @@
                 <div class="newsletter-content">
                     <h5><i class="bi bi-envelope-paper-heart me-2"></i>Subscribe to Our Newsletter</h5>
                     <p>Get updates on new products, special offers, and exclusive discounts delivered to your inbox.</p>
-                    <form class="newsletter-form">
-                        <input type="email" placeholder="Enter your email address" required>
+                    <form class="newsletter-form" action="{{ route('newsletter.subscribe') }}" method="POST" id="contactNewsletterForm">
+                        @csrf
+                        <input type="email" name="email" placeholder="Enter your email address" required>
                         <button type="submit">Subscribe</button>
                     </form>
                 </div>

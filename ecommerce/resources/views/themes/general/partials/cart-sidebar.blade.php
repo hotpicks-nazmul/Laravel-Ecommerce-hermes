@@ -103,6 +103,11 @@ async function loadCart() {
     }
 }
 
+function escapeHtml(text) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
 function updateCartUI() {
     const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -134,9 +139,9 @@ function updateCartUI() {
         // Render items
         itemsContainer.innerHTML = cart.map(item => `
             <div class="flex items-center space-x-3 bg-white p-3 rounded-lg shadow-sm">
-                <img src="${item.image || 'https://via.placeholder.com/80'}" alt="${item.name}" class="w-16 h-16 object-cover rounded-lg">
+                <img src="${escapeHtml(item.image || 'https://via.placeholder.com/80')}" alt="${escapeHtml(item.name)}" class="w-16 h-16 object-cover rounded-lg">
                 <div class="flex-1">
-                    <h4 class="font-medium text-gray-800 text-sm">${item.name}</h4>
+                    <h4 class="font-medium text-gray-800 text-sm">${escapeHtml(item.name)}</h4>
                     <p class="text-halal-green font-medium">৳${parseFloat(item.price).toLocaleString()}</p>
                     <div class="flex items-center space-x-2 mt-1">
                         <button onclick="updateCartItem(${item.product_id}, ${item.quantity - 1})" class="w-6 h-6 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
@@ -164,9 +169,9 @@ function updateCartUI() {
         deliveryEl.classList.add('text-halal-green');
     } else {
         freeDeliveryNotice.classList.add('hidden');
-        deliveryEl.textContent = '৳50';
+        deliveryEl.textContent = '৳60';
         deliveryEl.classList.remove('text-halal-green');
-        document.getElementById('cartTotal').textContent = '৳' + (subtotal + 50).toLocaleString();
+        document.getElementById('cartTotal').textContent = '৳' + (subtotal + 60).toLocaleString();
     }
 }
 

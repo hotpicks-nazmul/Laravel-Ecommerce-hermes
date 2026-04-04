@@ -53,7 +53,8 @@
             <div class="col-lg-8">
                 <div class="content-card">
                     @if($page)
-                        {!! $page->content !!}
+                        {{-- Content is expected to be HTML from admin editor. Ensure admin input is sanitized. --}}
+                        {!! class_exists('Purifier') ? Purifier::clean($page->content) : $page->content !!}
                     @else
                         <h5>1. Information We Collect</h5>
                         <p>We collect information you provide directly, including:</p>

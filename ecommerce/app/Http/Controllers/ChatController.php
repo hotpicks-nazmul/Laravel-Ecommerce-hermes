@@ -76,11 +76,12 @@ class ChatController extends Controller
         if ($request->hasFile('attachment')) {
             $attachment = $request->file('attachment');
             $path = $attachment->store('chat-attachments', 'public');
-            $attachments = json_encode([
+            $attachments = [
                 'filename' => $attachment->getClientOriginalName(),
-                'path' => $path,
+                'path' => \Illuminate\Support\Facades\Storage::url($path),
                 'type' => $attachment->getMimeType(),
-            ]);
+                'size' => $attachment->getSize(),
+            ];
         }
 
         // Store user message

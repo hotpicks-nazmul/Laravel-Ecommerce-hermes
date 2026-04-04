@@ -7,10 +7,20 @@ use App\Models\Order;
 use App\Models\Review;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\Refund;
+use App\Models\Ticket;
+use App\Models\TicketReply;
+use App\Models\ProductQA;
+use App\Models\SellerPayout;
 use App\Observers\OrderObserver;
 use App\Observers\ReviewObserver;
 use App\Observers\ProductObserver;
 use App\Observers\UserObserver;
+use App\Observers\RefundObserver;
+use App\Observers\TicketObserver;
+use App\Observers\TicketReplyObserver;
+use App\Observers\ProductQAObserver;
+use App\Observers\SellerPayoutObserver;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -48,8 +58,8 @@ Order::observe(OrderObserver::class);
 Review::observe(ReviewObserver::class);
 Product::observe(ProductObserver::class);
 User::observe(UserObserver::class);
-
-Order::observe(OrderObserver::class);
-Review::observe(ReviewObserver::class);
-Product::observe(ProductObserver::class);
-User::observe(UserObserver::class);
+Refund::observe(RefundObserver::class);
+Ticket::observe(TicketObserver::class);
+TicketReply::observe(TicketReplyObserver::class);
+ProductQA::observe(ProductQAObserver::class);
+SellerPayout::observe(SellerPayoutObserver::class);

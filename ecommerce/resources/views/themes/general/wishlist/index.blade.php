@@ -66,7 +66,7 @@
                             <p class="text-gray-500 text-sm mt-1">{{ $wishlist->count() }} items saved</p>
                         </div>
                         @if($wishlist->count() > 0)
-                        <button onclick="clearWishlist()" class="text-red-500 hover:text-red-600 text-sm font-medium">
+                        <button onclick="if(typeof clearWishlist==='function')clearWishlist()" class="text-red-500 hover:text-red-600 text-sm font-medium">
                             <i class="bi bi-trash mr-1"></i> Clear All
                         </button>
                         @endif
@@ -130,11 +130,11 @@
                         <!-- Actions -->
                         <div class="flex items-center gap-3">
                             @if($item->product->stock_status === 'in_stock')
-                            <button onclick="addToCartFromWishlist({{ $item->product->id }})" class="bg-halal-green text-white px-4 py-2 rounded-lg hover:bg-halal-dark transition-colors text-sm font-medium">
+                            <button onclick="if(typeof addToCartFromWishlist==='function')addToCartFromWishlist({{ $item->product->id }})" class="bg-halal-green text-white px-4 py-2 rounded-lg hover:bg-halal-dark transition-colors text-sm font-medium">
                                 <i class="bi bi-cart-plus mr-1"></i> Add to Cart
                             </button>
                             @endif
-                            <button onclick="removeFromWishlist({{ $item->product->id }})" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm font-medium">
+                            <button onclick="if(typeof removeFromWishlist==='function')removeFromWishlist({{ $item->product->id }})" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm font-medium">
                                 <i class="bi bi-heart-fill mr-1"></i> Remove
                             </button>
                         </div>

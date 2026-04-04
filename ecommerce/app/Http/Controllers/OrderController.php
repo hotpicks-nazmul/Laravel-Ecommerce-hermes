@@ -14,6 +14,7 @@ class OrderController extends Controller
     public function index()
     {
         $orders = Order::where('user_id', auth()->id())
+            ->with('items.product')
             ->latest()
             ->paginate(10);
 
@@ -28,6 +29,8 @@ class OrderController extends Controller
         if ($order->user_id !== auth()->id()) {
             abort(403);
         }
+
+        $order->load('items.product');
 
         return view('themes.general.orders.show', compact('order'));
     }
@@ -50,7 +53,9 @@ class OrderController extends Controller
 
         // Restore product stock
         foreach ($order->items as $item) {
-            $item->product->increment('stock', $item->quantity);
+            if ($item->product) {
+                $item->product->increment('quantity', $item->quantity);
+            }
         }
 
         // Log order cancellation
@@ -60,7 +65,7 @@ class OrderController extends Controller
             auth()->user(),
             [
                 'order_id' => $order->id,
-                'order_code' => $order->code,
+                'order_number' => $order->order_number,
                 'old_status' => $oldStatus,
                 'new_status' => 'cancelled'
             ]

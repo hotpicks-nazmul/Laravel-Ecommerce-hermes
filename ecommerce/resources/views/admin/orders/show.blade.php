@@ -22,36 +22,32 @@
 
 <!-- Status Overview Cards -->
 <div class="stat-card-row mb-4">
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Order Status</div>
-                <span class="badge {{ $order->status_badge_class }} fs-6">{{ ucfirst($order->status) }}</span>
-            </div>
+    <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon"><i class="bi bi-clipboard-check"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Order Status</span>
+            <span class="stat-card-value"><span class="badge {{ $order->status_badge_class }}">{{ ucfirst($order->status) }}</span></span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Payment Status</div>
-                <span class="badge {{ $order->payment_status_badge_class }} fs-6">{{ ucfirst($order->payment_status) }}</span>
-            </div>
+    <div class="stat-card stat-card-success">
+        <div class="stat-card-icon"><i class="bi bi-credit-card-2-front"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Payment Status</span>
+            <span class="stat-card-value"><span class="badge {{ $order->payment_status_badge_class }}">{{ ucfirst($order->payment_status) }}</span></span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Payment Method</div>
-                <div class="fw-semibold">{{ ucfirst($order->payment_method ?? 'N/A') }}</div>
-            </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-wallet2"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Payment Method</span>
+            <span class="stat-card-value">{{ ucfirst($order->payment_method ?? 'N/A') }}</span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-3">
-                <div class="text-muted small text-uppercase">Order Total</div>
-                <div class="h4 mb-0 text-primary">৳{{ number_format($order->total, 2) }}</div>
-            </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Order Total</span>
+            <span class="stat-card-value">৳{{ number_format($order->total, 2) }}</span>
         </div>
     </div>
 </div>
@@ -344,7 +340,7 @@
         <!-- Order Timeline -->
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3">
-                <h5 class="mb-0"><i bi-clock-history me-2"></i>Order Timeline</h5>
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Order Timeline</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2">

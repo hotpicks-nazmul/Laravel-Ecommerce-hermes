@@ -6,8 +6,8 @@ use App\Models\Setting;
 $frontendCurrencySwitcher = Setting::get('frontend_currency_switcher', 0);
 
 // Get active currencies
-$currencies = Currency::active()->get();
-$defaultCurrency = Currency::getDefault();
+$currencies = \Cache::remember('active_currencies', 3600, function() { return \App\Models\Currency::active()->get(); });
+$defaultCurrency = \Cache::remember('default_currency', 3600, function() { return \App\Models\Currency::getDefault(); });
 
 // Get current currency from session or use default
 $currentCurrencyCode = session('currency_code', $defaultCurrency?->code ?? 'USD');
@@ -16,7 +16,7 @@ $currentCurrency = Currency::where('code', $currentCurrencyCode)->first() ?? $de
 
 @if($frontendCurrencySwitcher && $currencies->count() > 1)
 <div class="relative inline-block">
-    <button type="button" class="flex items-center space-x-1 text-sm hover:text-halal-gold transition-colors" id="currencyDropdown" data-dropdown-toggle="currency-menu">
+    <button type="button" class="flex items-center space-x-1 text-sm hover:text-halal-gold transition-colors" id="currencyDropdown" data-dropdown-toggle="currency-menu" aria-expanded="false" aria-haspopup="true">
         <i class="bi bi-currency-exchange"></i>
         <span>{{ $currentCurrency?->code ?? 'USD' }}</span>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -701,7 +701,7 @@
                 <li>
                     <a href="{{ route('blogs.index') }}">
                         <span>All Posts</span>
-                        <span class="count">{{ \App\Models\Blog::published()->count() }}</span>
+                        <span class="count">{{ \Cache::remember('blog_published_count', 3600, function() { return \App\Models\Blog::published()->count(); }) }}</span>
                     </a>
                 </li>
                 @foreach(\App\Models\Category::where('status', 'active')->get() as $category)
@@ -709,7 +709,7 @@
                         <a href="{{ route('blogs.index', ['category' => $category->slug]) }}" 
                            class="{{ $blog->category && $blog->category->slug == $category->slug ? 'active' : '' }}">
                             <span>{{ $category->name }}</span>
-                            <span class="count">{{ $category->blogs()->where('status', 'published')->where('published_at', '<=', now())->count() }}</span>
+                            <span class="count">{{ \Cache::remember('blog_count_' . $category->id, 3600, function() use ($category) { return $category->blogs()->where('status', 'published')->where('published_at', '<=', now())->count(); }) }}</span>
                         </a>
                     </li>
                 @endforeach
@@ -724,7 +724,7 @@
             <!-- Featured Image -->
             @if($blog->featured_image)
                 <div class="article-featured-image">
-                    <img src="{{ asset('storage/' . $blog->featured_image) }}" alt="{{ $blog->title }}">
+                    <img src="{{ asset('storage/' . $blog->featured_image) }}" alt="{{ $blog->title }}" loading="lazy">
                 </div>
             @endif
 
@@ -755,7 +755,8 @@
 
             <!-- Article Content -->
             <div class="article-content">
-                {!! $blog->content !!}
+                {{-- Content is expected to be HTML from admin editor. Ensure admin input is sanitized. --}}
+                {!! class_exists('Purifier') ? Purifier::clean($blog->content) : $blog->content !!}
             </div>
 
             <!-- Article Footer -->
@@ -830,7 +831,7 @@
                                 <div class="card-image">
                                     @if($related->featured_image)
                                         <a href="{{ route('blogs.show', $related->slug) }}">
-                                            <img src="{{ asset('storage/' . $related->featured_image) }}" alt="{{ $related->title }}">
+                                            <img src="{{ asset('storage/' . $related->featured_image) }}" alt="{{ $related->title }}" loading="lazy">
                                         </a>
                                     @else
                                         <div class="placeholder-image">

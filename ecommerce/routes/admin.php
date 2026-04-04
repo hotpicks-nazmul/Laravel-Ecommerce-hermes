@@ -398,9 +398,9 @@ Route::prefix('chat')->name('chat.')->group(function () {
     // AJAX Routes - specific routes before parameterized routes to avoid 404
     Route::get('/conversations', [ChatController::class, 'conversations'])->name('conversations');
     Route::get('/conversation/{id}', [ChatController::class, 'conversation'])->name('conversation');
-    Route::post('/send', [ChatController::class, 'send'])->name('send');
-    Route::post('/typing', [ChatController::class, 'typing'])->name('typing');
-    Route::get('/check-typing', [ChatController::class, 'checkTyping'])->name('check-typing');
+    Route::post('/send', [ChatController::class, 'send'])->name('send')->middleware('throttle:60,1');
+    Route::post('/typing', [ChatController::class, 'typing'])->name('typing')->middleware('throttle:30,1');
+    Route::get('/check-typing', [ChatController::class, 'checkTyping'])->name('check-typing')->middleware('throttle:60,1');
     Route::post('/conversation/{id}/status', [ChatController::class, 'updateStatus'])->name('update-status');
     Route::post('/conversation/{id}/close', [ChatController::class, 'close'])->name('close');
     Route::post('/conversation/{id}/mark-unread', [ChatController::class, 'markAsUnread'])->name('mark-unread');

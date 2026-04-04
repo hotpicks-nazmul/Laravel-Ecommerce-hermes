@@ -53,7 +53,8 @@
             <div class="col-lg-8">
                 <div class="content-card">
                     @if($page)
-                        {!! $page->content !!}
+                        {{-- Content is expected to be HTML from admin editor. Ensure admin input is sanitized. --}}
+                        {!! class_exists('Purifier') ? Purifier::clean($page->content) : $page->content !!}
                     @else
                         <h5>1. Introduction</h5>
                         <p>Welcome to Halal Food Store. By accessing and using our website and services, you agree to be bound by these Terms of Service.</p>

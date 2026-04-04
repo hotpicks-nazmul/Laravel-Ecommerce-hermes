@@ -20,6 +20,7 @@
             <img src="{{ $imageUrl }}" 
                 alt="{{ $product->name }}" 
                 class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
                 onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
         </a>
         
@@ -46,10 +47,10 @@
         
         <!-- Quick Actions -->
         <div class="absolute top-2 right-2 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <button onclick="addToWishlist({{ $product->id }})" class="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-halal-green hover:text-white transition-colors" title="Add to Wishlist">
+            <button onclick="if(typeof addToWishlist==='function')addToWishlist({{ $product->id }})" class="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-halal-green hover:text-white transition-colors" title="Add to Wishlist">
                 <i class="bi bi-heart"></i>
             </button>
-            <button onclick="quickView({{ $product->id }})" class="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-halal-green hover:text-white transition-colors" title="Quick View">
+            <button onclick="if(typeof quickView==='function')quickView({{ $product->id }})" class="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-halal-green hover:text-white transition-colors" title="Quick View">
                 <i class="bi bi-eye"></i>
             </button>
         </div>
@@ -57,7 +58,7 @@
         <!-- Add to Cart Button -->
         <div class="absolute bottom-0 left-0 right-0 p-2 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
             @if($product->stock > 0)
-            <button onclick="addToCart({{ $product->id }})" class="w-full bg-halal-green text-white py-2 rounded-lg hover:bg-halal-dark transition-colors font-medium flex items-center justify-center">
+            <button onclick="if(typeof addToCart==='function')addToCart({{ $product->id }})" class="w-full bg-halal-green text-white py-2 rounded-lg hover:bg-halal-dark transition-colors font-medium flex items-center justify-center">
                 <i class="bi bi-cart-plus mr-2"></i>Add to Cart
             </button>
             @else

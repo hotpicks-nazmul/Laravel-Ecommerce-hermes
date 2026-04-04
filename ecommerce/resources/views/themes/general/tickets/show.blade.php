@@ -104,14 +104,15 @@
                         <h2 class="text-xl font-semibold text-gray-900">{{ $ticket->subject }}</h2>
                     </div>
                     @if($ticket->status !== 'closed')
-                    <a href="{{ route('tickets.close', $ticket->id) }}" 
-                       class="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition"
-                       onclick="event.preventDefault(); if(confirm('Are you sure you want to close this ticket?')) { document.getElementById('closeForm').submit(); }">
+                    <button type="button"
+                        class="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition"
+                        onclick="event.preventDefault(); if(confirm('Are you sure you want to close this ticket?')) { document.getElementById('closeForm').submit(); }">
                         <i class="bi bi-x-circle me-2"></i>
                         Close Ticket
-                    </a>
-                    <form id="closeForm" method="GET" action="{{ route('tickets.close', $ticket->id) }}" style="display: none;">
+                    </button>
+                    <form id="closeForm" method="POST" action="{{ route('tickets.close', $ticket->id) }}" style="display: none;">
                         @csrf
+                        @method('PUT')
                     </form>
                     @else
                     <span class="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg">

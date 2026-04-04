@@ -175,7 +175,7 @@ Route::prefix('wishlist')->name('wishlist.')->middleware('auth')->group(function
 // Public route for shipping options
 Route::get('/checkout/shipping-options', [CheckoutController::class, 'getShippingOptions'])->name('checkout.shipping-options');
 
-Route::prefix('checkout')->name('checkout.')->middleware('auth')->group(function () {
+Route::prefix('checkout')->name('checkout.')->group(function () {
     Route::get('/', [CheckoutController::class, 'index'])->name('index');
     Route::post('/process', [CheckoutController::class, 'process'])->name('process');
     Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');

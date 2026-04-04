@@ -425,7 +425,7 @@
                 <li>
                     <a href="{{ route('blogs.index') }}" class="{{ !request('category') && !request('search') ? 'active' : '' }}">
                         <span>All Posts</span>
-                        <span class="count">{{ \App\Models\Blog::published()->count() }}</span>
+                        <span class="count">{{ \Cache::remember('blog_published_count', 3600, function() { return \App\Models\Blog::published()->count(); }) }}</span>
                     </a>
                 </li>
                 @foreach($categories as $category)
@@ -433,7 +433,7 @@
                         <a href="{{ route('blogs.index', ['category' => $category->slug]) }}" 
                            class="{{ request('category') == $category->slug ? 'active' : '' }}">
                             <span>{{ $category->name }}</span>
-                            <span class="count">{{ $category->blogs()->where('status', 'published')->where('published_at', '<=', now())->count() }}</span>
+                            <span class="count">{{ \Cache::remember('blog_count_' . $category->id, 3600, function() use ($category) { return $category->blogs()->where('status', 'published')->where('published_at', '<=', now())->count(); }) }}</span>
                         </a>
                     </li>
                 @endforeach
@@ -449,7 +449,7 @@
                 <h1>Search Results for "{{ request('search') }}"</h1>
                 <p>{{ $blogs->total() }} post(s) found</p>
             @elseif(request('category'))
-                @php $cat = \App\Models\Category::where('slug', request('category'))->first(); @endphp
+                @php $cat = \Cache::remember('category_by_slug_' . request('category'), 3600, function() { return \App\Models\Category::where('slug', request('category'))->first(); }); @endphp
                 <h1>{{ $cat ? $cat->name : 'Category' }}</h1>
                 <p>Browse all posts in this category</p>
             @else
@@ -466,7 +466,7 @@
                         <div class="card-image">
                             @if($blog->featured_image)
                                 <a href="{{ route('blogs.show', $blog->slug) }}">
-                                    <img src="{{ asset('storage/' . $blog->featured_image) }}" alt="{{ $blog->title }}">
+                                    <img src="{{ asset('storage/' . $blog->featured_image) }}" alt="{{ $blog->title }}" loading="lazy">
                                 </a>
                             @else
                                 <div class="placeholder-image">

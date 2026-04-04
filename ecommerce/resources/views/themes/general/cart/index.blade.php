@@ -14,6 +14,8 @@
 <script>
 // Cart page specific functions
 let cartPageItems = [];
+const checkoutUrl = "{{ route('checkout.index') }}";
+const productsUrl = "{{ route('products.index') }}";
 
 async function loadCartPageData() {
     try {
@@ -40,7 +42,7 @@ function renderCartPage() {
                 </div>
                 <h4 class="text-gray-600 font-medium mb-2">Your cart is empty</h4>
                 <p class="text-gray-400 text-sm mb-4">Add some products to get started!</p>
-                <a href="{{ route('products.index') }}" class="inline-block bg-halal-green text-white px-6 py-2 rounded-full hover:bg-halal-dark transition-colors">
+                <a href="${productsUrl}" class="inline-block bg-halal-green text-white px-6 py-2 rounded-full hover:bg-halal-dark transition-colors">
                     Start Shopping
                 </a>
             </div>
@@ -104,10 +106,10 @@ function renderCartPage() {
                     </div>
                 </div>
                 ${delivery === 0 ? '<p class="text-halal-green text-sm mb-4"><i class="bi bi-truck mr-1"></i>You\'ve got free delivery!</p>' : ''}
-                <a href="{{ route('checkout.index') }}" class="block w-full bg-halal-green text-white text-center py-3 rounded-lg font-medium hover:bg-halal-dark transition-colors">
+                <a href="${checkoutUrl}" class="block w-full bg-halal-green text-white text-center py-3 rounded-lg font-medium hover:bg-halal-dark transition-colors">
                     Proceed to Checkout
                 </a>
-                <a href="{{ route('products.index') }}" class="block w-full text-center py-3 text-halal-green hover:underline mt-2">
+                <a href="${productsUrl}" class="block w-full text-center py-3 text-halal-green hover:underline mt-2">
                     Continue Shopping
                 </a>
             </div>

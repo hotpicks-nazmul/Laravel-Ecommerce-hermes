@@ -14,6 +14,7 @@ use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
 {
@@ -31,6 +32,7 @@ class CheckoutController extends Controller
      */
     public function index()
     {
+        $this->mergeSessionCart();
         $cart = $this->getCart();
 
         if ($cart->isEmpty()) {
@@ -45,11 +47,58 @@ class CheckoutController extends Controller
     }
 
     /**
+     * Merge session cart into user cart if both exist.
+     */
+    protected function mergeSessionCart()
+    {
+        if (!Auth::check()) {
+            return;
+        }
+
+        $sessionCartId = session()->get('cart_id');
+        if (!$sessionCartId) {
+            return;
+        }
+
+        $sessionCart = Cart::find($sessionCartId);
+        if (!$sessionCart || empty($sessionCart->items)) {
+            return;
+        }
+
+        $userCart = Cart::firstOrCreate(['user_id' => Auth::id()]);
+        $userItems = $userCart->items ?? [];
+        $sessionItems = $sessionCart->items ?? [];
+
+        // Merge session items into user cart
+        foreach ($sessionItems as $sessionItem) {
+            $found = false;
+            foreach ($userItems as &$userItem) {
+                if ($userItem['product_id'] == $sessionItem['product_id']) {
+                    $userItem['quantity'] += $sessionItem['quantity'];
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $userItems[] = $sessionItem;
+            }
+        }
+
+        $userCart->items = $userItems;
+        $userCart->save();
+
+        // Clear session cart
+        $sessionCart->items = [];
+        $sessionCart->save();
+        session()->forget('cart_id');
+    }
+
+    /**
      * Process checkout.
      */
     public function process(Request $request)
     {
-        $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'billing_first_name' => 'required|string|max:255',
             'billing_last_name' => 'required|string|max:255',
             'billing_email' => 'required|email|max:255',
@@ -64,31 +113,47 @@ class CheckoutController extends Controller
             'terms' => 'required|accepted',
         ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
         $cart = $this->getCart();
 
         if ($cart->isEmpty()) {
-            return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Your cart is empty.',
+            ], 400);
         }
 
         // Get order configuration settings
         $minOrderAmount = (float) Setting::get('min_order_amount', 0);
         $maxOrderAmount = (float) Setting::get('max_order_amount', 0);
-        $subtotal = $cart->subtotal;
+        $subtotal = $cart->getSubtotal();
 
         // Validate minimum order amount
         if ($minOrderAmount > 0 && $subtotal < $minOrderAmount) {
-            return back()->with('error', 'Minimum order amount is ' . config('app.currency_symbol', '৳') . number_format($minOrderAmount, 2))->withInput();
+            return response()->json([
+                'success' => false,
+                'message' => 'Minimum order amount is ' . config('app.currency_symbol', '৳') . number_format($minOrderAmount, 2),
+            ], 400);
         }
 
         // Validate maximum order amount
         if ($maxOrderAmount > 0 && $subtotal > $maxOrderAmount) {
-            return back()->with('error', 'Maximum order amount is ' . config('app.currency_symbol', '৳') . number_format($maxOrderAmount, 2))->withInput();
+            return response()->json([
+                'success' => false,
+                'message' => 'Maximum order amount is ' . config('app.currency_symbol', '৳') . number_format($maxOrderAmount, 2),
+            ], 400);
         }
 
         DB::beginTransaction();
         try {
             // Calculate totals
-            $subtotal = $cart->subtotal;
+            $subtotal = $cart->getSubtotal();
             $tax = $subtotal * (Setting::get('tax_rate', 0) / 100);
             $shippingMethod = $request->input('shipping_method', 'home_delivery');
             $shippingCost = $this->calculateShipping($subtotal, $shippingMethod, $request->billing_city, $request->billing_state);
@@ -142,18 +207,21 @@ class CheckoutController extends Controller
 
             // Create order items
             foreach ($cart->items as $item) {
+                $product = \App\Models\Product::find($item['product_id']);
                 OrderItem::create([
                     'order_id' => $order->id,
-                    'product_id' => $item->product_id,
-                    'product_name' => $item->product->name,
-                    'variation' => $item->variation,
-                    'quantity' => $item->quantity,
-                    'price' => $item->price,
-                    'total' => $item->total,
+                    'product_id' => $item['product_id'],
+                    'product_name' => $item['name'] ?? ($product ? $product->name : 'Unknown'),
+                    'variation' => isset($item['variant_data']) ? json_encode($item['variant_data']) : null,
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'total' => $item['price'] * $item['quantity'],
                 ]);
 
                 // Update product stock
-                $item->product->decrement('quantity', $item->quantity);
+                if ($product) {
+                    $product->decrement('quantity', $item['quantity']);
+                }
             }
 
             // Increment coupon usage
@@ -172,27 +240,41 @@ class CheckoutController extends Controller
 
                 if ($result['success']) {
                     $order->update(['payment_gateway' => $gateway->slug]);
-                    
                     DB::commit();
 
                     if (isset($result['redirect_url'])) {
-                        return redirect($result['redirect_url']);
+                        return response()->json([
+                            'success' => true,
+                            'redirect' => $result['redirect_url'],
+                        ]);
                     }
 
-                    return redirect()->route('checkout.success', $order->id);
+                    return response()->json([
+                        'success' => true,
+                        'redirect' => route('checkout.success', $order->id),
+                    ]);
                 }
 
                 DB::rollBack();
-                return back()->with('error', $result['message'] ?? 'Payment initialization failed.');
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message'] ?? 'Payment initialization failed.',
+                ], 400);
             }
 
             // COD or no payment gateway
             DB::commit();
-            return redirect()->route('checkout.success', $order->id);
+            return response()->json([
+                'success' => true,
+                'redirect' => route('checkout.success', $order->id),
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'An error occurred. Please try again.');
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred. Please try again.',
+            ], 500);
         }
     }
 
@@ -226,7 +308,6 @@ class CheckoutController extends Controller
      */
     protected function calculateShipping($subtotal, $shippingMethod = null, $city = null, $state = null)
     {
-        // Get shipping settings from admin panel
         $freeShippingEnabled = Setting::get('free_shipping_enabled', '0') === '1';
         $freeShippingMinAmount = (float) Setting::get('free_shipping_min_amount', 0);
         $defaultShippingCost = (float) Setting::get('default_shipping_cost', 0);
@@ -234,106 +315,51 @@ class CheckoutController extends Controller
         $localPickupEnabled = Setting::get('local_pickup_enabled', '0') === '1';
         $localPickupCost = (float) Setting::get('local_pickup_cost', 0);
 
-        // Check for free shipping
         if ($freeShippingEnabled && $freeShippingMinAmount > 0 && $subtotal >= $freeShippingMinAmount) {
             return 0;
         }
 
-        // Handle local pickup
         if ($shippingMethod === 'local_pickup') {
             return $localPickupEnabled ? $localPickupCost : 0;
         }
 
-        // Handle delivery zone-based shipping
         if ($shippingCalculationType === 'location' && !empty($city)) {
-            // Try to find matching delivery zone
-            $zone = \App\Models\DeliveryZone::active()
-                ->where(function($query) use ($city, $state) {
-                    $query->where('city', 'like', "%{$city}%")
-                        ->orWhere('state', 'like', "%{$state}%")
-                        ->orWhereNull('city');
-                })
-                ->first();
-
+            $zone = \App\Models\DeliveryZone::where('name', 'like', '%' . $city . '%')->first();
             if ($zone) {
-                // Check if free shipping threshold is met for this zone
-                if ($zone->free_shipping_enabled && $zone->free_shipping_threshold > 0 && $subtotal >= $zone->free_shipping_threshold) {
-                    return 0;
-                }
-
-                // Return zone shipping cost
-                return (float) $zone->shipping_cost;
+                return (float) $zone->cost;
             }
         }
 
-        // Default to flat rate
         return $defaultShippingCost;
     }
 
     /**
-     * Get available shipping options for the cart.
+     * Get shipping options for checkout.
      */
     public function getShippingOptions(Request $request)
     {
-        $city = $request->input('city');
-        $state = $request->input('state');
-        $subtotal = (float) $request->input('subtotal', 0);
-
-        // Get settings
-        $freeShippingEnabled = Setting::get('free_shipping_enabled', '0') === '1';
-        $freeShippingMinAmount = (float) Setting::get('free_shipping_min_amount', 0);
-        $defaultShippingCost = (float) Setting::get('default_shipping_cost', 0);
-        $shippingCalculationType = Setting::get('shipping_calculation_type', 'flat');
-        $localPickupEnabled = Setting::get('local_pickup_enabled', '0') === '1';
-        $localPickupCost = (float) Setting::get('local_pickup_cost', 0);
+        $subtotal = (float) $request->get('subtotal', 0);
+        $city = $request->get('city', '');
+        $state = $request->get('state', '');
 
         $options = [];
 
-        // Add home delivery option
-        $homeDeliveryCost = $defaultShippingCost;
-        $homeDeliveryLabel = 'Home Delivery';
-
-        // If location-based, try to find matching zone
-        if ($shippingCalculationType === 'location' && !empty($city)) {
-            $zone = \App\Models\DeliveryZone::active()
-                ->where(function($query) use ($city, $state) {
-                    $query->where('city', 'like', "%{$city}%")
-                        ->orWhere('state', 'like', "%{$state}%")
-                        ->orWhereNull('city');
-                })
-                ->first();
-
-            if ($zone) {
-                if ($zone->free_shipping_enabled && $zone->free_shipping_threshold > 0 && $subtotal >= $zone->free_shipping_threshold) {
-                    $homeDeliveryCost = 0;
-                    $homeDeliveryLabel = 'Home Delivery (Free)';
-                } else {
-                    $homeDeliveryCost = (float) $zone->shipping_cost;
-                    $homeDeliveryLabel = 'Home Delivery - ' . $zone->name;
-                }
-            }
-        }
-
-        // Check global free shipping
-        if ($freeShippingEnabled && $freeShippingMinAmount > 0 && $subtotal >= $freeShippingMinAmount) {
-            $homeDeliveryCost = 0;
-            $homeDeliveryLabel = 'Free Shipping';
-        }
-
+        $deliveryCost = $this->calculateShipping($subtotal, 'home_delivery', $city, $state);
         $options[] = [
             'id' => 'home_delivery',
-            'name' => $homeDeliveryLabel,
-            'cost' => $homeDeliveryCost,
+            'name' => 'Home Delivery',
+            'cost' => $deliveryCost,
             'estimated_days' => '3-5 business days',
         ];
 
-        // Add local pickup option if enabled
+        $localPickupEnabled = Setting::get('local_pickup_enabled', '0') === '1';
         if ($localPickupEnabled) {
+            $pickupCost = (float) Setting::get('local_pickup_cost', 0);
             $options[] = [
                 'id' => 'local_pickup',
                 'name' => 'Local Pickup',
-                'cost' => $localPickupCost,
-                'estimated_days' => 'Same day',
+                'cost' => $pickupCost,
+                'estimated_days' => 'Ready in 1-2 hours',
             ];
         }
 
@@ -344,15 +370,54 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Get cart.
+     * Get current user's cart.
      */
     protected function getCart()
     {
-        if (Auth::check()) {
-            return Cart::findOrCreateForUser(Auth::id());
+        $cartId = session()->get('cart_id');
+        $sessionCart = null;
+        if ($cartId) {
+            $sessionCart = Cart::find($cartId);
         }
 
-        $sessionId = session()->get('cart_session_id');
-        return Cart::findOrCreateForUser(null, $sessionId);
+        if (Auth::check()) {
+            $userCart = Cart::firstOrCreate(['user_id' => Auth::id()]);
+
+            // Merge session cart into user cart if session cart has items
+            if ($sessionCart && !empty($sessionCart->items)) {
+                $userItems = $userCart->items ?? [];
+                $sessionItems = $sessionCart->items ?? [];
+
+                foreach ($sessionItems as $sessionItem) {
+                    $found = false;
+                    foreach ($userItems as &$userItem) {
+                        if ($userItem['product_id'] == $sessionItem['product_id']) {
+                            $userItem['quantity'] += $sessionItem['quantity'];
+                            $found = true;
+                            break;
+                        }
+                    }
+                    if (!$found) {
+                        $userItems[] = $sessionItem;
+                    }
+                }
+
+                $userCart->items = $userItems;
+                $userCart->save();
+
+                // Clear session cart
+                $sessionCart->items = [];
+                $sessionCart->save();
+                session()->forget('cart_id');
+            }
+
+            return $userCart;
+        }
+
+        if ($sessionCart) {
+            return $sessionCart;
+        }
+
+        return Cart::create(['items' => []]);
     }
 }

@@ -1,4 +1,18 @@
 <!-- Chat Widget -->
+@php
+$chatReplies = [
+    'track_order' => \App\Models\Setting::get('chat_reply_track_order', 'To track your order, please provide your order number. You can also check your order status in My Orders section after logging in. 📦'),
+    'delivery' => \App\Models\Setting::get('chat_reply_delivery', 'We deliver across Bangladesh! 🇧🇩 Dhaka: Same day delivery. Other areas: 1-3 business days. Free delivery on orders over ৳500!'),
+    'payment' => \App\Models\Setting::get('chat_reply_payment', 'We accept multiple payment methods: 💳 bKash, Nagad, Rocket, Credit/Debit Cards (Visa, Mastercard), and Cash on Delivery (COD).'),
+    'halal' => \App\Models\Setting::get('chat_reply_halal', 'All our products are 100% Halal certified! ✅ We source from trusted suppliers and maintain strict quality standards.'),
+    'return_refund' => \App\Models\Setting::get('chat_reply_return', 'We have a hassle-free return policy! If you are not satisfied, contact us within 24 hours of delivery for a refund or replacement. 🔄'),
+    'price' => \App\Models\Setting::get('chat_reply_price', 'Our prices are competitive and transparent. Check our Deals section for special discounts! 💰 Free delivery on orders over ৳500.'),
+    'greeting' => \App\Models\Setting::get('chat_reply_greeting', 'Wa Alaikum Assalam! 👋 Welcome to Halal Food Store. How can I assist you today?'),
+    'default' => \App\Models\Setting::get('chat_reply_default', 'Thank you for your message! Our support team has received it and will respond shortly. For urgent queries, call +880 1700-000000. 😊'),
+    '_welcome_message' => \App\Models\Setting::get('chat_welcome_message', 'Hello! How can I help you today?'),
+    '_welcome_subtitle' => \App\Models\Setting::get('chat_welcome_subtitle', 'Our team typically replies within minutes'),
+];
+@endphp
 <div class="fixed bottom-6 right-6 z-40">
     <!-- Chat Button -->
     <button id="chatToggle" onclick="toggleChat()" class="w-14 h-14 bg-halal-green text-white rounded-full shadow-lg hover:bg-halal-dark transition-all duration-300 flex items-center justify-center group relative">
@@ -90,12 +104,12 @@
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
 // Pusher Configuration
-const PUSHER_APP_KEY = '{{ config("broadcasting.connections.pusher.key") }}';
-const PUSHER_CLUSTER = '{{ config("broadcasting.connections.pusher.options.cluster") }}';
+const PUSHER_APP_KEY = @json(config("broadcasting.connections.pusher.key"));
+const PUSHER_CLUSTER = @json(config("broadcasting.connections.pusher.options.cluster"));
 
 // Chat Welcome Messages (from settings)
-const welcomeMessage = '{{ \App\Models\Setting::get("chat_welcome_message", "Hello! How can I help you today?") }}';
-const welcomeSubtitle = '{{ \App\Models\Setting::get("chat_welcome_subtitle", "Our team typically replies within minutes") }}';
+const welcomeMessage = @json($chatReplies['_welcome_message'] ?? 'Hello! How can I help you today?');
+const welcomeSubtitle = @json($chatReplies['_welcome_subtitle'] ?? 'Our team typically replies within minutes');
 
 // Initialize Pusher for real-time updates
 let pusher = null;
@@ -150,7 +164,7 @@ function startTypingPolling() {
 function checkAdminTypingStatus() {
     if (!conversationId) return;
     
-    fetch('{{ route("api.chat.check-typing") }}?conversation_id=' + conversationId)
+    fetch(@json(route("api.chat.check-typing")) + '?conversation_id=' + conversationId)
         .then(res => res.json())
         .then(data => {
             if (data.admin_is_typing) {
@@ -259,7 +273,7 @@ function createLoggedInConversation() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            'X-CSRF-TOKEN': @json(csrf_token())
         }
     })
     .then(res => res.json())
@@ -287,7 +301,9 @@ function createLoggedInConversation() {
 }
 
 // Run on page load
-checkExistingGuest();
+document.addEventListener('DOMContentLoaded', function() {
+    checkExistingGuest();
+});
 
 // Reset chat on logout - clear localStorage and stop polling
 function resetChatOnLogout() {
@@ -357,22 +373,13 @@ function registerGuest(event) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({
-            name: name,
-            phone: phone,
-            conversation_id: existingConvId || null
-        })
+            'X-CSRF-TOKEN': @json(csrf_token())
+        }
     })
-    .then(res => {
-        console.log('Response status:', res.status);
-        return res.json();
-    })
+    .then(res => res.json())
     .then(data => {
-        console.log('Guest registration response:', data);
+        console.log('Logged in conversation response:', data);
         if (data.success) {
-            // Save conversation ID
             conversationId = data.conversation_id;
             document.getElementById('conversationId').value = conversationId;
             localStorage.setItem('chat_conversation_id', conversationId);
@@ -607,11 +614,11 @@ function sendMessage(event) {
     input.value = '';
     
     // Send to backend - let backend handle conversation creation
-    fetch('{{ route("chat.send") }}', {
+    fetch(@json(route("chat.send")), {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-CSRF-TOKEN': @json(csrf_token()),
             'Accept': 'application/json'
         },
         body: JSON.stringify({
@@ -680,26 +687,20 @@ function hideTypingIndicator() {
 
 // Send typing status to server
 function sendTypingStatus(isTyping) {
-    const conversationId = document.getElementById('conversationId').value;
-    console.log('sendTypingStatus called:', isTyping, 'conversationId:', conversationId);
-    if (!conversationId) {
-        console.log('No conversation ID, skipping typing status');
-        return;
-    }
+    const convId = document.getElementById('conversationId').value;
+    if (!convId) return;
     
-    fetch('{{ route("api.chat.typing") }}', {
+    fetch('/chat/typing', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            'X-CSRF-TOKEN': @json(csrf_token())
         },
         body: JSON.stringify({
-            conversation_id: conversationId,
+            conversation_id: convId,
             is_typing: isTyping
         })
-    }).then(res => {
-        console.log('Typing status response:', res.status);
-    }).catch(err => console.log('Error sending typing status:', err));
+    }).catch(() => {});
 }
 
 // Listen for typing input
@@ -718,9 +719,19 @@ function setupTypingListener() {
     }
 }
 
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 function addMessage(text, type, tempId = null) {
     const messagesContainer = document.getElementById('chatMessages');
     const messageDiv = document.createElement('div');
+    const escapedText = escapeHtml(text);
     
     // Skip if this exact message already exists (avoid duplication)
     if (tempId) {
@@ -737,7 +748,7 @@ function addMessage(text, type, tempId = null) {
         messageDiv.className = 'flex items-start space-x-2 justify-end user-message';
         messageDiv.innerHTML = `
             <div class="bg-halal-green text-white p-3 rounded-lg rounded-tr-none max-w-[80%]">
-                <p class="text-sm chat-message-text">${text}</p>
+                <p class="text-sm chat-message-text">${escapedText}</p>
             </div>
             <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
                 <i class="bi bi-person-fill text-gray-600 text-sm"></i>
@@ -750,7 +761,7 @@ function addMessage(text, type, tempId = null) {
                 <i class="bi bi-headset text-white text-sm"></i>
             </div>
             <div class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-[80%]">
-                <p class="text-sm text-gray-700 chat-message-text">${text}</p>
+                <p class="text-sm text-gray-700 chat-message-text">${escapedText}</p>
             </div>
         `;
     }
@@ -763,16 +774,7 @@ function getAIResponse(message) {
     const lowerMessage = message.toLowerCase();
     
     // Auto-reply responses (can be customized from admin)
-    const autoReplies = {
-        'track_order': '{{ \App\Models\Setting::get("chat_reply_track_order", "To track your order, please provide your order number. You can also check your order status in My Orders section after logging in. 📦") }}',
-        'delivery': '{{ \App\Models\Setting::get("chat_reply_delivery", "We deliver across Bangladesh! 🇧🇩 Dhaka: Same day delivery. Other areas: 1-3 business days. Free delivery on orders over ৳500!") }}',
-        'payment': '{{ \App\Models\Setting::get("chat_reply_payment", "We accept multiple payment methods: 💳 bKash, Nagad, Rocket, Credit/Debit Cards (Visa, Mastercard), and Cash on Delivery (COD).") }}',
-        'halal': '{{ \App\Models\Setting::get("chat_reply_halal", "All our products are 100% Halal certified! ✅ We source from trusted suppliers and maintain strict quality standards.") }}',
-        'return_refund': '{{ \App\Models\Setting::get("chat_reply_return", "We have a hassle-free return policy! If you're not satisfied, contact us within 24 hours of delivery for a refund or replacement. 🔄") }}',
-        'price': '{{ \App\Models\Setting::get("chat_reply_price", "Our prices are competitive and transparent. Check our Deals section for special discounts! 💰 Free delivery on orders over ৳500.") }}',
-        'greeting': '{{ \App\Models\Setting::get("chat_reply_greeting", "Wa Alaikum Assalam! 👋 Welcome to Halal Food Store. How can I assist you today?") }}',
-        'default': '{{ \App\Models\Setting::get("chat_reply_default", "Thank you for your message! Our support team has received it and will respond shortly. For urgent queries, call +880 1700-000000. 😊") }}'
-    };
+    const autoReplies = @json($chatReplies);
     
     if (lowerMessage.includes('track') || lowerMessage.includes('order')) {
         return autoReplies.track_order;

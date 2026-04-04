@@ -997,51 +997,52 @@
 
     /* ============================================
        SPACING UTILITIES - PADDING & MARGIN
+       (Scoped to .global-styles to avoid conflicts with Tailwind/Bootstrap)
        ============================================ */
     /* Padding */
-    .p-0 { padding: 0 !important; }
-    .p-1 { padding: var(--spacing-xs) !important; }
-    .p-2 { padding: var(--spacing-sm) !important; }
-    .p-3 { padding: var(--spacing-md) !important; }
-    .p-4 { padding: var(--spacing-lg) !important; }
-    .p-5 { padding: var(--spacing-xl) !important; }
+    .global-styles .p-0 { padding: 0 !important; }
+    .global-styles .p-1 { padding: var(--spacing-xs) !important; }
+    .global-styles .p-2 { padding: var(--spacing-sm) !important; }
+    .global-styles .p-3 { padding: var(--spacing-md) !important; }
+    .global-styles .p-4 { padding: var(--spacing-lg) !important; }
+    .global-styles .p-5 { padding: var(--spacing-xl) !important; }
     
-    .px-3 { padding-left: var(--spacing-md) !important; padding-right: var(--spacing-md) !important; }
-    .px-4 { padding-left: var(--spacing-lg) !important; padding-right: var(--spacing-lg) !important; }
-    .px-5 { padding-left: var(--spacing-xl) !important; padding-right: var(--spacing-xl) !important; }
+    .global-styles .px-3 { padding-left: var(--spacing-md) !important; padding-right: var(--spacing-md) !important; }
+    .global-styles .px-4 { padding-left: var(--spacing-lg) !important; padding-right: var(--spacing-lg) !important; }
+    .global-styles .px-5 { padding-left: var(--spacing-xl) !important; padding-right: var(--spacing-xl) !important; }
     
-    .py-3 { padding-top: var(--spacing-md) !important; padding-bottom: var(--spacing-md) !important; }
-    .py-4 { padding-top: var(--spacing-lg) !important; padding-bottom: var(--spacing-lg) !important; }
-    .py-5 { padding-top: var(--spacing-xl) !important; padding-bottom: var(--spacing-xl) !important; }
+    .global-styles .py-3 { padding-top: var(--spacing-md) !important; padding-bottom: var(--spacing-md) !important; }
+    .global-styles .py-4 { padding-top: var(--spacing-lg) !important; padding-bottom: var(--spacing-lg) !important; }
+    .global-styles .py-5 { padding-top: var(--spacing-xl) !important; padding-bottom: var(--spacing-xl) !important; }
     
     /* Margin */
-    .m-0 { margin: 0 !important; }
-    .m-1 { margin: var(--spacing-xs) !important; }
-    .m-2 { margin: var(--spacing-sm) !important; }
-    .m-3 { margin: var(--spacing-md) !important; }
-    .m-4 { margin: var(--spacing-lg) !important; }
-    .m-5 { margin: var(--spacing-xl) !important; }
+    .global-styles .m-0 { margin: 0 !important; }
+    .global-styles .m-1 { margin: var(--spacing-xs) !important; }
+    .global-styles .m-2 { margin: var(--spacing-sm) !important; }
+    .global-styles .m-3 { margin: var(--spacing-md) !important; }
+    .global-styles .m-4 { margin: var(--spacing-lg) !important; }
+    .global-styles .m-5 { margin: var(--spacing-xl) !important; }
     
-    .mx-auto { margin-left: auto !important; margin-right: auto !important; }
-    .my-3 { margin-top: var(--spacing-md) !important; margin-bottom: var(--spacing-md) !important; }
-    .my-4 { margin-top: var(--spacing-lg) !important; margin-bottom: var(--spacing-lg) !important; }
+    .global-styles .mx-auto { margin-left: auto !important; margin-right: auto !important; }
+    .global-styles .my-3 { margin-top: var(--spacing-md) !important; margin-bottom: var(--spacing-md) !important; }
+    .global-styles .my-4 { margin-top: var(--spacing-lg) !important; margin-bottom: var(--spacing-lg) !important; }
     
-    .mt-0 { margin-top: 0 !important; }
-    .mt-1 { margin-top: var(--spacing-xs) !important; }
-    .mt-2 { margin-top: var(--spacing-sm) !important; }
-    .mt-3 { margin-top: var(--spacing-md) !important; }
-    .mt-4 { margin-top: var(--spacing-lg) !important; }
-    .mt-5 { margin-top: var(--spacing-xl) !important; }
+    .global-styles .mt-0 { margin-top: 0 !important; }
+    .global-styles .mt-1 { margin-top: var(--spacing-xs) !important; }
+    .global-styles .mt-2 { margin-top: var(--spacing-sm) !important; }
+    .global-styles .mt-3 { margin-top: var(--spacing-md) !important; }
+    .global-styles .mt-4 { margin-top: var(--spacing-lg) !important; }
+    .global-styles .mt-5 { margin-top: var(--spacing-xl) !important; }
     
-    .mb-0 { margin-bottom: 0 !important; }
-    .mb-1 { margin-bottom: var(--spacing-xs) !important; }
-    .mb-2 { margin-bottom: var(--spacing-sm) !important; }
-    .mb-3 { margin-bottom: var(--spacing-md) !important; }
-    .mb-4 { margin-bottom: var(--spacing-lg) !important; }
-    .mb-5 { margin-bottom: var(--spacing-xl) !important; }
+    .global-styles .mb-0 { margin-bottom: 0 !important; }
+    .global-styles .mb-1 { margin-bottom: var(--spacing-xs) !important; }
+    .global-styles .mb-2 { margin-bottom: var(--spacing-sm) !important; }
+    .global-styles .mb-3 { margin-bottom: var(--spacing-md) !important; }
+    .global-styles .mb-4 { margin-bottom: var(--spacing-lg) !important; }
+    .global-styles .mb-5 { margin-bottom: var(--spacing-xl) !important; }
     
-    .ms-auto { margin-left: auto !important; }
-    .me-auto { margin-right: auto !important; }
+    .global-styles .ms-auto { margin-left: auto !important; }
+    .global-styles .me-auto { margin-right: auto !important; }
 
     /* ============================================
        PAGE LAYOUT UTILITIES
@@ -1070,95 +1071,101 @@
 
     /* ============================================
        TEXT UTILITIES
+       (Scoped to .global-styles to avoid conflicts with Tailwind/Bootstrap)
        ============================================ */
-    .text-primary { color: var(--color-primary) !important; }
-    .text-secondary { color: var(--color-secondary) !important; }
-    .text-success { color: var(--color-success) !important; }
-    .text-warning { color: var(--color-warning) !important; }
-    .text-danger { color: var(--color-danger) !important; }
-    .text-info { color: var(--color-info) !important; }
-    .text-muted { color: var(--color-gray-500) !important; }
-    .text-dark { color: var(--color-gray-900) !important; }
-    .text-white { color: var(--color-white) !important; }
+    .global-styles .text-primary { color: var(--color-primary) !important; }
+    .global-styles .text-secondary { color: var(--color-secondary) !important; }
+    .global-styles .text-success { color: var(--color-success) !important; }
+    .global-styles .text-warning { color: var(--color-warning) !important; }
+    .global-styles .text-danger { color: var(--color-danger) !important; }
+    .global-styles .text-info { color: var(--color-info) !important; }
+    .global-styles .text-muted { color: var(--color-gray-500) !important; }
+    .global-styles .text-dark { color: var(--color-gray-900) !important; }
+    .global-styles .text-white { color: var(--color-white) !important; }
     
-    .text-xs { font-size: var(--font-size-xs) !important; }
-    .text-sm { font-size: var(--font-size-sm) !important; }
-    .text-base { font-size: var(--font-size-base) !important; }
-    .text-lg { font-size: var(--font-size-lg) !important; }
-    .text-xl { font-size: var(--font-size-xl) !important; }
+    .global-styles .text-xs { font-size: var(--font-size-xs) !important; }
+    .global-styles .text-sm { font-size: var(--font-size-sm) !important; }
+    .global-styles .text-base { font-size: var(--font-size-base) !important; }
+    .global-styles .text-lg { font-size: var(--font-size-lg) !important; }
+    .global-styles .text-xl { font-size: var(--font-size-xl) !important; }
     
-    .font-medium { font-weight: 500 !important; }
-    .font-semibold { font-weight: 600 !important; }
-    .font-bold { font-weight: 700 !important; }
+    .global-styles .font-medium { font-weight: 500 !important; }
+    .global-styles .font-semibold { font-weight: 600 !important; }
+    .global-styles .font-bold { font-weight: 700 !important; }
 
     /* ============================================
        BACKGROUND UTILITIES
+       (Scoped to .global-styles to avoid conflicts with Tailwind/Bootstrap)
        ============================================ */
-    .bg-primary { background-color: var(--color-primary) !important; }
-    .bg-secondary { background-color: var(--color-secondary) !important; }
-    .bg-success { background-color: var(--color-success) !important; }
-    .bg-warning { background-color: var(--color-warning) !important; }
-    .bg-danger { background-color: var(--color-danger) !important; }
-    .bg-info { background-color: var(--color-info) !important; }
-    .bg-light { background-color: var(--color-gray-100) !important; }
-    .bg-dark { background-color: var(--color-gray-800) !important; }
-    .bg-white { background-color: var(--color-white) !important; }
+    .global-styles .bg-primary { background-color: var(--color-primary) !important; }
+    .global-styles .bg-secondary { background-color: var(--color-secondary) !important; }
+    .global-styles .bg-success { background-color: var(--color-success) !important; }
+    .global-styles .bg-warning { background-color: var(--color-warning) !important; }
+    .global-styles .bg-danger { background-color: var(--color-danger) !important; }
+    .global-styles .bg-info { background-color: var(--color-info) !important; }
+    .global-styles .bg-light { background-color: var(--color-gray-100) !important; }
+    .global-styles .bg-dark { background-color: var(--color-gray-800) !important; }
+    .global-styles .bg-white { background-color: var(--color-white) !important; }
 
     /* ============================================
        BORDER UTILITIES
+       (Scoped to .global-styles to avoid conflicts with Tailwind/Bootstrap)
        ============================================ */
-    .border { border: 1px solid var(--color-gray-200) !important; }
-    .border-0 { border: 0 !important; }
-    .border-top { border-top: 1px solid var(--color-gray-200) !important; }
-    .border-bottom { border-bottom: 1px solid var(--color-gray-200) !important; }
-    .border-primary { border-color: var(--color-primary) !important; }
-    .rounded { border-radius: var(--radius-md) !important; }
-    .rounded-lg { border-radius: var(--radius-lg) !important; }
-    .rounded-xl { border-radius: var(--radius-xl) !important; }
-    .rounded-full { border-radius: var(--radius-full) !important; }
-    .rounded-0 { border-radius: 0 !important; }
+    .global-styles .border { border: 1px solid var(--color-gray-200) !important; }
+    .global-styles .border-0 { border: 0 !important; }
+    .global-styles .border-top { border-top: 1px solid var(--color-gray-200) !important; }
+    .global-styles .border-bottom { border-bottom: 1px solid var(--color-gray-200) !important; }
+    .global-styles .border-primary { border-color: var(--color-primary) !important; }
+    .global-styles .rounded { border-radius: var(--radius-md) !important; }
+    .global-styles .rounded-lg { border-radius: var(--radius-lg) !important; }
+    .global-styles .rounded-xl { border-radius: var(--radius-xl) !important; }
+    .global-styles .rounded-full { border-radius: var(--radius-full) !important; }
+    .global-styles .rounded-0 { border-radius: 0 !important; }
 
     /* ============================================
        SHADOW UTILITIES
+       (Scoped to .global-styles to avoid conflicts with Tailwind/Bootstrap)
        ============================================ */
-    .shadow-sm { box-shadow: var(--shadow-sm) !important; }
-    .shadow { box-shadow: var(--shadow-md) !important; }
-    .shadow-lg { box-shadow: var(--shadow-lg) !important; }
-    .shadow-none { box-shadow: none !important; }
+    .global-styles .shadow-sm { box-shadow: var(--shadow-sm) !important; }
+    .global-styles .shadow { box-shadow: var(--shadow-md) !important; }
+    .global-styles .shadow-lg { box-shadow: var(--shadow-lg) !important; }
+    .global-styles .shadow-none { box-shadow: none !important; }
 
     /* ============================================
        FLEX UTILITIES
+       (Scoped to .global-styles to avoid conflicts with Tailwind/Bootstrap)
        ============================================ */
-    .d-flex { display: flex !important; }
-    .d-inline-flex { display: inline-flex !important; }
-    .flex-row { flex-direction: row !important; }
-    .flex-column { flex-direction: column !important; }
-    .flex-wrap { flex-wrap: wrap !important; }
-    .flex-nowrap { flex-wrap: nowrap !important; }
-    .justify-content-start { justify-content: flex-start !important; }
-    .justify-content-center { justify-content: center !important; }
-    .justify-content-end { justify-content: flex-end !important; }
-    .justify-content-between { justify-content: space-between !important; }
-    .align-items-start { align-items: flex-start !important; }
-    .align-items-center { align-items: center !important; }
-    .align-items-end { align-items: flex-end !important; }
-    .gap-1 { gap: var(--spacing-xs) !important; }
-    .gap-2 { gap: var(--spacing-sm) !important; }
-    .gap-3 { gap: var(--spacing-md) !important; }
-    .gap-4 { gap: var(--spacing-lg) !important; }
+    .global-styles .d-flex { display: flex !important; }
+    .global-styles .d-inline-flex { display: inline-flex !important; }
+    .global-styles .flex-row { flex-direction: row !important; }
+    .global-styles .flex-column { flex-direction: column !important; }
+    .global-styles .flex-wrap { flex-wrap: wrap !important; }
+    .global-styles .flex-nowrap { flex-wrap: nowrap !important; }
+    .global-styles .justify-content-start { justify-content: flex-start !important; }
+    .global-styles .justify-content-center { justify-content: center !important; }
+    .global-styles .justify-content-end { justify-content: flex-end !important; }
+    .global-styles .justify-content-between { justify-content: space-between !important; }
+    .global-styles .align-items-start { align-items: flex-start !important; }
+    .global-styles .align-items-center { align-items: center !important; }
+    .global-styles .align-items-end { align-items: flex-end !important; }
+    .global-styles .gap-1 { gap: var(--spacing-xs) !important; }
+    .global-styles .gap-2 { gap: var(--spacing-sm) !important; }
+    .global-styles .gap-3 { gap: var(--spacing-md) !important; }
+    .global-styles .gap-4 { gap: var(--spacing-lg) !important; }
 
     /* ============================================
        ICON STYLES
+       (Scoped to .global-styles to avoid conflicts with Tailwind/Bootstrap)
        ============================================ */
-    .icon-sm { font-size: 1rem !important; }
-    .icon-base { font-size: 1.25rem !important; }
-    .icon-lg { font-size: 1.5rem !important; }
-    .icon-xl { font-size: 2rem !important; }
+    .global-styles .icon-sm { font-size: 1rem !important; }
+    .global-styles .icon-base { font-size: 1.25rem !important; }
+    .global-styles .icon-lg { font-size: 1.5rem !important; }
+    .global-styles .icon-xl { font-size: 2rem !important; }
     
-    .icon-primary { color: var(--color-primary); }
-    .icon-success { color: var(--color-success); }
-    .icon-warning { color: var(--color-warning); }
-    .icon-danger { color: var(--color-danger); }
+    .global-styles .icon-primary { color: var(--color-primary); }
+    .global-styles .icon-success { color: var(--color-success); }
+    .global-styles .icon-warning { color: var(--color-warning); }
+    .global-styles .icon-danger { color: var(--color-danger); }
 
     /* ============================================
        AVATAR STYLES
@@ -1663,17 +1670,6 @@
         width: 100% !important;
     }
     
-    /* Icon placeholder area (48px blue circle) */
-    .stat-card-row .card .card-body::before {
-        content: '' !important;
-        display: block !important;
-        width: 48px !important;
-        height: 48px !important;
-        border-radius: 10px !important;
-        background: #e8f4fd !important;
-        margin-bottom: 8px !important;
-        flex-shrink: 0 !important;
-    }
     
     /* Label: small muted text */
     .stat-card-row .card .card-body .text-muted {

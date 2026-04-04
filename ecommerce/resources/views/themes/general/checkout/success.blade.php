@@ -15,8 +15,20 @@
         @if(isset($order))
         <div class="bg-white rounded-lg shadow-sm p-6 mb-8 text-left">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-lg">Order #{{ $order->id }}</h3>
-                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">Pending</span>
+                <h3 class="font-bold text-lg">Order #{{ $order->order_number }}</h3>
+                @php
+                    $statusColors = [
+                        'pending' => 'bg-yellow-100 text-yellow-800',
+                        'processing' => 'bg-blue-100 text-blue-800',
+                        'shipped' => 'bg-purple-100 text-purple-800',
+                        'delivered' => 'bg-green-100 text-green-800',
+                        'cancelled' => 'bg-red-100 text-red-800',
+                    ];
+                    $badgeClass = $statusColors[$order->status ?? 'pending'] ?? 'bg-gray-100 text-gray-800';
+                @endphp
+                <span class="px-3 py-1 text-xs rounded-full {{ $badgeClass }}">
+                    {{ ucfirst($order->status ?? 'Pending') }}
+                </span>
             </div>
             
             <div class="border-t pt-4">

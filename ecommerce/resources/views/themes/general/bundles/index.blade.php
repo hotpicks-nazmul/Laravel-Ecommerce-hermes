@@ -143,13 +143,13 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 @if($bundle->original_price > $bundle->final_price)
-                                    <span class="original-price">${{ number_format($bundle->original_price, 2) }}</span>
+                                    <span class="original-price">৳{{ number_format($bundle->original_price, 2) }}</span>
                                 @endif
-                                <span class="bundle-price">${{ number_format($bundle->final_price, 2) }}</span>
+                                <span class="bundle-price">৳{{ number_format($bundle->final_price, 2) }}</span>
                             </div>
                             @if($bundle->savings > 0)
                                 <span class="savings-badge">
-                                    <i class="bi bi-piggy-bank me-1"></i>Save ${{ number_format($bundle->savings, 2) }}
+                                    <i class="bi bi-piggy-bank me-1"></i>Save ৳{{ number_format($bundle->savings, 2) }}
                                 </span>
                             @endif
                         </div>

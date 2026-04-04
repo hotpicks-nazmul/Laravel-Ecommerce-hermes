@@ -13,6 +13,7 @@ use App\Events\UserTyping;
 use App\Events\UserStatusChanged;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class ChatController extends Controller
 {
@@ -40,7 +41,9 @@ class ChatController extends Controller
      */
     public function conversations(Request $request)
     {
-        $query = Chat::with('user');
+        $query = Chat::with(['user', 'messages' => function($q) {
+            $q->orderBy('created_at', 'desc');
+        }]);
         
         // Apply status filter
         if ($request->filter && $request->filter !== 'all') {
@@ -51,12 +54,10 @@ class ChatController extends Controller
         if ($request->search) {
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
-                // Search in user table (for logged-in users)
                 $q->whereHas('user', function($uq) use ($searchTerm) {
                     $uq->where('name', 'like', "%{$searchTerm}%")
                       ->orWhere('email', 'like', "%{$searchTerm}%");
                 })
-                // OR search in guest fields
                 ->orWhere('guest_name', 'like', "%{$searchTerm}%")
                 ->orWhere('guest_phone', 'like', "%{$searchTerm}%");
             });
@@ -64,33 +65,34 @@ class ChatController extends Controller
         
         $conversations = $query->latest()->paginate(20);
         
-        // Add computed fields
+        // Compute fields from eager-loaded messages (no additional queries)
         $conversations->getCollection()->transform(function($chat) {
-            // Find the last admin message (replied message)
-            $lastAdminMessage = $chat->messages()
-                ->where('sender_type', 'admin')
-                ->orderBy('created_at', 'desc')
-                ->first();
+            $messages = $chat->messages;
+            
+            // Find last admin message from loaded collection
+            $lastAdminMessage = $messages->firstWhere('sender_type', 'admin');
             
             if ($lastAdminMessage) {
-                // Count only unread user messages that came after the last admin message
-                $chat->unread_count = $chat->messages()
-                    ->where('sender_type', 'user')
-                    ->where('is_read', false)
-                    ->where('created_at', '>', $lastAdminMessage->created_at)
-                    ->count();
+                // Count unread user messages after last admin reply
+                $chat->unread_count = $messages->filter(function($msg) use ($lastAdminMessage) {
+                    return $msg->sender_type === 'user' 
+                        && !$msg->is_read 
+                        && $msg->created_at > $lastAdminMessage->created_at;
+                })->count();
             } else {
-                // If no admin message, count all unread user messages
-                $chat->unread_count = $chat->messages()
-                    ->where('sender_type', 'user')
-                    ->where('is_read', false)
-                    ->count();
+                // Count all unread user messages
+                $chat->unread_count = $messages->filter(function($msg) {
+                    return $msg->sender_type === 'user' && !$msg->is_read;
+                })->count();
             }
-            $chat->last_message = $chat->messages()->latest()->first();
+            
+            // Last message is already loaded (first in desc order)
+            $chat->last_message = $messages->first();
+            
             return $chat;
         });
         
-        // Calculate stats based on filter
+        // Calculate stats (single query each, acceptable)
         $statsQuery = Chat::query();
         if ($request->filter && $request->filter !== 'all') {
             $statsQuery->where('status', $request->filter);
@@ -99,7 +101,6 @@ class ChatController extends Controller
         
         $stats = [
             'total' => Chat::count(),
-            // Include all users (including guests) in status counts
             'new' => Chat::where('status', 'new')->count(),
             'pending' => Chat::where('status', 'pending')->count(),
             'replied' => Chat::where('status', 'replied')->count(),
@@ -115,9 +116,9 @@ class ChatController extends Controller
      */
     public function conversation($id)
     {
-        $conversation = Chat::with(['messages', 'user'])->findOrFail($id);
-        
-        // Don't mark messages as read automatically - let admin decide when to mark as read
+        $conversation = Chat::with(['messages' => function($q) {
+            $q->orderBy('created_at', 'asc');
+        }, 'user'])->findOrFail($id);
         
         return response()->json($conversation);
     }
@@ -129,7 +130,8 @@ class ChatController extends Controller
     {
         $request->validate([
             'conversation_id' => 'required|exists:chats,id',
-            'message' => 'required|string|max:1000',
+            'message' => 'required_without:attachment|string|max:1000',
+            'attachment' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,pdf,doc,docx',
         ]);
 
         $chat = Chat::findOrFail($request->conversation_id);
@@ -139,11 +141,12 @@ class ChatController extends Controller
         if ($request->hasFile('attachment')) {
             $attachment = $request->file('attachment');
             $path = $attachment->store('chat-attachments', 'public');
-            $attachments = json_encode([
+            $attachments = [
                 'filename' => $attachment->getClientOriginalName(),
-                'path' => $path,
+                'path' => Storage::url($path),
                 'type' => $attachment->getMimeType(),
-            ]);
+                'size' => $attachment->getSize(),
+            ];
         }
 
         $message = $chat->messages()->create([
@@ -155,14 +158,8 @@ class ChatController extends Controller
         ]);
 
         // Update chat status when admin replies
-        if ($chat->status === 'new') {
-            $chat->status = 'pending'; // New conversation, needs admin attention
-            $chat->save();
-        } elseif ($chat->status === 'pending') {
-            $chat->status = 'replied'; // Admin replied to the customer
-            $chat->save();
-        } elseif ($chat->status === 'closed') {
-            $chat->status = 'replied'; // Reopen closed conversation
+        if (in_array($chat->status, ['new', 'pending', 'closed'])) {
+            $chat->status = $chat->status === 'new' ? 'pending' : 'replied';
             $chat->save();
         }
 
@@ -170,7 +167,7 @@ class ChatController extends Controller
         try {
             broadcast(new ChatMessageSent($message))->toOthers();
         } catch (\Exception $e) {
-            // Broadcasting failed
+            // Broadcasting failed, message still saved
         }
 
         return response()->json([

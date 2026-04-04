@@ -190,6 +190,11 @@ if (mobileSearchInput) {
     });
 }
 
+function escapeHtml(text) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
 function renderMobileSearchResults(data, query) {
     const { products, categories } = data;
     
@@ -210,11 +215,11 @@ function renderMobileSearchResults(data, query) {
         html += `<div class="p-2 bg-gray-50 text-xs font-semibold text-gray-500 uppercase">Categories</div>`;
         categories.forEach(category => {
             html += `
-                <a href="{{ route('products.index') }}?category=${category.slug}" class="flex items-center p-2 hover:bg-green-50 border-b border-gray-50" onclick="closeMobileMenu()">
+                <a href="{{ route('products.index') }}?category=${escapeHtml(category.slug)}" class="flex items-center p-2 hover:bg-green-50 border-b border-gray-50" onclick="closeMobileMenu()">
                     <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
                         <i class="bi bi-folder text-gray-400"></i>
                     </div>
-                    <span class="ml-2 text-sm text-gray-700">${category.name}</span>
+                    <span class="ml-2 text-sm text-gray-700">${escapeHtml(category.name)}</span>
                 </a>
             `;
         });
@@ -231,10 +236,10 @@ function renderMobileSearchResults(data, query) {
             }
             
             html += `
-                <a href="{{ route('products.show', '') }}/${product.slug}" class="flex items-center p-2 hover:bg-green-50 border-b border-gray-50" onclick="closeMobileMenu()">
-                    <img src="${imageUrl}" alt="${product.name}" class="w-12 h-12 rounded-lg object-cover bg-gray-100">
+                <a href="{{ route('products.show', '') }}/${escapeHtml(product.slug)}" class="flex items-center p-2 hover:bg-green-50 border-b border-gray-50" onclick="closeMobileMenu()">
+                    <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(product.name)}" class="w-12 h-12 rounded-lg object-cover bg-gray-100">
                     <div class="ml-2 flex-1">
-                        <p class="text-sm font-medium text-gray-800 line-clamp-1">${product.name}</p>
+                        <p class="text-sm font-medium text-gray-800 line-clamp-1">${escapeHtml(product.name)}</p>
                         <span class="text-halal-green text-sm font-semibold">৳${Number(price).toLocaleString()}</span>
                     </div>
                 </a>

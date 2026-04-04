@@ -37,7 +37,7 @@
         <span class="badge {{ $order->payment_status_badge_class }}">
             {{ ucfirst($order->payment_status) }}
         </span>
-        <br><small class="text-muted">{{ ucfirst($order->payment_method ?? 'N/A') }}</small>
+        <br><span class="badge bg-secondary mt-1">{{ ucfirst($order->payment_method ?? 'N/A') }}</span>
     </td>
     <td>
         <span class="badge {{ $order->status_badge_class }}">

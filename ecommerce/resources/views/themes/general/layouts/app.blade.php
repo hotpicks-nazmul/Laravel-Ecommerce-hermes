@@ -213,7 +213,7 @@
         /* Green colors (#2D5A27, #4A7C43) */
         [style*="#2D5A27"] { color: var(--theme-primary) !important; }
         [style*="#4A7C43"] { color: var(--theme-secondary) !important; }
-        [style*="background: linear-gradient*#2D5A27"] { background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary)) !important; }
+        /* Note: linear-gradient attribute selectors with * wildcard don't work in CSS - removed */
         [style*="background-color: #2D5A27"] { background-color: var(--theme-primary) !important; }
         [style*="background-color: #4A7C43"] { background-color: var(--theme-secondary) !important; }
         [style*="border-color: #2D5A27"] { border-color: var(--theme-primary) !important; }
@@ -222,7 +222,6 @@
         [style*="#D4AF37"] { color: var(--theme-gold) !important; }
         [style*="background-color: #D4AF37"] { background-color: var(--theme-gold) !important; }
         [style*="border-color: #D4AF37"] { border-color: var(--theme-gold) !important; }
-        [style*="background: linear-gradient*#D4AF37"] { background: linear-gradient(135deg, var(--theme-gold), #F4D03F) !important; }
         
         /* Gradient Classes */
         .gradient-halal {
