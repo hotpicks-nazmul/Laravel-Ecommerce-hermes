@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App\\Console\\Commands\\PruneNotifications' => $baseDir . '/app/Console/Commands/PruneNotifications.php',
     'App\\Events\\ChatMessageSent' => $baseDir . '/app/Events/ChatMessageSent.php',
     'App\\Events\\UserStatusChanged' => $baseDir . '/app/Events/UserStatusChanged.php',
     'App\\Events\\UserTyping' => $baseDir . '/app/Events/UserTyping.php',
@@ -222,6 +223,15 @@ return array(
     'App\\Models\\Webhook' => $baseDir . '/app/Models/Webhook.php',
     'App\\Models\\Widget' => $baseDir . '/app/Models/Widget.php',
     'App\\Models\\Wishlist' => $baseDir . '/app/Models/Wishlist.php',
+    'App\\Observers\\OrderObserver' => $baseDir . '/app/Observers/OrderObserver.php',
+    'App\\Observers\\ProductObserver' => $baseDir . '/app/Observers/ProductObserver.php',
+    'App\\Observers\\ProductQAObserver' => $baseDir . '/app/Observers/ProductQAObserver.php',
+    'App\\Observers\\RefundObserver' => $baseDir . '/app/Observers/RefundObserver.php',
+    'App\\Observers\\ReviewObserver' => $baseDir . '/app/Observers/ReviewObserver.php',
+    'App\\Observers\\SellerPayoutObserver' => $baseDir . '/app/Observers/SellerPayoutObserver.php',
+    'App\\Observers\\TicketObserver' => $baseDir . '/app/Observers/TicketObserver.php',
+    'App\\Observers\\TicketReplyObserver' => $baseDir . '/app/Observers/TicketReplyObserver.php',
+    'App\\Observers\\UserObserver' => $baseDir . '/app/Observers/UserObserver.php',
     'App\\Providers\\CurrencyServiceProvider' => $baseDir . '/app/Providers/CurrencyServiceProvider.php',
     'App\\Providers\\MailServiceProvider' => $baseDir . '/app/Providers/MailServiceProvider.php',
     'App\\Services\\EmailService' => $baseDir . '/app/Services/EmailService.php',

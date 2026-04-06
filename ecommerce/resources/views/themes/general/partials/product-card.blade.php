@@ -4,7 +4,7 @@
         <a href="{{ route('products.show', $product->slug) }}">
             @php
                 $imagePath = $product->featured_image ?? $product->image ?? '';
-                $imageUrl = 'https://via.placeholder.com/300x300?text=No+Image';
+                $imageUrl = 'https://placehold.co/300x300/e2e8f0/64748b?text=No+Image';
                 if ($imagePath) {
                     if (str_starts_with($imagePath, 'http')) {
                         $imageUrl = $imagePath;
@@ -21,7 +21,7 @@
                 alt="{{ $product->name }}" 
                 class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
-                onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
+                onerror="this.src='https://placehold.co/300x300?text=No+Image'">
         </a>
         
         <!-- Badges -->

@@ -37,7 +37,7 @@ Do you understand? Please confirm the scope and list the files you are about to 
 
 The e-commerce website development is done. I want to perform a QA (Quality Assurance) cross-check section by section.
 
-Current Task: Focus only on the Admin Panel > Media
+Current Task: Focus only on the http://127.0.0.1:8000/admin/orders/4
 
 Instructions:
 
@@ -82,7 +82,15 @@ so implement carefully with pin point accuracy.
 
 reference page: http://127.0.0.1:8000/admin/inventory
 
+--------------------------------------------------------------
 
+pin point the problem then fix it accurately without any mistake and without destroying other functionality.
+code must be clean and professional.
+
+in Admin > Products > Add New Products 
+I am getting this error : The category id field is required.
+when try to create product
+I have selected a category.
 
 
 

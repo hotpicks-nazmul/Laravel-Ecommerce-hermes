@@ -230,7 +230,7 @@ function renderMobileSearchResults(data, query) {
         html += `<div class="p-2 bg-gray-50 text-xs font-semibold text-gray-500 uppercase">Products</div>`;
         products.forEach(product => {
             const price = product.sale_price || product.price;
-            let imageUrl = product.featured_image || 'https://via.placeholder.com/50x50?text=P';
+            let imageUrl = product.featured_image || 'https://placehold.co/50x50?text=P';
             if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/storage/') && !imageUrl.startsWith('/uploads/')) {
                 imageUrl = '/storage/' + imageUrl;
             }

@@ -3,6 +3,8 @@
 @section('title', 'Create Product')
 
 @section('content')
+<form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data" id="product-form">
+@csrf
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0">Create New Product</h4>
     <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary">
@@ -17,153 +19,150 @@
                 <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Basic Information</h6>
             </div>
             <div class="card-body">
-                <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data" id="product-form">
-                    @csrf
-                    <input type="hidden" name="redirect_route" value="{{ $redirectRoute ?? 'admin.products.index' }}">
-                    
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required placeholder="Enter product name"
-                               data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('name') }}">
-                        @error('name')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="short_description" class="form-label">Short Description</label>
-                        <textarea class="form-control @error('short_description') is-invalid @enderror" id="short_description" name="short_description" rows="2" maxlength="500" placeholder="Brief product description (max 500 characters)"
-                                  data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('short_description') }}">{{ old('short_description') }}</textarea>
-                        @error('short_description')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Full Description <span class="text-danger">*</span></label>
-                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="5" required placeholder="Detailed product description"
-                                  data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('description') }}">{{ old('description') }}</textarea>
-                        @error('description')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="price" class="form-label">Regular Price (৳) <span class="text-danger">*</span></label>
-                                <input type="number" step="0.01" min="0" class="form-control @error('price') is-invalid @enderror" id="price" name="price" value="{{ old('price') }}" required placeholder="0.00"
-                                       data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('price') }}">
-                                @error('price')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="sale_price" class="form-label">Sale Price (৳)</label>
-                                <input type="number" step="0.01" min="0" class="form-control @error('sale_price') is-invalid @enderror" id="sale_price" name="sale_price" value="{{ old('sale_price') }}" placeholder="Leave empty if no sale"
-                                       data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('sale_price') }}">
-                                @error('sale_price')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <div class="form-text">If set, this will be the selling price</div>
-                            </div>
+                <input type="hidden" name="redirect_route" value="{{ $redirectRoute ?? 'admin.products.index' }}">
+                
+                <div class="mb-3">
+                    <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required placeholder="Enter product name"
+                           data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('name') }}">
+                    @error('name')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                
+                <div class="mb-3">
+                    <label for="short_description" class="form-label">Short Description</label>
+                    <textarea class="form-control @error('short_description') is-invalid @enderror" id="short_description" name="short_description" rows="2" maxlength="500" placeholder="Brief product description (max 500 characters)"
+                              data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('short_description') }}">{{ old('short_description') }}</textarea>
+                    @error('short_description')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">Full Description <span class="text-danger">*</span></label>
+                    <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="5" required placeholder="Detailed product description"
+                              data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('description') }}">{{ old('description') }}</textarea>
+                    @error('description')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Regular Price (৳) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" min="0" class="form-control @error('price') is-invalid @enderror" id="price" name="price" value="{{ old('price') }}" required placeholder="0.00"
+                                   data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('price') }}">
+                            @error('price')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
-                    
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="sku" class="form-label">SKU <span class="text-success">(Auto-generated)</span></label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="sku" name="sku" value="{{ old('sku', $nextSku ?? 'SKU-1000') }}">
-                                    <button type="button" class="btn btn-outline-secondary" onclick="generateSKU()" title="Generate New SKU">
-                                        <i class="bi bi-arrow-repeat"></i>
-                                    </button>
-                                </div>
-                                <div class="form-text">Auto-generated on page load, can be edited</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="product_code" class="form-label">Product Code <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('product_code') is-invalid @enderror" id="product_code" name="product_code" value="{{ old('product_code') }}" required placeholder="e.g., PRD-001"
-                                       data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('product_code') }}">
-                                @error('product_code')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <div class="form-text">Manual input (manufacturer/supplier code)</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="barcode" class="form-label">Barcode</label>
-                                <input type="text" class="form-control @error('barcode') is-invalid @enderror" id="barcode" name="barcode" value="{{ old('barcode') }}" placeholder="Product barcode"
-                                       data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('barcode') }}">
-                                @error('barcode')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="sale_price" class="form-label">Sale Price (৳)</label>
+                            <input type="number" step="0.01" min="0" class="form-control @error('sale_price') is-invalid @enderror" id="sale_price" name="sale_price" value="{{ old('sale_price') }}" placeholder="Leave empty if no sale"
+                                   data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('sale_price') }}">
+                            @error('sale_price')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">If set, this will be the selling price</div>
                         </div>
                     </div>
-                    
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="brand" class="form-label">Brand</label>
-                                 <select class="form-select @error('brand') is-invalid @enderror" id="brand" name="brand"
-                                         data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('brand') }}">
-                                     <option value="">Select Brand</option>
-                                     @foreach($brands as $id => $name)
-                                         <option value="{{ $id }}" {{ old('brand') == $id ? 'selected' : '' }}>
-                                             {{ $name }}
-                                         </option>
-                                     @endforeach
-                                 </select>
-                                @error('brand')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <div class="form-text">Choose from existing brands or <a href="{{ route('admin.brands.create') }}" target="_blank">create new</a></div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="sku" class="form-label">SKU <span class="text-success">(Auto-generated)</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="sku" name="sku" value="{{ old('sku', $nextSku ?? 'SKU-1000') }}">
+                                <button type="button" class="btn btn-outline-secondary" onclick="generateSKU()" title="Generate New SKU">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                </button>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="purchase_price" class="form-label">Purchase/Cost Price (৳)</label>
-                                <input type="number" step="0.01" min="0" class="form-control @error('purchase_price') is-invalid @enderror" id="purchase_price" name="purchase_price" value="{{ old('purchase_price') }}" placeholder="Cost price"
-                                       data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('purchase_price') }}">
-                                @error('purchase_price')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <div class="form-text">Used for profit calculation</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="stock" class="form-label">Stock Quantity <span class="text-danger">*</span></label>
-                                <input type="number" min="0" class="form-control @error('stock') is-invalid @enderror" id="stock" name="stock" value="{{ old('stock', 0) }}" required
-                                       data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('stock') }}">
-                                @error('stock')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                            <div class="form-text">Auto-generated on page load, can be edited</div>
                         </div>
                     </div>
-                    
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="low_stock_threshold" class="form-label">Low Stock Alert</label>
-                                <input type="number" min="0" class="form-control @error('low_stock_threshold') is-invalid @enderror" id="low_stock_threshold" name="low_stock_threshold" value="{{ old('low_stock_threshold', 10) }}" placeholder="10"
-                                       data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('low_stock_threshold') }}">
-                                @error('low_stock_threshold')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <div class="form-text">Alert when stock falls below this</div>
-                            </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="product_code" class="form-label">Product Code <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('product_code') is-invalid @enderror" id="product_code" name="product_code" value="{{ old('product_code') }}" required placeholder="e.g., PRD-001"
+                                   data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('product_code') }}">
+                            @error('product_code')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">Manual input (manufacturer/supplier code)</div>
                         </div>
                     </div>
-                </form>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="barcode" class="form-label">Barcode</label>
+                            <input type="text" class="form-control @error('barcode') is-invalid @enderror" id="barcode" name="barcode" value="{{ old('barcode') }}" placeholder="Product barcode"
+                                   data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('barcode') }}">
+                            @error('barcode')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="brand" class="form-label">Brand</label>
+                            <select class="form-select @error('brand') is-invalid @enderror" id="brand" name="brand"
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('brand') }}">
+                                <option value="">Select Brand</option>
+                                @foreach($brands as $id => $name)
+                                    <option value="{{ $id }}" {{ old('brand') == $id ? 'selected' : '' }}>
+                                        {{ $name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('brand')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">Choose from existing brands or <a href="{{ route('admin.brands.create') }}" target="_blank">create new</a></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="purchase_price" class="form-label">Purchase/Cost Price (৳)</label>
+                            <input type="number" step="0.01" min="0" class="form-control @error('purchase_price') is-invalid @enderror" id="purchase_price" name="purchase_price" value="{{ old('purchase_price') }}" placeholder="Cost price"
+                                   data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('purchase_price') }}">
+                            @error('purchase_price')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">Used for profit calculation</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="stock" class="form-label">Stock Quantity <span class="text-danger">*</span></label>
+                            <input type="number" min="0" class="form-control @error('stock') is-invalid @enderror" id="stock" name="stock" value="{{ old('stock', 0) }}" required
+                                   data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('stock') }}">
+                            @error('stock')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="low_stock_threshold" class="form-label">Low Stock Alert</label>
+                            <input type="number" min="0" class="form-control @error('low_stock_threshold') is-invalid @enderror" id="low_stock_threshold" name="low_stock_threshold" value="{{ old('low_stock_threshold', 10) }}" placeholder="10"
+                                   data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('low_stock_threshold') }}">
+                            @error('low_stock_threshold')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">Alert when stock falls below this</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -279,6 +278,7 @@
         <i class="bi bi-check-lg me-1"></i> Create Product
     </button>
 </div>
+</form>
 
 <!-- Alert Modal -->
 <div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
@@ -300,12 +300,10 @@
 
 @push('styles')
 <style>
-    /* Add padding at bottom to prevent floating button overlap */
     .content-area {
         padding-bottom: 100px !important;
     }
     
-    /* Popover close button styling */
     .btn-close-red {
         filter: invert(1) grayscale(100%) brightness(200%);
         opacity: 0.6;
@@ -315,7 +313,6 @@
         opacity: 1;
     }
     
-    /* Popover header styling */
     .popover-header {
         background-color: #f8f9fa;
         border-bottom: 1px solid #dee2e6;
@@ -326,15 +323,11 @@
 
 @push('scripts')
 <script>
-// Form validation for stock quantity
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('product-form');
     const stockInput = document.getElementById('stock');
     const lowStockInput = document.getElementById('low_stock_threshold');
     
-    // Using existing invalid-feedback with auto-scroll
-    
-    // Auto-scroll to first error field (using existing invalid-feedback)
     @if($errors->any())
         var firstErrorField = document.querySelector('.is-invalid');
         if (firstErrorField) {
@@ -356,10 +349,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (stock < lowStock) {
                 e.preventDefault();
                 
-                // Add error class
                 stockInput.classList.add('is-invalid');
                 
-                // Create or update invalid-feedback div
                 let feedbackDiv = stockInput.parentElement.querySelector('.invalid-feedback');
                 if (!feedbackDiv) {
                     feedbackDiv = document.createElement('div');
@@ -368,7 +359,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 feedbackDiv.textContent = 'Stock Quantity must be greater than or equal to Low Stock Alert (' + lowStock + ')';
                 
-                // Scroll to the field
                 stockInput.scrollIntoView({ 
                     behavior: 'smooth', 
                     block: 'center' 
@@ -377,7 +367,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Real-time validation when low stock threshold changes
         lowStockInput.addEventListener('change', function() {
             const stock = parseInt(stockInput.value) || 0;
             const lowStock = parseInt(this.value) || 0;
@@ -385,13 +374,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (stock < lowStock && stock > 0) {
                 stockInput.classList.add('is-invalid');
                 
-                // Dispose existing popover if any
                 var existingPopover = bootstrap.Popover.getInstance(stockInput);
                 if (existingPopover) {
                     existingPopover.dispose();
                 }
                 
-                // Let browser show native validation message
                 stockInput.focus();
             } else {
                 stockInput.classList.remove('is-invalid');
@@ -403,7 +390,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Sale Price validation - cannot be higher than Regular Price
     const priceInput = document.getElementById('price');
     const salePriceInput = document.getElementById('sale_price');
     
@@ -415,10 +401,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (salePrice > price && salePrice > 0) {
                 e.preventDefault();
                 
-                // Add error class
                 salePriceInput.classList.add('is-invalid');
                 
-                // Create or update invalid-feedback div
                 let feedbackDiv = salePriceInput.parentElement.querySelector('.invalid-feedback');
                 if (!feedbackDiv) {
                     feedbackDiv = document.createElement('div');
@@ -427,7 +411,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 feedbackDiv.textContent = 'Sale Price cannot be higher than Regular Price (' + price + ')';
                 
-                // Scroll to the field
                 salePriceInput.scrollIntoView({ 
                     behavior: 'smooth', 
                     block: 'center' 
@@ -436,7 +419,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Real-time validation when price changes
         priceInput.addEventListener('change', function() {
             const price = parseFloat(this.value) || 0;
             const salePrice = parseFloat(salePriceInput.value) || 0;
@@ -451,7 +433,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Show error modal if there's a session error or general validation error
 @if(session('error') || $errors->has('general'))
 document.addEventListener('DOMContentLoaded', function() {
     var modal = new bootstrap.Modal(document.getElementById('alertModal'));
@@ -465,12 +446,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 @endif
 
-// Generate new sequential SKU
 function generateSKU() {
     const skuInput = document.getElementById('sku');
     
     if (skuInput) {
-        // Get current SKU number and increment
         const currentSku = skuInput.value;
         const parts = currentSku.split('-');
         if (parts.length === 2) {
@@ -481,9 +460,6 @@ function generateSKU() {
     }
 }
 
-// Using default browser validation
-
-// Preview featured image
 function previewFeaturedImage(input) {
     const preview = document.getElementById('featuredImagePreview');
     preview.innerHTML = '';
@@ -497,7 +473,6 @@ function previewFeaturedImage(input) {
     }
 }
 
-// Preview gallery images
 function previewGalleryImages(input) {
     const preview = document.getElementById('galleryPreview');
     preview.innerHTML = '';

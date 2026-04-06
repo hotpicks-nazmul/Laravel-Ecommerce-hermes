@@ -20,7 +20,7 @@
                         $imageUrl = asset('storage/' . $imageUrl);
                     }
                 } else {
-                    $imageUrl = 'https://via.placeholder.com/300x300?text=No+Image';
+                    $imageUrl = 'https://placehold.co/300x300?text=No+Image';
                 }
             @endphp
             <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="w-full h-full object-cover">

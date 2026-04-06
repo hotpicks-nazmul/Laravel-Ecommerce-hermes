@@ -81,7 +81,7 @@
                         <div class="w-24 h-24 flex-shrink-0">
                             @php
                                 $imagePath = $item->product->featured_image ?? $item->product->image ?? '';
-                                $imageUrl = 'https://via.placeholder.com/100x100?text=No+Image';
+                                $imageUrl = 'https://placehold.co/100x100?text=No+Image';
                                 if ($imagePath) {
                                     if (str_starts_with($imagePath, 'http')) {
                                         $imageUrl = $imagePath;

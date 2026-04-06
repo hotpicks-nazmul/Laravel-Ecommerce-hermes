@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit56bf72596d8012d76e236e011ccd52d5
+class ComposerStaticInit9244f860b238e555c41cd6bf6eecf836
 {
     public static $files = array (
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
@@ -663,6 +663,7 @@ class ComposerStaticInit56bf72596d8012d76e236e011ccd52d5
     );
 
     public static $classMap = array (
+        'App\\Console\\Commands\\PruneNotifications' => __DIR__ . '/../..' . '/app/Console/Commands/PruneNotifications.php',
         'App\\Events\\ChatMessageSent' => __DIR__ . '/../..' . '/app/Events/ChatMessageSent.php',
         'App\\Events\\UserStatusChanged' => __DIR__ . '/../..' . '/app/Events/UserStatusChanged.php',
         'App\\Events\\UserTyping' => __DIR__ . '/../..' . '/app/Events/UserTyping.php',
@@ -879,6 +880,15 @@ class ComposerStaticInit56bf72596d8012d76e236e011ccd52d5
         'App\\Models\\Webhook' => __DIR__ . '/../..' . '/app/Models/Webhook.php',
         'App\\Models\\Widget' => __DIR__ . '/../..' . '/app/Models/Widget.php',
         'App\\Models\\Wishlist' => __DIR__ . '/../..' . '/app/Models/Wishlist.php',
+        'App\\Observers\\OrderObserver' => __DIR__ . '/../..' . '/app/Observers/OrderObserver.php',
+        'App\\Observers\\ProductObserver' => __DIR__ . '/../..' . '/app/Observers/ProductObserver.php',
+        'App\\Observers\\ProductQAObserver' => __DIR__ . '/../..' . '/app/Observers/ProductQAObserver.php',
+        'App\\Observers\\RefundObserver' => __DIR__ . '/../..' . '/app/Observers/RefundObserver.php',
+        'App\\Observers\\ReviewObserver' => __DIR__ . '/../..' . '/app/Observers/ReviewObserver.php',
+        'App\\Observers\\SellerPayoutObserver' => __DIR__ . '/../..' . '/app/Observers/SellerPayoutObserver.php',
+        'App\\Observers\\TicketObserver' => __DIR__ . '/../..' . '/app/Observers/TicketObserver.php',
+        'App\\Observers\\TicketReplyObserver' => __DIR__ . '/../..' . '/app/Observers/TicketReplyObserver.php',
+        'App\\Observers\\UserObserver' => __DIR__ . '/../..' . '/app/Observers/UserObserver.php',
         'App\\Providers\\CurrencyServiceProvider' => __DIR__ . '/../..' . '/app/Providers/CurrencyServiceProvider.php',
         'App\\Providers\\MailServiceProvider' => __DIR__ . '/../..' . '/app/Providers/MailServiceProvider.php',
         'App\\Services\\EmailService' => __DIR__ . '/../..' . '/app/Services/EmailService.php',
@@ -8528,9 +8538,9 @@ class ComposerStaticInit56bf72596d8012d76e236e011ccd52d5
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit56bf72596d8012d76e236e011ccd52d5::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit56bf72596d8012d76e236e011ccd52d5::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit56bf72596d8012d76e236e011ccd52d5::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit9244f860b238e555c41cd6bf6eecf836::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit9244f860b238e555c41cd6bf6eecf836::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit9244f860b238e555c41cd6bf6eecf836::$classMap;
 
         }, null, ClassLoader::class);
     }

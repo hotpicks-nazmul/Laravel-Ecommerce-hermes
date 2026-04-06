@@ -440,7 +440,7 @@
             <div class="relative">
                 @php
                     $imagePath = $product->featured_image ?? $product->image ?? '';
-                    $imageUrl = 'https://via.placeholder.com/500x500?text=No+Image';
+                    $imageUrl = 'https://placehold.co/500x500?text=No+Image';
                     if ($imagePath) {
                         if (str_starts_with($imagePath, 'http')) {
                             $imageUrl = $imagePath;

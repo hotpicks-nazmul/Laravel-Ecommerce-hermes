@@ -15,10 +15,12 @@ $chatReplies = [
 @endphp
 <div class="fixed bottom-6 right-6 z-40">
     <!-- Chat Button -->
-    <button id="chatToggle" onclick="toggleChat()" class="w-14 h-14 bg-halal-green text-white rounded-full shadow-lg hover:bg-halal-dark transition-all duration-300 flex items-center justify-center group relative">
-        <i class="bi bi-chat-dots-fill text-xl group-hover:scale-110 transition-transform"></i>
-        <span id="chatNotification" style="position: absolute; top: -5px; right: -5px; min-width: 20px; height: 20px; background-color: #dc2626; color: white; font-size: 11px; font-weight: bold; border-radius: 50%; display: none; align-items: center; justify-content: center;">0</span>
-    </button>
+    <div class="relative">
+        <button id="chatToggle" onclick="toggleChat()" class="w-14 h-14 bg-halal-green text-white rounded-full shadow-lg hover:bg-halal-dark transition-all duration-300 flex items-center justify-center group">
+            <i class="bi bi-chat-dots-fill text-xl group-hover:scale-110 transition-transform"></i>
+        </button>
+        <span id="chatNotification" style="position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; background-color: #dc2626; color: white; font-size: 11px; font-weight: bold; border-radius: 50%; border: 2px solid white; display: none; text-align: center; line-height: 16px; z-index: 60; box-shadow: 0 2px 4px rgba(0,0,0,0.2); pointer-events: none;">0</span>
+    </div>
     
     <!-- Chat Window -->
     <div id="chatWindow" class="hidden absolute bottom-16 right-0 w-80 md:w-96 bg-white rounded-2xl shadow-2xl overflow-hidden">
@@ -182,7 +184,7 @@ function showChatNotification() {
         // Increment unread count
         window.unreadCount = (window.unreadCount || 0) + 1;
         notification.textContent = window.unreadCount;
-        notification.style.display = 'flex';
+        notification.style.display = 'block';
         console.log('Chat notification shown, count:', window.unreadCount);
     }
     
@@ -206,6 +208,11 @@ function showChatNotification() {
 let chatOpen = false;
 let conversationId = localStorage.getItem('chat_conversation_id') || '';
 let messagePollingInterval = null;
+
+// Initialize unread count
+if (typeof window.unreadCount === 'undefined') {
+    window.unreadCount = 0;
+}
 
 // Check if guest already exists on page load
 function checkExistingGuest() {
@@ -309,20 +316,28 @@ document.addEventListener('DOMContentLoaded', function() {
 function resetChatOnLogout() {
     // Clear localStorage
     localStorage.removeItem('chat_conversation_id');
-    
+
     // Reset variables
     conversationId = '';
     document.getElementById('conversationId').value = '';
-    
+
+    // Reset unread count and hide notification
+    window.unreadCount = 0;
+    const notification = document.getElementById('chatNotification');
+    if (notification) {
+        notification.style.display = 'none';
+        notification.textContent = '0';
+    }
+
     // Stop polling
     stopMessagePolling();
-    
+
     // Unsubscribe from Pusher channel
     if (channel && pusher) {
         pusher.unsubscribe(channel);
         channel = null;
     }
-    
+
     // Reset UI - show welcome message
     const messagesContainer = document.getElementById('chatMessages');
     if (messagesContainer) {
@@ -338,21 +353,21 @@ function resetChatOnLogout() {
             </div>
         `;
     }
-    
+
     // Close chat window if open
     const chatWindow = document.getElementById('chatWindow');
     if (chatWindow) {
         chatWindow.classList.add('hidden');
     }
-    
+
     // Reset chat toggle button
     const chatToggle = document.getElementById('chatToggle');
     if (chatToggle) {
         chatToggle.innerHTML = '<i class="bi bi-chat-dots-fill text-xl group-hover:scale-110 transition-transform"></i>';
     }
-    
+
     chatOpen = false;
-    
+
     console.log('Chat reset on logout');
 }
 
@@ -374,7 +389,11 @@ function registerGuest(event) {
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': @json(csrf_token())
-        }
+        },
+        body: JSON.stringify({
+            name: name,
+            phone: phone
+        })
     })
     .then(res => res.json())
     .then(data => {
@@ -459,7 +478,7 @@ function startMessagePolling() {
         if (convId) {
             loadChatHistory();
         }
-    }, 3000); // Poll every 3 seconds
+    }, 1000); // Poll every 1 second for more real-time feel
 }
 
 function stopMessagePolling() {
@@ -589,9 +608,8 @@ function loadChatHistory() {
                 });
                 messagesContainer.dataset.messageCount = data.length;
                 
-                // Show notification for new admin messages
-                const hasNewAdminMessage = newMessages.some(msg => msg.sender_type === 'admin');
-                if (hasNewAdminMessage) {
+                // Show notification for any new message
+                if (newMessages.length > 0) {
                     showChatNotification();
                 }
             }

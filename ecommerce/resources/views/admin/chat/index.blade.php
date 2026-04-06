@@ -65,21 +65,21 @@
             <div class="card-body p-0">
                 <!-- Filters -->
                 <div class="border-bottom p-2">
-                    <div class="btn-group w-100 filter-tabs">
-                        <button class="btn btn-sm btn-outline-secondary filter-btn active position-relative" data-filter="all">
+                    <div class="filter-tabs d-flex flex-wrap gap-1">
+                        <button class="btn btn-sm btn-outline-secondary filter-btn active position-relative flex-fill" data-filter="all">
                             All <span class="badge rounded-pill bg-secondary" id="badgeAll">0</span>
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary filter-btn position-relative" data-filter="new">
+                        <button class="btn btn-sm btn-outline-secondary filter-btn position-relative flex-fill" data-filter="new">
                             New <span class="badge rounded-pill bg-info" id="badgeNew">0</span>
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary filter-btn position-relative" data-filter="pending">
-                            Pending <span class="badge rounded-pill bg-warning" id="badgePending">0</span>
+                        <button class="btn btn-sm btn-outline-secondary filter-btn position-relative flex-fill" data-filter="closed">
+                            Closed <span class="badge rounded-pill bg-dark" id="badgeClosed">0</span>
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary filter-btn position-relative" data-filter="replied">
+                        <button class="btn btn-sm btn-outline-secondary filter-btn position-relative flex-fill" data-filter="replied">
                             Replied <span class="badge rounded-pill bg-success" id="badgeReplied">0</span>
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary filter-btn position-relative" data-filter="closed">
-                            Closed <span class="badge rounded-pill bg-dark" id="badgeClosed">0</span>
+                        <button class="btn btn-sm btn-outline-secondary filter-btn position-relative flex-fill" data-filter="pending">
+                            Pending <span class="badge rounded-pill bg-warning" id="badgePending">0</span>
                         </button>
                     </div>
                 </div>
@@ -225,18 +225,30 @@
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 <style>
-/* Make filter tabs fit in single row */
-.btn-group.filter-tabs {
-    flex-wrap: nowrap;
-}
-.btn-group.filter-tabs .btn {
+/* Responsive filter tabs */
+.filter-tabs .btn {
     font-size: 0.75rem;
     padding: 0.25rem 0.4rem;
     white-space: nowrap;
+    min-width: 0;
 }
-.btn-group.filter-tabs .btn .badge {
+.filter-tabs .btn .badge {
     font-size: 0.65rem;
     padding: 0.2em 0.4em;
+}
+
+/* On extra small screens, allow buttons to stack */
+@media (max-width: 575.98px) {
+    .filter-tabs {
+        flex-direction: column;
+    }
+    .filter-tabs .btn {
+        width: 100%;
+        margin-bottom: 0.25rem;
+    }
+    .filter-tabs .btn:last-child {
+        margin-bottom: 0;
+    }
 }
 
 .avatar-circle {
@@ -260,16 +272,34 @@
 .message-bubble {
     max-width: 75%;
     word-wrap: break-word;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 1.125rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
 }
+
+.message-bubble:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
 .admin-message {
-    background-color: #0d6efd;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     margin-left: auto;
+    border: none;
+    border-radius: 1.125rem 1.125rem 0.25rem 1.125rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
+
 .user-message {
-    background-color: #e9ecef;
-    color: #212529;
+    background-color: #ffffff;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+    margin-right: auto;
+    border-radius: 1.125rem 1.125rem 1.125rem 0.25rem;
 }
+
 .user-message .text-muted {
     color: #6c757d !important;
 }
@@ -405,6 +435,7 @@ const notificationSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10I
 let currentConversationId = null;
 let currentFilter = 'all';
 let refreshInterval = null;
+let messagePollingInterval = null;
 let typingPollInterval = null;
 let typingTimeout = null;
 let onlineUsers = {};
@@ -609,7 +640,7 @@ function displayMessages(messages) {
             }
         }
         html += `<div class="mb-3 d-flex ${isAdmin ? 'justify-content-end' : 'justify-content-start'}">
-            <div class="message-bubble p-3 rounded ${isAdmin ? 'admin-message' : 'user-message'}">
+            <div class="message-bubble ${isAdmin ? 'admin-message' : 'user-message'}">
                 <div>${safeMessage}</div>
                 ${attachmentHtml}
                 <small class="${isAdmin ? 'text-light' : 'text-muted'} message-time">${time}</small>
@@ -766,6 +797,7 @@ function closeChat() {
             document.getElementById('noMessages').style.display = 'block';
             document.querySelectorAll('#conversationsList .list-group-item').forEach(el => el.classList.remove('active'));
             stopTypingPolling();
+            stopMessagePolling();
             loadConversations();
             showToast('Chat closed', 'success');
         })
@@ -897,7 +929,9 @@ function initPusher() {
 }
 
 function handleNewMessage(data) {
-    if (data.chat_id == currentConversationId) {
+    // Convert chat_id to string for proper comparison (handles type mismatch between Pusher integer and localStorage string)
+    const messageChatId = String(data.chat_id);
+    if (messageChatId === String(currentConversationId)) {
         const noMessages = document.getElementById('noMessages');
         if (noMessages) noMessages.style.display = 'none';
         appendMessage(data);
@@ -913,10 +947,11 @@ function subscribeToChat(chatId) {
     if (pusher) {
         currentChatChannel = pusher.subscribe('chat.' + chatId);
         currentChatChannel.bind('message.sent', function(data) {
-            if (currentConversationId == chatId) appendMessage(data);
+            if (String(data.chat_id) === String(currentConversationId)) appendMessage(data);
         });
     }
     startTypingPolling();
+    startMessagePolling();
 }
 
 function startTypingPolling() {
@@ -941,6 +976,45 @@ function checkUserTypingStatus() {
     .catch(() => {});
 }
 
+function startMessagePolling() {
+    stopMessagePolling();
+    messagePollingInterval = setInterval(() => {
+        if (currentConversationId) {
+            pollNewMessages();
+        }
+    }, 3000);
+}
+
+function stopMessagePolling() {
+    if (messagePollingInterval) {
+        clearInterval(messagePollingInterval);
+        messagePollingInterval = null;
+    }
+}
+
+function pollNewMessages() {
+    if (!currentConversationId) return;
+    fetch(`{{ route('admin.chat.conversation', ':id') }}`.replace(':id', currentConversationId), {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        const messages = data.messages || [];
+        const container = document.getElementById('messagesList');
+        const existingCount = container.querySelectorAll('.message-bubble').length;
+        
+        if (messages.length > existingCount) {
+            const newMessages = messages.slice(existingCount);
+            newMessages.forEach(msg => {
+                if (msg.sender_type === 'user') {
+                    appendMessage(msg);
+                }
+            });
+        }
+    })
+    .catch(() => {});
+}
+
 function appendMessage(msg) {
     const container = document.getElementById('messagesList');
     if (!container) return;
@@ -956,7 +1030,7 @@ function appendMessage(msg) {
         }
     }
     const html = `<div class="mb-3 d-flex ${isAdmin ? 'justify-content-end' : 'justify-content-start'}">
-        <div class="message-bubble p-3 rounded ${isAdmin ? 'admin-message' : 'user-message'}">
+        <div class="message-bubble ${isAdmin ? 'admin-message' : 'user-message'}">
             <div>${safeMessage}</div>
             ${attachmentHtml}
             <small class="${isAdmin ? 'text-light' : 'text-muted'} message-time">${time}</small>
@@ -1035,6 +1109,7 @@ function addFileUpload() {
 window.addEventListener('beforeunload', function() {
     if (refreshInterval) clearInterval(refreshInterval);
     stopTypingPolling();
+    stopMessagePolling();
     if (globalPusherChannel) { globalPusherChannel.unbind_all(); globalPusherChannel.unsubscribe(); }
     if (currentChatChannel) { currentChatChannel.unbind_all(); currentChatChannel.unsubscribe(); }
     if (pusher) pusher.disconnect();

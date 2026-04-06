@@ -734,7 +734,7 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                                     alt="{{ $blog->title }}" 
                                     class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
                             @else
-                                <img src="https://via.placeholder.com/400x250?text=Blog" 
+                                <img src="https://placehold.co/400x250?text=Blog" 
                                     alt="{{ $blog->title }}" 
                                     class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
                             @endif

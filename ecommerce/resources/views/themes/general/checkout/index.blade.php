@@ -30,7 +30,7 @@
                             : (str_starts_with($item['image'], '/storage/') ? $item['image'] 
                             : (str_starts_with($item['image'], '/uploads/') ? asset($item['image']) 
                             : asset('storage/' . $item['image'])))) 
-                            : 'https://via.placeholder.com/80';
+                            : 'https://placehold.co/80';
                     @endphp
                     <img src="{{ $imageUrl }}" alt="{{ $item['name'] }}" class="w-16 h-16 object-cover rounded-lg">
                     <div class="flex-1">

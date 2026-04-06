@@ -53,7 +53,7 @@ function renderCartPage() {
     let subtotal = 0;
     let itemsHtml = cartPageItems.map(item => {
         subtotal += item.price * item.quantity;
-        const imageUrl = item.image || 'https://via.placeholder.com/80';
+        const imageUrl = item.image || 'https://placehold.co/80';
         return `
             <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm mb-4" id="cart-item-${item.product_id}">
                 <img src="${imageUrl}" alt="${item.name}" class="w-20 h-20 object-cover rounded-lg">

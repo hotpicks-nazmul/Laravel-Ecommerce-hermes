@@ -117,7 +117,7 @@ function updateWishlistUI() {
         // Render items
         itemsContainer.innerHTML = wishlistItems.map(item => `
             <div class="flex items-center space-x-3 bg-white p-3 rounded-lg shadow-sm border border-gray-100">
-                <img src="${escapeHtml(item.image || 'https://via.placeholder.com/80')}" alt="${escapeHtml(item.name)}" class="w-16 h-16 object-cover rounded-lg">
+                <img src="${escapeHtml(item.image || 'https://placehold.co/80')}" alt="${escapeHtml(item.name)}" class="w-16 h-16 object-cover rounded-lg">
                 <div class="flex-1">
                     <h4 class="font-medium text-gray-800 text-sm line-clamp-2">${escapeHtml(item.name)}</h4>
                     <div class="flex items-center space-x-2 mt-1">

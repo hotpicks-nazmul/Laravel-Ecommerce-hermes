@@ -352,7 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (categories.length > 0) {
             html += '<div class="p-3 bg-gray-50 border-b border-gray-100"><span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Categories</span></div>';
             categories.forEach(category => {
-                const imageUrl = category.image || 'https://via.placeholder.com/50x50?text=C';
+                const imageUrl = category.image || 'https://placehold.co/50x50?text=C';
                 html += '<a href="{{ route('products.index') }}?category=' + category.slug + '" class="flex items-center p-3 hover:bg-green-50 transition-colors border-b border-gray-50"><img src="' + escapeHtml(imageUrl) + '" alt="' + escapeHtml(category.name) + '" class="w-10 h-10 rounded-lg object-cover bg-gray-100"><div class="ml-3"><p class="font-medium text-gray-800">' + highlightMatch(category.name, query) + '</p><p class="text-xs text-gray-500">Browse category</p></div><i class="bi bi-chevron-right ml-auto text-gray-400"></i></a>';
             });
         }
@@ -361,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function() {
             products.forEach(product => {
                 const price = product.sale_price || product.price;
                 const originalPrice = product.sale_price ? product.price : null;
-                let imageUrl = product.featured_image || 'https://via.placeholder.com/60x60?text=P';
+                let imageUrl = product.featured_image || 'https://placehold.co/60x60?text=P';
                 if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/storage/') && !imageUrl.startsWith('/uploads/')) {
                     imageUrl = '/storage/' + imageUrl;
                 }

@@ -139,7 +139,7 @@ function updateCartUI() {
         // Render items
         itemsContainer.innerHTML = cart.map(item => `
             <div class="flex items-center space-x-3 bg-white p-3 rounded-lg shadow-sm">
-                <img src="${escapeHtml(item.image || 'https://via.placeholder.com/80')}" alt="${escapeHtml(item.name)}" class="w-16 h-16 object-cover rounded-lg">
+                <img src="${escapeHtml(item.image || 'https://placehold.co/80')}" alt="${escapeHtml(item.name)}" class="w-16 h-16 object-cover rounded-lg">
                 <div class="flex-1">
                     <h4 class="font-medium text-gray-800 text-sm">${escapeHtml(item.name)}</h4>
                     <p class="text-halal-green font-medium">৳${parseFloat(item.price).toLocaleString()}</p>
