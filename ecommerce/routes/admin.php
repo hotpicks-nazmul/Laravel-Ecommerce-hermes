@@ -130,7 +130,6 @@ Route::post('/categories/reorder', [CategoryController::class, 'reorder'])->name
 Route::get('/categories/tree', [CategoryController::class, 'tree'])->name('categories.tree');
 Route::get('/categories-export', [CategoryController::class, 'export'])->name('categories.export');
 Route::post('/categories/{category}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('categories.toggle-status');
-Route::post('/categories/{category}/toggle-featured', [CategoryController::class, 'toggleFeatured'])->name('categories.toggle-featured');
 Route::post('/categories/{category}/toggle-menu', [CategoryController::class, 'toggleMenu'])->name('categories.toggle-menu');
 Route::post('/categories/{category}/toggle-homepage', [CategoryController::class, 'toggleHomepage'])->name('categories.toggle-homepage');
 Route::get('/categories/{category}/products', [CategoryController::class, 'getProducts'])->name('categories.products');

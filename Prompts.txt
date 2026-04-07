@@ -87,10 +87,13 @@ reference page: http://127.0.0.1:8000/admin/inventory
 pin point the problem then fix it accurately without any mistake and without destroying other functionality.
 code must be clean and professional.
 
-in Admin > Products > Add New Products 
-I am getting this error : The category id field is required.
-when try to create product
-I have selected a category.
+in Admin > Products > Category > Fetured column
+I dont know what it doesn on frontend. let me know whats the purpose of this column.
+
+if you do not understand my requirement, just ask me before start
+
+
+
 
 
 

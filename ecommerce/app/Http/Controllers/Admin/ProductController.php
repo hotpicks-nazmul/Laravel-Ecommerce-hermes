@@ -700,6 +700,31 @@ class ProductController extends Controller
         $newProduct->slug = Str::slug($newProduct->name) . '-' . Str::random(5);
         $newProduct->sku = $product->sku . '-copy-' . Str::random(5);
         $newProduct->is_active = false;
+
+        if ($product->featured_image) {
+            $oldPath = str_replace('/storage/', '', $product->featured_image);
+            $extension = pathinfo($oldPath, PATHINFO_EXTENSION);
+            $newFileName = 'products/' . Str::random(40) . '.' . $extension;
+            if (Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->copy($oldPath, $newFileName);
+                $newProduct->featured_image = '/storage/' . $newFileName;
+            }
+        }
+
+        if (!empty($product->images)) {
+            $newImages = [];
+            foreach ($product->images as $image) {
+                $oldPath = str_replace('/storage/', '', $image);
+                $extension = pathinfo($oldPath, PATHINFO_EXTENSION);
+                $newFileName = 'products/' . Str::random(40) . '.' . $extension;
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->copy($oldPath, $newFileName);
+                    $newImages[] = '/storage/' . $newFileName;
+                }
+            }
+            $newProduct->images = $newImages;
+        }
+
         $newProduct->save();
 
         return back()->with('success', 'Product duplicated successfully.');
@@ -1050,6 +1075,31 @@ class ProductController extends Controller
                     $newProduct->slug = Str::slug($newProduct->name) . '-' . Str::random(5);
                     $newProduct->sku = $product->sku . '-copy-' . Str::random(5);
                     $newProduct->is_active = false;
+
+                    if ($product->featured_image) {
+                        $oldPath = str_replace('/storage/', '', $product->featured_image);
+                        $extension = pathinfo($oldPath, PATHINFO_EXTENSION);
+                        $newFileName = 'products/' . Str::random(40) . '.' . $extension;
+                        if (Storage::disk('public')->exists($oldPath)) {
+                            Storage::disk('public')->copy($oldPath, $newFileName);
+                            $newProduct->featured_image = '/storage/' . $newFileName;
+                        }
+                    }
+
+                    if (!empty($product->images)) {
+                        $newImages = [];
+                        foreach ($product->images as $image) {
+                            $oldPath = str_replace('/storage/', '', $image);
+                            $extension = pathinfo($oldPath, PATHINFO_EXTENSION);
+                            $newFileName = 'products/' . Str::random(40) . '.' . $extension;
+                            if (Storage::disk('public')->exists($oldPath)) {
+                                Storage::disk('public')->copy($oldPath, $newFileName);
+                                $newImages[] = '/storage/' . $newFileName;
+                            }
+                        }
+                        $newProduct->images = $newImages;
+                    }
+
                     $newProduct->save();
                 }
                 $message = "{$count} in-house product(s) duplicated successfully.";

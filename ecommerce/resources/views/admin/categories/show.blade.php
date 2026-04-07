@@ -285,12 +285,6 @@
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span>Featured:</span>
-                    <span class="badge {{ $category->is_featured ? 'bg-info' : 'bg-secondary' }}">
-                        {{ $category->is_featured ? 'Yes' : 'No' }}
-                    </span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-2">
                     <span>Show in Menu:</span>
                     <span class="badge {{ $category->show_in_menu ? 'bg-success' : 'bg-secondary' }}">
                         {{ $category->show_in_menu ? 'Yes' : 'No' }}

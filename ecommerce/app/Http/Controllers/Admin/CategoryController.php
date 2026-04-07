@@ -20,7 +20,6 @@ class CategoryController extends Controller
         $viewMode = $request->get('view', 'tree');
         $search = $request->get('search');
         $status = $request->get('status');
-        $featured = $request->get('featured');
         $showInMenu = $request->get('show_in_menu');
         $showInHomepage = $request->get('show_in_homepage');
         
@@ -29,7 +28,6 @@ class CategoryController extends Controller
             'total' => Category::count(),
             'active' => Category::where('status', 'active')->count(),
             'inactive' => Category::where('status', 'inactive')->count(),
-            'featured' => Category::where('is_featured', true)->count(),
             'parents' => Category::whereNull('parent_id')->count(),
             'with_products' => Category::has('products')->count(),
         ];
@@ -48,11 +46,6 @@ class CategoryController extends Controller
         // Status filter
         if ($status) {
             $query->where('status', $status);
-        }
-        
-        // Featured filter
-        if ($featured !== null && $featured !== '') {
-            $query->where('is_featured', $featured === 'yes');
         }
         
         // Show in menu filter
@@ -89,11 +82,10 @@ class CategoryController extends Controller
             // Build tree with filtered children
             // Load ALL children (not filtered) to preserve tree structure
             // The view will handle showing/hiding based on matching
-            $categories = Category::with(['children' => function ($q) use ($status, $featured, $showInMenu, $showInHomepage) {
+            $categories = Category::with(['children' => function ($q) use ($status, $showInMenu, $showInHomepage) {
                     $q->withCount('products');
                     // Apply filters to children
                     if ($status) $q->where('status', $status);
-                    if ($featured !== null && $featured !== '') $q->where('is_featured', $featured === 'yes');
                     if ($showInMenu !== null && $showInMenu !== '') $q->where('show_in_menu', $showInMenu === 'yes');
                     if ($showInHomepage !== null && $showInHomepage !== '') $q->where('show_in_homepage', $showInHomepage === 'yes');
                 }])
@@ -102,7 +94,6 @@ class CategoryController extends Controller
             
             // Apply filters to root categories
             if ($status) $categories->where('status', $status);
-            if ($featured !== null && $featured !== '') $categories->where('is_featured', $featured === 'yes');
             if ($showInMenu !== null && $showInMenu !== '') $categories->where('show_in_menu', $showInMenu === 'yes');
             if ($showInHomepage !== null && $showInHomepage !== '') $categories->where('show_in_homepage', $showInHomepage === 'yes');
             
@@ -174,14 +165,12 @@ class CategoryController extends Controller
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'meta_keywords' => 'nullable|string|max:255',
-            'is_featured' => 'boolean',
             'show_in_menu' => 'boolean',
             'show_in_homepage' => 'boolean',
         ]);
 
         $data = $request->except(['image']);
         $data['slug'] = Str::slug($request->name);
-        $data['is_featured'] = $request->has('is_featured');
         $data['show_in_menu'] = $request->has('show_in_menu');
         $data['show_in_homepage'] = $request->has('show_in_homepage');
 
@@ -261,14 +250,12 @@ class CategoryController extends Controller
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'meta_keywords' => 'nullable|string|max:255',
-            'is_featured' => 'boolean',
             'show_in_menu' => 'boolean',
             'show_in_homepage' => 'boolean',
         ]);
 
         $data = $request->except(['image']);
         $data['slug'] = Str::slug($request->name);
-        $data['is_featured'] = $request->has('is_featured');
         $data['show_in_menu'] = $request->has('show_in_menu');
         $data['show_in_homepage'] = $request->has('show_in_homepage');
 
@@ -360,20 +347,6 @@ class CategoryController extends Controller
             'message' => 'Status updated successfully.',
             'status' => $category->status,
             'badge' => $category->status_badge
-        ]);
-    }
-
-    /**
-     * Toggle featured status (AJAX).
-     */
-    public function toggleFeatured(Request $request, Category $category)
-    {
-        $category->update(['is_featured' => !$category->is_featured]);
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Featured status updated.',
-            'is_featured' => $category->is_featured
         ]);
     }
 
@@ -498,16 +471,6 @@ class CategoryController extends Controller
                 $message = "{$count} category(s) deactivated successfully.";
                 break;
 
-            case 'feature':
-                Category::whereIn('id', $ids)->update(['is_featured' => true]);
-                $message = "{$count} category(s) marked as featured.";
-                break;
-
-            case 'unfeature':
-                Category::whereIn('id', $ids)->update(['is_featured' => false]);
-                $message = "{$count} category(s) removed from featured.";
-                break;
-
             case 'show_in_menu':
                 Category::whereIn('id', $ids)->update(['show_in_menu' => true]);
                 $message = "{$count} category(s) will show in menu.";
@@ -549,7 +512,7 @@ class CategoryController extends Controller
 
         $callback = function () use ($categories) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['ID', 'Name', 'Slug', 'Parent', 'Status', 'Products Count', 'Sort Order', 'Featured', 'In Menu', 'On Homepage', 'Created At']);
+            fputcsv($file, ['ID', 'Name', 'Slug', 'Parent', 'Status', 'Products Count', 'Sort Order', 'In Menu', 'On Homepage', 'Created At']);
 
             foreach ($categories as $category) {
                 fputcsv($file, [
@@ -560,7 +523,6 @@ class CategoryController extends Controller
                     $category->status,
                     $category->products_count,
                     $category->sort_order,
-                    $category->is_featured ? 'Yes' : 'No',
                     $category->show_in_menu ? 'Yes' : 'No',
                     $category->show_in_homepage ? 'Yes' : 'No',
                     $category->created_at->format('Y-m-d H:i:s'),

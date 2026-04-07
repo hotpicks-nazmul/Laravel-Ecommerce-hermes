@@ -26,13 +26,6 @@
             <span class="stat-card-value" id="stat-inactive">{{ number_format($stats['inactive'] ?? 0) }}</span>
         </div>
     </div>
-    <div class="stat-card stat-card-info">
-        <div class="stat-card-icon"><i class="bi bi-star"></i></div>
-        <div class="stat-card-content">
-            <span class="stat-card-label">Featured</span>
-            <span class="stat-card-value" id="stat-featured">{{ number_format($stats['featured'] ?? 0) }}</span>
-        </div>
-    </div>
     <div class="stat-card stat-card-warning">
         <div class="stat-card-icon"><i class="bi bi-house"></i></div>
         <div class="stat-card-content">
@@ -90,16 +83,6 @@
                 </select>
             </div>
             
-            <!-- Featured -->
-            <div class="col-lg-2 col-md-3 col-sm-6">
-                <label class="form-label small text-muted">Featured</label>
-                <select name="featured" id="filterFeatured" class="form-select form-select-sm">
-                    <option value="">All</option>
-                    <option value="yes" {{ request('featured') === 'yes' ? 'selected' : '' }}>Yes</option>
-                    <option value="no" {{ request('featured') === 'no' ? 'selected' : '' }}>No</option>
-                </select>
-            </div>
-            
             <!-- View Mode -->
             <div class="col-lg-2 col-md-3 col-sm-6">
                 <label class="form-label small text-muted">View Mode</label>
@@ -138,12 +121,6 @@
                 <button type="button" class="btn btn-sm btn-warning" onclick="bulkAction('deactivate')">
                     <i class="bi bi-pause-circle me-1"></i> Deactivate
                 </button>
-                <button type="button" class="btn btn-sm btn-info" onclick="bulkAction('feature')">
-                    <i class="bi bi-star me-1"></i> Feature
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-info" onclick="bulkAction('unfeature')">
-                    <i class="bi bi-star-fill me-1"></i> Unfeature
-                </button>
                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkAction('show_in_menu')">
                     <i class="bi bi-list me-1"></i> Show in Menu
                 </button>
@@ -172,7 +149,6 @@
                         <th>Category Name</th>
                         <th style="width: 100px;">Products</th>
                         <th style="width: 100px;">Status</th>
-                        <th style="width: 80px;">Featured</th>
                         <th style="width: 80px;">Menu</th>
                         <th style="width: 80px;">Homepage</th>
                         <th style="width: 140px;">Actions</th>
@@ -227,11 +203,7 @@
                                         {{ ucfirst($category->status) }}
                                     </button>
                                 </td>
-                                <td>
-                                    <button type="button" class="btn btn-sm featured-toggle {{ $category->is_featured ? 'btn-info' : 'btn-outline-secondary' }}" data-id="{{ $category->id }}">
-                                        <i class="bi {{ $category->is_featured ? 'bi-star-fill' : 'bi-star' }}"></i>
-                                    </button>
-                                </td>
+
                                 <td>
                                     <button type="button" class="btn btn-sm menu-toggle {{ $category->show_in_menu ? 'btn-success' : 'btn-outline-secondary' }}" data-id="{{ $category->id }}">
                                         <i class="bi {{ $category->show_in_menu ? 'bi-check-circle' : 'bi-x-circle' }}"></i>
@@ -305,11 +277,12 @@
 
 @push('styles')
 <style>
-.status-toggle, .featured-toggle, .menu-toggle, .homepage-toggle {
+.status-toggle, .menu-toggle, .homepage-toggle {
     min-width: 70px;
     transition: all 0.2s;
 }
-.status-toggle:hover, .featured-toggle:hover {
+
+.status-toggle:hover, .menu-toggle:hover, .homepage-toggle:hover {
     transform: scale(1.05);
 }
 .table > :not(caption) > * > * {
@@ -413,12 +386,6 @@ function bulkAction(action) {
         case 'deactivate':
             confirmMsg = `Deactivate ${selectedCategories.size} category(s)?`;
             break;
-        case 'feature':
-            confirmMsg = `Mark ${selectedCategories.size} category(s) as featured?`;
-            break;
-        case 'unfeature':
-            confirmMsg = `Remove ${selectedCategories.size} category(s) from featured?`;
-            break;
         default:
             confirmMsg = `Apply this action to ${selectedCategories.size} category(s)?`;
     }
@@ -448,33 +415,6 @@ function initStatusToggles() {
                     this.textContent = ucfirst(data.status);
                     this.classList.toggle('btn-success', data.status === 'active');
                     this.classList.toggle('btn-outline-secondary', data.status !== 'active');
-                    showToast(data.message, 'success');
-                }
-            });
-        });
-    });
-}
-
-// Toggle featured via AJAX
-function initFeaturedToggles() {
-    document.querySelectorAll('.featured-toggle').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const id = this.dataset.id;
-            fetch(`{{ route('admin.categories.toggle-featured', ['category' => 'ID']) }}`.replace('ID', id), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const icon = this.querySelector('i');
-                    icon.classList.toggle('bi-star', !data.is_featured);
-                    icon.classList.toggle('bi-star-fill', data.is_featured);
-                    this.classList.toggle('btn-info', data.is_featured);
-                    this.classList.toggle('btn-outline-secondary', !data.is_featured);
                     showToast(data.message, 'success');
                 }
             });
@@ -594,9 +534,6 @@ function performLiveSearch() {
     const status = document.getElementById('filterStatus').value;
     if (status) params.set('status', status);
     
-    const featured = document.getElementById('filterFeatured').value;
-    if (featured) params.set('featured', featured);
-    
     const viewMode = document.getElementById('viewMode').value;
     params.set('view', viewMode);
     
@@ -621,7 +558,6 @@ function performLiveSearch() {
                 document.getElementById('stat-total').textContent = data.stats.total;
                 document.getElementById('stat-active').textContent = data.stats.active;
                 document.getElementById('stat-inactive').textContent = data.stats.inactive;
-                document.getElementById('stat-featured').textContent = data.stats.featured;
                 document.getElementById('stat-parents').textContent = data.stats.parents;
                 document.getElementById('stat-with-products').textContent = data.stats.with_products;
             }
@@ -654,7 +590,6 @@ function performLiveSearch() {
 // Reinitialize event listeners after AJAX update
 function reinitializeEventListeners() {
     initStatusToggles();
-    initFeaturedToggles();
     initMenuToggles();
     initHomepageToggles();
     
@@ -670,7 +605,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize toggle buttons
     initStatusToggles();
-    initFeaturedToggles();
     initMenuToggles();
     initHomepageToggles();
     

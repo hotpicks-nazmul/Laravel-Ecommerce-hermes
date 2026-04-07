@@ -30,9 +30,6 @@
         <a href="{{ route('admin.categories.edit', $category->id) }}" class="text-decoration-none ms-1">
             {{ $category->name }}
         </a>
-        @if($category->is_featured)
-            <i class="bi bi-star-fill text-warning ms-1" title="Featured"></i>
-        @endif
     </td>
     <td>
         <span class="badge {{ $category->products_count > 0 ? 'bg-info' : 'bg-light text-dark' }}">
@@ -42,11 +39,6 @@
     <td>
         <button type="button" class="btn btn-sm status-toggle {{ $category->status === 'active' ? 'btn-success' : 'btn-outline-secondary' }}" data-id="{{ $category->id }}">
             {{ ucfirst($category->status) }}
-        </button>
-    </td>
-    <td>
-        <button type="button" class="btn btn-sm featured-toggle {{ $category->is_featured ? 'btn-info' : 'btn-outline-secondary' }}" data-id="{{ $category->id }}">
-            <i class="bi {{ $category->is_featured ? 'bi-star-fill' : 'bi-star' }}"></i>
         </button>
     </td>
     <td>

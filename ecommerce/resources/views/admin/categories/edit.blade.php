@@ -200,14 +200,6 @@
                 </div>
                 
                 <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" value="1" {{ old('is_featured', $category->is_featured) ? 'checked' : '' }} form="category-form">
-                    <label class="form-check-label" for="is_featured">
-                        <i class="bi bi-star-fill text-warning me-1"></i> Featured Category
-                    </label>
-                    <div class="form-text">Featured categories may be highlighted on the homepage</div>
-                </div>
-                
-                <div class="form-check form-switch mb-3">
                     <input class="form-check-input" type="checkbox" id="show_in_menu" name="show_in_menu" value="1" {{ old('show_in_menu', $category->show_in_menu) ? 'checked' : '' }} form="category-form">
                     <label class="form-check-label" for="show_in_menu">
                         <i class="bi bi-list text-primary me-1"></i> Show in Menu

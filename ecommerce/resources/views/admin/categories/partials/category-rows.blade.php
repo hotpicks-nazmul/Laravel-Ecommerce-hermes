@@ -51,11 +51,6 @@
                 </button>
             </td>
             <td>
-                <button type="button" class="btn btn-sm featured-toggle {{ $category->is_featured ? 'btn-info' : 'btn-outline-secondary' }}" data-id="{{ $category->id }}">
-                    <i class="bi {{ $category->is_featured ? 'bi-star-fill' : 'bi-star' }}"></i>
-                </button>
-            </td>
-            <td>
                 <button type="button" class="btn btn-sm menu-toggle {{ $category->show_in_menu ? 'btn-success' : 'btn-outline-secondary' }}" data-id="{{ $category->id }}">
                     <i class="bi {{ $category->show_in_menu ? 'bi-check-circle' : 'bi-x-circle' }}"></i>
                 </button>
