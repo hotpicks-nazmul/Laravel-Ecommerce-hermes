@@ -65,7 +65,7 @@ class DigitalCategoryController extends Controller
         $categories = $query->paginate($perPage)->appends($request->query());
         
         // Get all categories for parent filter dropdown
-        $allCategories = DigitalCategory::root()->ordered()->get();
+        $allCategories = DigitalCategory::ordered()->get();
 
         // Statistics
         $stats = [
@@ -146,7 +146,6 @@ class DigitalCategoryController extends Controller
                         85
                     );
                     $data['image'] = ltrim($imageResult['path'], '/');
-                    $data['thumbnail'] = isset($imageResult['thumbnail']) ? ltrim($imageResult['thumbnail'], '/') : null;
                 }
             } catch (\Exception $e) {
                 Log::error('Digital category image upload failed: ' . $e->getMessage());
@@ -208,7 +207,7 @@ class DigitalCategoryController extends Controller
                 if (ImageHelper::isValidImage($request->file('image'))) {
                     // Delete old image
                     if ($digitalCategory->image) {
-                        ImageHelper::deleteImage($digitalCategory->image, $digitalCategory->thumbnail ?? null);
+                        ImageHelper::deleteImage($digitalCategory->image);
                     }
                     $imageResult = ImageHelper::processImage(
                         $request->file('image'),
@@ -218,7 +217,6 @@ class DigitalCategoryController extends Controller
                         85
                     );
                     $data['image'] = ltrim($imageResult['path'], '/');
-                    $data['thumbnail'] = isset($imageResult['thumbnail']) ? ltrim($imageResult['thumbnail'], '/') : null;
                 }
             } catch (\Exception $e) {
                 Log::error('Digital category image update failed: ' . $e->getMessage());
@@ -263,13 +261,38 @@ class DigitalCategoryController extends Controller
      */
     public function toggleStatus(DigitalCategory $digitalCategory)
     {
-        $digitalCategory->status = $digitalCategory->status === 'active' ? 'inactive' : 'active';
-        $digitalCategory->save();
+        try {
+            $digitalCategory->status = $digitalCategory->status === 'active' ? 'inactive' : 'active';
+            $digitalCategory->save();
+
+            return response()->json([
+                'success' => true,
+                'status' => $digitalCategory->status,
+                'message' => 'Status updated successfully.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update status: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete category image.
+     */
+    public function deleteImage(Request $request, DigitalCategory $digitalCategory)
+    {
+        if ($digitalCategory->image) {
+            ImageHelper::deleteImage($digitalCategory->image);
+            $digitalCategory->update([
+                'image' => null,
+            ]);
+        }
 
         return response()->json([
             'success' => true,
-            'status' => $digitalCategory->status,
-            'message' => 'Status updated successfully.'
+            'message' => 'Image deleted successfully.'
         ]);
     }
 

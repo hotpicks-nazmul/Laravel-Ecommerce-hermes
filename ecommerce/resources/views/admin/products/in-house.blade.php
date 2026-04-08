@@ -679,6 +679,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clear selection on page load
     clearSelection();
     
+    // Initialize status toggle event listeners on page load
+    reinitializeEventListeners();
+    
     // Live Search functionality
     let searchTimeout;
     const searchInput = document.getElementById('liveSearch');

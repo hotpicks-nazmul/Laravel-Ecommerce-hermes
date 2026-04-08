@@ -245,13 +245,15 @@
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label class="form-label">Featured Image</label>
-                            <input type="file" name="image" class="form-control" accept="image/*">
+                            <input type="file" name="image" class="form-control" accept="image/*" onchange="previewFeaturedImage(this)">
                             <small class="text-muted">Main product image</small>
+                            <div id="featuredImagePreview" class="mt-2"></div>
                         </div>
                         <div class="col-md-8">
                             <label class="form-label">Gallery Images</label>
-                            <input type="file" name="images[]" class="form-control" accept="image/*" multiple>
+                            <input type="file" name="images[]" class="form-control" accept="image/*" multiple onchange="previewGalleryImages(this)">
                             <small class="text-muted">Additional product images (screenshots, previews)</small>
+                            <div id="galleryPreview" class="mt-2 d-flex flex-wrap gap-2"></div>
                         </div>
                     </div>
                 </div>
@@ -616,5 +618,36 @@ document.getElementById('productForm').addEventListener('submit', function(e) {
         alert('Please either upload a digital file or provide an external download link.');
     }
 });
+
+function previewFeaturedImage(input) {
+    const preview = document.getElementById('featuredImagePreview');
+    preview.innerHTML = '';
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function previewGalleryImages(input) {
+    const preview = document.getElementById('galleryPreview');
+    preview.innerHTML = '';
+    
+    if (input.files) {
+        Array.from(input.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.className = 'position-relative';
+                div.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">';
+                preview.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+}
 </script>
 @endpush

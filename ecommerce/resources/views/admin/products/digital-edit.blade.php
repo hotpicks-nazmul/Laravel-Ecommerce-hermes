@@ -121,9 +121,14 @@
                                     <span class="badge bg-secondary ms-2">{{ $product->file_format }}</span>
                                 @endif
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDeleteFile()">
-                                <i class="bi bi-trash"></i> Replace
-                            </button>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="viewFile('{{ $product->file_path }}', '{{ $product->file_name }}', '{{ $product->file_type }}')">
+                                    <i class="bi bi-eye"></i> View
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDeleteFile()">
+                                    <i class="bi bi-trash"></i> Replace
+                                </button>
+                            </div>
                         </div>
                     </div>
                     @endif
@@ -177,9 +182,14 @@
                                     <span>{{ $file['name'] }}</span>
                                     <small class="text-muted ms-2">{{ number_format($file['size'] / 1024, 1) }} KB</small>
                                 </div>
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteAdditionalFile({{ $index }})">
-                                    <i class="bi bi-trash"></i>
-                                </button>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="viewFile('{{ $file['path'] }}', '{{ $file['name'] }}', '{{ $file['type'] }}')">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteAdditionalFile({{ $index }})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                             @endforeach
                         </div>
@@ -272,14 +282,28 @@
                     <h5 class="mb-0">Product Images</h5>
                 </div>
                 <div class="card-body">
+                    @php
+                        $featuredImageUrl = null;
+                        if ($product->featured_image) {
+                            $img = ltrim($product->featured_image, '/');
+                            if (str_starts_with($img, 'http')) {
+                                $featuredImageUrl = $img;
+                            } elseif (str_starts_with($img, 'storage/')) {
+                                $featuredImageUrl = '/' . $img;
+                            } else {
+                                $featuredImageUrl = '/storage/' . $img;
+                            }
+                        }
+                    @endphp
                     @if($product->featured_image)
                     <div class="mb-3">
                         <label class="form-label">Current Featured Image</label>
                         <div class="d-flex align-items-center gap-3">
-                            <img src="{{ asset('storage/' . $product->featured_image) }}" alt="Featured" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">
+                            <img src="{{ $featuredImageUrl }}" alt="Featured" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">
                             <div>
-                                <input type="file" name="image" class="form-control form-control-sm" accept="image/*">
+                                <input type="file" name="image" class="form-control form-control-sm" accept="image/*" onchange="previewFeaturedImage(this)">
                                 <small class="text-muted">Upload new image to replace</small>
+                                <div id="featuredImagePreview" class="mt-2"></div>
                             </div>
                         </div>
                     </div>
@@ -287,7 +311,8 @@
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label class="form-label">Featured Image</label>
-                            <input type="file" name="image" class="form-control" accept="image/*">
+                            <input type="file" name="image" class="form-control" accept="image/*" onchange="previewFeaturedImage(this)">
+                            <div id="featuredImagePreview" class="mt-2"></div>
                         </div>
                     </div>
                     @endif
@@ -297,7 +322,17 @@
                         <label class="form-label">Current Gallery</label>
                         <div class="d-flex flex-wrap gap-2">
                             @foreach($product->gallery as $img)
-                            <img src="{{ asset('storage/' . $img) }}" alt="Gallery" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;">
+                            @php
+                                $galleryImgUrl = ltrim($img, '/');
+                                if (str_starts_with($galleryImgUrl, 'http')) {
+                                    $galleryImgUrl = $galleryImgUrl;
+                                } elseif (str_starts_with($galleryImgUrl, 'storage/')) {
+                                    $galleryImgUrl = '/' . $galleryImgUrl;
+                                } else {
+                                    $galleryImgUrl = '/storage/' . $galleryImgUrl;
+                                }
+                            @endphp
+                            <img src="{{ $galleryImgUrl }}" alt="Gallery" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;">
                             @endforeach
                         </div>
                         <small class="text-muted">Upload new images to replace current gallery</small>
@@ -306,7 +341,8 @@
                     
                     <div>
                         <label class="form-label">{{ ($product->gallery && count($product->gallery) > 0) ? 'Replace Gallery Images' : 'Gallery Images' }}</label>
-                        <input type="file" name="images[]" class="form-control" accept="image/*" multiple>
+                        <input type="file" name="images[]" class="form-control" accept="image/*" multiple onchange="previewGalleryImages(this)">
+                        <div id="galleryPreview" class="mt-2 d-flex flex-wrap gap-2"></div>
                     </div>
                 </div>
             </div>
@@ -475,6 +511,20 @@
     </div>
 </div>
 
+<!-- File View Modal -->
+<div class="modal fade" id="fileViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileViewTitle">View File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="fileViewBody">
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Floating Save Button -->
 <div class="floating-save-container">
     <a href="{{ route('admin.products.digital.index') }}" class="btn btn-secondary floating-reset-btn">
@@ -623,6 +673,76 @@ function showLicenseKeys() {
 // Confirm delete file
 function confirmDeleteFile() {
     return confirm('Are you sure you want to replace the current file?');
+}
+
+function previewFeaturedImage(input) {
+    const preview = document.getElementById('featuredImagePreview');
+    if (preview) {
+        preview.innerHTML = '';
+        
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+}
+
+function previewGalleryImages(input) {
+    const preview = document.getElementById('galleryPreview');
+    if (preview) {
+        preview.innerHTML = '';
+        
+        if (input.files) {
+            Array.from(input.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'position-relative';
+                    div.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">';
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    }
+}
+
+function viewFile(filePath, fileName, fileType) {
+    const modal = document.getElementById('fileViewModal');
+    const modalTitle = document.getElementById('fileViewTitle');
+    const modalBody = document.getElementById('fileViewBody');
+    
+    modalTitle.textContent = fileName;
+    modalBody.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+    
+    const url = '/storage/' + filePath;
+    
+    if (fileType && fileType.startsWith('image/')) {
+        modalBody.innerHTML = '<img src="' + url + '" class="img-fluid" alt="' + fileName + '">';
+    } else if (fileType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')) {
+        modalBody.innerHTML = '<iframe src="' + url + '" width="100%" height="500px" style="border:none;"></iframe>';
+    } else if (fileType && (fileType.startsWith('video/') || fileName.toLowerCase().match(/\.(mp4|webm|ogg)$/))) {
+        modalBody.innerHTML = '<video controls width="100%"><source src="' + url + '" type="' + fileType + '">Your browser does not support video playback.</video>';
+    } else if (fileType && (fileType.startsWith('audio/') || fileName.toLowerCase().match(/\.(mp3|wav|ogg)$/))) {
+        modalBody.innerHTML = '<audio controls width="100%"><source src="' + url + '" type="' + fileType + '">Your browser does not support audio playback.</audio>';
+    } else if (fileName.toLowerCase().match(/\.(txt|json|xml|html|css|js|php)$/)) {
+        fetch(url)
+            .then(response => response.text())
+            .then(text => {
+                modalBody.innerHTML = '<pre class="bg-light p-3" style="max-height: 500px; overflow: auto;">' + text + '</pre>';
+            })
+            .catch(() => {
+                modalBody.innerHTML = '<div class="text-center text-muted"><p>Unable to preview this file type.</p><a href="' + url + '" download class="btn btn-primary"><i class="bi bi-download"></i> Download File</a></div>';
+            });
+    } else {
+        modalBody.innerHTML = '<div class="text-center text-muted"><p><i class="bi bi-file-earmark display-4"></i></p><p>Preview not available for this file type.</p><a href="' + url + '" download class="btn btn-primary"><i class="bi bi-download"></i> Download File</a></div>';
+    }
+    
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
 }
 </script>
 @endpush

@@ -50,7 +50,7 @@ Route::post('/jakat/calculate', [JakatController::class, 'calculate'])->name('ja
 Route::post('/jakat/prices', [JakatController::class, 'updatePrices'])->name('jakat.prices');
 
 // Products Management - Custom routes (must be before resource routes to avoid conflicts)
-Route::get('/products/in-house', [ProductController::class, 'inHouse'])->name('products.in-house');
+Route::get('/products/in-house', [ProductController::class, 'index'])->name('products.in-house');
 Route::get('/products/in-house/export', [ProductController::class, 'exportInHouse'])->name('products.export-in-house');
 Route::post('/products/in-house/bulk-action', [ProductController::class, 'inHouseBulkAction'])->name('products.in-house.bulk-action');
 Route::post('/products/bulk-stock-update', [ProductController::class, 'bulkStockUpdate'])->name('products.bulk-stock-update');
@@ -119,6 +119,7 @@ Route::resource('digital-categories', \App\Http\Controllers\Admin\DigitalCategor
 Route::post('/digital-categories/{digitalCategory}/toggle-status', [\App\Http\Controllers\Admin\DigitalCategoryController::class, 'toggleStatus'])->name('digital-categories.toggle-status');
 Route::post('/digital-categories/update-order', [\App\Http\Controllers\Admin\DigitalCategoryController::class, 'updateOrder'])->name('digital-categories.update-order');
 Route::get('/digital-categories/api/categories', [\App\Http\Controllers\Admin\DigitalCategoryController::class, 'getCategories'])->name('digital-categories.api.categories');
+Route::delete('/digital-categories/{digitalCategory}/delete-image', [\App\Http\Controllers\Admin\DigitalCategoryController::class, 'deleteImage'])->name('digital-categories.delete-image');
 
 // Products Resource Routes
 Route::resource('products', ProductController::class)->middleware('permission:products');

@@ -22,7 +22,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::with('category');
+        $query = Product::with('category')->where('is_digital', false);
 
         // Search by name, SKU, Product Code, or description
         if ($request->search) {
@@ -63,120 +63,6 @@ class ProductController extends Controller
         // Filter by featured status
         if ($request->featured !== null && $request->featured !== '') {
             $query->where('is_featured', $request->featured === 'yes');
-        }
-
-        // Filter by price range
-        if ($request->price_min) {
-            $query->where('price', '>=', $request->price_min);
-        }
-        if ($request->price_max) {
-            $query->where('price', '<=', $request->price_max);
-        }
-
-        // Filter by date range
-        if ($request->date_from) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-        if ($request->date_to) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
-
-        // Sorting
-        $sortField = $request->sort ?? 'created_at';
-        $sortDirection = $request->direction ?? 'desc';
-        
-        $allowedSorts = ['name', 'price', 'quantity', 'created_at', 'sale_price'];
-        if (in_array($sortField, $allowedSorts)) {
-            $query->orderBy($sortField, $sortDirection);
-        } else {
-            $query->latest();
-        }
-
-        // Per page
-        $perPage = $request->per_page ?? 25;
-
-        $products = $query->paginate($perPage)->appends($request->query());
-        $categories = Category::where('status', 'active')->get();
-
-        // Statistics for cards (using dynamic low_stock_threshold)
-        $stats = [
-            'total' => Product::count(),
-            'active' => Product::where('is_active', true)->count(),
-            'inactive' => Product::where('is_active', false)->count(),
-            'featured' => Product::where('is_featured', true)->count(),
-            'low_stock' => Product::whereRaw('quantity > 0 AND quantity <= COALESCE(low_stock_threshold, 10)')->count(),
-            'out_of_stock' => Product::where('quantity', '<=', 0)->count(),
-        ];
-
-        // Return JSON for AJAX requests
-        if ($request->ajax || $request->ajax == '1' || $request->wantsJson()) {
-            $html = view('admin.products.partials.product-rows', compact('products'))->render();
-            
-            $pagination = '';
-            if ($products->hasPages()) {
-                $pagination = '<div class="d-flex justify-content-center mt-3">' . $products->links()->toHtml() . '</div>';
-            }
-            
-            return response()->json([
-                'html' => $html,
-                'pagination' => $pagination,
-                'stats' => $stats,
-                'total' => $products->total()
-            ]);
-        }
-
-        return view('admin.products.index', compact('products', 'categories', 'stats'));
-    }
-
-    /**
-     * Display In-House Products with advanced management features.
-     * In-House products are products sold directly by the store (not by sellers).
-     */
-    public function inHouse(Request $request)
-    {
-        $query = Product::with('category')->inHouse();
-
-        // Search functionality
-        if ($request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('sku', 'like', "%{$search}%")
-                    ->orWhere('product_code', 'like', "%{$search}%")
-                    ->orWhere('barcode', 'like', "%{$search}%")
-                    ->orWhere('short_description', 'like', "%{$search}%");
-            });
-        }
-
-        // Filter by category
-        if ($request->category) {
-            $query->where('category_id', $request->category);
-        }
-
-        // Filter by brand
-        if ($request->brand) {
-            $query->where('brand', $request->brand);
-        }
-
-        // Filter by status
-        if ($request->status !== null && $request->status !== '') {
-            $query->where('is_active', $request->status === 'active');
-        }
-
-        // Filter by stock status
-        if ($request->stock_status) {
-            switch ($request->stock_status) {
-                case 'in_stock':
-                    $query->whereColumn('quantity', '>', 'low_stock_threshold');
-                    break;
-                case 'low_stock':
-                    $query->whereColumn('quantity', '<=', 'low_stock_threshold')
-                          ->where('quantity', '>', 0);
-                    break;
-                case 'out_of_stock':
-                    $query->where('quantity', '<=', 0);
-                    break;
-            }
         }
 
         // Filter by featured status
@@ -447,7 +333,8 @@ class ProductController extends Controller
         
         Log::info('EDIT METHOD REACHED', ['product_id' => $product->id]);
         $categories = Category::getFlattenedTree();
-        return view('admin.products.edit', compact('product', 'categories'));
+        $brands = Brand::where('is_active', true)->orderBy('name')->pluck('name', 'id')->toArray();
+        return view('admin.products.edit', compact('product', 'categories', 'brands'));
     }
 
     /**
@@ -957,6 +844,7 @@ class ProductController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('product_code', 'like', "%{$search}%")
                     ->orWhere('sku', 'like', "%{$search}%")
                     ->orWhere('barcode', 'like', "%{$search}%");
             });
@@ -975,13 +863,13 @@ class ProductController extends Controller
 
         $callback = function () use ($products) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['ID', 'Name', 'SKU', 'Barcode', 'Category', 'Brand', 'Purchase Price', 'Price', 'Sale Price', 'Quantity', 'Low Stock Threshold', 'Stock Value', 'Status', 'Featured', 'Created At']);
+            fputcsv($file, ['ID', 'Name', 'Product Code', 'Barcode', 'Category', 'Brand', 'Purchase Price', 'Price', 'Sale Price', 'Quantity', 'Low Stock Threshold', 'Stock Value', 'Status', 'Featured', 'Created At']);
 
             foreach ($products as $product) {
                 fputcsv($file, [
                     $product->id,
                     $product->name,
-                    $product->sku,
+                    $product->product_code ?? $product->sku ?? '',
                     $product->barcode ?? '',
                     $product->category->name ?? 'N/A',
                     $product->brand ?? '',

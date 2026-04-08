@@ -59,59 +59,81 @@ class CategoryController extends Controller
         }
         
         if ($viewMode === 'tree') {
-            // Tree view - search should filter categories like flat view
-            // Get all matching category IDs
-            $matchingIds = $query->pluck('id')->toArray();
-            
-            // Get all ancestor IDs for matching categories to show the full tree
-            $allAncestorIds = [];
-            if (!empty($matchingIds)) {
-                $allAncestorIds = $this->getAllAncestorIds($matchingIds);
-            }
-            
-            // Get root parent IDs (categories with parent_id = null)
-            $rootParentIds = [];
-            if (!empty($matchingIds)) {
-                $allIdsToCheck = array_unique(array_merge($matchingIds, $allAncestorIds));
-                $rootParentIds = Category::whereIn('id', $allIdsToCheck)
-                    ->whereNull('parent_id')
-                    ->pluck('id')
-                    ->toArray();
-            }
-            
-            // Build tree with filtered children
-            // Load ALL children (not filtered) to preserve tree structure
-            // The view will handle showing/hiding based on matching
-            $categories = Category::with(['children' => function ($q) use ($status, $showInMenu, $showInHomepage) {
-                    $q->withCount('products');
-                    // Apply filters to children
-                    if ($status) $q->where('status', $status);
-                    if ($showInMenu !== null && $showInMenu !== '') $q->where('show_in_menu', $showInMenu === 'yes');
-                    if ($showInHomepage !== null && $showInHomepage !== '') $q->where('show_in_homepage', $showInHomepage === 'yes');
-                }])
-                ->withCount('products')
-                ->whereNull('parent_id');
-            
-            // Apply filters to root categories
-            if ($status) $categories->where('status', $status);
-            if ($showInMenu !== null && $showInMenu !== '') $categories->where('show_in_menu', $showInMenu === 'yes');
-            if ($showInHomepage !== null && $showInHomepage !== '') $categories->where('show_in_homepage', $showInHomepage === 'yes');
-            
-            // If searching and we found matches, filter to only show relevant parents
             if ($search) {
+                // Search mode - show full tree path for matching categories
+                $matchingIds = $query->pluck('id')->toArray();
+
+                $allAncestorIds = [];
+                if (!empty($matchingIds)) {
+                    $allAncestorIds = $this->getAllAncestorIds($matchingIds);
+                }
+
+                $rootParentIds = [];
+                if (!empty($matchingIds)) {
+                    $allIdsToCheck = array_unique(array_merge($matchingIds, $allAncestorIds));
+                    $rootParentIds = Category::whereIn('id', $allIdsToCheck)
+                        ->whereNull('parent_id')
+                        ->pluck('id')
+                        ->toArray();
+                }
+
+                $categories = Category::with(['children' => function ($q) use ($showInMenu, $showInHomepage) {
+                        $q->withCount('products');
+                        if ($showInMenu !== null && $showInMenu !== '') $q->where('show_in_menu', $showInMenu === 'yes');
+                        if ($showInHomepage !== null && $showInHomepage !== '') $q->where('show_in_homepage', $showInHomepage === 'yes');
+                    }])
+                    ->withCount('products')
+                    ->whereNull('parent_id');
+
                 if (!empty($rootParentIds)) {
                     $categories->whereIn('id', $rootParentIds);
                 } elseif (!empty($matchingIds)) {
-                    // If there are matching categories but no root parents found,
-                    // check if the matching categories themselves are root
                     $categories->whereIn('id', $matchingIds);
                 } else {
-                    // No matches found - show empty result
                     $categories->whereIn('id', [0]);
                 }
+
+                if ($showInMenu !== null && $showInMenu !== '') $categories->where('show_in_menu', $showInMenu === 'yes');
+                if ($showInHomepage !== null && $showInHomepage !== '') $categories->where('show_in_homepage', $showInHomepage === 'yes');
+
+                $categories = $categories->ordered()->get();
+            } else {
+                // Filter mode (status, show_in_menu, show_in_homepage)
+                $hasFilter = $status || ($showInMenu !== null && $showInMenu !== '') || ($showInHomepage !== null && $showInHomepage !== '');
+
+                if (!$hasFilter) {
+                    // No filter - load full tree
+                    $categories = Category::with('children')
+                        ->withCount('products')
+                        ->whereNull('parent_id')
+                        ->ordered()
+                        ->get();
+                } else {
+                    // Find all category IDs matching the filters
+                    $filteredQuery = Category::query();
+                    if ($status) $filteredQuery->where('status', $status);
+                    if ($showInMenu !== null && $showInMenu !== '') $filteredQuery->where('show_in_menu', $showInMenu === 'yes');
+                    if ($showInHomepage !== null && $showInHomepage !== '') $filteredQuery->where('show_in_homepage', $showInHomepage === 'yes');
+                    $matchingIds = $filteredQuery->pluck('id')->toArray();
+
+                    if (empty($matchingIds)) {
+                        $categories = collect([]);
+                    } else {
+                        // Get all ancestor IDs to show full tree path
+                        $allAncestorIds = $this->getAllAncestorIds($matchingIds);
+                        $allCategoryIds = array_unique(array_merge($matchingIds, $allAncestorIds));
+
+                        // Load all relevant categories (matching + ancestors)
+                        $matchingCategories = Category::withCount('products')
+                            ->whereIn('id', $allCategoryIds)
+                            ->ordered()
+                            ->get();
+
+                        // Build tree but only include matching categories and their matching descendants
+                        $categories = $this->buildFilteredTree($matchingCategories, $matchingIds);
+                    }
+                }
             }
-            
-            $categories = $categories->ordered()->get();
         } else {
             // Flat view - all categories paginated
             $categories = $query->withCount('products')
@@ -609,5 +631,76 @@ class CategoryController extends Controller
         $ancestorIds = $this->getAllAncestorIds($parentIds);
         
         return array_unique(array_merge($parentIds, $ancestorIds));
+    }
+
+    /**
+     * Recursively filter a category tree to only keep categories
+     * that match the given IDs (and their ancestor paths).
+     */
+    private function filterCategoryTree($categories, array $matchingIds)
+    {
+        $result = collect();
+
+        foreach ($categories as $category) {
+            // Recursively filter children first
+            if ($category->children->count() > 0) {
+                $category->setRelation('children', $this->filterCategoryTree($category->children, $matchingIds));
+            }
+
+            // Keep this category if it matches, or if it has matching descendants
+            if (in_array($category->id, $matchingIds) || $category->children->count() > 0) {
+                $result->push($category);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Build a filtered tree from matching categories and their ancestors.
+     * Only includes categories that either:
+     * - Match the filter directly (in $matchingIds)
+     * - Have descendants that match the filter
+     */
+    private function buildFilteredTree($allCategories, array $matchingIds)
+    {
+        // Group categories by parent_id
+        $byParent = $allCategories->groupBy('parent_id');
+        $byId = $allCategories->keyBy('id');
+
+        // Recursively build children, only including those with matching descendants
+        $buildChildren = function ($parentId) use (&$buildChildren, $byParent, $byId, $matchingIds) {
+            $children = $byParent->get($parentId, collect());
+
+            return $children->filter(function ($child) use ($byId, &$buildChildren, $matchingIds) {
+                // Check if this child matches
+                $childMatches = in_array($child->id, $matchingIds);
+
+                // Get children that have matching descendants
+                $matchingDescendants = $buildChildren($child->id);
+
+                // Keep if this child matches OR has matching descendants
+                if ($childMatches || $matchingDescendants->count() > 0) {
+                    $child->setRelation('children', $matchingDescendants);
+                    return true;
+                }
+                return false;
+            })->values();
+        };
+
+        // Start with root categories (parent_id = null)
+        $rootCategories = $byParent->get(null, collect());
+
+        return $rootCategories->filter(function ($root) use (&$buildChildren, $matchingIds) {
+            // Root matches if it matches OR has matching descendants
+            $rootMatches = in_array($root->id, $matchingIds);
+            $matchingChildren = $buildChildren($root->id);
+
+            if ($rootMatches || $matchingChildren->count() > 0) {
+                $root->setRelation('children', $matchingChildren);
+                return true;
+            }
+            return false;
+        })->values();
     }
 }

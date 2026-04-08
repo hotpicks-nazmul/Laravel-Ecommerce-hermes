@@ -6,13 +6,13 @@
                 $imageUrl = $product->featured_image ?? '';
                 // Handle different image path formats
                 if ($imageUrl) {
+                    $imageUrl = ltrim($imageUrl, '/');
                     if (str_starts_with($imageUrl, 'http')) {
                         // External URL - use as is
-                        $imageUrl = $imageUrl;
-                    } elseif (str_starts_with($imageUrl, '/storage/')) {
-                        // New format with /storage/ prefix - use as is
-                        $imageUrl = $imageUrl;
-                    } elseif (str_starts_with($imageUrl, '/uploads/')) {
+                    } elseif (str_starts_with($imageUrl, 'storage/')) {
+                        // Path starts with storage/ - prepend /
+                        $imageUrl = '/' . $imageUrl;
+                    } elseif (str_starts_with($imageUrl, 'uploads/')) {
                         // Old uploads format
                         $imageUrl = asset($imageUrl);
                     } else {

@@ -94,10 +94,19 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="brand" class="form-label">Brand</label>
-                                <input type="text" class="form-control @error('brand') is-invalid @enderror" id="brand" name="brand" value="{{ old('brand', $product->brand) }}" placeholder="Product brand">
+                                <select class="form-select @error('brand') is-invalid @enderror" id="brand" name="brand"
+                                        data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('brand') }}">
+                                    <option value="">Select Brand</option>
+                                    @foreach($brands as $id => $name)
+                                        <option value="{{ $id }}" {{ old('brand', $product->brand_id) == $id ? 'selected' : '' }}>
+                                            {{ $name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                                 @error('brand')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                <div class="form-text">Choose from existing brands or <a href="{{ route('admin.brands.create') }}" target="_blank">create new</a></div>
                             </div>
                         </div>
                     </div>
@@ -214,12 +223,18 @@
                     
                     <div class="mb-3">
                         <label for="images" class="form-label">Gallery Images</label>
-                        @if($product->images && is_array(json_decode($product->images)))
+                        @php
+                            $galleryImages = $product->images ?? ($product->gallery ?? []);
+                        @endphp
+                        @if($galleryImages && is_array($galleryImages))
                             <div class="mb-2 d-flex flex-wrap gap-2">
-                                @foreach(json_decode($product->images) as $index => $img)
+                                @foreach($galleryImages as $index => $img)
                                     @php
-                                        $galleryUrl = $img;
-                                        if (!str_starts_with($galleryUrl, 'http') && !str_starts_with($galleryUrl, '/storage/')) {
+                                        $galleryUrl = is_array($img) ? ($img['url'] ?? $img['path'] ?? '') : $img;
+                                        if (!is_string($galleryUrl)) {
+                                            $galleryUrl = '';
+                                        }
+                                        if (!str_starts_with($galleryUrl, 'http') && !str_starts_with($galleryUrl, '/storage/') && $galleryUrl) {
                                             $galleryUrl = '/storage/' . $galleryUrl;
                                         }
                                     @endphp

@@ -12,7 +12,15 @@
     <td>
         <div class="d-flex align-items-center">
             @if($category->image)
-                <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                @php
+                    $imgPath = ltrim($category->image, '/');
+                    if (!str_starts_with($imgPath, 'http') && !str_starts_with($imgPath, 'storage/')) {
+                        $imgPath = '/storage/' . $imgPath;
+                    } elseif (str_starts_with($imgPath, 'storage/')) {
+                        $imgPath = '/' . $imgPath;
+                    }
+                @endphp
+                <img src="{{ $imgPath }}" alt="{{ $category->name }}" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
             @elseif($category->icon)
                 <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                     <i class="{{ $category->icon }} fs-5 text-muted"></i>
@@ -36,12 +44,11 @@
         <span class="badge bg-light text-dark">{{ $category->product_count }}</span>
     </td>
     <td>
-        <button type="button" class="btn btn-sm status-toggle {{ $category->status === 'active' ? 'btn-success' : 'btn-secondary' }}" 
+        <button type="button" class="btn btn-sm status-toggle {{ $category->status === 'active' ? 'btn-success' : 'btn-outline-secondary' }}" 
                 data-id="{{ $category->id }}" 
                 data-status="{{ $category->status }}"
-                data-loading="false">
-            <span class="status-text">{{ ucfirst($category->status) }}</span>
-            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                title="Click to toggle status">
+            {{ $category->status === 'active' ? 'Active' : 'Inactive' }}
         </button>
     </td>
     <td>

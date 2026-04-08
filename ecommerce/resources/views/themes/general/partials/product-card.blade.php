@@ -6,11 +6,12 @@
                 $imagePath = $product->featured_image ?? $product->image ?? '';
                 $imageUrl = 'https://placehold.co/300x300/e2e8f0/64748b?text=No+Image';
                 if ($imagePath) {
+                    $imagePath = ltrim($imagePath, '/');
                     if (str_starts_with($imagePath, 'http')) {
                         $imageUrl = $imagePath;
-                    } elseif (str_starts_with($imagePath, '/storage/')) {
-                        $imageUrl = $imagePath;
-                    } elseif (str_starts_with($imagePath, '/uploads/')) {
+                    } elseif (str_starts_with($imagePath, 'storage/')) {
+                        $imageUrl = '/' . $imagePath;
+                    } elseif (str_starts_with($imagePath, 'uploads/')) {
                         $imageUrl = asset($imagePath);
                     } else {
                         $imageUrl = asset('storage/' . $imagePath);

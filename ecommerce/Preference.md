@@ -27,6 +27,7 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 19. **Form Validation Errors** - Input field tooltips with auto-scroll and modal for non-input errors
 20. **Image Upload Functionality** - Complete solution for uploading and processing images in admin panel
 21. **Content Area & Extra Padding** - Fix for double padding/wrappers in admin pages
+22. **Toast Notification for Status Toggle** - Show success notification when toggling status in tables
 
 ---
 
@@ -1665,6 +1666,128 @@ Add the modal HTML at the end of the view file (before @endsection):
 3. **Unique modal ID** - Use a unique ID that doesn't conflict with other modals on the page
 4. **User-friendly message** - Include icon and clear message explaining what's happening
 5. **Reusable** - The same pattern can be used for any type of modal (info, warning, error, confirmation)
+
+---
+
+## Toast Notification for Status Toggle
+
+When toggling status in admin table listing pages (like products, categories, digital products), show a success toast notification at the bottom-right of the screen. This provides immediate feedback to users without needing page reload or redirect.
+
+### Implementation Pattern
+
+#### 1. Status Button in Table
+
+```html
+<td>
+    <button type="button" class="btn btn-sm status-toggle {{ $item->status === 'active' ? 'btn-success' : 'btn-outline-secondary' }}" 
+            data-id="{{ $item->id }}" 
+            data-status="{{ $item->status }}"
+            title="Click to toggle status">
+        {{ $item->status === 'active' ? 'Active' : 'Inactive' }}
+    </button>
+</td>
+```
+
+#### 2. JavaScript Implementation
+
+Add this JavaScript in the `@push('scripts')` section of your page:
+
+```javascript
+// Toast notification function
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0 position-fixed`;
+    toast.style.cssText = 'bottom: 20px; right: 20px; z-index: 9999;';
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    setTimeout(() => toast.remove(), 5000);
+}
+
+// Toggle status via AJAX
+function initStatusToggle() {
+    document.querySelectorAll('.status-toggle').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            fetch(`/admin/items/${id}/toggle-status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    this.textContent = data.status === 'active' ? 'Active' : 'Inactive';
+                    this.classList.toggle('btn-success', data.status === 'active');
+                    this.classList.toggle('btn-outline-secondary', data.status !== 'active');
+                    this.dataset.status = data.status;
+                    showToast(data.message || 'Status updated successfully', 'success');
+                }
+            });
+        });
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initStatusToggle();
+});
+```
+
+#### 3. Controller Response
+
+Ensure your toggleStatus method returns proper JSON response:
+
+```php
+public function toggleStatus(Item $item)
+{
+    $item->status = $item->status === 'active' ? 'inactive' : 'active';
+    $item->save();
+
+    return response()->json([
+        'success' => true,
+        'status' => $item->status,
+        'message' => 'Status updated successfully'
+    ]);
+}
+```
+
+### Key Points
+
+| Element | Implementation |
+|---------|---------------|
+| Button style | `btn-success` when active, `btn-outline-secondary` when inactive |
+| Button text | Shows "Active" or "Inactive" |
+| Toast position | Fixed at bottom: 20px, right: 20px |
+| Toast duration | Auto-dismiss after 5 seconds |
+| Fetch URL | Use direct path like `/admin/items/${id}/toggle-status` |
+| CSRF token | Get from meta tag: `document.querySelector('meta[name="csrf-token"]').content` |
+
+### URL Pattern for Toggle Route
+
+Use direct URL path instead of Laravel route() helper to avoid placeholder replacement issues:
+
+```javascript
+// ❌ Avoid - may cause issues with route placeholder
+fetch(`{{ route('admin.items.toggle-status', ['item' => 'ID']) }}`.replace('ID', id), ...)
+
+// ✅ Preferred - direct path
+fetch(`/admin/items/${id}/toggle-status`, ...)
+```
+
+### Where Implemented
+
+- `/admin/products` - Products listing page
+- `/admin/products/digital` - Digital products listing page
+- `/admin/digital-categories` - Digital categories listing page
 
 ---
 

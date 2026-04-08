@@ -171,13 +171,13 @@
                             <input type="checkbox" class="form-check-input" id="selectAllCheckbox" onclick="toggleSelectAll(this)">
                         </th>
                         <th style="width: 60px;">Image</th>
-                        <th>Product</th>
-                        <th>File Info</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Sales</th>
-                        <th>Status</th>
-                        <th style="width: 160px;">Actions</th>
+                        <th class="text-center">Product</th>
+                        <th class="text-center">File Info</th>
+                        <th class="text-center">Category</th>
+                        <th class="text-center">Price</th>
+                        <th class="text-center">Sales</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center" style="width: 160px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="productTableBody">
@@ -187,8 +187,23 @@
                             <input type="checkbox" class="form-check-input product-checkbox" value="{{ $product->id }}" onchange="updateSelection({{ $product->id }}, this.checked)">
                         </td>
                         <td>
-                            @if($product->featured_image)
-                                <img src="{{ asset('storage/' . $product->featured_image) }}" alt="{{ $product->name }}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                            @php
+                                $imageUrl = $product->featured_image;
+                                if($imageUrl) {
+                                    $imageUrl = ltrim($imageUrl, '/');
+                                    if (str_starts_with($imageUrl, 'http')) {
+                                        // Already full URL - use as is
+                                    } elseif (str_starts_with($imageUrl, 'storage/')) {
+                                        $imageUrl = '/' . $imageUrl;
+                                    } elseif (str_starts_with($imageUrl, 'products/')) {
+                                        $imageUrl = '/storage/' . $imageUrl;
+                                    } else {
+                                        $imageUrl = '/storage/' . $imageUrl;
+                                    }
+                                }
+                            @endphp
+                            @if($imageUrl)
+                                <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
                             @else
                                 <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                                     <i class="bi bi-file-earmark text-muted"></i>
@@ -212,7 +227,7 @@
                                 <span class="badge bg-secondary ms-1">v{{ $product->version }}</span>
                             @endif
                         </td>
-                        <td>
+                        <td class="text-center">
                             @if($product->file_format)
                                 <div>
                                     <span class="badge bg-light text-dark">{{ $product->file_format }}</span>
@@ -226,7 +241,7 @@
                                 <span class="text-muted">No file</span>
                             @endif
                         </td>
-                        <td>
+                        <td class="text-center">
                             @if($product->digitalCategory)
                                 <span class="badge bg-light text-dark">{{ $product->digitalCategory->name }}</span>
                             @elseif($product->category)
@@ -235,7 +250,7 @@
                                 <span class="text-muted">-</span>
                             @endif
                         </td>
-                        <td>
+                        <td class="text-center">
                             <div>
                                 @if($product->sale_price && $product->sale_price < $product->price)
                                     <del class="text-muted small">৳{{ number_format($product->price, 0) }}</del>
@@ -251,47 +266,36 @@
                                 <small class="text-muted">downloads</small>
                             </div>
                         </td>
-                        <td>
-                            <button type="button" class="btn btn-sm status-toggle {{ $product->is_active ? 'btn-success' : 'btn-secondary' }}" onclick="toggleStatus({{ $product->id }})" title="Toggle Status">
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm status-toggle {{ $product->is_active ? 'btn-success' : 'btn-outline-secondary' }}" 
+                                    data-id="{{ $product->id }}" 
+                                    data-status="{{ $product->is_active ? 'active' : 'inactive' }}"
+                                    title="Click to toggle status">
                                 {{ $product->is_active ? 'Active' : 'Inactive' }}
                             </button>
                         </td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    Actions
+                        <td class="text-center">
+                            <div class="btn-group">
+                                <a href="{{ route('admin.products.digital.edit', $product->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-info" onclick="showDownloadStats({{ $product->id }}); event.stopPropagation();" title="Download Stats">
+                                    <i class="bi bi-bar-chart"></i>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('admin.products.digital.edit', $product->id) }}">
-                                            <i class="bi bi-pencil me-2"></i> Edit
-                                        </a>
-                                    </li>
-                                    @if($product->requires_license_key)
-                                    <li>
-                                        <a class="dropdown-item" href="#" onclick="showLicenseKeys({{ $product->id }})">
-                                            <i class="bi bi-key me-2"></i> License Keys
-                                        </a>
-                                    </li>
-                                    @endif
-                                    <li>
-                                        <a class="dropdown-item" href="#" onclick="showDownloadStats({{ $product->id }})">
-                                            <i class="bi bi-bar-chart me-2"></i> Download Stats
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <button type="button" class="dropdown-item text-danger" onclick="deleteProduct({{ $product->id }})">
-                                            <i class="bi bi-trash me-2"></i> Delete
-                                        </button>
-                                    </li>
-                                </ul>
+                                @if($product->requires_license_key)
+                                <button type="button" class="btn btn-sm btn-outline-warning" onclick="showLicenseKeys({{ $product->id }}); event.stopPropagation();" title="License Keys">
+                                    <i class="bi bi-key"></i>
+                                </button>
+                                @endif
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteProduct({{ $product->id }}); event.stopPropagation();" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="text-center py-5">
+                        <td colspan="8" class="text-center py-5">
                             <div class="text-muted">
                                 <i class="bi bi-file-earmark display-4"></i>
                                 <p class="mt-2">No digital products found.</p>
@@ -575,30 +579,71 @@ function bulkAction(action) {
     document.getElementById('bulkActionForm').submit();
 }
 
-// Toggle status
-function toggleStatus(id) {
-    fetch(`{{ route('admin.products.digital.toggle-status', ['id' => '__ID__']) }}`.replace('__ID__', id), {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        }
+// Toggle status via AJAX
+document.querySelectorAll('.status-toggle').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const id = this.dataset.id;
+        fetch(`{{ route('admin.products.digital.toggle-status', ['id' => 'ID']) }}`.replace('ID', id), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                this.textContent = data.status === 'active' ? 'Active' : 'Inactive';
+                this.classList.toggle('btn-success', data.status === 'active');
+                this.classList.toggle('btn-outline-secondary', data.status !== 'active');
+                this.dataset.status = data.status;
+                showToast(data.message || 'Status updated successfully', 'success');
+            }
+        });
     });
+});
+
+// Toast notification
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0 position-fixed`;
+    toast.style.cssText = 'bottom: 20px; right: 20px; z-index: 9999;';
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    setTimeout(() => toast.remove(), 5000);
 }
 
 // Delete product
 function deleteProduct(id) {
     if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) return;
     
-    const form = document.getElementById('deleteForm');
-    form.action = `{{ route('admin.products.digital.destroy', ['id' => '__ID__']) }}`.replace('__ID__', id);
-    form.submit();
+    fetch(`{{ route('admin.products.digital.destroy', ['id' => 'ID']) }}`.replace('ID', id), {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            performLiveSearch(document.getElementById('liveSearch').value.trim());
+        } else {
+            showToast(data.message || 'Error deleting product', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Delete error:', err);
+        showToast('Error deleting product', 'error');
+    });
 }
 
 // Show license keys
@@ -930,22 +975,16 @@ function updateStats(stats) {
     });
 }
 
-// Reinitialize event listeners after AJAX update
-function reinitializeEventListeners() {
-    // Status toggle
-    document.querySelectorAll('.status-toggle').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const id = this.closest('tr').querySelector('.product-checkbox').value;
-            toggleStatus(id);
-        });
-    });
-    
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
     // Product checkboxes
     document.querySelectorAll('.product-checkbox').forEach(cb => {
         cb.addEventListener('change', function() {
             updateSelection(parseInt(this.value), this.checked);
         });
     });
-}
+    
+    console.log('Digital products page initialized');
+});
 </script>
 @endpush

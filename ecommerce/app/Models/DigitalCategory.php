@@ -150,6 +150,24 @@ class DigitalCategory extends Model
     }
 
     /**
+     * Get image URL attribute.
+     */
+    public function getImageUrlAttribute()
+    {
+        if (!$this->image) {
+            return null;
+        }
+        
+        if (str_starts_with($this->image, 'http')) {
+            return $this->image;
+        }
+        
+        $path = ltrim($this->image, '/');
+        
+        return '/storage/' . $path;
+    }
+
+    /**
      * Get all descendant IDs
      */
     public function getDescendantIds()

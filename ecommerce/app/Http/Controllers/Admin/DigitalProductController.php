@@ -178,8 +178,8 @@ class DigitalProductController extends Controller
                         300,
                         85
                     );
-                    $data['featured_image'] = ltrim($imageResult['path'], '/');
-                    $data['featured_thumbnail'] = isset($imageResult['thumbnail']) ? ltrim($imageResult['thumbnail'], '/') : null;
+                    $data['featured_image'] = $imageResult['path'];
+                    $data['thumbnail'] = $imageResult['thumbnail'] ?? null;
                 }
             }
 
@@ -194,7 +194,7 @@ class DigitalProductController extends Controller
                             300,
                             85
                         );
-                        $gallery[] = ltrim($imageResult['path'], '/');
+                        $gallery[] = $imageResult['path'];
                     }
                 }
                 $data['gallery'] = $gallery;
@@ -323,8 +323,8 @@ class DigitalProductController extends Controller
                         300,
                         85
                     );
-                    $data['featured_image'] = ltrim($imageResult['path'], '/');
-                    $data['featured_thumbnail'] = isset($imageResult['thumbnail']) ? ltrim($imageResult['thumbnail'], '/') : null;
+                    $data['featured_image'] = $imageResult['path'];
+                    $data['thumbnail'] = $imageResult['thumbnail'] ?? null;
                 }
             }
 
@@ -345,7 +345,7 @@ class DigitalProductController extends Controller
                             300,
                             85
                         );
-                        $gallery[] = ltrim($imageResult['path'], '/');
+                        $gallery[] = $imageResult['path'];
                     }
                 }
                 $data['gallery'] = $gallery;
@@ -403,8 +403,10 @@ class DigitalProductController extends Controller
         $product = Product::findOrFail($id);
         
         if (!$product->is_digital) {
-            return redirect()->route('admin.products.index')
-                ->with('error', 'This is not a digital product.');
+            return response()->json([
+                'success' => false,
+                'message' => 'This is not a digital product.'
+            ], 400);
         }
 
         DB::beginTransaction();
@@ -420,7 +422,7 @@ class DigitalProductController extends Controller
             }
             
             if ($product->featured_image) {
-                ImageHelper::deleteImage($product->featured_image, $product->featured_thumbnail ?? null);
+                ImageHelper::deleteImage($product->featured_image, $product->thumbnail ?? null);
             }
             
             if ($product->gallery) {
@@ -435,10 +437,23 @@ class DigitalProductController extends Controller
 
             DB::commit();
 
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Digital product deleted successfully.'
+                ]);
+            }
+
             return redirect()->route('admin.products.digital.index')
                 ->with('success', 'Digital product deleted successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error deleting product: ' . $e->getMessage()
+                ], 500);
+            }
             return back()->with('error', 'Error deleting product: ' . $e->getMessage());
         }
     }

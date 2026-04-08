@@ -4,8 +4,26 @@
         <input type="checkbox" class="form-check-input product-checkbox" value="{{ $product->id }}" onchange="updateSelection({{ $product->id }}, this.checked)">
     </td>
     <td>
-        @if($product->featured_image)
-            <img src="{{ asset('storage/' . $product->featured_image) }}" alt="{{ $product->name }}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
+        @php
+            $imageUrl = $product->featured_image;
+            if($imageUrl) {
+                $imageUrl = ltrim($imageUrl, '/');
+                if (str_starts_with($imageUrl, 'http')) {
+                    // Already full URL - use as is
+                } elseif (str_starts_with($imageUrl, 'storage/')) {
+                    // Path starts with storage/ - prepend just /
+                    $imageUrl = '/' . $imageUrl;
+                } elseif (str_starts_with($imageUrl, 'products/')) {
+                    // Path starts with products/ - add /storage/
+                    $imageUrl = '/storage/' . $imageUrl;
+                } else {
+                    // Other relative paths - prepend /storage/
+                    $imageUrl = '/storage/' . $imageUrl;
+                }
+            }
+        @endphp
+        @if($imageUrl)
+            <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
         @else
             <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                 <i class="bi bi-file-earmark text-muted"></i>
@@ -69,46 +87,35 @@
         </div>
     </td>
     <td>
-        <button type="button" class="btn btn-sm status-toggle {{ $product->is_active ? 'btn-success' : 'btn-secondary' }}" onclick="toggleStatus({{ $product->id }})" title="Toggle Status">
+        <button type="button" class="btn btn-sm status-toggle {{ $product->is_active ? 'btn-success' : 'btn-outline-secondary' }}" 
+                data-id="{{ $product->id }}" 
+                data-status="{{ $product->is_active ? 'active' : 'inactive' }}"
+                title="Click to toggle status">
             {{ $product->is_active ? 'Active' : 'Inactive' }}
         </button>
     </td>
     <td>
-        <div class="dropdown">
-            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                Actions
+        <div class="btn-group">
+            <a href="{{ route('admin.products.digital.edit', $product->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                <i class="bi bi-pencil"></i>
+            </a>
+            <button type="button" class="btn btn-sm btn-outline-info" onclick="showDownloadStats({{ $product->id }}); event.stopPropagation();" title="Download Stats">
+                <i class="bi bi-bar-chart"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                    <a class="dropdown-item" href="{{ route('admin.products.digital.edit', $product->id) }}">
-                        <i class="bi bi-pencil me-2"></i> Edit
-                    </a>
-                </li>
-                @if($product->requires_license_key)
-                <li>
-                    <a class="dropdown-item" href="#" onclick="showLicenseKeys({{ $product->id }})">
-                        <i class="bi bi-key me-2"></i> License Keys
-                    </a>
-                </li>
-                @endif
-                <li>
-                    <a class="dropdown-item" href="#" onclick="showDownloadStats({{ $product->id }})">
-                        <i class="bi bi-bar-chart me-2"></i> Download Stats
-                    </a>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <button type="button" class="dropdown-item text-danger" onclick="deleteProduct({{ $product->id }})">
-                        <i class="bi bi-trash me-2"></i> Delete
-                    </button>
-                </li>
-            </ul>
+            @if($product->requires_license_key)
+            <button type="button" class="btn btn-sm btn-outline-warning" onclick="showLicenseKeys({{ $product->id }}); event.stopPropagation();" title="License Keys">
+                <i class="bi bi-key"></i>
+            </button>
+            @endif
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteProduct({{ $product->id }}); event.stopPropagation();" title="Delete">
+                <i class="bi bi-trash"></i>
+            </button>
         </div>
     </td>
 </tr>
 @empty
 <tr>
-    <td colspan="9" class="text-center py-5">
+    <td colspan="8" class="text-center py-5">
         <div class="text-muted">
             <i class="bi bi-file-earmark display-4"></i>
             <p class="mt-2">No digital products found.</p>

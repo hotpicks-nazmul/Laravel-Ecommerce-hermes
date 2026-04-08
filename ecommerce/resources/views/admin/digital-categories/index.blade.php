@@ -320,51 +320,47 @@ function performLiveSearch(searchTerm) {
     });
 }
 
-// Status toggle functionality
+// Toggle status via AJAX
 function initStatusToggle() {
     document.querySelectorAll('.status-toggle').forEach(btn => {
         btn.addEventListener('click', function() {
             const id = this.dataset.id;
-            const status = this.dataset.status;
-            const btn = this;
-            
-            // Show loading state
-            btn.dataset.loading = 'true';
-            btn.querySelector('.status-text').style.display = 'none';
-            btn.querySelector('.spinner-border').classList.remove('d-none');
-            
-            fetch(`{{ route('admin.digital-categories.toggle-status', 0) }}`.replace('0', id), {
+            fetch(`/admin/digital-categories/${id}/toggle-status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 }
             })
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    btn.dataset.status = data.status;
-                    btn.querySelector('.status-text').textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
-                    btn.classList.remove('btn-success', 'btn-secondary');
-                    btn.classList.add(data.status === 'active' ? 'btn-success' : 'btn-secondary');
-                    if (typeof toastr !== 'undefined') {
-                        toastr.success(data.message || 'Status updated successfully');
-                    }
+                    this.textContent = data.status === 'active' ? 'Active' : 'Inactive';
+                    this.classList.toggle('btn-success', data.status === 'active');
+                    this.classList.toggle('btn-outline-secondary', data.status !== 'active');
+                    this.dataset.status = data.status;
+                    showToast(data.message || 'Status updated successfully', 'success');
                 }
-                // Hide loading state
-                btn.dataset.loading = 'false';
-                btn.querySelector('.status-text').style.display = 'inline';
-                btn.querySelector('.spinner-border').classList.add('d-none');
-            })
-            .catch(err => {
-                // Hide loading state
-                btn.dataset.loading = 'false';
-                btn.querySelector('.status-text').style.display = 'inline';
-                btn.querySelector('.spinner-border').classList.add('d-none');
-                console.error('Status toggle error:', err);
             });
         });
     });
+}
+
+// Toast notification
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0 position-fixed`;
+    toast.style.cssText = 'bottom: 20px; right: 20px; z-index: 9999;';
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    setTimeout(() => toast.remove(), 5000);
 }
 
 // Order update functionality
@@ -386,7 +382,7 @@ function initOrderInputs() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
                     body: JSON.stringify({ orders: orders })
                 })

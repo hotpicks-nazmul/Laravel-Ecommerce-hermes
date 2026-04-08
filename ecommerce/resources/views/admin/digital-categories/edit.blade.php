@@ -74,13 +74,30 @@
                     
                     <div class="mb-3">
                         <label class="form-label">Category Image</label>
-                        <input type="file" name="image" class="form-control" accept="image/*">
                         @if($digitalCategory->image)
-                            <div class="mt-2">
-                                <img src="{{ asset('storage/' . $digitalCategory->image) }}" alt="{{ $digitalCategory->name }}" class="rounded" style="max-width: 100px; max-height: 100px;">
-                                <small class="text-muted ms-2">Current image</small>
+                            @php
+                                $imgPath = ltrim($digitalCategory->image, '/');
+                                if (!str_starts_with($imgPath, 'http') && !str_starts_with($imgPath, 'storage/')) {
+                                    $imgPath = '/storage/' . $imgPath;
+                                } elseif (str_starts_with($imgPath, 'storage/')) {
+                                    $imgPath = '/' . $imgPath;
+                                }
+                            @endphp
+                            <div class="image-upload-preview mb-2" id="imagePreview">
+                                <img src="{{ $imgPath }}" alt="{{ $digitalCategory->name }}" class="img-thumbnail" style="max-width: 150px; max-height: 150px;">
+                                <button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="removeCategoryImage()">
+                                    <i class="bi bi-trash me-1"></i> Remove Image
+                                </button>
+                            </div>
+                        @else
+                            <div class="image-upload-preview mb-2" id="imagePreview" style="display: none;">
+                                <img src="" alt="Preview" class="img-thumbnail" style="max-width: 150px; max-height: 150px;">
+                                <button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="removeCategoryImage()">
+                                    <i class="bi bi-trash me-1"></i> Remove Image
+                                </button>
                             </div>
                         @endif
+                        <input type="file" name="image" class="form-control" accept="image/*" onchange="previewCategoryImage(this)">
                         <small class="text-muted">Recommended size: 200x200px (JPG, PNG, WebP)</small>
                     </div>
                 </div>
@@ -197,6 +214,42 @@
 
 @push('scripts')
 <script>
+function previewCategoryImage(input) {
+    const preview = document.getElementById('imagePreview');
+    const img = preview.querySelector('img');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            img.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function removeCategoryImage() {
+    if (confirm('Are you sure you want to remove this image?')) {
+        fetch('{{ route("admin.digital-categories.delete-image", $digitalCategory->id) }}', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const preview = document.getElementById('imagePreview');
+                preview.style.display = 'none';
+                preview.querySelector('img').src = '';
+                document.querySelector('input[name="image"]').value = '';
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+}
+
 // Auto-generate slug from name
 document.getElementById('categoryName').addEventListener('input', function() {
     const name = this.value;
