@@ -26,6 +26,7 @@ class CartController extends Controller
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
+            'variant_id' => 'nullable|exists:products,id',
             'quantity' => 'integer|min:1|max:10',
             'color_id' => 'nullable|exists:colors,id',
             'attributes' => 'nullable|array',
@@ -33,9 +34,24 @@ class CartController extends Controller
 
         $product = Product::findOrFail($request->product_id);
         $quantity = $request->quantity ?? 1;
+        
+        // Check if variant is selected
+        $variant = null;
+        if ($request->variant_id) {
+            $variant = Product::find($request->variant_id);
+            if ($variant && $variant->parent_id != $product->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid variant selected.'
+                ], 400);
+            }
+        }
 
+        // Use variant data if available
+        $selectedProduct = $variant ?? $product;
+        $availableStock = $selectedProduct->quantity;
+        
         // Check stock - consider color-specific stock if applicable
-        $availableStock = $product->quantity;
         if ($request->color_id) {
             $colorPivot = $product->colors()->where('color_id', $request->color_id)->first();
             if ($colorPivot && $colorPivot->pivot->quantity !== null) {
@@ -52,6 +68,14 @@ class CartController extends Controller
 
         // Prepare variant data
         $variantData = [];
+        
+        // Add variant info if selected
+        if ($variant) {
+            $variantData['variant_id'] = $variant->id;
+            $variantData['variant_name'] = $variant->name;
+            $variantData['sku'] = $variant->sku;
+            $variantData['image'] = $variant->featured_image;
+        }
         
         // Add color info
         if ($request->color_id) {

@@ -187,24 +187,7 @@
 @endsection
 
 @push('styles')
-<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote.min.css" rel="stylesheet">
 <style>
-    .note-editor {
-        border: 1px solid #ced4da;
-        border-radius: 0.375rem;
-    }
-    .note-editor .note-toolbar {
-        background: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-        border-radius: 0.375rem 0.375rem 0 0;
-    }
-    .note-editor .note-editable {
-        min-height: 300px;
-    }
-    .note-editor.note-frame .note-editing-area .note-editable {
-        padding: 15px;
-    }
-    /* Add padding at bottom to prevent floating button overlap */
     .content-area {
         padding-bottom: 100px !important;
     }
@@ -212,67 +195,46 @@
 @endpush
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
 $(document).ready(function() {
-    // Initialize Summernote editor
-    $('#blog-content').summernote({
-        height: 400,
-        toolbar: [
-            ['style', ['style']],
-            ['font', ['bold', 'italic', 'underline', 'strikethrough', 'clear']],
-            ['fontname', ['fontname']],
-            ['fontsize', ['fontsize']],
-            ['color', ['color']],
-            ['para', ['ul', 'ol', 'paragraph']],
-            ['height', ['height']],
-            ['table', ['table']],
-            ['insert', ['link', 'picture', 'video']],
-            ['view', ['fullscreen', 'codeview']],
-            ['help', ['help']]
+    tinymce.init({
+        selector: '#blog-content',
+        height: 450,
+        menubar: true,
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'help', 'wordcount', 'codesample'
         ],
-        fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana'],
-        fontSizes: ['8', '9', '10', '11', '12', '14', '16', '18', '20', '24', '28', '32', '36', '48', '64'],
-        styleTags: [
-            'p',
-            { title: 'Heading 1', tag: 'h1', value: 'h1' },
-            { title: 'Heading 2', tag: 'h2', value: 'h2' },
-            { title: 'Heading 3', tag: 'h3', value: 'h3' },
-            { title: 'Heading 4', tag: 'h4', value: 'h4' },
-            { title: 'Heading 5', tag: 'h5', value: 'h5' },
-            { title: 'Heading 6', tag: 'h6', value: 'h6' },
-            'blockquote', 'pre'
-        ],
-        callbacks: {
-            onImageUpload: function(files) {
-                uploadImage(files[0]);
-            }
+        toolbar: 'undo redo | blocks | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | codesample forecolor backcolor | removeformat help',
+        branding: false,
+        automatic_uploads: true,
+        images_upload_handler: function(blobInfo, success, failure, progress) {
+            var formData = new FormData();
+            formData.append('image', blobInfo.blob());
+            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+            
+            $.ajax({
+                url: '{{ route("admin.media.upload") }}',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.url) {
+                        success(response.url);
+                    } else {
+                        failure('Upload failed');
+                    }
+                },
+                error: function() {
+                    failure('Upload failed');
+                }
+            });
         }
     });
-    
-    // Image upload handler
-    function uploadImage(file) {
-        var formData = new FormData();
-        formData.append('image', file);
-        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
-        
-        $.ajax({
-            url: '{{ route("admin.media.upload") }}',
-            type: 'POST',
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function(response) {
-                if (response.url) {
-                    $('#blog-content').summernote('insertImage', response.url);
-                }
-            },
-            error: function(xhr) {
-                alert('Image upload failed. Please try again.');
-            }
-        });
-    }
-    
+
     // Auto-generate slug from title
     $('#title').on('blur', function() {
         var slugInput = $('#slug');
@@ -295,18 +257,17 @@ $(document).ready(function() {
         }
     });
     
-    // Auto-scroll to first error field
     @if($errors->any())
-        var firstErrorField = document.querySelector('.is-invalid');
-        if (firstErrorField) {
-            setTimeout(function() {
-                firstErrorField.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-                firstErrorField.focus();
-            }, 100);
-        }
+    var firstErrorField = document.querySelector('.is-invalid');
+    if (firstErrorField) {
+        setTimeout(function() {
+            firstErrorField.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+            firstErrorField.focus();
+        }, 100);
+    }
     @endif
 });
 </script>

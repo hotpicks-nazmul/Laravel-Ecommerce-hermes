@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Page;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\ImageHelper;
 
 class PageController extends Controller
 {
@@ -66,9 +67,18 @@ class PageController extends Controller
         $data['status'] = $request->has('is_active') && $request->is_active ? 'published' : 'draft';
         $data['created_by'] = auth()->id();
 
-        // Handle featured image upload
+        // Handle featured image upload with WebP conversion
         if ($request->hasFile('featured_image')) {
-            $data['featured_image'] = $request->file('featured_image')->store('pages', 'public');
+            if (ImageHelper::isValidImage($request->file('featured_image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('featured_image'),
+                    'pages',         // directory
+                    1200,            // max width
+                    0,               // no thumbnail
+                    80               // quality
+                );
+                $data['featured_image'] = $imageResult['path'];
+            }
         }
 
         $page = Page::create($data);
@@ -111,18 +121,27 @@ class PageController extends Controller
         
         $data['status'] = $request->has('is_active') && $request->is_active ? 'published' : 'draft';
 
-        // Handle featured image upload
+        // Handle featured image upload with WebP conversion
         if ($request->hasFile('featured_image')) {
             // Delete old image if exists
             if ($page->featured_image) {
-                Storage::disk('public')->delete($page->featured_image);
+                ImageHelper::deleteImage($page->featured_image);
             }
-            $data['featured_image'] = $request->file('featured_image')->store('pages', 'public');
+            if (ImageHelper::isValidImage($request->file('featured_image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('featured_image'),
+                    'pages',         // directory
+                    1200,            // max width
+                    0,               // no thumbnail
+                    80               // quality
+                );
+                $data['featured_image'] = $imageResult['path'];
+            }
         }
         
         // Handle image removal
         if ($request->remove_image == '1' && $page->featured_image) {
-            Storage::disk('public')->delete($page->featured_image);
+            ImageHelper::deleteImage($page->featured_image);
             $data['featured_image'] = null;
         }
 
@@ -135,7 +154,7 @@ class PageController extends Controller
     {
         // Delete featured image if exists
         if ($page->featured_image) {
-            Storage::disk('public')->delete($page->featured_image);
+            ImageHelper::deleteImage($page->featured_image);
         }
         
         $page->delete();

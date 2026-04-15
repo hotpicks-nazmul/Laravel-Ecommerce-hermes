@@ -4,7 +4,7 @@
     </td>
     <td>
         @if($brand->logo)
-            <img src="{{ asset('storage/' . $brand->logo) }}" alt="{{ $brand->name }}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
+            <img src="{{ $brand->logo_url }}" alt="{{ $brand->name }}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
         @else
             <div class="bg-secondary rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                 <i class="bi bi-award text-white"></i>

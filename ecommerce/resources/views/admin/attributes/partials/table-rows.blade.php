@@ -34,7 +34,7 @@
         </button>
     </td>
     <td>
-        <div class="d-flex gap-1">
+        <div class="btn-group">
             <a href="{{ route('admin.attributes.edit', $attribute->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                 <i class="bi bi-pencil"></i>
             </a>

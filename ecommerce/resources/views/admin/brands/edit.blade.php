@@ -120,7 +120,7 @@
                 <div class="mb-3">
                     <div class="image-upload-preview mb-2 text-center" id="logoPreview" @if(!$brand->logo) style="display: none;" @endif>
                         @if($brand->logo)
-                            <img src="{{ asset('storage/' . $brand->logo) }}" alt="{{ $brand->name }}" class="img-thumbnail" style="max-width: 100%; max-height: 200px;">
+                            <img src="{{ $brand->logo_url }}" alt="{{ $brand->name }}" class="img-thumbnail" style="max-width: 100%; max-height: 200px;">
                         @else
                             <img src="" alt="Preview" class="img-thumbnail" style="max-width: 100%; max-height: 200px;">
                         @endif

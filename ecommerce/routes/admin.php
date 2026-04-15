@@ -60,6 +60,9 @@ Route::get('/products-export', [ProductController::class, 'export'])->name('prod
 Route::get('/products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
 Route::post('/products/{product}/images', [ProductController::class, 'uploadImages'])->name('products.images.upload');
 Route::delete('/products/{product}/images/{image}', [ProductController::class, 'deleteImage'])->name('products.images.delete');
+Route::delete('/products/{product}/featured-image', [ProductController::class, 'deleteFeaturedImage'])->name('products.featured-image.delete');
+Route::delete('/products/{product}/attributes/{attrId}/{valueId}/image', [ProductController::class, 'deleteAttributeImage'])->name('products.attributes.image.delete');
+Route::delete('/products/{product}/colors/{colorId}/image', [ProductController::class, 'deleteColorImage'])->name('products.colors.image.delete');
 Route::post('/products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
 Route::post('/products/{product}/toggle-featured', [ProductController::class, 'toggleFeatured'])->name('products.toggle-featured');
 Route::post('/products/{product}/quick-update', [ProductController::class, 'quickUpdate'])->name('products.quick-update');
@@ -483,6 +486,7 @@ Route::post('/colors/{color}/toggle-status', [\App\Http\Controllers\Admin\ColorC
 Route::post('/colors/bulk-action', [\App\Http\Controllers\Admin\ColorController::class, 'bulkAction'])->name('colors.bulk-action');
 Route::get('/colors-export', [\App\Http\Controllers\Admin\ColorController::class, 'export'])->name('colors.export');
 Route::get('/colors/api/list', [\App\Http\Controllers\Admin\ColorController::class, 'getColors'])->name('colors.api.list');
+Route::delete('/colors/{color}/image', [\App\Http\Controllers\Admin\ColorController::class, 'deleteImage'])->name('colors.image.delete');
 
 // Brands Management
 Route::resource('brands', \App\Http\Controllers\Admin\BrandController::class);

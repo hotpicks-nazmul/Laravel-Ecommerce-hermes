@@ -424,7 +424,12 @@
     // Quick Adjust Modal
     function showAdjustModal(productId) {
         fetch(`{{ route('admin.inventory.product', ':id') }}`.replace(':id', productId))
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return res.json();
+            })
             .then(data => {
                 if (data.success) {
                     document.getElementById('adjustProductId').value = data.product.id;
@@ -434,15 +439,24 @@
                     document.getElementById('adjustmentType').value = 'add';
                     new bootstrap.Modal(document.getElementById('adjustModal')).show();
                 }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('Failed to load product data. Please refresh the page and try again.');
+                } else {
+                    alert('Failed to load product data. Please refresh the page and try again.');
+                }
             });
     }
 
     // Single item adjustment
     document.getElementById('adjustForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         const formData = new FormData(this);
-        
+        const productId = document.getElementById('adjustProductId').value;
+
         fetch('{{ route('admin.inventory.adjust') }}', {
             method: 'POST',
             headers: {
@@ -455,17 +469,44 @@
         .then(data => {
             if (data.success) {
                 bootstrap.Modal.getInstance(document.getElementById('adjustModal')).hide();
-                toastr.success(data.message);
-                setTimeout(() => window.location.reload(), 500);
+                // Redirect with success message as URL parameter
+                setTimeout(() => {
+                    window.location.href = '{{ route('admin.inventory.index') }}?success=Stock+adjusted+successfully&type=success';
+                }, 300);
+            } else {
+                alert(data.message || 'Failed to adjust stock');
             }
         })
-        .catch(err => toastr.error('Failed to adjust stock'));
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Failed to adjust stock');
+        });
+    });
+
+    // Check for success message in URL on page load
+    window.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get('success');
+        const type = urlParams.get('type') || 'success';
+
+        if (success) {
+            if (typeof adminToast === 'function') {
+                adminToast(type, type === 'success' ? 'Success' : 'Error', decodeURIComponent(success));
+            }
+            // Remove the query parameter from URL without reload
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+        }
     });
 
     // Bulk Adjust Modal
     function showBulkAdjustModal(type) {
         if (selectedItems.size === 0) {
-            toastr.warning('Please select at least one product');
+            if (typeof toastr !== 'undefined') {
+                toastr.warning('Please select at least one product');
+            } else {
+                alert('Please select at least one product');
+            }
             return;
         }
         
@@ -478,9 +519,9 @@
     // Bulk adjustment
     document.getElementById('bulkAdjustForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         const formData = new FormData(this);
-        
+
         fetch('{{ route('admin.inventory.bulk-adjust') }}', {
             method: 'POST',
             headers: {
@@ -493,18 +534,29 @@
         .then(data => {
             if (data.success) {
                 bootstrap.Modal.getInstance(document.getElementById('bulkAdjustModal')).hide();
-                toastr.success(data.message);
                 clearSelection();
-                setTimeout(() => window.location.reload(), 500);
+                setTimeout(() => {
+                    window.location.href = '{{ route('admin.inventory.index') }}?success=' + encodeURIComponent(data.message) + '&type=success';
+                }, 300);
+            } else {
+                alert(data.message || 'Failed to adjust stock');
             }
         })
-        .catch(err => toastr.error('Failed to adjust stock'));
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Failed to adjust stock');
+        });
     });
 
     // Threshold Modal
     function showThresholdModal(productId, currentThreshold) {
         fetch(`{{ route('admin.inventory.product', ':id') }}`.replace(':id', productId))
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return res.json();
+            })
             .then(data => {
                 if (data.success) {
                     document.getElementById('thresholdProductId').value = data.product.id;
@@ -512,15 +564,23 @@
                     document.getElementById('thresholdValue').value = data.product.low_stock_threshold || 10;
                     new bootstrap.Modal(document.getElementById('thresholdModal')).show();
                 }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('Failed to load product data. Please refresh the page and try again.');
+                } else {
+                    alert('Failed to load product data. Please refresh the page and try again.');
+                }
             });
     }
 
     // Threshold form submission
     document.getElementById('thresholdForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         const formData = new FormData(this);
-        
+
         fetch('{{ route('admin.inventory.threshold') }}', {
             method: 'POST',
             headers: {
@@ -533,11 +593,17 @@
         .then(data => {
             if (data.success) {
                 bootstrap.Modal.getInstance(document.getElementById('thresholdModal')).hide();
-                toastr.success(data.message);
-                setTimeout(() => window.location.reload(), 500);
+                setTimeout(() => {
+                    window.location.href = '{{ route('admin.inventory.index') }}?success=' + encodeURIComponent(data.message) + '&type=success';
+                }, 300);
+            } else {
+                alert(data.message || 'Failed to update threshold');
             }
         })
-        .catch(err => toastr.error('Failed to update threshold'));
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Failed to update threshold');
+        });
     });
 </script>
 @endpush

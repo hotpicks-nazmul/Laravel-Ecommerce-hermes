@@ -8,6 +8,7 @@ use App\Models\Brand;
 use App\Models\Product;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\ImageHelper;
 
 class BrandController extends Controller
 {
@@ -122,9 +123,18 @@ class BrandController extends Controller
             $data['slug'] = Str::slug($data['name']);
         }
         
-        // Upload logo
+        // Upload logo with WebP conversion
         if ($request->hasFile('logo')) {
-            $data['logo'] = $request->file('logo')->store('brands', 'public');
+            if (ImageHelper::isValidImage($request->file('logo'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('logo'),
+                    'brands',        // directory
+                    400,             // max width (brand logo)
+                    150,             // thumbnail width
+                    85               // quality
+                );
+                $data['logo'] = $imageResult['path'];
+            }
         }
         
         $brand = Brand::create($data);
@@ -185,18 +195,27 @@ class BrandController extends Controller
         $data['is_active'] = $request->has('is_active');
         $data['is_featured'] = $request->has('is_featured');
         
-        // Upload new logo
+        // Upload new logo with WebP conversion
         if ($request->hasFile('logo')) {
             // Delete old logo
             if ($brand->logo) {
-                Storage::disk('public')->delete($brand->logo);
+                ImageHelper::deleteImage($brand->logo);
             }
-            $data['logo'] = $request->file('logo')->store('brands', 'public');
+            if (ImageHelper::isValidImage($request->file('logo'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('logo'),
+                    'brands',        // directory
+                    400,             // max width (brand logo)
+                    150,             // thumbnail width
+                    85               // quality
+                );
+                $data['logo'] = $imageResult['path'];
+            }
         }
         
         // Remove logo if requested
         if ($request->has('remove_logo') && $brand->logo) {
-            Storage::disk('public')->delete($brand->logo);
+            ImageHelper::deleteImage($brand->logo);
             $data['logo'] = null;
         }
         
@@ -219,7 +238,7 @@ class BrandController extends Controller
         
         // Delete logo
         if ($brand->logo) {
-            Storage::disk('public')->delete($brand->logo);
+            ImageHelper::deleteImage($brand->logo);
         }
         
         $brand->delete();
@@ -308,7 +327,7 @@ class BrandController extends Controller
                 // Delete logos
                 $brands = Brand::whereIn('id', $ids)->whereNotNull('logo')->get();
                 foreach ($brands as $brand) {
-                    Storage::disk('public')->delete($brand->logo);
+                    ImageHelper::deleteImage($brand->logo);
                 }
                 
                 Brand::whereIn('id', $ids)->delete();

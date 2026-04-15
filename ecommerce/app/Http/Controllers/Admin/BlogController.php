@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Blog;
 use App\Models\BlogCategory;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\ImageHelper;
 
 class BlogController extends Controller
 {
@@ -117,10 +118,18 @@ class BlogController extends Controller
             $data['published_at'] = now();
         }
 
-        // Handle featured image upload
+        // Handle featured image upload with WebP conversion
         if ($request->hasFile('featured_image')) {
-            $path = $request->file('featured_image')->store('blogs', 'public');
-            $data['featured_image'] = $path;
+            if (ImageHelper::isValidImage($request->file('featured_image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('featured_image'),
+                    'blogs',          // directory
+                    1200,             // max width (blog image)
+                    300,              // thumbnail width
+                    80                // quality
+                );
+                $data['featured_image'] = $imageResult['path'];
+            }
         }
 
         Blog::create($data);
@@ -188,16 +197,22 @@ class BlogController extends Controller
             $data['published_at'] = now();
         }
 
-        // Handle featured image upload
+        // Handle featured image upload with WebP conversion
         if ($request->hasFile('featured_image')) {
             // Delete old image if exists
             if ($blog->featured_image) {
-                if (Storage::disk('public')->exists($blog->featured_image)) {
-                    Storage::disk('public')->delete($blog->featured_image);
-                }
+                ImageHelper::deleteImage($blog->featured_image);
             }
-            $path = $request->file('featured_image')->store('blogs', 'public');
-            $data['featured_image'] = $path;
+            if (ImageHelper::isValidImage($request->file('featured_image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('featured_image'),
+                    'blogs',          // directory
+                    1200,             // max width (blog image)
+                    300,              // thumbnail width
+                    80                // quality
+                );
+                $data['featured_image'] = $imageResult['path'];
+            }
         }
 
         $blog->update($data);
@@ -209,9 +224,7 @@ class BlogController extends Controller
     {
         // Delete featured image from storage
         if ($blog->featured_image) {
-            if (Storage::disk('public')->exists($blog->featured_image)) {
-                Storage::disk('public')->delete($blog->featured_image);
-            }
+            ImageHelper::deleteImage($blog->featured_image);
         }
         
         $blog->delete();

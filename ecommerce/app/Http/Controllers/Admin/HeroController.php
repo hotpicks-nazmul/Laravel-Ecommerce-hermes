@@ -76,10 +76,7 @@ class HeroController extends Controller
                 // Delete old image if exists
                 $oldSetting = Setting::where('key', 'hero_background_image')->where('group', 'hero')->first();
                 if ($oldSetting && $oldSetting->value) {
-                    $oldPath = str_replace('/storage/', '', $oldSetting->value);
-                    if (Storage::disk('public')->exists($oldPath)) {
-                        Storage::disk('public')->delete($oldPath);
-                    }
+                    ImageHelper::deleteImage($oldSetting->value);
                 }
                 
                 $imageResult = ImageHelper::processImage(
@@ -100,10 +97,7 @@ class HeroController extends Controller
                 // Delete old image if exists
                 $oldSetting = Setting::where('key', 'hero_main_image')->where('group', 'hero')->first();
                 if ($oldSetting && $oldSetting->value) {
-                    $oldPath = str_replace('/storage/', '', $oldSetting->value);
-                    if (Storage::disk('public')->exists($oldPath)) {
-                        Storage::disk('public')->delete($oldPath);
-                    }
+                    ImageHelper::deleteImage($oldSetting->value);
                 }
                 
                 $imageResult = ImageHelper::processImage(

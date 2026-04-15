@@ -92,6 +92,12 @@ class Brand extends Model
     public function getLogoUrlAttribute()
     {
         if ($this->logo) {
+            if (str_starts_with($this->logo, '/storage/')) {
+                return asset($this->logo);
+            }
+            if (str_starts_with($this->logo, 'http://') || str_starts_with($this->logo, 'https://')) {
+                return $this->logo;
+            }
             return asset('storage/' . $this->logo);
         }
         return asset('images/default-brand.png');

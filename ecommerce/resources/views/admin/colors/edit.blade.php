@@ -70,9 +70,9 @@
                     <div class="row align-items-center">
                         <div class="col-md-6 mb-3 mb-md-0">
                             <label class="form-label">Hex Color Code <span class="text-danger">*</span></label>
-                            <div class="input-group">
+                            <div class="input-group" style="max-width: 280px;">
                                 <input type="color" id="colorPicker" value="{{ old('hex_code', $color->hex_code) }}" 
-                                       class="form-control form-control-color" style="width: 60px;">
+                                       class="form-control form-control-color">
                                 <input type="text" name="hex_code" id="hexCode" class="form-control @error('hex_code') is-invalid @enderror" 
                                        value="{{ old('hex_code', $color->hex_code) }}" placeholder="#000000" maxlength="7">
                                 @error('hex_code')
@@ -125,21 +125,33 @@
                 </div>
                 <div class="card-body">
                     @if($color->image)
-                    <div class="mb-3">
+                    <div class="mb-3" id="currentImageContainer">
                         <label class="form-label">Current Image</label>
-                        <div>
-                            <img src="{{ asset($color->image) }}" alt="{{ $color->name }}" class="img-thumbnail" style="max-width: 100px; max-height: 100px;">
+                        <div class="position-relative d-inline-block" style="display: inline-block;">
+                            <div style="width: 80px; height: 80px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                                <img src="{{ asset($color->image) }}" alt="{{ $color->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                            <button type="button" class="badge bg-danger rounded-circle border-0 position-absolute p-0"
+                                style="top: -4px; right: -4px; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer;"
+                                onclick="removeColorImage({{ $color->id }})">
+                                <i class="bi bi-x" style="font-size: 12px;"></i>
+                            </button>
                         </div>
+                        <input type="hidden" name="delete_image" id="deleteImageInput" value="0">
                     </div>
                     @endif
                     <div class="mb-3">
                         <label class="form-label">{{ $color->image ? 'Replace Image' : 'Swatch Image' }}</label>
-                        <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" 
+                        <input type="file" name="image" id="imageInput" class="form-control @error('image') is-invalid @enderror" 
                                accept="image/jpeg,image/png,image/jpg,image/webp">
                         <div class="form-text">Upload a texture or pattern image for this color (e.g., wood grain, fabric pattern)</div>
                         @error('image')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        <div id="imagePreview" class="mt-3" style="display: none;">
+                            <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-height: 150px;">
+                            <button type="button" id="removeImage" class="btn btn-sm btn-outline-danger ms-2">Remove</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -254,6 +266,23 @@
         vertical-align: middle;
         border: 1px solid #ddd;
     }
+    #colorPicker,
+    #hexCode {
+        height: 38px !important;
+    }
+    #colorPicker {
+        width: 50px;
+        padding: 2px;
+        border-radius: 4px 0 0 4px;
+        cursor: pointer;
+    }
+    #colorPicker::-webkit-color-swatch-wrapper {
+        padding: 2px;
+    }
+    #colorPicker::-webkit-color-swatch {
+        border-radius: 2px;
+        border: none;
+    }
 </style>
 @endpush
 
@@ -273,6 +302,27 @@
             }
         @endif
     });
+
+    // Auto-generate slug and code from name (real-time)
+    const nameInput = document.querySelector('input[name="name"]');
+    const slugInput = document.querySelector('input[name="slug"]');
+    const codeInput = document.querySelector('input[name="code"]');
+    
+    if (nameInput && slugInput) {
+        nameInput.addEventListener('input', function() {
+            slugInput.value = this.value.toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '');
+            
+            if (codeInput) {
+                codeInput.value = this.value.toUpperCase()
+                    .replace(/[^A-Z]/g, '')
+                    .substring(0, 3);
+            }
+        });
+    }
 
     const colorPicker = document.getElementById('colorPicker');
     const hexCode = document.getElementById('hexCode');
@@ -296,6 +346,72 @@
         colorPicker.value = hex;
         hexCode.value = hex.toUpperCase();
         colorPreview.style.backgroundColor = hex;
+    }
+
+    // Delete existing color image (AJAX)
+    function removeColorImage(colorId) {
+        if (!confirm('Delete this image?')) return;
+        
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const imageContainer = document.getElementById('currentImageContainer');
+        
+        fetch(`/admin/colors/${colorId}/image`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const deleteInput = document.getElementById('deleteImageInput');
+                if (deleteInput) {
+                    deleteInput.value = '1';
+                }
+                imageContainer.remove();
+            } else {
+                alert(data.message || 'Error deleting image');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting image: ' + error.message);
+        });
+    }
+
+    // Image preview for new upload
+    const imageInput = document.getElementById('imageInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const removeImage = document.getElementById('removeImage');
+
+    if (imageInput) {
+        imageInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        if (removeImage) {
+            removeImage.addEventListener('click', function() {
+                imageInput.value = '';
+                previewImg.src = '';
+                imagePreview.style.display = 'none';
+            });
+        }
     }
 </script>
 @endpush

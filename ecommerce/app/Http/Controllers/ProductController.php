@@ -59,8 +59,92 @@ class ProductController extends Controller
     {
         $product = Product::where('slug', $slug)
             ->where('is_active', true)
-            ->with(['category', 'reviews.user', 'attributeValues.attribute', 'colors', 'relatedProducts'])
+            ->with(['category', 'reviews.user', 'attributeValues.attribute', 'colors', 'relatedProducts', 'variants'])
             ->firstOrFail();
+
+        // If this is a variant, redirect to parent or get parent info
+        if ($product->parent_id) {
+            $parentProduct = Product::find($product->parent_id);
+            if ($parentProduct && $parentProduct->slug !== $slug) {
+                return redirect()->route('product.show', $parentProduct->slug);
+            }
+        }
+
+        // Get manual variants (children products)
+        $variants = $product->variants()->where('is_active', true)->get();
+        
+        // Build variant options for frontend with price and image
+        $variantOptions = [];
+        $variantImages = [];
+        
+        foreach ($variants as $variant) {
+            $variations = json_decode($variant->variations, true);
+            if (!empty($variations) && is_array($variations)) {
+                foreach ($variations as $var) {
+                    $attrName = $var['attrName'] ?? '';
+                    $valueName = $var['valueName'] ?? '';
+                    
+                    if (!isset($variantOptions[$attrName])) {
+                        $variantOptions[$attrName] = [];
+                    }
+                    
+                    if (!isset($variantOptions[$attrName][$valueName])) {
+                        $variantOptions[$attrName][$valueName] = [
+                            'value' => $valueName,
+                            'variants' => []
+                        ];
+                    }
+                    
+                    $variantOptions[$attrName][$valueName]['variants'][] = [
+                        'id' => $variant->id,
+                        'sku' => $variant->sku,
+                        'price' => $variant->price,
+                        'sale_price' => $variant->sale_price,
+                        'stock' => $variant->quantity,
+                        'image' => $variant->featured_image
+                    ];
+                    
+                    // Store variant image for main product image swap
+                    $variantImages[$variant->id] = $variant->featured_image;
+                }
+            }
+        }
+
+        // Also build attribute options from attribute values with price and image from pivot table
+        $attributeOptions = [];
+        if ($product->attributeValues->count() > 0) {
+            foreach ($product->attributeValues as $value) {
+                if ($value->attribute) {
+                    $attrName = $value->attribute->name;
+                    if (!isset($attributeOptions[$attrName])) {
+                        $attributeOptions[$attrName] = [];
+                    }
+                    
+                    // Check if value already exists with same name
+                    $exists = false;
+                    foreach ($attributeOptions[$attrName] as $existing) {
+                        if ($existing['value'] === $value->value) {
+                            $exists = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!$exists) {
+                        // Get price from pivot table (product_attribute_values)
+                        $pivotPrice = $value->pivot->price ?? 0;
+                        $attributeOptions[$attrName][] = [
+                            'id' => $value->id,
+                            'value' => $value->value,
+                            'price' => $pivotPrice,
+                            'color_code' => $value->color_code,
+                            'image' => $value->pivot->image ?? null,
+                            'quantity' => $value->pivot->quantity ?? 0,
+                            'sku' => $value->pivot->sku ?? null,
+                        ];
+                    }
+                }
+            }
+        }
 
         // Get manually configured related products first
         $relatedProducts = $product->relatedProducts()
@@ -93,10 +177,24 @@ class ProductController extends Controller
             }
         }
 
-        // Get product colors
+        // Get product colors with price, quantity, sku from pivot
         $colors = $product->colors()->where('is_active', true)->orderBy('display_order')->get();
+        
+        // Build color options with price from pivot
+        $colorOptions = [];
+        foreach ($colors as $color) {
+            $colorOptions[] = [
+                'id' => $color->id,
+                'name' => $color->name,
+                'hex_code' => $color->hex_code,
+                'image' => $color->pivot->image ?? null,
+                'price' => $color->pivot->price_adjustment ?? 0,
+                'quantity' => $color->pivot->quantity ?? 0,
+                'sku' => $color->pivot->sku ?? null,
+            ];
+        }
 
-        return view('themes.general.products.show', compact('product', 'relatedProducts', 'reviews', 'attributes', 'colors'));
+        return view('themes.general.products.show', compact('product', 'relatedProducts', 'reviews', 'attributes', 'colors', 'colorOptions', 'variants', 'variantOptions', 'attributeOptions', 'variantImages'));
     }
 
     /**

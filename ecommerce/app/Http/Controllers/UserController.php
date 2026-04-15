@@ -14,6 +14,7 @@ use App\Models\Setting;
 use App\Models\UserNotificationPreference;
 use App\Models\ActivityLog;
 use Laravel\Socialite\Facades\Socialite;
+use App\Helpers\ImageHelper;
 
 class UserController extends Controller
 {
@@ -321,10 +322,20 @@ class UserController extends Controller
         
         if ($request->hasFile('avatar')) {
             // Delete old avatar if exists
-            if ($user->avatar && \Storage::disk('public')->exists($user->avatar)) {
-                \Storage::disk('public')->delete($user->avatar);
+            if ($user->avatar) {
+                ImageHelper::deleteImage($user->avatar);
             }
-            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+            // Upload avatar with WebP conversion
+            if (ImageHelper::isValidImage($request->file('avatar'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('avatar'),
+                    'avatars',        // directory
+                    300,              // max width (user avatar)
+                    100,              // thumbnail width
+                    90                // quality (higher for avatars)
+                );
+                $data['avatar'] = $imageResult['path'];
+            }
         }
 
         // Handle password change

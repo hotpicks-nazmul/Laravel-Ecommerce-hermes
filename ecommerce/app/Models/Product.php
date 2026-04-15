@@ -14,6 +14,7 @@ class Product extends Model
         'category_id',
         'digital_category_id',
         'brand_id',
+        'parent_id',
         'name',
         'slug',
         'sku',
@@ -41,6 +42,7 @@ class Product extends Model
         'gallery',
         'attributes',
         'variations',
+        'colors',
         'tags',
         'is_featured',
         'is_active',
@@ -76,6 +78,7 @@ class Product extends Model
         'gallery' => 'array',
         'attributes' => 'array',
         'variations' => 'array',
+        'colors' => 'array',
         'tags' => 'array',
         'additional_files' => 'array',
         'is_active' => 'boolean',
@@ -197,7 +200,7 @@ class Product extends Model
     public function attributeValues()
     {
         return $this->belongsToMany(AttributeValue::class, 'product_attribute_values')
-            ->withPivot('attribute_id')
+            ->withPivot('attribute_id', 'price', 'quantity', 'image', 'sku')
             ->withTimestamps();
     }
 
@@ -512,6 +515,42 @@ class Product extends Model
     }
 
     /**
+     * Get the product's featured image URL.
+     */
+    public function getFeaturedImageUrlAttribute()
+    {
+        $image = $this->featured_image;
+        if ($image) {
+            if (str_starts_with($image, '/storage/')) {
+                return asset($image);
+            }
+            if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
+                return $image;
+            }
+            return asset('storage/' . $image);
+        }
+        return null;
+    }
+
+    /**
+     * Get the product's thumbnail URL.
+     */
+    public function getThumbnailUrlAttribute()
+    {
+        $thumb = $this->featured_thumbnail ?? $this->thumbnail;
+        if ($thumb) {
+            if (str_starts_with($thumb, '/storage/')) {
+                return asset($thumb);
+            }
+            if (str_starts_with($thumb, 'http://') || str_starts_with($thumb, 'https://')) {
+                return $thumb;
+            }
+            return asset('storage/' . $thumb);
+        }
+        return $this->featured_image_url;
+    }
+
+    /**
      * Get reviews count.
      */
     public function getReviewsCountAttribute()
@@ -655,5 +694,29 @@ class Product extends Model
     public function getRelatedProductsAttribute()
     {
         return $this->relatedProducts()->where('is_active', true)->get();
+    }
+
+    /**
+     * Get variants of this product.
+     */
+    public function variants()
+    {
+        return $this->hasMany(Product::class, 'parent_id');
+    }
+
+    /**
+     * Check if this product is a variant.
+     */
+    public function isVariant()
+    {
+        return !empty($this->parent_id);
+    }
+
+    /**
+     * Get the parent product.
+     */
+    public function parent()
+    {
+        return $this->belongsTo(Product::class, 'parent_id');
     }
 }

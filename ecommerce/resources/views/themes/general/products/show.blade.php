@@ -537,10 +537,10 @@
                 <!-- Price -->
                 <div class="mt-4">
                     @if($product->isOnSale())
-                        <span class="text-3xl font-bold text-halal-green">৳{{ number_format($product->sale_price) }}</span>
+                        <span id="mainProductPrice" class="text-3xl font-bold text-halal-green">৳{{ number_format($product->sale_price) }}</span>
                         <span class="text-xl text-gray-400 line-through ml-2">৳{{ number_format($product->price) }}</span>
                     @else
-                        <span class="text-3xl font-bold text-halal-green">৳{{ number_format($product->price) }}</span>
+                        <span id="mainProductPrice" class="text-3xl font-bold text-halal-green">৳{{ number_format($product->price) }}</span>
                     @endif
                 </div>
 
@@ -550,9 +550,9 @@
                 <!-- Stock Status -->
                 <div class="mt-4">
                     @if($product->quantity > 0)
-                        <span class="text-green-600"><i class="bi bi-check-circle-fill mr-1"></i>In Stock ({{ $product->quantity }} available)</span>
+                        <span id="stockStatus" class="text-green-600"><i class="bi bi-check-circle-fill mr-1"></i>In Stock ({{ $product->quantity }} available)</span>
                     @else
-                        <span class="text-red-600"><i class="bi bi-x-circle-fill mr-1"></i>Out of Stock</span>
+                        <span id="stockStatus" class="text-red-600"><i class="bi bi-x-circle-fill mr-1"></i>Out of Stock</span>
                     @endif
                 </div>
 
@@ -584,8 +584,40 @@
                 </div>
                 @endif
 
-                <!-- Attributes Selection -->
-                @if(!empty($attributes))
+                <!-- Attributes Selection with Price and Image -->
+                @if(isset($attributeOptions) && !empty($attributeOptions))
+                <div class="mt-6 space-y-4">
+                    @foreach($attributeOptions as $attrName => $options)
+                    <div>
+                        <h3 class="font-semibold text-gray-800 mb-3">{{ $attrName }}: <span id="attrSelected{{ Str::slug($attrName) }}" class="text-halal-green">Select</span></h3>
+                        <div class="flex flex-wrap gap-3">
+                            @foreach($options as $option)
+                            <button type="button" 
+                                    class="attr-option-btn p-2 border-2 rounded-lg transition-all hover:border-halal-green border-gray-300 flex flex-col items-center min-w-16"
+                                    data-attribute="{{ Str::slug($attrName) }}"
+                                    data-attribute-name="{{ $attrName }}"
+                                    data-value-id="{{ $option['id'] }}"
+                                    data-value="{{ $option['value'] }}"
+                                    data-price="{{ $option['price'] ?? '' }}"
+                                    @if($option['image']) data-image="{{ asset('storage/' . $option['image']) }}" @endif
+                                    @if($option['color_code']) data-color="{{ $option['color_code'] }}" @endif>
+                                @if($option['image'])
+                                <img src="{{ asset('storage/' . $option['image']) }}" class="w-10 h-10 object-cover rounded mb-1">
+                                @elseif($option['color_code'])
+                                <div class="w-8 h-8 rounded-full border mb-1" style="background-color: {{ $option['color_code'] }}"></div>
+                                @endif
+                                <span class="text-xs">{{ $option['value'] }}</span>
+                                @if($option['price'] > 0)
+                                <span class="text-xs font-semibold text-halal-green">৳{{ number_format($option['price']) }}</span>
+                                @endif
+                            </button>
+                            @endforeach
+                        </div>
+                        <input type="hidden" id="attrValue{{ Str::slug($attrName) }}" value="">
+                    </div>
+                    @endforeach
+                </div>
+                @elseif(!empty($attributes))
                 <div class="mt-6 space-y-4">
                     @foreach($attributes as $attributeName => $values)
                     <div>
@@ -603,6 +635,29 @@
                             @endforeach
                         </div>
                         <input type="hidden" name="attribute_{{ Str::slug($attributeName) }}" id="attribute{{ Str::slug($attributeName) }}" value="">
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+
+                <!-- Variant Selection (from product variants) -->
+                @if(isset($variantOptions) && !empty($variantOptions))
+                <div class="mt-6 space-y-4" id="variantSelector">
+                    @foreach($variantOptions as $attrName => $values)
+                    <div>
+                        <h3 class="font-semibold text-gray-800 mb-3">{{ $attrName }}: <span id="variantSelected{{ Str::slug($attrName) }}" class="text-halal-green">Select</span></h3>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($values as $valueName => $option)
+                            <button type="button" 
+                                    class="variant-option px-4 py-2 border-2 rounded-lg transition-all hover:border-halal-green border-gray-300"
+                                    data-attribute="{{ Str::slug($attrName) }}"
+                                    data-attribute-name="{{ $attrName }}"
+                                    data-value="{{ $valueName }}">
+                                {{ $valueName }}
+                            </button>
+                            @endforeach
+                        </div>
+                        <input type="hidden" id="variant{{ Str::slug($attrName) }}" value="">
                     </div>
                     @endforeach
                 </div>
@@ -1662,6 +1717,10 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// Track selected prices for cumulative calculation
+let selectedColorPrice = 0;
+let selectedAttributePrices = {};
+
 // Color Selection
 document.querySelectorAll('.color-option').forEach(btn => {
     btn.addEventListener('click', function() {
@@ -1679,6 +1738,9 @@ document.querySelectorAll('.color-option').forEach(btn => {
         document.getElementById('selectedColorId').value = colorId;
         document.getElementById('selectedColorName').textContent = colorName;
         
+        // Update selected color price
+        selectedColorPrice = parseFloat(this.dataset.colorPrice) || 0;
+        
         // Update main image if color has specific image
         if (this.dataset.colorImage) {
             changeImage(this, this.dataset.colorImage);
@@ -1687,7 +1749,7 @@ document.querySelectorAll('.color-option').forEach(btn => {
         // Update stock if color has specific stock
         if (this.dataset.colorStock !== undefined) {
             const stock = parseInt(this.dataset.colorStock);
-            const stockElement = document.querySelector('.text-green-600, .text-red-600');
+            const stockElement = document.getElementById('stockStatus');
             if (stockElement) {
                 if (stock > 0) {
                     stockElement.className = 'text-green-600';
@@ -1699,28 +1761,8 @@ document.querySelectorAll('.color-option').forEach(btn => {
             }
         }
         
-        // Update price if color has price adjustment
-        if (this.dataset.colorPrice) {
-            const adjustment = parseFloat(this.dataset.colorPrice);
-            const basePrice = {{ $product->price }};
-            const baseSalePrice = {{ $product->sale_price ?? $product->price }};
-            
-            const newPrice = basePrice + adjustment;
-            const newSalePrice = baseSalePrice + adjustment;
-            
-            const priceContainer = document.querySelector('.mt-4 .text-3xl');
-            if (priceContainer) {
-                @if($product->isOnSale())
-                priceContainer.textContent = '৳' + number_format(newSalePrice);
-                const originalPrice = priceContainer.nextElementSibling;
-                if (originalPrice && originalPrice.classList.contains('line-through')) {
-                    originalPrice.textContent = '৳' + number_format(newPrice);
-                }
-                @else
-                priceContainer.textContent = '৳' + number_format(newPrice);
-                @endif
-            }
-        }
+        // Update price with cumulative calculation
+        updateCumulativePrice();
     });
 });
 
@@ -1756,16 +1798,222 @@ document.querySelectorAll('.attribute-option').forEach(btn => {
     });
 });
 
+// Attribute Options with Price and Image Selection
+document.querySelectorAll('.attr-option-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const attribute = this.dataset.attribute;
+        const attributeName = this.dataset.attributeName;
+        const valueId = this.dataset.valueId;
+        const value = this.dataset.value;
+        const price = this.dataset.price;
+        const image = this.dataset.image;
+        const color = this.dataset.color;
+        
+        // Remove selection from all options in this attribute group
+        document.querySelectorAll(`.attr-option-btn[data-attribute="${attribute}"]`).forEach(b => {
+            b.classList.remove('border-halal-green', 'bg-halal-green/10');
+            b.classList.add('border-gray-300');
+        });
+        
+        // Add selection to clicked option
+        this.classList.remove('border-gray-300');
+        this.classList.add('border-halal-green', 'bg-halal-green/10');
+        
+        // Update hidden input
+        const hiddenInput = document.getElementById('attrValue' + attribute.charAt(0).toUpperCase() + attribute.slice(1));
+        if (hiddenInput) {
+            hiddenInput.value = valueId;
+        }
+        
+        // Update selected text
+        const selectedText = document.getElementById('attrSelected' + attribute.charAt(0).toUpperCase() + attribute.slice(1));
+        if (selectedText) {
+            selectedText.textContent = value;
+        }
+        
+        // Store selected attribute price for cumulative calculation
+        selectedAttributePrices[attribute] = parseFloat(price) || 0;
+        
+        // Update cumulative price
+        updateCumulativePrice();
+        
+        // Update main product image if available
+        if (image) {
+            const mainImage = document.querySelector('.product-main-image');
+            if (mainImage) {
+                mainImage.src = image;
+            }
+        }
+    });
+});
+
+// Cumulative price calculation function
+function updateCumulativePrice() {
+    const basePrice = {{ $product->price }};
+    const baseSalePrice = {{ $product->sale_price ?? $product->price }};
+    
+    // Sum all selected attribute prices
+    let totalAttrPrice = 0;
+    Object.values(selectedAttributePrices).forEach(p => {
+        totalAttrPrice += p;
+    });
+    
+    // Calculate total price = base + color adjustment + attribute prices
+    const newPrice = basePrice + selectedColorPrice + totalAttrPrice;
+    const newSalePrice = baseSalePrice + selectedColorPrice + totalAttrPrice;
+    
+    const priceContainer = document.querySelector('.mt-4 .text-3xl');
+    if (priceContainer) {
+        @if($product->isOnSale())
+        priceContainer.textContent = '৳' + number_format(newSalePrice);
+        const originalPrice = priceContainer.nextElementSibling;
+        if (originalPrice && originalPrice.classList.contains('line-through')) {
+            originalPrice.textContent = '৳' + number_format(newPrice);
+        }
+        @else
+        priceContainer.textContent = '৳' + number_format(newPrice);
+        @endif
+    }
+}
+
+// Variant Selection
+const variantOptionsData = {{ json_encode($variantOptions ?? []) }};
+let selectedVariants = {};
+
+document.querySelectorAll('.variant-option').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const attribute = this.dataset.attribute;
+        const attributeName = this.dataset.attributeName;
+        const value = this.dataset.value;
+        
+        // Store selection
+        selectedVariants[attributeName] = value;
+        
+        // Remove selection from all options in this attribute group
+        document.querySelectorAll(`.variant-option[data-attribute="${attribute}"]`).forEach(b => {
+            b.classList.remove('border-halal-green', 'bg-halal-green/10');
+            b.classList.add('border-gray-300');
+        });
+        
+        // Add selection to clicked option
+        this.classList.remove('border-gray-300');
+        this.classList.add('border-halal-green', 'bg-halal-green/10');
+        
+        // Update hidden input
+        const hiddenInput = document.getElementById('variant' + attribute.charAt(0).toUpperCase() + attribute.slice(1));
+        if (hiddenInput) {
+            hiddenInput.value = value;
+        }
+        
+        // Update selected text
+        const selectedText = document.getElementById('variantSelected' + attribute.charAt(0).toUpperCase() + attribute.slice(1));
+        if (selectedText) {
+            selectedText.textContent = value;
+        }
+        
+        // Find matching variant and update price/stock
+        updateVariantDetails();
+    });
+});
+
+function updateVariantDetails() {
+    const priceContainer = document.querySelector('.mt-4 .text-3xl');
+    if (!priceContainer) return;
+    
+    // Build current selection key
+    const selectionKey = Object.keys(selectedVariants).sort().map(k => selectedVariants[k]).join(' / ');
+    
+    // Find matching variant
+    let matchedVariant = null;
+    @if(isset($variants))
+    @foreach($variants as $variant)
+    @php $variantName = implode(' / ', array_column(json_decode($variant->variations, true) ?? [], 'valueName')); @endphp
+    if ('{{ $variantName }}' === selectionKey) {
+        matchedVariant = {
+            id: {{ $variant->id }},
+            price: {{ $variant->price }},
+            sale_price: {{ $variant->sale_price ?? 'null' }},
+            stock: {{ $variant->quantity }},
+            image: '{{ $variant->featured_image ?? '' }}'
+        };
+    }
+    @endforeach
+    @endif
+    
+    if (matchedVariant) {
+        // Update price
+        const newPrice = matchedVariant.sale_price || matchedVariant.price;
+        priceContainer.textContent = '৳' + number_format(newPrice);
+        
+        // Update stock status
+        const stockElement = document.querySelector('.text-green-600, .text-red-600');
+        if (stockElement) {
+            if (matchedVariant.stock > 0) {
+                stockElement.className = 'text-green-600';
+                stockElement.innerHTML = '<i class="bi bi-check-circle-fill mr-1"></i>In Stock (' + matchedVariant.stock + ' available)';
+            } else {
+                stockElement.className = 'text-red-600';
+                stockElement.innerHTML = '<i class="bi bi-x-circle-fill mr-1"></i>Out of Stock';
+            }
+        }
+        
+        // Update add to cart button
+        const addToCartBtn = document.querySelector('button[onclick*="addToCartWithVariants"]');
+        if (addToCartBtn) {
+            if (matchedVariant.stock <= 0) {
+                addToCartBtn.disabled = true;
+                addToCartBtn.textContent = 'Out of Stock';
+                addToCartBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+            } else {
+                addToCartBtn.disabled = false;
+                addToCartBtn.innerHTML = '<i class="bi bi-cart-plus mr-2"></i>Add to Cart';
+                addToCartBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+            }
+        }
+    }
+}
+
 // Enhanced addToCart with color and attributes
 function addToCartWithVariants(productId, quantity) {
     const colorId = document.getElementById('selectedColorId')?.value || null;
     
-    // Collect all selected attributes
+    // Collect all selected attribute values (from new attribute system)
+    const attributeValues = {};
+    document.querySelectorAll('[id^="attrValue"][type="hidden"]').forEach(input => {
+        if (input.value) {
+            const attrKey = input.id.replace('attrValue', '').toLowerCase();
+            attributeValues[attrKey] = input.value;
+        }
+    });
+    
+    // Also collect old-style attributes
     const attributes = {};
     document.querySelectorAll('[id^="attribute"][type="hidden"]').forEach(input => {
         if (input.value) {
             attributes[input.name] = input.value;
         }
+    });
+    
+    // Find selected variant ID
+    let variantId = null;
+    @if(isset($variants))
+    @foreach($variants as $variant)
+    @php $variantName = implode(' / ', array_column(json_decode($variant->variations, true) ?? [], 'valueName')); @endphp
+    @php $selectedKey = "' + Object.keys(selectedVariants).sort().map(k => selectedVariants[k]).join(' / ') + '"; @endphp
+    if (Object.keys(selectedVariants).length > 0) {
+        const selectionKey = Object.keys(selectedVariants).sort().map(k => selectedVariants[k]).join(' / ');
+        if ('{{ $variantName }}' === selectionKey) {
+            variantId = {{ $variant->id }};
+        }
+    }
+    @endforeach
+    @endif
+    
+    // Calculate total price with selected attributes
+    const basePrice = {{ $product->price }};
+    let totalPrice = basePrice + selectedColorPrice;
+    Object.values(selectedAttributePrices).forEach(p => {
+        totalPrice += p;
     });
     
     // Call original addToCart with additional data
@@ -1778,9 +2026,12 @@ function addToCartWithVariants(productId, quantity) {
         },
         body: JSON.stringify({
             product_id: productId,
+            variant_id: variantId,
             quantity: quantity,
             color_id: colorId,
-            attributes: attributes
+            attribute_values: attributeValues,
+            attributes: attributes,
+            total_price: totalPrice
         })
     })
     .then(response => response.json())

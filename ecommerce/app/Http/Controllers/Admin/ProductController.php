@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
+use App\Models\Attribute;
+use App\Models\Color;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
@@ -166,8 +168,17 @@ class ProductController extends Controller
         // Get active brands for dropdown
         $brands = Brand::where('is_active', true)->orderBy('name')->pluck('name', 'id')->toArray();
         
-        // Generate SKU based on current date/time
+        // Get active attributes with their values
+        $attributes = Attribute::with('activeValues')->where('is_active', true)->get();
+        
+        // Get active colors
+        $colors = Color::where('is_active', true)->get();
+        
+        // Generate SKU based on timestamp for uniqueness
         $nextSku = 'SKU-' . date('YmdHis');
+        
+        // Get next unique SKU for attributes/colors
+        $nextUniqueSku = $this->getNextUniqueSku();
         
         // Determine redirect route based on source
         $redirectRoute = 'admin.products.index';
@@ -180,7 +191,7 @@ class ProductController extends Controller
         // Store the redirect route in session for use after form submission
         session(['product_redirect_route' => $redirectRoute]);
         
-        return view('admin.products.create', compact('categories', 'preselectedCategory', 'nextSku', 'redirectRoute', 'brands'));
+        return view('admin.products.create', compact('categories', 'preselectedCategory', 'nextSku', 'nextUniqueSku', 'redirectRoute', 'brands', 'attributes', 'colors'));
     }
 
     /**
@@ -207,7 +218,7 @@ class ProductController extends Controller
             ],
             'purchase_price' => 'nullable|numeric|min:0',
             'sku' => 'nullable|string|max:100',
-            'product_code' => 'required|string|max:100',
+            'product_code' => 'required|string|max:100|unique:products,product_code',
             'barcode' => 'nullable|string|max:100',
             'brand' => 'nullable|string|max:100',
             'stock' => [
@@ -303,7 +314,71 @@ class ProductController extends Controller
             $data['images'] = json_encode($images);
         }
 
-        Product::create($data);
+        $product = Product::create($data);
+        
+        // Save product attributes
+        if ($request->has('product_attributes')) {
+            $attributesData = [];
+            foreach ($request->product_attributes as $attrId => $attrData) {
+                if (isset($attrData['values'])) {
+                    $values = [];
+                    foreach ($attrData['values'] as $valueId => $valueData) {
+                        $values[$valueId] = [
+                            'value_id' => $valueData['value_id'] ?? $valueId,
+                            'value_name' => $valueData['value_name'] ?? '',
+                            'price' => floatval($valueData['price'] ?? 0),
+                            'quantity' => intval($valueData['quantity'] ?? 0),
+                            'sku' => $valueData['sku'] ?? '',
+                            'image' => null,
+                        ];
+                        
+                        // Handle image upload with WebP conversion
+                        if (isset($valueData['image']) && $valueData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                            if (ImageHelper::isValidImage($valueData['image'])) {
+                                $imageResult = ImageHelper::processImage($valueData['image'], 'products/attributes', 600, 0, 85);
+                                $values[$valueId]['image'] = $imageResult['path'];
+                            }
+                        }
+                    }
+                    $attributesData[$attrId] = [
+                        'name' => $attrData['name'] ?? '',
+                        'values' => $values
+                    ];
+                }
+            }
+            if (!empty($attributesData)) {
+                $product->attributes = json_encode($attributesData);
+                $product->save();
+            }
+        }
+        
+        // Save product colors
+        if ($request->has('product_colors')) {
+            $colorsData = [];
+            foreach ($request->product_colors as $colorId => $colorData) {
+                $colorItem = [
+                    'color_id' => $colorId,
+                    'price' => floatval($colorData['price'] ?? 0),
+                    'quantity' => intval($colorData['quantity'] ?? 0),
+                    'sku' => $colorData['sku'] ?? '',
+                    'image' => null,
+                ];
+                
+                // Handle image upload with WebP conversion
+                if (isset($colorData['image']) && $colorData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                    if (ImageHelper::isValidImage($colorData['image'])) {
+                        $imageResult = ImageHelper::processImage($colorData['image'], 'products/colors', 600, 0, 85);
+                        $colorItem['image'] = $imageResult['path'];
+                    }
+                }
+                
+                $colorsData[] = $colorItem;
+            }
+            if (!empty($colorsData)) {
+                $product->colors = json_encode($colorsData);
+                $product->save();
+            }
+        }
 
         $redirectRoute = $request->redirect_route ?? session('product_redirect_route', 'admin.products.index');
         
@@ -334,7 +409,57 @@ class ProductController extends Controller
         Log::info('EDIT METHOD REACHED', ['product_id' => $product->id]);
         $categories = Category::getFlattenedTree();
         $brands = Brand::where('is_active', true)->orderBy('name')->pluck('name', 'id')->toArray();
-        return view('admin.products.edit', compact('product', 'categories', 'brands'));
+        
+        $attributes = Attribute::with('activeValues')->where('is_active', true)->get();
+        
+        // Prepare attributes data for JavaScript
+        $attributesData = $attributes->map(function($attr) {
+            return [
+                'id' => $attr->id,
+                'name' => $attr->name,
+                'values' => $attr->activeValues->map(function($val) {
+                    return ['id' => $val->id, 'value' => $val->value];
+                })->toArray()
+            ];
+        })->toArray();
+        
+        $colors = Color::where('is_active', true)->get();
+        
+        // Prepare colors data for JavaScript
+        $colorsData = $colors->map(function($color) {
+            return [
+                'id' => $color->id,
+                'name' => $color->name,
+                'hex_code' => $color->hex_code
+            ];
+        })->toArray();
+        
+        // Get existing product attributes
+        $existingAttributes = [];
+        if ($product->attributes) {
+            $productAttrs = is_array($product->attributes) ? $product->attributes : json_decode($product->attributes, true);
+            if ($productAttrs) {
+                foreach ($productAttrs as $attrId => $attrData) {
+                    $existingAttributes[$attrId] = [
+                        'name' => $attrData['name'] ?? '',
+                        'values' => $attrData['values'] ?? []
+                    ];
+                }
+            }
+        }
+        
+        // Get existing product colors
+        $existingColors = [];
+        if ($product->colors) {
+            $productColors = is_array($product->colors) ? $product->colors : json_decode($product->colors, true);
+            if ($productColors) {
+                foreach ($productColors as $colorData) {
+                    $existingColors[] = $colorData;
+                }
+            }
+        }
+        
+        return view('admin.products.edit', compact('product', 'categories', 'brands', 'attributes', 'attributesData', 'colors', 'colorsData', 'existingAttributes', 'existingColors'));
     }
 
     /**
@@ -364,7 +489,7 @@ class ProductController extends Controller
             'sale_price' => 'nullable|numeric|min:0',
             'purchase_price' => 'nullable|numeric|min:0',
             'sku' => 'required|string|max:100|unique:products,sku,' . $product->id,
-            'product_code' => 'nullable|string|max:100',
+            'product_code' => 'nullable|string|max:100|unique:products,product_code,' . $product->id,
             'barcode' => 'nullable|string|max:100|unique:products,barcode,' . $product->id,
             'brand' => 'nullable|string|max:100',
             'stock' => 'required|integer|min:0',
@@ -377,7 +502,24 @@ class ProductController extends Controller
             'is_featured' => 'boolean',
         ]);
 
-        $data = $request->except(['description', 'stock']);
+        $data = $request->except(['description', 'stock', 'brand']);
+        
+        // Handle brand selection - get brand name and ID from selected brand
+        if ($request->has('brand') && $request->brand != '') {
+            $brandId = $request->input('brand');
+            $brand = \App\Models\Brand::find($brandId);
+            if ($brand) {
+                $data['brand'] = $brand->name;
+                $data['brand_id'] = $brand->id;
+            } else {
+                $data['brand'] = $request->input('brand');
+                $data['brand_id'] = null;
+            }
+        } else {
+            $data['brand'] = null;
+            $data['brand_id'] = null;
+        }
+        
         $data['slug'] = Str::slug($request->name);
         $data['long_description'] = $request->description;
         $data['quantity'] = $request->stock;
@@ -391,30 +533,122 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
             // Delete old image if exists
             if ($product->featured_image) {
-                $oldPath = str_replace('/storage/', '', $product->featured_image);
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
+                ImageHelper::deleteImage($product->featured_image, $product->thumbnail ?? null);
+            }
+            
+            // Process featured image with WebP conversion, resize & thumbnail
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'products',      // directory
+                    1920,            // max width
+                    300,             // thumbnail width
+                    85               // quality
+                );
+                $data['featured_image'] = $imageResult['path'];
+                $data['thumbnail'] = $imageResult['thumbnail'] ?? null;
+            }
+        }
+
+        // Handle deleted gallery images
+        $images = json_decode($product->images ?? '[]', true);
+        if ($request->has('deleted_image_indices')) {
+            $deletedIndices = $request->deleted_image_indices;
+            // Sort in descending order to remove from end first (preserve indices)
+            rsort($deletedIndices);
+            foreach ($deletedIndices as $index) {
+                if (isset($images[$index])) {
+                    // Delete the file from storage using ImageHelper
+                    ImageHelper::deleteImage($images[$index]);
+                    unset($images[$index]);
                 }
             }
-            $path = $request->file('image')->store('products', 'public');
-            $data['featured_image'] = Storage::url($path);
+            // Re-index array
+            $images = array_values($images);
+            $data['images'] = json_encode($images);
         }
 
         if ($request->hasFile('images')) {
-            $images = json_decode($product->images ?? '[]', true);
             foreach ($request->file('images') as $image) {
-                $path = $image->store('products', 'public');
-                $images[] = Storage::url($path);
+                // Process gallery image with WebP conversion
+                if (ImageHelper::isValidImage($image)) {
+                    $imageResult = ImageHelper::processImage($image, 'products/gallery', 1200, 0, 85);
+                    $images[] = $imageResult['path'];
+                }
             }
             $data['images'] = json_encode($images);
         }
 
         $product->update($data);
         
+        // Save product attributes
+        if ($request->has('product_attributes')) {
+            $attributesData = [];
+            foreach ($request->product_attributes as $attrId => $attrData) {
+                if (isset($attrData['values'])) {
+                    $values = [];
+                    foreach ($attrData['values'] as $valueId => $valueData) {
+                        $values[$valueId] = [
+                            'value_id' => $valueData['value_id'] ?? $valueId,
+                            'value_name' => $valueData['value_name'] ?? '',
+                            'price' => floatval($valueData['price'] ?? 0),
+                            'quantity' => intval($valueData['quantity'] ?? 0),
+                            'sku' => $valueData['sku'] ?? '',
+                            'image' => $valueData['existing_image'] ?? null,
+                        ];
+                        
+                        // Handle new image upload
+                        if (isset($valueData['image']) && $valueData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                            if (ImageHelper::isValidImage($valueData['image'])) {
+                                $imageResult = ImageHelper::processImage($valueData['image'], 'products/attributes', 600, 0, 85);
+                                $values[$valueId]['image'] = $imageResult['path'];
+                            }
+                        }
+                    }
+                    $attributesData[$attrId] = [
+                        'name' => $attrData['name'] ?? '',
+                        'values' => $values
+                    ];
+                }
+            }
+            if (!empty($attributesData)) {
+                $product->attributes = json_encode($attributesData);
+                $product->save();
+            }
+        }
+        
+        // Save product colors
+        if ($request->has('product_colors')) {
+            $colorsData = [];
+            foreach ($request->product_colors as $colorId => $colorData) {
+                $colorItem = [
+                    'color_id' => $colorId,
+                    'price' => floatval($colorData['price'] ?? 0),
+                    'quantity' => intval($colorData['quantity'] ?? 0),
+                    'sku' => $colorData['sku'] ?? '',
+                    'image' => $colorData['existing_image'] ?? null,
+                ];
+                
+                // Handle new image upload with WebP conversion
+                if (isset($colorData['image']) && $colorData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                    if (ImageHelper::isValidImage($colorData['image'])) {
+                        $imageResult = ImageHelper::processImage($colorData['image'], 'products/colors', 600, 0, 85);
+                        $colorItem['image'] = $imageResult['path'];
+                    }
+                }
+                
+                $colorsData[] = $colorItem;
+            }
+            if (!empty($colorsData)) {
+                $product->colors = json_encode($colorsData);
+                $product->save();
+            }
+        }
+        
         // Debug: Log success
         Log::info('Product updated successfully', ['product_id' => $product->id]);
 
-        return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
+        return redirect()->back()->with('success', 'Product updated successfully.');
     }
 
     /**
@@ -424,19 +658,13 @@ class ProductController extends Controller
     {
         // Delete main image
         if ($product->featured_image) {
-            $oldPath = str_replace('/storage/', '', $product->featured_image);
-            if (Storage::disk('public')->exists($oldPath)) {
-                Storage::disk('public')->delete($oldPath);
-            }
+            ImageHelper::deleteImage($product->featured_image, $product->thumbnail ?? null);
         }
         
         // Delete gallery images
         $images = json_decode($product->images ?? '[]', true);
         foreach ($images as $image) {
-            $oldPath = str_replace('/storage/', '', $image);
-            if (Storage::disk('public')->exists($oldPath)) {
-                Storage::disk('public')->delete($oldPath);
-            }
+            ImageHelper::deleteImage($image);
         }
         
         $product->delete();
@@ -464,17 +692,11 @@ class ProductController extends Controller
                 $products = Product::whereIn('id', $ids)->get();
                 foreach ($products as $product) {
                     if ($product->featured_image) {
-                        $oldPath = str_replace('/storage/', '', $product->featured_image);
-                        if (Storage::disk('public')->exists($oldPath)) {
-                            Storage::disk('public')->delete($oldPath);
-                        }
+                        ImageHelper::deleteImage($product->featured_image, $product->thumbnail ?? null);
                     }
                     $images = json_decode($product->images ?? '[]', true);
                     foreach ($images as $image) {
-                        $oldPath = str_replace('/storage/', '', $image);
-                        if (Storage::disk('public')->exists($oldPath)) {
-                            Storage::disk('public')->delete($oldPath);
-                        }
+                        ImageHelper::deleteImage($image);
                     }
                 }
                 Product::whereIn('id', $ids)->delete();
@@ -685,8 +907,11 @@ class ProductController extends Controller
         $images = json_decode($product->images ?? '[]', true);
 
         foreach ($request->file('images') as $image) {
-            $path = $image->store('products', 'public');
-            $images[] = Storage::url($path);
+            // Process image with WebP conversion
+            if (ImageHelper::isValidImage($image)) {
+                $imageResult = ImageHelper::processImage($image, 'products/gallery', 1200, 0, 85);
+                $images[] = $imageResult['path'];
+            }
         }
 
         $product->update(['images' => json_encode($images)]);
@@ -697,22 +922,89 @@ class ProductController extends Controller
     /**
      * Delete product image.
      */
-    public function deleteImage(Request $request, Product $product, $index)
+    public function deleteImage(Request $request, Product $product, $image)
     {
         $images = json_decode($product->images ?? '[]', true);
+        $imageIndex = (int) $image;
         
-        if (isset($images[$index])) {
-            // Delete file from storage
-            $oldPath = str_replace('/storage/', '', $images[$index]);
-            if (Storage::disk('public')->exists($oldPath)) {
-                Storage::disk('public')->delete($oldPath);
-            }
+        if (isset($images[$imageIndex])) {
+            ImageHelper::deleteImage($images[$imageIndex]);
             
-            unset($images[$index]);
+            unset($images[$imageIndex]);
             $product->update(['images' => json_encode(array_values($images))]);
         }
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Image deleted successfully.']);
+        }
+
         return back()->with('success', 'Image deleted successfully.');
+    }
+
+    /**
+     * Delete featured image.
+     */
+    public function deleteFeaturedImage(Request $request, Product $product)
+    {
+        if ($product->featured_image) {
+            ImageHelper::deleteImage($product->featured_image, $product->thumbnail ?? null);
+            $product->update(['featured_image' => null, 'thumbnail' => null]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Featured image deleted successfully.']);
+        }
+
+        return back()->with('success', 'Featured image deleted successfully.');
+    }
+
+    /**
+     * Delete attribute image.
+     */
+    public function deleteAttributeImage(Request $request, Product $product, $attrId, $valueId)
+    {
+        $product->refresh();
+        $attributes = json_decode($product->attributes ?? '{}', true);
+        
+        if (isset($attributes[$attrId]['values'][$valueId]['image'])) {
+            ImageHelper::deleteImage($attributes[$attrId]['values'][$valueId]['image']);
+            $attributes[$attrId]['values'][$valueId]['image'] = null;
+            $product->update(['attributes' => json_encode($attributes)]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Attribute image deleted successfully.']);
+        }
+
+        return back()->with('success', 'Attribute image deleted successfully.');
+    }
+
+    /**
+     * Delete color image.
+     */
+    public function deleteColorImage(Request $request, Product $product, $colorId)
+    {
+        $product->refresh();
+        $colors = json_decode($product->colors ?? '[]', true);
+        
+        if ($colors) {
+            foreach ($colors as $index => $color) {
+                if (isset($colors[$index]['color_id']) && $colors[$index]['color_id'] == $colorId) {
+                    if (isset($colors[$index]['image']) && $colors[$index]['image']) {
+                        ImageHelper::deleteImage($colors[$index]['image']);
+                    }
+                    $colors[$index]['image'] = null;
+                    $product->update(['colors' => json_encode($colors)]);
+                    break;
+                }
+            }
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Color image deleted successfully.']);
+        }
+
+        return back()->with('success', 'Color image deleted successfully.');
     }
 
     /**
@@ -919,17 +1211,11 @@ class ProductController extends Controller
             case 'delete':
                 foreach ($products as $product) {
                     if ($product->featured_image) {
-                        $oldPath = str_replace('/storage/', '', $product->featured_image);
-                        if (Storage::disk('public')->exists($oldPath)) {
-                            Storage::disk('public')->delete($oldPath);
-                        }
+                        ImageHelper::deleteImage($product->featured_image, $product->thumbnail ?? null);
                     }
                     $images = json_decode($product->images ?? '[]', true);
                     foreach ($images as $image) {
-                        $oldPath = str_replace('/storage/', '', $image);
-                        if (Storage::disk('public')->exists($oldPath)) {
-                            Storage::disk('public')->delete($oldPath);
-                        }
+                        ImageHelper::deleteImage($image);
                     }
                 }
                 Product::whereIn('id', $productIds)->delete();
@@ -1903,5 +2189,30 @@ class ProductController extends Controller
                 ];
             }),
         ]);
+    }
+    
+    /**
+     * Get next unique SKU by checking existing SKUs in database.
+     */
+    private function getNextUniqueSku()
+    {
+        $timestamp = date('YmdHis');
+        $baseSku = 'SKU-' . $timestamp;
+        
+        // Check if this SKU already exists
+        $exists = Product::where('sku', 'like', 'SKU-' . date('Ymd') . '%')
+            ->orderBy('sku', 'desc')
+            ->first();
+        
+        if ($exists) {
+            // Extract the suffix and increment
+            $parts = explode('-', $exists->sku);
+            if (count($parts) >= 3) {
+                $suffix = intval(end($parts));
+                return 'SKU-' . date('Ymd') . '-' . ($suffix + 1);
+            }
+        }
+        
+        return $baseSku;
     }
 }

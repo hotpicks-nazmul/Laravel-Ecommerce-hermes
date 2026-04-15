@@ -188,11 +188,11 @@
                             </button>
                         </td>
                         <td>
-                            <div class="btn-group btn-group-sm">
-                                <a href="{{ route('admin.colors.edit', $color->id) }}" class="btn btn-outline-primary" title="Edit">
+                            <div class="btn-group">
+                                <a href="{{ route('admin.colors.edit', $color->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <button type="button" class="btn btn-outline-danger" onclick="deleteItem({{ $color->id }})" title="Delete">
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteItem({{ $color->id }})" title="Delete">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </div>

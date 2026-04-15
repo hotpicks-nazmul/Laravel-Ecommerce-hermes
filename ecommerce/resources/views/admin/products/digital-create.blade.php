@@ -3,7 +3,6 @@
 @section('title', 'Create Digital Product')
 
 @push('styles')
-<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote.min.css" rel="stylesheet">
 <style>
 .file-upload-zone {
     border: 2px dashed #dee2e6;
@@ -29,21 +28,6 @@
     background: #f8f9fa;
     border-radius: 4px;
     margin-bottom: 0.5rem;
-}
-/* Summernote Editor Styles */
-.note-editor {
-    border: 1px solid #ced4da;
-    border-radius: 0.375rem;
-}
-.note-editor .note-toolbar {
-    background: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
-}
-.note-editor .note-editable {
-    min-height: 300px;
-}
-.note-editor.note-frame .note-editing-area .note-editable {
-    padding: 15px;
 }
 /* Add padding at bottom to prevent floating button overlap */
 .content-area {
@@ -420,32 +404,46 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
 $(document).ready(function() {
-    // Initialize Summernote editor
-    $('#productDescription').summernote({
-        height: 300,
-        toolbar: [
-            ['style', ['style']],
-            ['font', ['bold', 'italic', 'underline', 'clear']],
-            ['fontname', ['fontname']],
-            ['fontsize', ['fontsize']],
-            ['color', ['color']],
-            ['para', ['ul', 'ol', 'paragraph']],
-            ['height', ['height']],
-            ['table', ['table']],
-            ['insert', ['link', 'picture', 'video']],
-            ['view', ['fullscreen', 'codeview']],
-            ['help', ['help']]
+    // Initialize TinyMCE editor
+    tinymce.init({
+        selector: '#productDescription',
+        height: 400,
+        menubar: true,
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'help', 'wordcount', 'codesample'
         ],
-        fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana'],
-        placeholder: 'Enter full product description...'
-    });
-
-    // Image upload handler for Summernote
-    $('#productDescription').on('summernote.image.upload', function(files) {
-        // Handle image upload if needed
+        toolbar: 'undo redo | blocks | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | codesample forecolor backcolor | removeformat help',
+        branding: false,
+        automatic_uploads: true,
+        images_upload_handler: function(blobInfo, success, failure, progress) {
+            var formData = new FormData();
+            formData.append('image', blobInfo.blob());
+            formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+            
+            $.ajax({
+                url: '{{ route("admin.media.upload") }}',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.url) {
+                        success(response.url);
+                    } else {
+                        failure('Upload failed');
+                    }
+                },
+                error: function() {
+                    failure('Upload failed');
+                }
+            });
+        },
+        content_style: 'body { font-family: Arial, sans-serif; font-size: 14px; }'
     });
 });
 

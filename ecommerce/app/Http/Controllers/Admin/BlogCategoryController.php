@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\BlogCategory;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\ImageHelper;
 
 class BlogCategoryController extends Controller
 {
@@ -102,10 +103,18 @@ class BlogCategoryController extends Controller
             $data['slug'] = Str::slug($data['slug']);
         }
 
-        // Handle image upload
+        // Handle image upload with WebP conversion
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('blog-categories', 'public');
-            $data['image'] = Storage::url($path);
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'blog-categories', // directory
+                    800,               // max width
+                    200,               // thumbnail width
+                    80                 // quality
+                );
+                $data['image'] = $imageResult['path'];
+            }
         }
 
         // Set sort order
@@ -156,25 +165,27 @@ class BlogCategoryController extends Controller
         // Handle image removal
         if ($request->has('remove_image') && $request->remove_image) {
             if ($blogCategory->image) {
-                $oldPath = str_replace('/storage/', '', $blogCategory->image);
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
-                }
+                ImageHelper::deleteImage($blogCategory->image);
             }
             $data['image'] = null;
         }
 
-        // Handle image upload
+        // Handle image upload with WebP conversion
         if ($request->hasFile('image')) {
             // Delete old image
             if ($blogCategory->image) {
-                $oldPath = str_replace('/storage/', '', $blogCategory->image);
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
-                }
+                ImageHelper::deleteImage($blogCategory->image);
             }
-            $path = $request->file('image')->store('blog-categories', 'public');
-            $data['image'] = Storage::url($path);
+            if (ImageHelper::isValidImage($request->file('image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('image'),
+                    'blog-categories', // directory
+                    800,               // max width
+                    200,               // thumbnail width
+                    80                 // quality
+                );
+                $data['image'] = $imageResult['path'];
+            }
         }
 
         $blogCategory->update($data);
@@ -201,10 +212,7 @@ class BlogCategoryController extends Controller
 
         // Delete image
         if ($blogCategory->image) {
-            $oldPath = str_replace('/storage/', '', $blogCategory->image);
-            if (Storage::disk('public')->exists($oldPath)) {
-                Storage::disk('public')->delete($oldPath);
-            }
+            ImageHelper::deleteImage($blogCategory->image);
         }
         
         $blogCategory->delete();
@@ -265,10 +273,7 @@ class BlogCategoryController extends Controller
                     } else {
                         // Delete image
                         if ($category->image) {
-                            $oldPath = str_replace('/storage/', '', $category->image);
-                            if (Storage::disk('public')->exists($oldPath)) {
-                                Storage::disk('public')->delete($oldPath);
-                            }
+                            ImageHelper::deleteImage($category->image);
                         }
                         $category->delete();
                     }

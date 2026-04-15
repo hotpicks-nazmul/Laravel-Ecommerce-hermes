@@ -15,12 +15,15 @@ class AttributeValue extends Model
         'value',
         'slug',
         'color_code',
+        'price',
+        'image',
         'display_order',
         'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'price' => 'decimal:2',
     ];
 
     /**

@@ -87,13 +87,83 @@ reference page: http://127.0.0.1:8000/admin/inventory
 pin point the problem then fix it accurately without any mistake and without destroying other functionality.
 code must be clean and professional.
 
-in Admin > Products > Category > Fetured column
-I dont know what it doesn on frontend. let me know whats the purpose of this column.
-
-if you do not understand my requirement, just ask me before start
-
+in Admin > Products > Attribute
+http://127.0.0.1:8000/admin/attributes/create
+in this page i cant create any attributes.
 
 
+if you do not understand my requirement, just ask me before start.
 
 
+Here i give you an example:
+suppose i want to add a Wardrobe product
+now I want to put different attribute, 
+then i go to this page: http://127.0.0.1:8000/admin/attributes/create
+and create an attribute.
+i only need Value input, no need price and image input.
+suppose I want to create a Design Attribute for that Wardrobe product.
+Example > Design: Super Flower, Flower, Rainbow
+ 
+
+now that our attribute is created we need to add this attribute in this page http://127.0.0.1:8000/admin/products/create
+
+where there will be a Add Attribute section with a multiple selectable dropdown menu to selecte multiple attributes.
+in that dropdown menu there will show only attributs name, and if a attribute is selected the crosponding values will show below, and every value will have input fields Price, Quantiry, image, SKU.
+
+also add another multiple selectable dropdown menu  for color Attributes name. in that dropdown menu there will show only color attributs name, and if a color attribute is selected the crosponding color values will show below, and every value will have input fields Price, Quantiry, image, SKU.
+
+in frontend product view page all attributes will show. product price will be calculated based on selected attributes qumulative price.
+
+if you do not understand my requirement, just ask me before start.
+
+there is two seperte attribute page:
+Admin > Products > Attribute
+Admin > Products > Color
+
+Yes Base price is required
+
+I need separate/different attribute system
+
+I dont want Price, Quantiry, image, SKU in attribute creation page, there I will insert only value.
+and Price, Quantiry, image, SKU will insert in Product creation page.
+in product creation page when attributs are selected the crosponding values will
+show below as a row with Price, Quantiry, image, SKU input option and it will save into database.
+
+
+
+---------------------------------------------------------
+look carefully how attributes are implemented in this page: http://127.0.0.1:8000/admin/products/create
+and i want edie functionality of those attributes which is created from product create page.
+this is edit page : http://127.0.0.1:8000/admin/products/45/edit
+if you do not understand my requirement, just ask me before start.
+
+------------------------------------------------------
+
+in this page : http://127.0.0.1:8000/admin/products/create
+in Product Attributes
+when a attribute is selected and the attribute table is appeard.
+i want the table will be full width withen its own container.
+and aloso in the table image column i want a image icon insted of 'choose image' text
+
+pin point the problem and fix it carefully.
+
+if you do not understand my requirement, just ask me before start.
+
+
+
+
+in this page: http://127.0.0.1:8000/admin/products/41/edit
+check if Gallery Images uploading and deleting is fully functional or not, after uploading image is not saving.
+
+if you do not understand my requirement, just ask me before start.
+
+Featured Image, Gallery Images, Product Attributes table image column, Product Colors table image column
+
+
+
+in this page: http://127.0.0.1:8000/admin/products/41/edit
+Product Attributes table image column, Product Colors table image column
+change the delete image button above the image.and make the button flat bootstrap button no animation needed
+
+if you do not understand my requirement, just ask me before start.
 

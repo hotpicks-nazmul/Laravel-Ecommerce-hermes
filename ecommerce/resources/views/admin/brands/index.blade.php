@@ -192,7 +192,7 @@
                 Showing {{ $brands->firstItem() }} - {{ $brands->lastItem() }} of {{ $brands->total() }} brands
             </div>
             <div id="paginationLinks">
-                {{ $brands->appends(request()->query())->links() }}
+                {{ $brands->appends(request()->query())->links('vendor.pagination.bootstrap-5-admin') }}
             </div>
         </div>
         @endif

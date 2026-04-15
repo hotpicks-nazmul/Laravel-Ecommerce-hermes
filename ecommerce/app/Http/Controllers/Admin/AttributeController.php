@@ -88,12 +88,12 @@ class AttributeController extends Controller
             'slug' => 'nullable|string|max:255|unique:attributes,slug',
             'description' => 'nullable|string',
             'display_order' => 'nullable|integer|min:0',
-            'is_active' => 'boolean',
-            'is_filterable' => 'boolean',
+            'is_active' => 'nullable',
+            'is_filterable' => 'nullable',
             'values' => 'nullable|array',
             'values.*.value' => 'required_with:values|string|max:255',
-            'values.*.color_code' => 'nullable|string|max:7',
-            'values.*.display_order' => 'nullable|integer|min:0',
+            'values.*.price' => 'nullable|numeric|min:0',
+            'values.*.image' => 'nullable|image|max:2048',
         ]);
 
         // Create attribute
@@ -110,14 +110,15 @@ class AttributeController extends Controller
         if (!empty($validated['values'])) {
             foreach ($validated['values'] as $index => $valueData) {
                 if (!empty($valueData['value'])) {
-                    AttributeValue::create([
+                    $valueCreateData = [
                         'attribute_id' => $attribute->id,
                         'value' => $valueData['value'],
                         'slug' => Str::slug($valueData['value']),
-                        'color_code' => $valueData['color_code'] ?? null,
-                        'display_order' => $valueData['display_order'] ?? $index,
+                        'display_order' => $index,
                         'is_active' => true,
-                    ]);
+                    ];
+                    
+                    AttributeValue::create($valueCreateData);
                 }
             }
         }
@@ -298,18 +299,17 @@ class AttributeController extends Controller
     {
         $validated = $request->validate([
             'value' => 'required|string|max:255',
-            'color_code' => 'nullable|string|max:7',
-            'display_order' => 'nullable|integer|min:0',
         ]);
 
-        $value = AttributeValue::create([
+        $createData = [
             'attribute_id' => $attribute->id,
             'value' => $validated['value'],
             'slug' => Str::slug($validated['value']),
-            'color_code' => $validated['color_code'] ?? null,
-            'display_order' => $validated['display_order'] ?? 0,
+            'display_order' => $attribute->values()->count(),
             'is_active' => true,
-        ]);
+        ];
+
+        $value = AttributeValue::create($createData);
 
         return response()->json([
             'success' => true,
@@ -325,16 +325,14 @@ class AttributeController extends Controller
     {
         $validated = $request->validate([
             'value' => 'required|string|max:255',
-            'color_code' => 'nullable|string|max:7',
-            'display_order' => 'nullable|integer|min:0',
         ]);
 
-        $value->update([
+        $updateData = [
             'value' => $validated['value'],
             'slug' => Str::slug($validated['value']),
-            'color_code' => $validated['color_code'] ?? null,
-            'display_order' => $validated['display_order'] ?? $value->display_order,
-        ]);
+        ];
+
+        $value->update($updateData);
 
         return response()->json([
             'success' => true,

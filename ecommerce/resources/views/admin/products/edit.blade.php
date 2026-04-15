@@ -10,318 +10,377 @@
     </a>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <form action="{{ route('admin.products.update', $product->id) }}" method="POST" enctype="multipart/form-data" id="product-form">
-            @csrf
-            @method('PUT')
-            
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Product Name *</label>
-                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $product->name) }}" required>
-                        @error('name')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+<form action="{{ route('admin.products.update', $product->id) }}" method="POST" enctype="multipart/form-data" id="product-form">
+    @csrf
+    @method('PUT')
+    
+    <div class="row">
+        <div class="col-lg-8">
+                    
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Basic Information</h6>
+                        </div>
+                        <div class="card-body">
+                            
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Product Name *</label>
+                                <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $product->name) }}" required>
+                                @error('name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="short_description" class="form-label">Short Description</label>
+                                <textarea class="form-control @error('short_description') is-invalid @enderror" id="short_description" name="short_description" rows="2" maxlength="500">{{ old('short_description', $product->short_description) }}</textarea>
+                                @error('short_description')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description *</label>
+                                <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="5" required>{{ old('description', $product->long_description) }}</textarea>
+                                @error('description')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="price" class="form-label">Regular Price (৳) *</label>
+                                        <input type="number" step="0.01" min="0" class="form-control @error('price') is-invalid @enderror" id="price" name="price" value="{{ old('price', $product->price) }}" required>
+                                        @error('price')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="sale_price" class="form-label">Sale Price (৳)</label>
+                                        <input type="number" step="0.01" min="0" class="form-control @error('sale_price') is-invalid @enderror" id="sale_price" name="sale_price" value="{{ old('sale_price', $product->sale_price) }}">
+                                        @error('sale_price')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="sku" class="form-label">SKU *</label>
+                                        <input type="text" class="form-control" id="sku" name="sku" value="{{ old('sku', $product->sku) }}" readonly>
+                                        <div class="form-text">Auto-generated, cannot be edited</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="product_code" class="form-label">Product Code</label>
+                                        <input type="text" class="form-control @error('product_code') is-invalid @enderror" id="product_code" name="product_code" value="{{ old('product_code', $product->product_code) }}" placeholder="e.g., PRD-001">
+                                        @error('product_code')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="barcode" class="form-label">Barcode</label>
+                                        <input type="text" class="form-control @error('barcode') is-invalid @enderror" id="barcode" name="barcode" value="{{ old('barcode', $product->barcode) }}">
+                                        @error('barcode')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="brand" class="form-label">Brand</label>
+                                        <select class="form-select @error('brand') is-invalid @enderror" id="brand" name="brand">
+                                            <option value="">Select Brand</option>
+                                            @foreach($brands as $id => $name)
+                                                <option value="{{ $id }}" {{ old('brand', $product->brand_id) == $id ? 'selected' : '' }}>
+                                                    {{ $name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('brand')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="purchase_price" class="form-label">Purchase/Cost Price (৳)</label>
+                                        <input type="number" step="0.01" min="0" class="form-control @error('purchase_price') is-invalid @enderror" id="purchase_price" name="purchase_price" value="{{ old('purchase_price', $product->purchase_price) }}">
+                                        @error('purchase_price')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="stock" class="form-label">Stock Quantity *</label>
+                                        <input type="number" min="0" class="form-control @error('stock') is-invalid @enderror" id="stock" name="stock" value="{{ old('stock', $product->quantity) }}" required>
+                                        @error('stock')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="low_stock_threshold" class="form-label">Low Stock Alert</label>
+                                        <input type="number" min="0" class="form-control @error('low_stock_threshold') is-invalid @enderror" id="low_stock_threshold" name="low_stock_threshold" value="{{ old('low_stock_threshold', $product->low_stock_threshold ?? 10) }}">
+                                        @error('low_stock_threshold')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="stock_status" class="form-label">Stock Status</label>
+                                        <select class="form-select" id="stock_status" name="stock_status">
+                                            <option value="in_stock" {{ old('stock_status', $product->stock_status ?? 'in_stock') == 'in_stock' ? 'selected' : '' }}>In Stock</option>
+                                            <option value="out_of_stock" {{ old('stock_status', $product->stock_status ?? 'in_stock') == 'out_of_stock' ? 'selected' : '' }}>Out of Stock</option>
+                                            <option value="pre_order" {{ old('stock_status', $product->stock_status ?? 'in_stock') == 'pre_order' ? 'selected' : '' }}>Pre Order</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" value="1" {{ old('is_featured', $product->is_featured) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="is_featured">
+                                                Featured Product
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', $product->is_active) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="is_active">
+                                                Active
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="short_description" class="form-label">Short Description</label>
-                        <textarea class="form-control @error('short_description') is-invalid @enderror" id="short_description" name="short_description" rows="2" maxlength="500">{{ old('short_description', $product->short_description) }}</textarea>
-                        @error('short_description')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description *</label>
-                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="5" required>{{ old('description', $product->long_description) }}</textarea>
-                        @error('description')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="price" class="form-label">Regular Price (৳) *</label>
-                                <input type="number" step="0.01" min="0" class="form-control @error('price') is-invalid @enderror" id="price" name="price" value="{{ old('price', $product->price) }}" required>
-                                @error('price')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                    <!-- Product Attributes Section -->
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Product Attributes</h6>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="sale_price" class="form-label">Sale Price (৳)</label>
-                                <input type="number" step="0.01" min="0" class="form-control @error('sale_price') is-invalid @enderror" id="sale_price" name="sale_price" value="{{ old('sale_price', $product->sale_price) }}">
-                                @error('sale_price')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="sku" class="form-label">SKU *</label>
-                                <input type="text" class="form-control @error('sku') is-invalid @enderror" id="sku" name="sku" value="{{ old('sku', $product->sku) }}" required>
-                                @error('sku')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="product_code" class="form-label">Product Code</label>
-                                <input type="text" class="form-control @error('product_code') is-invalid @enderror" id="product_code" name="product_code" value="{{ old('product_code', $product->product_code) }}" placeholder="e.g., PRD-001">
-                                @error('product_code')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="barcode" class="form-label">Barcode</label>
-                                <input type="text" class="form-control @error('barcode') is-invalid @enderror" id="barcode" name="barcode" value="{{ old('barcode', $product->barcode) }}" placeholder="Product barcode">
-                                @error('barcode')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="brand" class="form-label">Brand</label>
-                                <select class="form-select @error('brand') is-invalid @enderror" id="brand" name="brand"
-                                        data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('brand') }}">
-                                    <option value="">Select Brand</option>
-                                    @foreach($brands as $id => $name)
-                                        <option value="{{ $id }}" {{ old('brand', $product->brand_id) == $id ? 'selected' : '' }}>
-                                            {{ $name }}
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">Select attributes to add price, quantity, image and SKU for each value</p>
+                            
+                             <div class="mb-3">
+                                <label class="form-label">Select Attributes</label>
+                                <select class="form-select" id="productAttributesSelect" multiple="multiple">
+                                    @foreach($attributes as $attribute)
+                                        @if($attribute->activeValues->count() > 0)
+                                        <option value="{{ $attribute->id }}" data-name="{{ $attribute->name }}" data-values='@json($attribute->activeValues->map(function($v) { return ["id" => $v->id, "value" => $v->value]; })->toArray())'>
+                                            {{ $attribute->name }} ({{ $attribute->activeValues->count() }} values)
                                         </option>
+                                        @endif
                                     @endforeach
                                 </select>
-                                @error('brand')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <div class="form-text">Choose from existing brands or <a href="{{ route('admin.brands.create') }}" target="_blank">create new</a></div>
+                                <div class="form-text">Hold Ctrl/Cmd to select multiple attributes</div>
                             </div>
+                            
+                            <div id="selectedAttributesContainer"></div>
                         </div>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="purchase_price" class="form-label">Purchase/Cost Price (৳)</label>
-                                <input type="number" step="0.01" min="0" class="form-control @error('purchase_price') is-invalid @enderror" id="purchase_price" name="purchase_price" value="{{ old('purchase_price', $product->purchase_price) }}" placeholder="Cost price">
-                                @error('purchase_price')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <div class="form-text">Used for profit calculation</div>
-                            </div>
+                    <!-- Product Colors Section -->
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0"><i class="bi bi-palette me-2"></i>Product Colors</h6>
                         </div>
-                        <div class="col-md-3">
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">Select colors to add price, quantity, image and SKU for each</p>
+                            
                             <div class="mb-3">
-                                <label for="stock" class="form-label">Stock Quantity *</label>
-                                <input type="number" min="0" class="form-control @error('stock') is-invalid @enderror" id="stock" name="stock" value="{{ old('stock', $product->quantity) }}" required>
-                                @error('stock')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                <label class="form-label">Select Colors</label>
+                                <select class="form-select" id="productColorsSelect" multiple="multiple">
+                                    @foreach($colors as $color)
+                                    <option value="{{ $color->id }}" data-name="{{ $color->name }}" data-hex="{{ $color->hex_code }}">
+                                        {{ $color->name }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                                <div class="form-text">Hold Ctrl/Cmd to select multiple colors</div>
                             </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="low_stock_threshold" class="form-label">Low Stock Alert</label>
-                                <input type="number" min="0" class="form-control @error('low_stock_threshold') is-invalid @enderror" id="low_stock_threshold" name="low_stock_threshold" value="{{ old('low_stock_threshold', $product->low_stock_threshold ?? 10) }}">
-                                @error('low_stock_threshold')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <div class="form-text">Alert when stock falls below this</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label">Stock Value</label>
-                                <div class="form-control-plaintext fw-semibold">
-                                    ৳{{ number_format($product->stock_value, 0) }}
-                                </div>
-                                <small class="text-muted">Quantity × Cost Price</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Product Source</label>
-                                <div class="form-control-plaintext">
-                                    @if($product->isInHouse())
-                                        <span class="badge bg-primary"><i class="bi bi-house-door me-1"></i> In-House Product</span>
-                                    @else
-                                        <span class="badge bg-info"><i class="bi bi-shop me-1"></i> Seller Product</span>
-                                        @if($product->seller)
-                                            <small class="text-muted ms-2">by {{ $product->seller->name }}</small>
-                                        @endif
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Profit Margin</label>
-                                <div class="form-control-plaintext">
-                                    @if($product->profit_margin > 0)
-                                        <span class="text-success fw-semibold">{{ $product->profit_margin }}%</span>
-                                        <small class="text-muted">(৳{{ number_format($product->profit_amount, 0) }} per unit)</small>
-                                    @else
-                                        <span class="text-muted">Set purchase price to calculate</span>
-                                    @endif
-                                </div>
-                            </div>
+                            
+                            <div id="selectedColorsContainer"></div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="col-md-4">
-                    <div class="mb-3">
-                        <label for="category_id" class="form-label">Category *</label>
-                        <select class="form-select @error('category_id') is-invalid @enderror" id="category_id" name="category_id" required>
-                            <option value="">Select Category</option>
-                            @foreach($categories as $id => $name)
-                                <option value="{{ $id }}" {{ old('category_id', $product->category_id) == $id ? 'selected' : '' }}>
-                                    {{ $name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('category_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="image" class="form-label">Featured Image</label>
-                        @if($product->featured_image)
-                            @php
-                                $imageUrl = $product->featured_image;
-                                // Handle different image path formats
-                                if (!str_starts_with($imageUrl, 'http') && !str_starts_with($imageUrl, '/storage/')) {
-                                    $imageUrl = '/storage/' . $imageUrl;
-                                }
-                            @endphp
-                            <div class="mb-2">
-                                <img src="{{ $imageUrl }}" class="img-thumbnail" style="max-width: 150px;">
+                <div class="col-lg-4">
+                    <!-- Category Selection -->
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0"><i class="bi bi-folder me-2"></i>Category</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="category_id" class="form-label">Select Category <span class="text-danger">*</span></label>
+                                <select class="form-select @error('category_id') is-invalid @enderror" id="category_id" name="category_id" required>
+                                    <option value="">Select Category</option>
+                                    @foreach($categories as $id => $name)
+                                        <option value="{{ $id }}" {{ old('category_id', $product->category_id) == $id ? 'selected' : '' }}>
+                                            {{ $name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('category_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
-                        @endif
-                        <input type="file" class="form-control @error('image') is-invalid @enderror" id="image" name="image" accept="image/*">
-                        @error('image')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <div id="imagePreview" class="mt-2"></div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="images" class="form-label">Gallery Images</label>
-                        @php
-                            $galleryImages = $product->images ?? ($product->gallery ?? []);
-                        @endphp
-                        @if($galleryImages && is_array($galleryImages))
-                            <div class="mb-2 d-flex flex-wrap gap-2">
-                                @foreach($galleryImages as $index => $img)
-                                    @php
-                                        $galleryUrl = is_array($img) ? ($img['url'] ?? $img['path'] ?? '') : $img;
-                                        if (!is_string($galleryUrl)) {
-                                            $galleryUrl = '';
-                                        }
-                                        if (!str_starts_with($galleryUrl, 'http') && !str_starts_with($galleryUrl, '/storage/') && $galleryUrl) {
-                                            $galleryUrl = '/storage/' . $galleryUrl;
-                                        }
-                                    @endphp
-                                    <div class="position-relative">
-                                        <img src="{{ $galleryUrl }}" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
-                                        <form action="{{ route('admin.products.images.delete', [$product->id, $index]) }}" method="POST" class="d-inline position-absolute top-0 start-100 translate-middle">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="badge bg-danger rounded-circle border-0" 
-                                               style="font-size: 10px; width: 18px; height: 18px; line-height: 1;"
-                                               onclick="return confirm('Delete this image?')">
-                                                <i class="bi bi-x"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
-                        <input type="file" class="form-control @error('images') is-invalid @enderror" id="images" name="images[]" multiple accept="image/*">
-                        @error('images')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', $product->is_active) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="is_active">
-                                Active
-                            </label>
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" value="1" {{ old('is_featured', $product->is_featured) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="is_featured">
-                                Featured Product
-                            </label>
+                    <!-- Images -->
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0"><i class="bi bi-image me-2"></i>Product Images</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="image" class="form-label">Featured Image</label>
+                                @if($product->featured_image)
+                                    @php
+                                        $imageUrl = $product->featured_image;
+                                        if (!str_starts_with($imageUrl, 'http') && !str_starts_with($imageUrl, '/storage/')) {
+                                            $imageUrl = '/storage/' . $imageUrl;
+                                        }
+                                    @endphp
+                                    <div class="mb-2 position-relative d-inline-block" id="featured-image-container">
+                                        <img src="{{ $imageUrl }}" class="img-thumbnail" style="max-width: 150px;" id="featured-image-preview">
+                                        <button type="button" class="badge bg-danger rounded-circle border-0 position-absolute top-0 start-100 translate-middle p-0"
+                                            style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer;"
+                                            onclick="deleteFeaturedImage({{ $product->id }})">
+                                            <i class="bi bi-x" style="font-size: 12px;"></i>
+                                        </button>
+                                    </div>
+                                @endif
+                                <input type="file" class="form-control @error('image') is-invalid @enderror" 
+                                       id="image" name="image" accept="image/*" form="product-form"
+                                       onchange="previewFeaturedImage(this)"
+                                       data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('image') }}">
+                                @error('image')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <div class="form-text">Main image. Max 5MB. Recommended: 1920x1080px</div>
+                                <div id="featuredImagePreview" class="mt-2"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="images" class="form-label">Gallery Images</label>
+                                @php
+                                    $rawImages = $product->images ?? ($product->gallery ?? null);
+                                    if (is_string($rawImages)) {
+                                        $galleryImages = json_decode($rawImages, true) ?: [];
+                                    } else {
+                                        $galleryImages = is_array($rawImages) ? $rawImages : [];
+                                    }
+                                @endphp
+                                @if(!empty($galleryImages) && is_array($galleryImages))
+                                    <div class="mb-2 d-flex flex-wrap gap-2">
+                                        @foreach($galleryImages as $index => $img)
+                                            @php
+                                                $galleryUrl = is_array($img) ? ($img['url'] ?? $img['path'] ?? '') : $img;
+                                                if (!is_string($galleryUrl)) {
+                                                    $galleryUrl = '';
+                                                }
+                                                if (!str_starts_with($galleryUrl, 'http') && !str_starts_with($galleryUrl, '/storage/') && $galleryUrl) {
+                                                    $galleryUrl = '/storage/' . $galleryUrl;
+                                                }
+                                            @endphp
+                                            <div class="position-relative gallery-image-item" data-index="{{ $index }}" id="gallery-img-{{ $index }}">
+                                                <img src="{{ $galleryUrl }}" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
+                                                <button type="button" class="badge bg-danger rounded-circle border-0 position-absolute top-0 start-100 translate-middle p-0"
+                                                    style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer;"
+                                                    onclick="markGalleryImageForDeletion({{ $index }})">
+                                                    <i class="bi bi-x" style="font-size: 12px;"></i>
+                                                </button>
+                                                <input type="hidden" name="deleted_image_indices[]" value="{{ $index }}" disabled class="delete-index-{{ $index }}">
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                                <input type="file" class="form-control @error('images') is-invalid @enderror" 
+                                       id="images" name="images[]" multiple accept="image/*" form="product-form"
+                                       onchange="previewGalleryImages(this)"
+                                       data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('images') }}">
+                                @error('images')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <div class="form-text">Additional images. Multiple allowed.</div>
+                                <div id="galleryPreview" class="mt-2 d-flex flex-wrap gap-2"></div>
+                            </div>
                         </div>
                     </div>
                     
                     <!-- Related Products Quick Access -->
-                    <div class="mb-3">
-                        <label class="form-label">Related Products</label>
-                        <div class="card border">
-                            <div class="card-body py-2">
-                                @php
-                                    $relatedProducts = $product->relatedProducts()->limit(5)->get();
-                                    $relatedCount = $product->relatedProducts()->count();
-                                @endphp
-                                @if($relatedCount > 0)
-                                    <div class="d-flex align-items-center mb-2">
-                                        <span class="badge bg-primary me-2">{{ $relatedCount }}</span>
-                                        <span class="small text-muted">related product(s)</span>
-                                    </div>
-                                    <div class="d-flex flex-wrap gap-1 mb-2">
-                                        @foreach($relatedProducts as $rel)
-                                            @php
-                                                $relImages = is_string($rel->images) ? json_decode($rel->images, true) : $rel->images;
-                                                $relImage = $rel->featured_image ?? ($relImages[0] ?? null);
-                                            @endphp
-                                            <img src="{{ $relImage ?? asset('images/placeholder.png') }}" 
-                                                 alt="{{ $rel->name }}" 
-                                                 class="rounded" 
-                                                 style="width: 40px; height: 40px; object-fit: cover;"
-                                                 title="{{ $rel->name }}">
-                                        @endforeach
-                                        @if($relatedCount > 5)
-                                            <span class="badge bg-light text-dark" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                                +{{ $relatedCount - 5 }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                @else
-                                    <p class="text-muted small mb-2">No related products added yet.</p>
-                                @endif
-                                <a href="{{ route('admin.products.related', $product->id) }}" class="btn btn-sm btn-outline-primary w-100">
-                                    <i class="bi bi-diagram-3 me-1"></i> Manage Related Products
-                                </a>
-                            </div>
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0"><i class="bi bi-link-45deg me-2"></i>Related Products</h6>
+                        </div>
+                        <div class="card-body py-2">
+                            @php
+                                $relatedProducts = $product->relatedProducts()->limit(5)->get();
+                                $relatedCount = $product->relatedProducts()->count();
+                            @endphp
+                            @if($relatedCount > 0)
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge bg-primary me-2">{{ $relatedCount }}</span>
+                                    <span class="small text-muted">related product(s)</span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-1 mb-2">
+                                    @foreach($relatedProducts as $rel)
+                                        @php
+                                            $relImages = is_string($rel->images) ? json_decode($rel->images, true) : $rel->images;
+                                            $relImage = $rel->featured_image ?? ($relImages[0] ?? null);
+                                        @endphp
+                                        <img src="{{ $relImage ?? asset('images/placeholder.png') }}" 
+                                             alt="{{ $rel->name }}" 
+                                             class="rounded" 
+                                             style="width: 40px; height: 40px; object-fit: cover;"
+                                             title="{{ $rel->name }}">
+                                    @endforeach
+                                    @if($relatedCount > 5)
+                                        <span class="badge bg-light text-dark" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                            +{{ $relatedCount - 5 }}
+                                        </span>
+                                    @endif
+                                </div>
+                            @else
+                                <p class="text-muted small mb-2">No related products added yet.</p>
+                            @endif
+                            <a href="{{ route('admin.products.related', $product->id) }}" class="btn btn-sm btn-outline-primary w-100">
+                                <i class="bi bi-diagram-3 me-1"></i> Manage Related Products
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
-        </form>
-    </div>
-</div>
+    </form>
 
 <!-- Floating Buttons - Following Preference.md standard -->
 <div class="floating-save-container">
@@ -332,18 +391,6 @@
         <i class="bi bi-check-lg me-1"></i> Update Product
     </button>
 </div>
-
-@push('styles')
-<style>
-    /* Add padding at bottom to prevent floating button overlap */
-    .card-body {
-        padding-bottom: 100px !important;
-    }
-</style>
-@endpush
-
-<!-- Note: Update button is now inside the form for reliable submission -->
-@endsection
 
 <!-- Alert Modal -->
 <div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
@@ -361,6 +408,21 @@
         </div>
     </div>
 </div>
+
+@push('styles')
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes slideOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.8); }
+}
+</style>
+@endpush
+
+@endsection
 
 @push('scripts')
 <script>
@@ -436,69 +498,606 @@ document.addEventListener('DOMContentLoaded', function() {
                     popover.dispose();
                 }
             }
-        });
+});
     }
     
-    // Sale Price validation - cannot be higher than Regular Price
-    const priceInput = document.getElementById('price');
-    const salePriceInput = document.getElementById('sale_price');
-    
-    if (form && priceInput && salePriceInput) {
-        form.addEventListener('submit', function(e) {
-            const price = parseFloat(priceInput.value) || 0;
-            const salePrice = parseFloat(salePriceInput.value) || 0;
-            
-            if (salePrice > price && salePrice > 0) {
-                e.preventDefault();
-                
-                // Add error class
-                salePriceInput.classList.add('is-invalid');
-                
-                // Create or update invalid-feedback div
-                let feedbackDiv = salePriceInput.parentElement.querySelector('.invalid-feedback');
-                if (!feedbackDiv) {
-                    feedbackDiv = document.createElement('div');
-                    feedbackDiv.className = 'invalid-feedback';
-                    salePriceInput.parentElement.appendChild(feedbackDiv);
-                }
-                feedbackDiv.textContent = 'Sale Price cannot be higher than Regular Price (' + price + ')';
-                
-                // Scroll to the field
-                salePriceInput.scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'center' 
-                });
-                salePriceInput.focus();
-            }
-        });
+    // Auto-sync stock quantity to all attribute/color quantities
+    if (stockInput) {
+        // Function to sync stock quantity to all quantity fields
+        function syncStockQuantity() {
+            const qty = stockInput.value || 0;
+            document.querySelectorAll('input[name*="[quantity]"]').forEach(input => {
+                input.value = qty;
+            });
+        }
         
-        // Real-time validation when price changes
-        priceInput.addEventListener('change', function() {
-            const price = parseFloat(this.value) || 0;
-            const salePrice = parseFloat(salePriceInput.value) || 0;
-            
-            if (salePrice > price && salePrice > 0) {
-                salePriceInput.classList.add('is-invalid');
-                salePriceInput.focus();
-            } else {
-                salePriceInput.classList.remove('is-invalid');
-            }
+        // Initial sync with delay to ensure attributes are rendered
+        setTimeout(syncStockQuantity, 500);
+        
+        // Also use MutationObserver to catch dynamically added elements
+        const observer = new MutationObserver(() => {
+            syncStockQuantity();
         });
+        observer.observe(document.body, { childList: true, subtree: true });
+        
+        stockInput.addEventListener('change', syncStockQuantity);
+        stockInput.addEventListener('keyup', syncStockQuantity);
     }
 });
 
 // Preview featured image
-document.getElementById('image').addEventListener('change', function(e) {
-    const preview = document.getElementById('imagePreview');
+function previewFeaturedImage(input) {
+    const preview = document.getElementById('featuredImagePreview');
     preview.innerHTML = '';
     
-    if (e.target.files && e.target.files[0]) {
+    if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 200px;">';
+            preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">';
         };
-        reader.readAsDataURL(e.target.files[0]);
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Preview gallery images
+function previewGalleryImages(input) {
+    const preview = document.getElementById('galleryPreview');
+    preview.innerHTML = '';
+    
+    if (input.files) {
+        Array.from(input.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">';
+                preview.appendChild(div.firstChild);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+}
+
+function previewAttrImage(input, uniqueId) {
+    const preview = document.getElementById('preview-attr-' + uniqueId);
+    preview.innerHTML = '';
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = '<img src="' + e.target.result + '" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); animation: fadeIn 0.3s ease;">';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function previewColorImage(input, colorId) {
+    const colorCard = document.getElementById('product-color-' + colorId);
+    if (!colorCard) return;
+    
+    let previewContainer = colorCard.querySelector('#preview-color-' + colorId);
+    if (!previewContainer) {
+        const fileInput = colorCard.querySelector(`input[id="color-img-${colorId}"]`);
+        if (fileInput) {
+            previewContainer = document.createElement('div');
+            previewContainer.id = 'preview-color-' + colorId;
+            previewContainer.className = 'mt-1';
+            fileInput.parentNode.insertBefore(previewContainer, fileInput.nextSibling);
+        }
+    }
+    
+    if (previewContainer) {
+        previewContainer.innerHTML = '';
+        
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewContainer.innerHTML = '<img src="' + e.target.result + '" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); animation: fadeIn 0.3s ease;">';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+}
+
+// ==================== Product Attributes Section ====================
+@php $attributesData = $attributesData ?? []; $existingAttributes = $existingAttributes ?? []; @endphp
+const attributesData = @json($attributesData);
+const existingAttributes = @json($existingAttributes);
+
+let selectedAttributes = {};
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('existingAttributes:', existingAttributes);
+    console.log('attributes:', attributesData);
+    
+    // Load existing attributes
+    Object.keys(existingAttributes).forEach(attrId => {
+        const attrIdStr = String(attrId);
+        const attrIdInt = parseInt(attrId);
+        const option = document.querySelector(`#productAttributesSelect option[value="${attrIdStr}"], #productAttributesSelect option[value="${attrIdInt}"]`);
+        console.log('Looking for option:', attrIdStr, 'found:', option);
+        if (option) {
+            option.selected = true;
+            const attrName = option.dataset.name;
+            const attrValues = JSON.parse(option.dataset.values || '[]');
+            if (attrValues.length > 0) {
+                selectedAttributes[attrIdStr] = {
+                    name: attrName,
+                    values: []
+                };
+                let existingValues = [];
+                const existingAttrData = existingAttributes[attrIdStr] || existingAttributes[attrIdInt];
+                if (existingAttrData && existingAttrData.values) {
+                    existingValues = existingAttrData.values;
+                }
+                console.log('Rendering attribute:', attrIdStr, attrName, 'with values:', attrValues, 'existing:', existingValues);
+                renderAttributeValues(attrIdStr, { name: attrName, values: attrValues }, existingValues);
+            }
+        }
+    });
+    
+    // Setup change listener for attributes
+    document.getElementById('productAttributesSelect').addEventListener('change', function() {
+        const selectedOptions = Array.from(this.selectedOptions);
+        const selectedAttributeIds = selectedOptions.map(opt => opt.value);
+        
+        Object.keys(selectedAttributes).forEach(attrId => {
+            if (!selectedAttributeIds.includes(attrId)) {
+                delete selectedAttributes[attrId];
+                document.getElementById('attr-values-' + attrId)?.remove();
+            }
+        });
+        
+        selectedOptions.forEach(option => {
+            const attrId = option.value;
+            if (!selectedAttributes[attrId]) {
+                const attrName = option.dataset.name;
+                const attrValues = JSON.parse(option.dataset.values || '[]');
+                if (attrValues.length > 0) {
+                    selectedAttributes[attrId] = {
+                        name: attrName,
+                        values: []
+                    };
+                    renderAttributeValues(attrId, { name: attrName, values: attrValues });
+                }
+            }
+        });
+    });
+});
+
+// ==================== Product Colors Section ====================
+@php $colorsData = $colorsData ?? []; $existingColors = $existingColors ?? []; @endphp
+const colorsData = @json($colorsData);
+const existingColors = @json($existingColors);
+
+let selectedProductColors = {};
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Load existing colors
+    if (existingColors && existingColors.length > 0) {
+        existingColors.forEach(colorData => {
+            const colorIdStr = String(colorData.color_id);
+            const option = document.querySelector(`#productColorsSelect option[value="${colorIdStr}"]`);
+            if (option) {
+                option.selected = true;
+                selectedProductColors[colorIdStr] = {
+                    name: option.dataset.name,
+                    hex_code: option.dataset.hex
+                };
+                renderProductColor(colorIdStr, option.dataset.name, option.dataset.hex, colorData);
+            }
+        });
+    }
+    
+    // Setup change listener for colors
+    const productColorsSelect = document.getElementById('productColorsSelect');
+    if (productColorsSelect) {
+        productColorsSelect.addEventListener('change', function() {
+            const selectedOptions = Array.from(this.selectedOptions);
+            const colorIds = selectedOptions.map(opt => opt.value);
+            
+            Object.keys(selectedProductColors).forEach(id => {
+                if (!colorIds.includes(id)) {
+                    delete selectedProductColors[id];
+                    document.getElementById('product-color-' + id)?.remove();
+                }
+            });
+            
+            selectedOptions.forEach(option => {
+                const colorId = option.value;
+                if (!selectedProductColors[colorId]) {
+                    const colorName = option.getAttribute('data-name');
+                    const hexCode = option.getAttribute('data-hex');
+                    selectedProductColors[colorId] = {
+                        name: colorName,
+                        hex_code: hexCode
+                    };
+                    renderProductColor(colorId, colorName, hexCode);
+                }
+            });
+        });
     }
 });
+
+function renderAttributeValues(attrId, attrData, existingValues = null) {
+    const container = document.getElementById('selectedAttributesContainer');
+    if (!container) {
+        console.error('Container not found!');
+        return;
+    }
+    
+    let html = `
+    <div class="card mb-3" id="attr-values-${attrId}">
+        <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+            <strong>${attrData.name}</strong>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeAttributeValues('${attrId}')">
+                <i class="bi bi-trash"></i> Remove
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-sm table-bordered mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 30%;">Value</th>
+                        <th style="width: 20%;">Price (৳)</th>
+                        <th style="width: 15%;">Quantity</th>
+                        <th style="width: 25%;">SKU</th>
+                        <th style="width: 10%;" class="text-center">Image</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    if (attrData.values && attrData.values.length > 0) {
+        attrData.values.forEach(value => {
+            let existingData = { price: 0, quantity: 0, sku: '', image: null };
+            if (existingValues) {
+                const valueId = String(value.id);
+                const found = existingValues[valueId] || Object.values(existingValues).find(ev => parseInt(ev.value_id) === parseInt(value.id));
+                if (found) {
+                    existingData = found;
+                }
+            }
+            
+            const existingImage = existingData.image ? existingData.image : null;
+            const uniqueId = attrId + '-' + value.id;
+            
+            let imageHtml = '';
+            if (existingImage) {
+                imageHtml = `
+                    <div class="position-relative d-inline-block" style="display: inline-block;">
+                        <div style="width: 50px; height: 50px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                            <img src="${existingImage}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <button type="button" class="badge bg-danger rounded-circle border-0 position-absolute top-0 start-100 translate-middle p-0"
+                            style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer;"
+                            onclick="removeAttrImage('${attrId}', '${value.id}')">
+                            <i class="bi bi-x" style="font-size: 12px;"></i>
+                        </button>
+                    </div>
+                    <input type="hidden" name="product_attributes[${attrId}][values][${value.id}][existing_image]" value="${existingImage}">
+                `;
+            }
+            
+            html += `
+            <tr>
+                <td>
+                    <input type="hidden" name="product_attributes[${attrId}][values][${value.id}][value_id]" value="${value.id}">
+                    <input type="hidden" name="product_attributes[${attrId}][values][${value.id}][value_name]" value="${value.value}">
+                    ${value.value}
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${value.id}][price]" value="${existingData.price || 0}" min="0" step="0.01" placeholder="0.00">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${value.id}][quantity]" value="${existingData.quantity || 0}" min="0" placeholder="0">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${value.id}][sku]" value="${existingData.sku || ''}" readonly>
+                </td>
+                <td class="text-center">
+                    ${imageHtml}
+                    <input type="file" class="d-none" id="attr-img-${uniqueId}" name="product_attributes[${attrId}][values][${value.id}][image]" accept="image/*" onchange="previewAttrImage(this, '${uniqueId}')">
+                    <label for="attr-img-${uniqueId}" class="btn btn-sm btn-outline-secondary mb-0">
+                        <i class="bi bi-image"></i>
+                    </label>
+                    <div id="preview-attr-${uniqueId}" class="mt-1"></div>
+                </td>
+            </tr>
+            `;
+        });
+    } else {
+        html += `
+            <tr>
+                <td colspan="5" class="text-center text-muted">No values available for this attribute</td>
+            </tr>
+        `;
+    }
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+    </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', html);
+    
+    selectedAttributes[attrId].values = attrData.values.reduce((acc, v) => {
+        acc[v.id] = v;
+        return acc;
+    }, {});
+}
+
+function removeAttributeValues(attrId) {
+    document.getElementById('attr-values-' + attrId)?.remove();
+    delete selectedAttributes[attrId];
+    
+    const select = document.getElementById('productAttributesSelect');
+    const option = select.querySelector(`option[value="${attrId}"]`);
+    if (option) {
+        option.selected = false;
+    }
+}
+
+function removeAttrImage(attrId, valueId) {
+    if (!confirm('Delete this image?')) return;
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    const card = document.getElementById('attr-values-' + attrId);
+    const row = card ? card.querySelector(`tr:has(input[value="${valueId}"])`) : null;
+    const imgDiv = row ? row.querySelector('.position-relative.d-inline-block') : null;
+    
+    fetch(`/admin/products/{{ $product->id }}/attributes/${attrId}/${valueId}/image`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: '_method=DELETE'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            if (row) {
+                const hiddenInput = row.querySelector(`input[name$="[existing_image]"]`);
+                if (hiddenInput) {
+                    hiddenInput.remove();
+                }
+                if (imgDiv) {
+                    imgDiv.remove();
+                }
+            }
+        } else {
+            alert('Failed to delete image');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while deleting the image');
+    });
+}
+
+function renderProductColor(colorId, colorName, hexCode, existingData = null) {
+    const container = document.getElementById('selectedColorsContainer');
+    
+    let existingPrice = 0;
+    let existingQuantity = 0;
+    let existingSku = '';
+    let existingImage = null;
+    
+    if (existingData) {
+        existingPrice = existingData.price_adjustment || existingData.price || 0;
+        existingQuantity = existingData.quantity || 0;
+        existingSku = existingData.sku || '';
+        existingImage = existingData.image || null;
+    }
+    
+    let imageHtml = '';
+    if (existingImage) {
+        imageHtml = `
+            <div class="position-relative d-inline-block" style="display: inline-block;">
+                <div style="width: 50px; height: 50px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                    <img src="${existingImage}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <button type="button" class="badge bg-danger rounded-circle border-0 position-absolute top-0 start-100 translate-middle p-0"
+                    style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer;"
+                    onclick="removeColorImage('${colorId}')">
+                    <i class="bi bi-x" style="font-size: 12px;"></i>
+                </button>
+            </div>
+            <input type="hidden" name="product_colors[${colorId}][existing_image]" value="${existingImage}">
+        `;
+    }
+    
+    let html = `
+    <div class="card mb-3" id="product-color-${colorId}">
+        <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+            <strong>
+                <span style="background-color: ${hexCode}; width: 20px; height: 20px; display: inline-block; border-radius: 50%; border: 1px solid #ddd; vertical-align: middle; margin-right: 8px;"></span>
+                ${colorName}
+            </strong>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeProductColor('${colorId}')">
+                <i class="bi bi-trash"></i> Remove
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-sm table-bordered mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 25%;">Price (৳)</th>
+                        <th style="width: 25%;">Quantity</th>
+                        <th style="width: 35%;">SKU</th>
+                        <th style="width: 15%;" class="text-center">Image</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <input type="number" class="form-control form-control-sm" name="product_colors[${colorId}][price]" value="${existingPrice}" min="0" step="0.01" placeholder="0.00">
+                        </td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm" name="product_colors[${colorId}][quantity]" value="${existingQuantity}" min="0" placeholder="0">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm" name="product_colors[${colorId}][sku]" value="${existingSku}" readonly>
+                        </td>
+                        <td class="text-center">
+                            ${imageHtml}
+                            <input type="file" class="d-none" id="color-img-${colorId}" name="product_colors[${colorId}][image]" accept="image/*" onchange="previewColorImage(this, '${colorId}')">
+                            <label for="color-img-${colorId}" class="btn btn-sm btn-outline-secondary mb-0">
+                                <i class="bi bi-image"></i>
+                            </label>
+                            <div id="preview-color-${colorId}" class="mt-1"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', html);
+}
+
+function removeProductColor(colorId) {
+    delete selectedProductColors[colorId];
+    document.getElementById('product-color-' + colorId)?.remove();
+    
+    const select = document.getElementById('productColorsSelect');
+    Array.from(select.options).forEach(opt => {
+        if (opt.value === colorId) opt.selected = false;
+    });
+}
+
+// Gallery Image Deletion (AJAX)
+function markGalleryImageForDeletion(index) {
+    if (!confirm('Delete this image?')) return;
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    fetch(`/admin/products/{{ $product->id }}/images/${index}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: '_method=DELETE'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            const imgItem = document.getElementById('gallery-img-' + index);
+            if (imgItem) {
+                imgItem.remove();
+            }
+        } else {
+            alert('Failed to delete image');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while deleting the image');
+    });
+}
+
+// Delete Featured Image (AJAX)
+function deleteFeaturedImage(productId) {
+    if (!confirm('Delete this featured image?')) return;
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    fetch(`/admin/products/${productId}/featured-image`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: '_method=DELETE'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            const container = document.getElementById('featured-image-container');
+            if (container) {
+                container.remove();
+            }
+        } else {
+            alert('Failed to delete image');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while deleting the image');
+    });
+}
+
+// Delete Color Image (AJAX)
+function removeColorImage(colorId) {
+    if (!confirm('Delete this image?')) return;
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    const colorCard = document.getElementById('product-color-' + colorId);
+    const imgContainer = colorCard ? colorCard.querySelector('.position-relative.d-inline-block') : null;
+    
+    fetch(`/admin/products/{{ $product->id }}/colors/${colorId}/image`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: '_method=DELETE'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            const colorCard = document.getElementById('product-color-' + colorId);
+            if (colorCard) {
+                const hiddenInput = colorCard.querySelector(`input[name="product_colors[${colorId}][existing_image]"]`);
+                if (hiddenInput) {
+                    hiddenInput.remove();
+                }
+                if (imgContainer) {
+                    imgContainer.remove();
+                }
+            }
+        } else {
+            alert('Failed to delete image');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while deleting the image');
+    });
+}
 </script>
 @endpush

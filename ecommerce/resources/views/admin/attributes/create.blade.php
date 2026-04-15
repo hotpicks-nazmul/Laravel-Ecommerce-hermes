@@ -91,6 +91,16 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Floating Save Button -->
+                <div class="floating-save-container">
+                    <a href="{{ route('admin.attributes.index') }}" class="btn btn-secondary floating-reset-btn">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary floating-save-btn">
+                        <i class="bi bi-check-lg me-1"></i> Create Attribute
+                    </button>
+                </div>
             </form>
         </div>
 
@@ -148,16 +158,6 @@
             </div>
         </div>
     </div>
-
-<!-- Floating Save Button -->
-<div class="floating-save-container">
-    <a href="{{ route('admin.attributes.index') }}" class="btn btn-secondary floating-reset-btn">
-        <i class="bi bi-x-lg me-1"></i> Cancel
-    </a>
-    <button type="submit" form="attributeForm" class="btn btn-primary floating-save-btn">
-        <i class="bi bi-check-lg me-1"></i> Create Attribute
-    </button>
-</div>
 @endsection
 
 @push('styles')
@@ -190,34 +190,16 @@
 <script>
     let valueIndex = 0;
 
-    function addValueRow(value = '', colorCode = '', displayOrder = '') {
+    function addValueRow(value = '') {
         const container = document.getElementById('valuesContainer');
         const row = document.createElement('div');
         row.className = 'value-item';
         row.id = `value-row-${valueIndex}`;
         row.innerHTML = `
             <div class="row align-items-center">
-                <div class="col-md-5 mb-2 mb-md-0">
+                <div class="col-md-10 mb-2 mb-md-0">
                     <input type="text" name="values[${valueIndex}][value]" class="form-control form-control-sm" 
                            value="${value}" placeholder="Value (e.g., Large, Cotton)">
-                </div>
-                <div class="col-md-3 mb-2 mb-md-0">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text p-0">
-                            <input type="color" name="values[${valueIndex}][color_code_picker]" 
-                                   value="${colorCode || '#000000'}" 
-                                   class="border-0" style="width: 30px; height: 30px; cursor: pointer;"
-                                   onchange="this.nextElementSibling.value = this.value">
-                        </span>
-                        <input type="text" name="values[${valueIndex}][color_code]" class="form-control" 
-                               value="${colorCode}" placeholder="#000000" maxlength="7"
-                               onchange="this.previousElementSibling.querySelector('input[type=color]').value = this.value">
-                    </div>
-                    <div class="form-text small">Optional color</div>
-                </div>
-                <div class="col-md-2 mb-2 mb-md-0">
-                    <input type="number" name="values[${valueIndex}][display_order]" class="form-control form-control-sm" 
-                           value="${displayOrder || valueIndex}" min="0" placeholder="Order">
                 </div>
                 <div class="col-md-2 text-end">
                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeValueRow(${valueIndex})">
@@ -237,13 +219,19 @@
         }
     }
 
-    // Auto-generate slug from name
-    document.querySelector('input[name="name"]').addEventListener('input', function() {
+    // Auto-generate slug from name (real-time)
+    document.addEventListener('DOMContentLoaded', function() {
+        const nameInput = document.querySelector('input[name="name"]');
         const slugInput = document.querySelector('input[name="slug"]');
-        if (!slugInput.value) {
-            slugInput.value = this.value.toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/(^-|-$)/g, '');
+        
+        if (nameInput && slugInput) {
+            nameInput.addEventListener('input', function() {
+                slugInput.value = this.value.toLowerCase()
+                    .replace(/[^a-z0-9\s-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-')
+                    .replace(/^-|-$/g, '');
+            });
         }
     });
 

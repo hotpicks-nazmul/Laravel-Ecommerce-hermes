@@ -3,6 +3,7 @@
 @section('title', 'Create Product')
 
 @section('content')
+<div id="imgHoverPreview" class="img-hover-preview"></div>
 <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data" id="product-form">
 @csrf
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -76,13 +77,8 @@
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label for="sku" class="form-label">SKU <span class="text-success">(Auto-generated)</span></label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="sku" name="sku" value="{{ old('sku', $nextSku ?? 'SKU-1000') }}">
-                                <button type="button" class="btn btn-outline-secondary" onclick="generateSKU()" title="Generate New SKU">
-                                    <i class="bi bi-arrow-repeat"></i>
-                                </button>
-                            </div>
-                            <div class="form-text">Auto-generated on page load, can be edited</div>
+                            <input type="text" class="form-control" id="sku" name="sku" value="{{ old('sku', $nextSku ?? 'SKU-1000') }}" readonly>
+                            <div class="form-text">Auto-generated, cannot be edited</div>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -163,6 +159,62 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Product Attributes Section -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Product Attributes</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">Select attributes to add price, quantity, image and SKU for each value</p>
+                
+                 <div class="mb-3">
+                     <label class="form-label">Select Attributes</label>
+                     <select class="form-select" id="productAttributesSelect" multiple="multiple">
+                         @foreach($attributes as $attribute)
+                             @if($attribute->activeValues->count() > 0)
+                             <option value="{{ $attribute->id }}" data-name="{{ $attribute->name }}" data-values='@json($attribute->activeValues->map(function($v) { return ["id" => $v->id, "value" => $v->value]; })->toArray())'>
+                                 {{ $attribute->name }} ({{ $attribute->activeValues->count() }} values)
+                             </option>
+                             @endif
+                         @endforeach
+                     </select>
+                     <div class="form-text">Hold Ctrl/Cmd to select multiple attributes</div>
+                 </div>
+
+                <div id="selectedAttributesContainer"></div>
+
+                <!-- Debug info - uncomment to enable debugging -->
+                <!-- <div id="debugInfo" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border: 1px solid #dee2e6; display: none;">
+                    <strong>Debug Info:</strong><br>
+                    <div id="debugContent"></div>
+                </div> -->
+            </div>
+        </div>
+        
+        <!-- Product Colors Section -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-palette me-2"></i>Product Colors</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">Select colors to add price, quantity, image and SKU for each</p>
+                
+                <div class="mb-3">
+                    <label class="form-label">Select Colors</label>
+                    <select class="form-select" id="productColorsSelect" multiple="multiple">
+                        @foreach($colors as $color)
+                        <option value="{{ $color->id }}" data-name="{{ $color->name }}" data-hex="{{ $color->hex_code }}">
+                            {{ $color->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                    <div class="form-text">Hold Ctrl/Cmd to select multiple colors</div>
+                </div>
+                
+                <div id="selectedColorsContainer"></div>
             </div>
         </div>
     </div>
@@ -318,6 +370,31 @@
         border-bottom: 1px solid #dee2e6;
         padding: 8px 12px;
     }
+    
+    .color-preview {
+        width: 18px;
+        height: 18px;
+        border-radius: 3px;
+        display: inline-block;
+        vertical-align: middle;
+        border: 1px solid #ddd;
+    }
+    
+    .img-hover-preview {
+        position: fixed;
+        z-index: 9999;
+        max-width: 300px;
+        max-height: 300px;
+        display: none;
+        border: 2px solid #fff;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        border-radius: 4px;
+        background: transparent;
+    }
+    
+    .img-hover-preview.visible {
+        display: block;
+    }
 </style>
 @endpush
 
@@ -387,48 +464,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     popover.dispose();
                 }
             }
-        });
+});
     }
     
-    const priceInput = document.getElementById('price');
-    const salePriceInput = document.getElementById('sale_price');
-    
-    if (form && priceInput && salePriceInput) {
-        form.addEventListener('submit', function(e) {
-            const price = parseFloat(priceInput.value) || 0;
-            const salePrice = parseFloat(salePriceInput.value) || 0;
-            
-            if (salePrice > price && salePrice > 0) {
-                e.preventDefault();
-                
-                salePriceInput.classList.add('is-invalid');
-                
-                let feedbackDiv = salePriceInput.parentElement.querySelector('.invalid-feedback');
-                if (!feedbackDiv) {
-                    feedbackDiv = document.createElement('div');
-                    feedbackDiv.className = 'invalid-feedback';
-                    salePriceInput.parentElement.appendChild(feedbackDiv);
-                }
-                feedbackDiv.textContent = 'Sale Price cannot be higher than Regular Price (' + price + ')';
-                
-                salePriceInput.scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'center' 
-                });
-                salePriceInput.focus();
-            }
+    if (stockInput) {
+        const initialQty = stockInput.value || 0;
+        document.querySelectorAll('input[name*="[quantity]"]').forEach(input => {
+            input.value = initialQty;
         });
         
-        priceInput.addEventListener('change', function() {
-            const price = parseFloat(this.value) || 0;
-            const salePrice = parseFloat(salePriceInput.value) || 0;
-            
-            if (salePrice > price && salePrice > 0) {
-                salePriceInput.classList.add('is-invalid');
-                salePriceInput.focus();
-            } else {
-                salePriceInput.classList.remove('is-invalid');
-            }
+        stockInput.addEventListener('change', function() {
+            const qty = this.value || 0;
+            document.querySelectorAll('input[name*="[quantity]"]').forEach(input => {
+                input.value = qty;
+            });
+        });
+        
+        stockInput.addEventListener('keyup', function() {
+            const qty = this.value || 0;
+            document.querySelectorAll('input[name*="[quantity]"]').forEach(input => {
+                input.value = qty;
+            });
         });
     }
 });
@@ -473,6 +529,59 @@ function previewFeaturedImage(input) {
     }
 }
 
+function syncQuantityToAll() {
+    const stockInput = document.getElementById('stock');
+    if (stockInput) {
+        const qty = stockInput.value || 0;
+        document.querySelectorAll('input[name*="[quantity]"]').forEach(input => {
+            input.value = qty;
+        });
+    }
+}
+
+function getStockQty() {
+    const stockInput = document.getElementById('stock');
+    return stockInput ? (stockInput.value || 0) : 0;
+}
+
+function previewAttrImage(input, uniqueId) {
+    const preview = document.getElementById('preview-attr-' + uniqueId);
+    preview.innerHTML = '';
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 80px; max-height: 80px;">';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function previewColorImage(input, colorId) {
+    let preview = document.getElementById('preview-color-' + colorId);
+    if (!preview) {
+        const label = document.querySelector(`label[for="color-img-${colorId}"]`);
+        if (label) {
+            preview = document.createElement('div');
+            preview.id = 'preview-color-' + colorId;
+            preview.className = 'mt-1';
+            label.parentNode.insertBefore(preview, label.nextSibling);
+        }
+    }
+    
+    if (preview) {
+        preview.innerHTML = '';
+        
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 50px; max-height: 50px;">';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+}
+
 function previewGalleryImages(input) {
     const preview = document.getElementById('galleryPreview');
     preview.innerHTML = '';
@@ -490,5 +599,577 @@ function previewGalleryImages(input) {
         });
     }
 }
+
+@php $attributesData = $attributesData ?? []; @endphp
+const attributesData = @json($attributesData);
+
+let selectedAttributes = {};
+let generatedVariants = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('productAttributesSelect').addEventListener('change', function() {
+        const selectedOptions = Array.from(this.selectedOptions);
+        const selectedAttributeIds = selectedOptions.map(opt => opt.value);
+        
+        // Remove deselected attributes
+        Object.keys(selectedAttributes).forEach(attrId => {
+            if (!selectedAttributeIds.includes(attrId)) {
+                delete selectedAttributes[attrId];
+                document.getElementById('attr-values-' + attrId)?.remove();
+            }
+        });
+        
+        // Add newly selected attributes
+        selectedOptions.forEach(option => {
+            const attrId = option.value;
+            if (!selectedAttributes[attrId]) {
+                const attrName = option.dataset.name;
+                const attrValues = JSON.parse(option.dataset.values || '[]');
+                if (attrValues.length > 0) {
+                    selectedAttributes[attrId] = {
+                        name: attrName,
+                        values: []
+                    };
+                    renderAttributeValues(attrId, { name: attrName, values: attrValues });
+                }
+            }
+        });
+        
+        updateGenerateButton();
+        hideVariantsIfNoSelection();
+    });
+});
+
+function renderAttributeValues(attrId, attrData) {
+    const container = document.getElementById('selectedAttributesContainer');
+    if (!container) {
+        console.error('Container not found! Looking for selectedAttributesContainer');
+        return;
+    }
+    let html = `
+    <div class="card mb-3" id="attr-values-${attrId}">
+        <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+            <strong>${attrData.name}</strong>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeAttributeValues('${attrId}')">
+                <i class="bi bi-trash"></i> Remove
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-sm table-bordered mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 30%;">Value</th>
+                        <th style="width: 20%;">Price (৳)</th>
+                        <th style="width: 15%;">Quantity</th>
+                        <th style="width: 25%;">SKU</th>
+                        <th style="width: 10%;" class="text-center">Image</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    if (attrData.values && attrData.values.length > 0) {
+        attrData.values.forEach(value => {
+            html += `
+            <tr>
+                <td>
+                    <input type="hidden" name="product_attributes[${attrId}][values][${value.id}][value_id]" value="${value.id}">
+                    <input type="hidden" name="product_attributes[${attrId}][values][${value.id}][value_name]" value="${value.value}">
+                    ${value.value}
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${value.id}][price]" value="0" min="0" step="0.01" placeholder="0.00">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${value.id}][quantity]" value="${getStockQty()}" min="0" placeholder="0">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${value.id}][sku]" value="${getNextSku()}" readonly>
+                </td>
+                <td class="text-center">
+                    <input type="file" class="d-none" id="attr-img-${attrId}-${value.id}" name="product_attributes[${attrId}][values][${value.id}][image]" accept="image/*" onchange="previewAttrImage(this, '${attrId}-${value.id}')">
+                    <label for="attr-img-${attrId}-${value.id}" class="btn btn-sm btn-outline-secondary mb-0">
+                        <i class="bi bi-image"></i>
+                    </label>
+                    <div id="preview-attr-${attrId}-${value.id}" class="mt-1"></div>
+                </td>
+            </tr>
+            `;
+        });
+    } else {
+        html += `
+            <tr>
+                <td colspan="5" class="text-center text-muted">No values available for this attribute</td>
+            </tr>
+        `;
+    }
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+    </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', html);
+    
+    // Store the values for reference
+    selectedAttributes[attrId].values = attrData.values.reduce((acc, v) => {
+        acc[v.id] = v;
+        return acc;
+    }, {});
+    
+    // Add event listeners to checkboxes
+    document.querySelectorAll(`#attr-values-${attrId} .attr-value-checkbox`).forEach(cb => {
+        cb.addEventListener('change', function() {
+            const attrId = this.dataset.attrId;
+            const valueId = this.dataset.valueId;
+            
+            if (this.checked) {
+                if (!selectedAttributes[attrId].values.find(v => v.id == valueId)) {
+                    selectedAttributes[attrId].values.push({
+                        id: valueId,
+                        name: this.dataset.valueName
+                    });
+                }
+            } else {
+                selectedAttributes[attrId].values = selectedAttributes[attrId].values.filter(v => v.id != valueId);
+            }
+            
+            updateGenerateButton();
+            hideVariantsIfNoSelection();
+        });
+    });
+}
+
+function removeAttributeValues(attrId) {
+    // Remove the attribute values container
+    document.getElementById('attr-values-' + attrId)?.remove();
+    
+    // Remove from selectedAttributes
+    delete selectedAttributes[attrId];
+    
+    // Update dropdown selection
+    const select = document.getElementById('productAttributesSelect');
+    const option = select.querySelector(`option[value="${attrId}"]`);
+    if (option) {
+        option.selected = false;
+    }
+    
+    updateGenerateButton();
+    hideVariantsIfNoSelection();
+}
+
+function updateGenerateButton() {
+    const btn = document.getElementById('generateVariantsBtn');
+    const hasAttributes = Object.keys(selectedAttributes).length > 0;
+    const hasValues = Object.values(selectedAttributes).some(a => a.values.length > 0);
+    btn.disabled = !(hasAttributes && hasValues);
+}
+
+function hideVariantsIfNoSelection() {
+    const hasAnyValues = Object.values(selectedAttributes).some(a => a.values.length > 0);
+    if (!hasAnyValues) {
+        document.getElementById('variantsSection').style.display = 'none';
+        generatedVariants = [];
+    }
+}
+
+function generateVariants() {
+    const combinations = [];
+    const attrKeys = Object.keys(selectedAttributes);
+    
+    if (attrKeys.length === 0) return;
+    
+    function combine(index, current) {
+        if (index === attrKeys.length) {
+            combinations.push({...current});
+            return;
+        }
+        
+        const attrId = attrKeys[index];
+        const attr = selectedAttributes[attrId];
+        
+        if (attr.values.length === 0) {
+            combine(index + 1, current);
+        } else {
+            attr.values.forEach(value => {
+                current[attrId] = { attrId, attrName: attr.name, valueId: value.id, valueName: value.name };
+                combine(index + 1, {...current});
+            });
+        }
+    }
+    
+    combine(0, {});
+    
+    generatedVariants = combinations.map((combo, idx) => {
+        const variantKey = Object.values(combo).map(v => v.valueName).join(' / ');
+        return {
+            id: idx,
+            combination: combo,
+            name: variantKey,
+            sku: getNextSku(),
+            price: '',
+            stock: getStockQty(),
+            image: null
+        };
+    });
+    
+    renderVariants();
+    document.getElementById('variantsSection').style.display = 'block';
+}
+
+function renderVariants() {
+    const container = document.getElementById('variantsContainer');
+    
+    let html = `
+    <div class="table-responsive">
+        <table class="table table-sm table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>Variant</th>
+                    <th style="width: 120px;">SKU</th>
+                    <th style="width: 100px;">Price</th>
+                    <th style="width: 80px;">Stock</th>
+                    <th style="width: 50px;">Image</th>
+                    <th style="width: 40px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    if (generatedVariants.length === 0) {
+        html += `
+        <tr>
+            <td colspan="6" class="text-center text-muted py-3">
+                No variants generated. Select attribute values and click "Generate Variants"
+            </td>
+        </tr>
+        `;
+    } else {
+        generatedVariants.forEach((variant, idx) => {
+            html += `
+            <tr>
+                <td>
+                    <input type="hidden" name="variants[${idx}][combination]" value="${JSON.stringify(variant.combination)}">
+                    <span class="badge bg-primary">${variant.name}</span>
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="variants[${idx}][sku]" 
+                           value="${variant.sku}" readonly>
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="variants[${idx}][price]" 
+                           value="${variant.price}" placeholder="0.00" step="0.01" min="0">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="variants[${idx}][stock]" 
+                           value="${variant.stock}" min="0">
+                </td>
+                <td>
+                    <input type="file" class="form-control form-control-sm" name="variants[${idx}][image]" accept="image/*">
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeVariant(${idx})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+            `;
+        });
+    }
+    
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+}
+
+function removeVariant(idx) {
+    generatedVariants.splice(idx, 1);
+    renderVariants();
+}
+
+function generateAllCombinations() {
+    generateVariants();
+}
+
+// ==================== Product Attributes Section ====================
+let selectedProductAttributes = {};
+let skuCounter = 0;
+let nextUniqueSku = '{{ $nextUniqueSku ?? "SKU-" . date("YmdHis") }}';
+
+function getNextSku() {
+    const baseSku = nextUniqueSku || 'SKU-' + new Date().getTime();
+    const parts = baseSku.split('-');
+    let num = 0;
+    if (parts.length >= 3) {
+        num = parseInt(parts[parts.length - 1]) || 0;
+    } else if (parts.length === 2) {
+        num = parseInt(parts[1]) || 0;
+    }
+    skuCounter++;
+    // Build SKU: SKU-YYYYMMDD-nnn or SKU-YYYYMMDDHHMMSS-nnn
+    if (parts.length >= 3) {
+        parts[parts.length - 1] = num + skuCounter;
+        return parts.join('-');
+    }
+    return 'SKU-' + (num + skuCounter);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Show debug info (commented out for production)
+    // updateDebugInfo();
+});
+
+// function updateDebugInfo() {
+//     const select = document.getElementById('productAttributesSelect');
+//     const debugDiv = document.getElementById('debugInfo');
+//     const debugContent = document.getElementById('debugContent');
+
+//     if (debugDiv && debugContent) {
+//         let info = 'Attributes found: ' + (select ? select.options.length : 0) + '<br>';
+//         info += 'Selected attributes: ';
+
+//         const selected = Array.from(select.selectedOptions).map(opt => opt.dataset.name);
+//         info += selected.join(', ') + '<br>';
+
+//         // Show first option data attributes
+//         if (select && select.options.length > 0) {
+//             const firstOption = select.options[0];
+//             info += 'First option data-attribute-id: ' + firstOption.value + '<br>';
+//             info += 'First option data-attribute-name: ' + firstOption.dataset.name + '<br>';
+//             info += 'First option data-values: ' + firstOption.dataset.values + '<br>';
+//         }
+
+//         info += 'selectedProductAttributes keys: ' + Object.keys(selectedProductAttributes).join(', ') + '<br>';
+
+//         debugContent.innerHTML = info;
+//         debugDiv.style.display = 'block';
+//     }
+// }
+
+function renderProductAttribute(attrId, attrName, values) {
+    const container = document.getElementById('selectedAttributesContainer');
+    if (!container) {
+        console.error('Container not found!');
+        return;
+    }
+    let html = `
+    <div class="card mb-3" id="product-attr-${attrId}">
+        <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+            <strong>${attrName}</strong>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeProductAttribute('${attrId}')">
+                <i class="bi bi-trash"></i> Remove
+            </button>
+        </div>
+        <div class="card-body py-2">
+            <table class="table table-sm table-bordered mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 30%;">Value</th>
+                        <th style="width: 20%;">Price (৳)</th>
+                        <th style="width: 15%;">Quantity</th>
+                        <th style="width: 25%;">SKU</th>
+                        <th style="width: 10%;">Image</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    values.forEach(val => {
+        html += `
+            <tr>
+                <td>
+                    <input type="hidden" name="product_attributes[${attrId}][values][${val.id}][value_id]" value="${val.id}">
+                    <input type="hidden" name="product_attributes[${attrId}][values][${val.id}][value_name]" value="${val.value}">
+                    ${val.value}
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${val.id}][price]" value="0" min="0" step="0.01" placeholder="0.00">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${val.id}][quantity]" value="${getStockQty()}" min="0" placeholder="0">
+                </td>
+<td>
+                            <input type="text" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${val.id}][sku]" value="${getNextSku()}" readonly>
+                        </td>
+                <td>
+                    <input type="file" class="d-none" id="attr-${attrId}-${val.id}" name="product_attributes[${attrId}][values][${val.id}][image]" accept="image/*" onchange="previewAttrImage(this, '${attrId}-${val.id}')">
+                    <label for="attr-${attrId}-${val.id}" class="btn btn-sm btn-outline-secondary mb-0">
+                        <i class="bi bi-image"></i>
+                    </label>
+                    <div id="preview-attr-${attrId}-${val.id}" class="mt-1"></div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+    </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', html);
+    selectedProductAttributes[attrId].values = values.reduce((acc, v) => {
+        acc[v.id] = v;
+        return acc;
+    }, {});
+}
+
+function removeProductAttribute(attrId) {
+    delete selectedProductAttributes[attrId];
+    document.getElementById('product-attr-' + attrId)?.remove();
+    
+    // Update dropdown selection
+    const select = document.getElementById('productAttributesSelect');
+    const option = select.querySelector(`option[value="${attrId}"]`);
+    if (option) {
+        option.selected = false;
+    }
+    
+    updateProductAttributeSection();
+    updateDebugInfo();
+}
+
+function updateProductAttributeSection() {
+    const container = document.getElementById('selectedAttributesContainer');
+    if (Object.keys(selectedProductAttributes).length === 0) {
+        container.innerHTML = '';
+    }
+}
+
+// ==================== Product Colors Section ====================
+let selectedProductColors = {};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const productColorsSelect = document.getElementById('productColorsSelect');
+    if (productColorsSelect) {
+        productColorsSelect.addEventListener('change', function() {
+            const selectedOptions = Array.from(this.selectedOptions);
+            const colorIds = selectedOptions.map(opt => opt.value);
+            
+            // Remove deselected colors
+            Object.keys(selectedProductColors).forEach(id => {
+                if (!colorIds.includes(id)) {
+                    delete selectedProductColors[id];
+                    document.getElementById('product-color-' + id)?.remove();
+                }
+            });
+            
+            // Add new colors
+            selectedOptions.forEach(option => {
+                const colorId = option.value;
+                if (!selectedProductColors[colorId]) {
+                    const colorName = option.getAttribute('data-name');
+                    const hexCode = option.getAttribute('data-hex');
+                    selectedProductColors[colorId] = {
+                        name: colorName,
+                        hex_code: hexCode
+                    };
+                    renderProductColor(colorId, colorName, hexCode);
+                }
+            });
+            
+            updateProductColorsSection();
+        });
+    }
+});
+
+function renderProductColor(colorId, colorName, hexCode) {
+    const container = document.getElementById('selectedColorsContainer');
+    let html = `
+    <div class="card mb-3" id="product-color-${colorId}">
+        <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+            <strong>
+                <span style="background-color: ${hexCode}; width: 20px; height: 20px; display: inline-block; border-radius: 50%; border: 1px solid #ddd; vertical-align: middle; margin-right: 8px;"></span>
+                ${colorName}
+            </strong>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeProductColor('${colorId}')">
+                <i class="bi bi-trash"></i> Remove
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-sm table-bordered mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 25%;">Price (৳)</th>
+                        <th style="width: 25%;">Quantity</th>
+                        <th style="width: 35%;">SKU</th>
+                        <th style="width: 15%;" class="text-center">Image</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <input type="number" class="form-control form-control-sm" name="product_colors[${colorId}][price]" value="0" min="0" step="0.01" placeholder="0.00">
+                        </td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm" name="product_colors[${colorId}][quantity]" value="${getStockQty()}" min="0" placeholder="0">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm" name="product_colors[${colorId}][sku]" value="${getNextSku()}" readonly>
+                        </td>
+                        <td class="text-center">
+                            <input type="file" class="d-none" id="color-img-${colorId}" name="product_colors[${colorId}][image]" accept="image/*" onchange="previewColorImage(this, '${colorId}')">
+                            <label for="color-img-${colorId}" class="btn btn-sm btn-outline-secondary mb-0">
+                                <i class="bi bi-image"></i>
+                            </label>
+                            <div id="preview-color-${colorId}" class="mt-1"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', html);
+}
+
+function removeProductColor(colorId) {
+    delete selectedProductColors[colorId];
+    document.getElementById('product-color-' + colorId)?.remove();
+    
+    // Deselect in dropdown
+    const select = document.getElementById('productColorsSelect');
+    Array.from(select.options).forEach(opt => {
+        if (opt.value === colorId) opt.selected = false;
+    });
+    
+    updateProductColorsSection();
+}
+
+function updateProductColorsSection() {
+    const container = document.getElementById('selectedColorsContainer');
+    if (Object.keys(selectedProductColors).length === 0) {
+        container.innerHTML = '';
+    }
+}
+
+document.addEventListener('mouseover', function(e) {
+    if (e.target.tagName === 'IMG' && e.target.src && e.target.src.includes('/storage/')) {
+        const preview = document.getElementById('imgHoverPreview');
+        preview.innerHTML = '<img src="' + e.target.src + '" style="width: 100%; height: 100%; object-fit: contain; background: #fff;">';
+        preview.classList.add('visible');
+    }
+});
+
+document.addEventListener('mouseout', function(e) {
+    if (e.target.tagName === 'IMG' && e.target.src && e.target.src.includes('/storage/')) {
+        const preview = document.getElementById('imgHoverPreview');
+        preview.classList.remove('visible');
+    }
+});
+
+document.addEventListener('mousemove', function(e) {
+    const preview = document.getElementById('imgHoverPreview');
+    if (preview.classList.contains('visible')) {
+        const x = e.clientX + 15;
+        const y = e.clientY + 15;
+        preview.style.left = x + 'px';
+        preview.style.top = y + 'px';
+    }
+});
 </script>
 @endpush

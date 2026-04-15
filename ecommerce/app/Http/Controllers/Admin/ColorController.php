@@ -198,6 +198,22 @@ class ColorController extends Controller
     }
 
     /**
+     * Delete color image via AJAX.
+     */
+    public function deleteImage(Color $color)
+    {
+        if ($color->image) {
+            ImageHelper::deleteImage($color->image);
+            $color->update(['image' => null]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Image deleted successfully.',
+        ]);
+    }
+
+    /**
      * Toggle color status.
      */
     public function toggleStatus(Color $color)

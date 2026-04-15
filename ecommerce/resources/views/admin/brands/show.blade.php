@@ -133,8 +133,8 @@
                             @foreach($products as $product)
                             <tr>
                                 <td>
-                                    @if($product->featured_image)
-                                        <img src="{{ asset('storage/' . $product->featured_image) }}" alt="{{ $product->name }}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
+                                    @if($product->featured_image_url)
+                                        <img src="{{ $product->featured_image_url }}" alt="{{ $product->name }}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
                                     @else
                                         <div class="bg-secondary rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                                             <i class="bi bi-box text-white"></i>
@@ -179,7 +179,7 @@
                 </div>
                 @if($products->hasPages())
                 <div class="card-footer bg-white">
-                    {{ $products->links() }}
+                    {{ $products->links('vendor.pagination.bootstrap-5-admin') }}
                 </div>
                 @endif
                 @else
@@ -202,8 +202,8 @@
                 <h6 class="mb-0"><i class="bi bi-image me-2"></i>Brand Logo</h6>
             </div>
             <div class="card-body text-center">
-                @if($brand->logo)
-                    <img src="{{ asset('storage/' . $brand->logo) }}" alt="{{ $brand->name }}" class="img-thumbnail" style="max-width: 100%; max-height: 200px;">
+                @if($brand->logo_url)
+                    <img src="{{ $brand->logo_url }}" alt="{{ $brand->name }}" class="img-thumbnail" style="max-width: 100%; max-height: 200px;">
                 @else
                     <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 150px;">
                         <div class="text-center text-muted">

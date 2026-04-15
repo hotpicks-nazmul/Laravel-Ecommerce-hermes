@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductBundleItem;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\ImageHelper;
 
 class ProductBundleController extends Controller
 {
@@ -157,9 +158,18 @@ class ProductBundleController extends Controller
         $data['bundle_price'] = $data['bundle_price'] ?? 0;
         $data['discount_value'] = $data['discount_value'] ?? 0;
 
-        // Upload featured image
+        // Upload featured image with WebP conversion
         if ($request->hasFile('featured_image')) {
-            $data['featured_image'] = $request->file('featured_image')->store('bundles', 'public');
+            if (ImageHelper::isValidImage($request->file('featured_image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('featured_image'),
+                    'bundles',      // directory
+                    1920,           // max width
+                    300,            // thumbnail width
+                    85              // quality
+                );
+                $data['featured_image'] = $imageResult['path'];
+            }
         }
 
         $bundle = ProductBundle::create($data);
@@ -239,13 +249,22 @@ class ProductBundleController extends Controller
         $data['bundle_price'] = $data['bundle_price'] ?? 0;
         $data['discount_value'] = $data['discount_value'] ?? 0;
 
-        // Upload featured image
+        // Upload featured image with WebP conversion
         if ($request->hasFile('featured_image')) {
             // Delete old image
             if ($productBundle->featured_image) {
-                Storage::disk('public')->delete($productBundle->featured_image);
+                ImageHelper::deleteImage($productBundle->featured_image);
             }
-            $data['featured_image'] = $request->file('featured_image')->store('bundles', 'public');
+            if (ImageHelper::isValidImage($request->file('featured_image'))) {
+                $imageResult = ImageHelper::processImage(
+                    $request->file('featured_image'),
+                    'bundles',      // directory
+                    1920,           // max width
+                    300,            // thumbnail width
+                    85              // quality
+                );
+                $data['featured_image'] = $imageResult['path'];
+            }
         }
 
         $productBundle->update($data);
@@ -264,7 +283,7 @@ class ProductBundleController extends Controller
     {
         // Delete featured image
         if ($productBundle->featured_image) {
-            Storage::disk('public')->delete($productBundle->featured_image);
+            ImageHelper::deleteImage($productBundle->featured_image);
         }
 
         $productBundle->delete();
@@ -338,7 +357,7 @@ class ProductBundleController extends Controller
             case 'delete':
                 foreach ($bundles->get() as $bundle) {
                     if ($bundle->featured_image) {
-                        Storage::disk('public')->delete($bundle->featured_image);
+                        ImageHelper::deleteImage($bundle->featured_image);
                     }
                 }
                 $bundles->delete();

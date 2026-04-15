@@ -94,35 +94,13 @@
                         @forelse($attribute->values as $value)
                         <div class="value-item" data-id="{{ $value->id }}">
                             <div class="row align-items-center">
-                                <div class="col-md-4 mb-2 mb-md-0">
+                                <div class="col-md-10 mb-2 mb-md-0">
                                     <input type="text" class="form-control form-control-sm value-input" 
                                            value="{{ $value->value }}" placeholder="Value"
                                            data-id="{{ $value->id }}">
                                 </div>
-                                <div class="col-md-3 mb-2 mb-md-0">
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text p-0">
-                                            <input type="color" value="{{ $value->color_code ?? '#000000' }}" 
-                                                   class="border-0 color-picker" style="width: 30px; height: 30px; cursor: pointer;"
-                                                   data-id="{{ $value->id }}">
-                                        </span>
-                                        <input type="text" class="form-control color-code-input" 
-                                               value="{{ $value->color_code }}" placeholder="#000000" maxlength="7"
-                                               data-id="{{ $value->id }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-2 mb-2 mb-md-0">
-                                    <input type="number" class="form-control form-control-sm order-input" 
-                                           value="{{ $value->display_order }}" min="0" placeholder="Order"
-                                           data-id="{{ $value->id }}">
-                                </div>
-                                <div class="col-md-2">
-                                    <span class="badge {{ $value->is_active ? 'bg-success' : 'bg-secondary' }}">
-                                        {{ $value->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                </div>
-                                <div class="col-md-1 text-end">
-                                    <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="saveValue({{ $value->id }})" title="Save">
+                                <div class="col-md-2 text-end">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="saveValue({{ $value->id }})" title="Save">
                                         <i class="bi bi-check-lg"></i>
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteValue({{ $value->id }})" title="Delete">
@@ -140,25 +118,11 @@
                     <div class="mt-4 pt-3 border-top">
                         <h6 class="mb-3">Add New Value</h6>
                         <div class="row align-items-end">
-                            <div class="col-md-4 mb-2 mb-md-0">
+                            <div class="col-md-10 mb-2 mb-md-0">
                                 <label class="form-label small">Value</label>
                                 <input type="text" id="newValue" class="form-control form-control-sm" placeholder="e.g., Large">
                             </div>
-                            <div class="col-md-3 mb-2 mb-md-0">
-                                <label class="form-label small">Color Code</label>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text p-0">
-                                        <input type="color" id="newColorPicker" value="#000000" 
-                                               class="border-0" style="width: 30px; height: 30px; cursor: pointer;">
-                                    </span>
-                                    <input type="text" id="newColorCode" class="form-control" placeholder="#000000" maxlength="7">
-                                </div>
-                            </div>
-                            <div class="col-md-2 mb-2 mb-md-0">
-                                <label class="form-label small">Order</label>
-                                <input type="number" id="newOrder" class="form-control form-control-sm" value="0" min="0">
-                            </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <button type="button" class="btn btn-sm btn-primary w-100" onclick="addNewValue()">
                                     <i class="bi bi-plus-lg me-1"></i> Add
                                 </button>
@@ -267,54 +231,58 @@
 @push('scripts')
 <script>
     // Sync color picker and text input
-    document.getElementById('newColorPicker').addEventListener('input', function() {
-        document.getElementById('newColorCode').value = this.value;
-    });
-    document.getElementById('newColorCode').addEventListener('input', function() {
-        if (/^#[0-9A-Fa-f]{6}$/.test(this.value)) {
-            document.getElementById('newColorPicker').value = this.value;
-        }
-    });
-
-    // Sync existing color pickers
-    document.querySelectorAll('.color-picker').forEach(picker => {
-        picker.addEventListener('input', function() {
-            const id = this.dataset.id;
-            document.querySelector(`.color-code-input[data-id="${id}"]`).value = this.value;
+    if (document.getElementById('newColorPicker')) {
+        document.getElementById('newColorPicker').addEventListener('input', function() {
+            document.getElementById('newColorCode').value = this.value;
         });
-    });
-    document.querySelectorAll('.color-code-input').forEach(input => {
-        input.addEventListener('input', function() {
+    }
+    if (document.getElementById('newColorCode')) {
+        document.getElementById('newColorCode').addEventListener('input', function() {
             if (/^#[0-9A-Fa-f]{6}$/.test(this.value)) {
-                const id = this.dataset.id;
-                document.querySelector(`.color-picker[data-id="${id}"]`).value = this.value;
+                document.getElementById('newColorPicker').value = this.value;
             }
         });
-    });
+    }
+
+    // Sync existing color pickers
+    if (document.querySelectorAll('.color-picker').length) {
+        document.querySelectorAll('.color-picker').forEach(picker => {
+            picker.addEventListener('input', function() {
+                const id = this.dataset.id;
+                document.querySelector(`.color-code-input[data-id="${id}"]`).value = this.value;
+            });
+        });
+    }
+    if (document.querySelectorAll('.color-code-input').length) {
+        document.querySelectorAll('.color-code-input').forEach(input => {
+            input.addEventListener('input', function() {
+                if (/^#[0-9A-Fa-f]{6}$/.test(this.value)) {
+                    const id = this.dataset.id;
+                    document.querySelector(`.color-picker[data-id="${id}"]`).value = this.value;
+                }
+            });
+        });
+    }
 
     // Add new value
     function addNewValue() {
         const value = document.getElementById('newValue').value.trim();
-        const colorCode = document.getElementById('newColorCode').value.trim();
-        const displayOrder = document.getElementById('newOrder').value;
-
+        
         if (!value) {
             alert('Please enter a value');
             return;
         }
 
+        const formData = new FormData();
+        formData.append('value', value);
+
         fetch(`{{ route('admin.attributes.values.store', $attribute->id) }}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({
-                value: value,
-                color_code: colorCode || null,
-                display_order: displayOrder
-            })
+            body: formData
         })
         .then(res => res.json())
         .then(data => {
@@ -329,26 +297,58 @@
     // Save value
     function saveValue(id) {
         const value = document.querySelector(`.value-input[data-id="${id}"]`).value.trim();
-        const colorCode = document.querySelector(`.color-code-input[data-id="${id}"]`).value.trim();
-        const displayOrder = document.querySelector(`.order-input[data-id="${id}"]`).value;
 
         if (!value) {
             alert('Please enter a value');
             return;
         }
 
+        const formData = new FormData();
+        formData.append('value', value);
+
         fetch(`{{ route('admin.attributes.values.update', [$attribute->id, 'VALUE_ID']) }}`.replace('VALUE_ID', id), {
-            method: 'PUT',
+            method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({
-                value: value,
-                color_code: colorCode || null,
-                display_order: displayOrder
-            })
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Error updating value');
+            }
+        });
+    }
+
+    // Save value
+    function saveValue(id) {
+        const value = document.querySelector(`.value-input[data-id="${id}"]`).value.trim();
+        const price = document.querySelector(`.price-input[data-id="${id}"]`).value;
+        const imageInput = document.querySelector(`.image-input[data-id="${id}"]`);
+
+        if (!value) {
+            alert('Please enter a value');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('value', value);
+        formData.append('price', price || '');
+        if (imageInput && imageInput.files.length > 0) {
+            formData.append('image', imageInput.files[0]);
+        }
+
+        fetch(`{{ route('admin.attributes.values.update', [$attribute->id, 'VALUE_ID']) }}`.replace('VALUE_ID', id), {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            },
+            body: formData
         })
         .then(res => res.json())
         .then(data => {
@@ -380,5 +380,21 @@
             }
         });
     }
+
+    // Auto-generate slug from name (real-time)
+    document.addEventListener('DOMContentLoaded', function() {
+        const nameInput = document.querySelector('input[name="name"]');
+        const slugInput = document.querySelector('input[name="slug"]');
+        
+        if (nameInput && slugInput) {
+            nameInput.addEventListener('input', function() {
+                slugInput.value = this.value.toLowerCase()
+                    .replace(/[^a-z0-9\s-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-')
+                    .replace(/^-|-$/g, '');
+            });
+        }
+    });
 </script>
 @endpush

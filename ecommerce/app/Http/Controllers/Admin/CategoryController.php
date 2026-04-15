@@ -285,16 +285,7 @@ class CategoryController extends Controller
         if ($request->hasFile('image')) {
             // Delete old image and thumbnail
             if ($category->image) {
-                $oldPath = str_replace('/storage/', '', $category->image);
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
-                }
-            }
-            if ($category->thumbnail) {
-                $oldThumbPath = str_replace('/storage/', '', $category->thumbnail);
-                if (Storage::disk('public')->exists($oldThumbPath)) {
-                    Storage::disk('public')->delete($oldThumbPath);
-                }
+                ImageHelper::deleteImage($category->image, $category->thumbnail ?? null);
             }
             
             if (ImageHelper::isValidImage($request->file('image'))) {
@@ -338,16 +329,7 @@ class CategoryController extends Controller
 
         // Delete image and thumbnail
         if ($category->image) {
-            $oldPath = str_replace('/storage/', '', $category->image);
-            if (Storage::disk('public')->exists($oldPath)) {
-                Storage::disk('public')->delete($oldPath);
-            }
-        }
-        if ($category->thumbnail) {
-            $oldThumbPath = str_replace('/storage/', '', $category->thumbnail);
-            if (Storage::disk('public')->exists($oldThumbPath)) {
-                Storage::disk('public')->delete($oldThumbPath);
-            }
+            ImageHelper::deleteImage($category->image, $category->thumbnail ?? null);
         }
         
         $category->delete();
@@ -460,16 +442,7 @@ class CategoryController extends Controller
                     } else {
                         // Delete image and thumbnail
                         if ($category->image) {
-                            $oldPath = str_replace('/storage/', '', $category->image);
-                            if (Storage::disk('public')->exists($oldPath)) {
-                                Storage::disk('public')->delete($oldPath);
-                            }
-                        }
-                        if ($category->thumbnail) {
-                            $oldThumbPath = str_replace('/storage/', '', $category->thumbnail);
-                            if (Storage::disk('public')->exists($oldThumbPath)) {
-                                Storage::disk('public')->delete($oldThumbPath);
-                            }
+                            ImageHelper::deleteImage($category->image, $category->thumbnail ?? null);
                         }
                         $category->delete();
                     }

@@ -28,6 +28,8 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 20. **Image Upload Functionality** - Complete solution for uploading and processing images in admin panel
 21. **Content Area & Extra Padding** - Fix for double padding/wrappers in admin pages
 22. **Toast Notification for Status Toggle** - Show success notification when toggling status in tables
+23. **Delete Image Functionality** - Delete button style for existing images with AJAX
+24. **Auto-generate Slug from Name** - Real-time slug generation on name input
 
 ---
 
@@ -2315,4 +2317,259 @@ Note: The layout automatically adds `has-floating-save` class when `floating-sav
 
 ---
 
-*Last updated: March 2026*
+## 23. Delete Image Functionality
+
+This section covers how to add a delete button for existing images in edit pages, with a circular badge style positioned at the top-right corner of the image.
+
+### Route Setup
+
+Add the delete image route in `routes/admin.php`:
+
+```php
+Route::delete('/colors/{color}/image', [\App\Http\Controllers\Admin\ColorController::class, 'deleteImage'])->name('colors.image.delete');
+```
+
+### Controller Method
+
+Add the delete image method in the controller:
+
+```php
+/**
+ * Delete color image via AJAX.
+ */
+public function deleteImage(Color $color)
+{
+    if ($color->image) {
+        ImageHelper::deleteImage($color->image);
+        $color->update(['image' => null]);
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Image deleted successfully.',
+    ]);
+}
+```
+
+### Blade Template (Edit Page)
+
+Add the image display with delete button in the edit blade file:
+
+```html
+@if($color->image)
+<div class="mb-3" id="currentImageContainer">
+    <label class="form-label">Current Image</label>
+    <div class="position-relative d-inline-block" style="display: inline-block;">
+        <div style="width: 80px; height: 80px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+            <img src="{{ asset($color->image) }}" alt="{{ $color->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        <button type="button" class="badge bg-danger rounded-circle border-0 position-absolute p-0"
+            style="top: -4px; right: -4px; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer;"
+            onclick="removeColorImage({{ $color->id }})">
+            <i class="bi bi-x" style="font-size: 12px;"></i>
+        </button>
+    </div>
+    <input type="hidden" name="delete_image" id="deleteImageInput" value="0">
+</div>
+@endif
+```
+
+### JavaScript Implementation
+
+Add this JavaScript in the `@push('scripts')` section:
+
+```javascript
+// Delete existing color image (AJAX)
+function removeColorImage(colorId) {
+    if (!confirm('Delete this image?')) return;
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const imageContainer = document.getElementById('currentImageContainer');
+    
+    fetch(`/admin/colors/${colorId}/image`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            const deleteInput = document.getElementById('deleteImageInput');
+            if (deleteInput) {
+                deleteInput.value = '1';
+            }
+            imageContainer.remove();
+        } else {
+            alert(data.message || 'Error deleting image');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error deleting image: ' + error.message);
+    });
+}
+```
+
+### Update Method in Controller
+
+Handle the delete_image field in the update method:
+
+```php
+// Handle image deletion
+if ($request->delete_image === '1' && $color->image) {
+    ImageHelper::deleteImage($color->image);
+    $color->update(['image' => null]);
+}
+
+// Handle new image upload
+if ($request->hasFile('image')) {
+    // Delete old image if exists
+    if ($color->image) {
+        ImageHelper::deleteImage($color->image);
+    }
+    // Process and save new image
+    // ...
+}
+```
+
+### Key Points
+
+| Element | Description |
+|---------|-------------|
+| `currentImageContainer` | Container div with ID for removal |
+| `deleteImageInput` | Hidden input to track deletion |
+| `removeColorImage()` | JS function for AJAX delete |
+| DELETE method | Use proper HTTP method |
+
+---
+
+## 24. Auto-generate Slug from Name
+
+This section covers how to implement real-time slug auto-generation when typing in the name field of create/edit forms. The slug field automatically populates as the user types in the name field.
+
+### Frontend JavaScript Implementation
+
+Add this JavaScript in the `@push('scripts')` section of your create/edit blade template:
+
+```javascript
+// Auto-generate slug from name (real-time)
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.querySelector('input[name="name"]');
+    const slugInput = document.querySelector('input[name="slug"]');
+    
+    if (nameInput && slugInput) {
+        nameInput.addEventListener('input', function() {
+            slugInput.value = this.value.toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')      // Remove non-alphanumeric except spaces/hyphens
+                .replace(/\s+/g, '-')              // Replace spaces with hyphens
+                .replace(/-+/g, '-')               // Replace multiple hyphens with one
+                .replace(/^-|-$/g, '');            // Remove leading/trailing hyphens
+        });
+    }
+});
+```
+
+### HTML Form Fields
+
+```html
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Name <span class="text-danger">*</span></label>
+        <input type="text" name="name" class="form-control" 
+               value="{{ old('name', $attribute->name ?? '') }}" placeholder="e.g., Size, Material">
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Slug</label>
+        <input type="text" name="slug" class="form-control" 
+               value="{{ old('slug', $attribute->slug ?? '') }}" placeholder="Auto-generated from name">
+        <div class="form-text">Leave empty to auto-generate</div>
+    </div>
+</div>
+```
+
+### Backend Fallback (Controller)
+
+In the controller, provide a fallback to generate slug if left empty:
+
+```php
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'slug' => 'nullable|string|max:255|unique:attributes,slug',
+    ]);
+
+    $attribute = Attribute::create([
+        'name' => $validated['name'],
+        'slug' => $validated['slug'] ?? Str::slug($validated['name']),
+        // ... other fields
+    ]);
+}
+
+public function update(Request $request, Attribute $attribute)
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'slug' => 'nullable|string|max:255|unique:attributes,slug,' . $attribute->id,
+    ]);
+
+    $attribute->update([
+        'name' => $validated['name'],
+        'slug' => $validated['slug'] ?? Str::slug($validated['name']),
+        // ... other fields
+    ]);
+}
+```
+
+### Model Auto-generation (Optional)
+
+Alternatively, add slug auto-generation in the model boot method:
+
+```php
+protected static function boot()
+{
+    parent::boot();
+
+    static::creating(function ($attribute) {
+        if (empty($attribute->slug)) {
+            $attribute->slug = Str::slug($attribute->name);
+        }
+    });
+
+    static::updating(function ($attribute) {
+        if ($attribute->isDirty('name') && empty($attribute->slug)) {
+            $attribute->slug = Str::slug($attribute->name);
+        }
+    });
+}
+```
+
+### Key Points
+
+| Element | Description |
+|---------|-------------|
+| `DOMContentLoaded` | Wrap in event listener to ensure DOM is loaded |
+| Null checks | Check `nameInput && slugInput` exist before adding listener |
+| Lowercase | Convert to lowercase before replacing characters |
+| `-` replacement | Remove special chars, replace spaces with hyphens |
+| Backend fallback | Always provide Str::slug() in controller as backup |
+
+### Common Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| Slug not generating | JavaScript error before slug code | Check browser console for errors |
+| Null elements errors | References to non-existent elements | Add null checks before `.addEventListener()` |
+| Duplicate slugs | Slug not unique in database | Add unique validation rule |
+
+---
+
+*Last updated: April 2026*

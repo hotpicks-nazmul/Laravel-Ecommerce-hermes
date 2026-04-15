@@ -25,7 +25,7 @@ class ImageHelper
         $originalExtension = strtolower($file->getClientOriginalExtension());
         
         // Generate unique filename
-        $filename = uniqid() . '_' . time();
+        $filename = uniqid() . '_' . time() . '.jpg';
         
         // Create image resource based on extension
         $imageResource = self::createImageFromFile($file->getRealPath(), $originalExtension);

@@ -70,9 +70,9 @@
                     <div class="row align-items-center">
                         <div class="col-md-6 mb-3 mb-md-0">
                             <label class="form-label">Hex Color Code <span class="text-danger">*</span></label>
-                            <div class="input-group">
+                            <div class="input-group" style="max-width: 280px;">
                                 <input type="color" id="colorPicker" value="{{ old('hex_code', '#000000') }}" 
-                                       class="form-control form-control-color" style="width: 60px;">
+                                       class="form-control form-control-color">
                                 <input type="text" name="hex_code" id="hexCode" class="form-control @error('hex_code') is-invalid @enderror" 
                                        value="{{ old('hex_code', '#000000') }}" placeholder="#000000" maxlength="7">
                                 @error('hex_code')
@@ -126,12 +126,16 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">Swatch Image</label>
-                        <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" 
+                        <input type="file" name="image" id="imageInput" class="form-control @error('image') is-invalid @enderror" 
                                accept="image/jpeg,image/png,image/jpg,image/webp">
                         <div class="form-text">Upload a texture or pattern image for this color (e.g., wood grain, fabric pattern)</div>
                         @error('image')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        <div id="imagePreview" class="mt-3" style="display: none;">
+                            <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-height: 150px;">
+                            <button type="button" id="removeImage" class="btn btn-sm btn-outline-danger ms-2">Remove</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -277,8 +281,23 @@
         height: 16px;
         border-radius: 50%;
         display: inline-block;
-        vertical-align: middle;
-        border: 1px solid #ddd;
+    }
+    #colorPicker,
+    #hexCode {
+        height: 38px !important;
+    }
+    #colorPicker {
+        width: 50px;
+        padding: 2px;
+        border-radius: 4px 0 0 4px;
+        cursor: pointer;
+    }
+    #colorPicker::-webkit-color-swatch-wrapper {
+        padding: 2px;
+    }
+    #colorPicker::-webkit-color-swatch {
+        border-radius: 2px;
+        border: none;
     }
 </style>
 @endpush
@@ -324,22 +343,53 @@
         colorPreview.style.backgroundColor = hex;
     }
 
-    // Auto-generate slug and code from name
-    document.querySelector('input[name="name"]').addEventListener('input', function() {
+    // Auto-generate slug and code from name (real-time)
+    document.addEventListener('DOMContentLoaded', function() {
+        const nameInput = document.querySelector('input[name="name"]');
         const slugInput = document.querySelector('input[name="slug"]');
         const codeInput = document.querySelector('input[name="code"]');
         
-        if (!slugInput.value) {
-            slugInput.value = this.value.toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/(^-|-$)/g, '');
-        }
-        
-        if (!codeInput.value) {
-            codeInput.value = this.value.toUpperCase()
-                .replace(/[^A-Z]/g, '')
-                .substring(0, 3);
+        if (nameInput && slugInput) {
+            nameInput.addEventListener('input', function() {
+                slugInput.value = this.value.toLowerCase()
+                    .replace(/[^a-z0-9\s-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-')
+                    .replace(/^-|-$/g, '');
+                
+                if (codeInput) {
+                    codeInput.value = this.value.toUpperCase()
+                        .replace(/[^A-Z]/g, '')
+                        .substring(0, 3);
+                }
+            });
         }
     });
+
+    // Image preview
+    const imageInput = document.getElementById('imageInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const removeImage = document.getElementById('removeImage');
+
+    if (imageInput) {
+        imageInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        removeImage.addEventListener('click', function() {
+            imageInput.value = '';
+            previewImg.src = '';
+            imagePreview.style.display = 'none';
+        });
+    }
 </script>
 @endpush
