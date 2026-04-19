@@ -45,7 +45,7 @@ class FlashDealController extends Controller
             'title' => 'required|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
-            'status' => 'required|in:active,inactive',
+            'status' => 'required|in:active,inactive,expired',
             'background_color' => 'nullable|string|max:20',
             'text_color' => 'nullable|string|max:20',
             'banner_image' => 'nullable|string',
@@ -188,6 +188,13 @@ class FlashDealController extends Controller
             'max_quantities.*' => 'required|integer|min:1',
         ]);
 
+        // Validate that max_quantity >= min_quantity for each product
+        foreach ($request->product_ids as $index => $productId) {
+            if ($request->max_quantities[$index] < $request->min_quantities[$index]) {
+                return back()->with('error', 'Maximum quantity must be greater than or equal to minimum quantity for each product.');
+            }
+        }
+
         foreach ($request->product_ids as $index => $productId) {
             $flashDeal->products()->syncWithoutDetaching([
                 $productId => [
@@ -227,6 +234,11 @@ class FlashDealController extends Controller
             'min_quantity' => 'required|integer|min:1',
             'max_quantity' => 'required|integer|min:1',
         ]);
+
+        // Validate that max_quantity >= min_quantity
+        if ($request->max_quantity < $request->min_quantity) {
+            return back()->with('error', 'Maximum quantity must be greater than or equal to minimum quantity.');
+        }
 
         $flashDeal->products()->updateExistingPivot($productId, [
             'discount' => $request->discount,

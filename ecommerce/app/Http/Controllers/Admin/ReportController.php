@@ -410,13 +410,24 @@ class ReportController extends Controller
             }
         }
         
-        // Get product IDs that match search
+        // Get product IDs that match search or category
         $productIds = null;
-        if ($search) {
-            $matchingProducts = Product::where('name', 'like', "%{$search}%")
-                ->orWhere('sku', 'like', "%{$search}%")
-                ->pluck('id');
-            $wishlistQuery->whereIn('product_id', $matchingProducts);
+        if ($search || $categoryId) {
+            $productQuery = Product::query();
+            
+            if ($search) {
+                $productQuery->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('sku', 'like', "%{$search}%");
+                });
+            }
+            
+            if ($categoryId) {
+                $productQuery->where('category_id', $categoryId);
+            }
+            
+            $productIds = $productQuery->pluck('id');
+            $wishlistQuery->whereIn('product_id', $productIds);
         }
         
         // Apply sorting
@@ -466,20 +477,47 @@ class ReportController extends Controller
                 }
             }
         }
-        
-        // Calculate summary statistics
-        $totalWishlists = Wishlist::count();
-        $uniqueProducts = Wishlist::distinct('product_id')->count('product_id');
-        $uniqueUsers = Wishlist::distinct('user_id')->count('user_id');
+
+        // Calculate summary statistics (respecting filters)
+        $statsQuery = Wishlist::query();
+
+        // Apply date range filter to stats
+        if ($dateRange) {
+            $dates = explode(' to ', $dateRange);
+            if (count($dates) == 2) {
+                $startDate = trim($dates[0]);
+                $endDate = trim($dates[1]);
+                $statsQuery->whereBetween('created_at', [$startDate, $endDate . ' 23:59:59']);
+            }
+        }
+
+        // Apply product filter to stats
+        if ($search || $categoryId) {
+            $productQuery = Product::query();
+            if ($search) {
+                $productQuery->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('sku', 'like', "%{$search}%");
+                });
+            }
+            if ($categoryId) {
+                $productQuery->where('category_id', $categoryId);
+            }
+            $statsQuery->whereIn('product_id', $productQuery->pluck('id'));
+        }
+
+        $totalWishlists = (clone $statsQuery)->count();
+        $uniqueProducts = (clone $statsQuery)->distinct('product_id')->count('product_id');
+        $uniqueUsers = (clone $statsQuery)->distinct('user_id')->count('user_id');
         $avgWishlistPerProduct = $uniqueProducts > 0 ? round($totalWishlists / $uniqueProducts, 1) : 0;
-        
-        // Top wishlisted product
-        $topWishlisted = Wishlist::select('product_id', DB::raw('COUNT(*) as count'))
+
+        // Top wishlisted product (within filtered data)
+        $topWishlisted = (clone $statsQuery)->select('product_id', DB::raw('COUNT(*) as count'))
             ->groupBy('product_id')
             ->orderByDesc('count')
             ->first();
         $topProduct = $topWishlisted ? Product::find($topWishlisted->product_id) : null;
-        
+
         // Get categories for filter
         $categories = Category::where('status', 'active')->orderBy('name')->get();
         
@@ -648,7 +686,7 @@ class ReportController extends Controller
         $uniqueProducts = (clone $filteredOrderItemsQuery)->distinct('product_id')->count('product_id');
 
         // Get categories for filter
-        $categories = Category::where('status', 1)->orderBy('name')->get();
+        $categories = Category::where('status', 'active')->orderBy('name')->get();
 
         return view('admin.reports.in-house-product-sale', compact(
             'productSales',
@@ -1214,15 +1252,55 @@ class ReportController extends Controller
         }
 
         // Apply sorting
-        $query = match($sortBy) {
-            'popular' => $query->select('user_searches.*', DB::raw('COUNT(user_searches.id) as search_count'))
-                ->groupBy('user_searches.id')
-                ->orderByDesc('search_count'),
-            'results_desc' => $query->orderByDesc('results_count'),
-            'results_asc' => $query->orderBy('results_count', 'asc'),
-            'oldest' => $query->oldest(),
-            default => $query->latest(), // 'recent'
-        };
+        if ($sortBy === 'popular') {
+            // For popular sort, get query counts
+            $queryCounts = UserSearch::select('query', DB::raw('COUNT(*) as search_count'))
+                ->groupBy('query')
+                ->orderByDesc('search_count')
+                ->limit(100)
+                ->get()
+                ->keyBy('query');
+
+            // Get IDs of most recent search for each popular query
+            $recentSearchIds = UserSearch::select(DB::raw('MAX(id) as id'))
+                ->whereIn('query', $queryCounts->keys())
+                ->groupBy('query')
+                ->pluck('id');
+
+            $searches = UserSearch::with('user:id,name,email')
+                ->whereIn('id', $recentSearchIds)
+                ->get();
+
+            // Sort by search_count descending (matching the popular order)
+            $searches = $searches->sortByDesc(function ($search) use ($queryCounts) {
+                return $queryCounts[$search->query]->search_count ?? 0;
+            })->values();
+
+            // Add search_count to each result and paginate manually
+            foreach ($searches as $search) {
+                $search->search_count = $queryCounts[$search->query]->search_count ?? 1;
+            }
+
+            // CreateLengthAwarePaginator manually
+            $perPage = 20;
+            $currentPage = request()->get('page', 1);
+            $paginated = $searches->slice(($currentPage - 1) * $perPage, $perPage);
+            $searches = new \Illuminate\Pagination\LengthAwarePaginator(
+                $paginated,
+                $searches->count(),
+                $perPage,
+                $currentPage,
+                ['path' => request()->url()]
+            );
+        } else {
+            $query = match($sortBy) {
+                'results_desc' => $query->orderByDesc('results_count'),
+                'results_asc' => $query->orderBy('results_count', 'asc'),
+                'oldest' => $query->oldest(),
+                default => $query->latest(),
+            };
+            $searches = $query->paginate(20);
+        }
 
         $searches = $query->paginate(20);
 

@@ -67,28 +67,28 @@
         <div class="stat-card-icon"><i class="bi bi-box-seam"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Total Shipments</span>
-            <span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span>
+            <span class="stat-card-value" id="stat-total">{{ $stats['total'] ?? 0 }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-warning">
         <div class="stat-card-icon"><i class="bi bi-hourglass-split"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Pending</span>
-            <span class="stat-card-value">{{ $stats['pending'] ?? 0 }}</span>
+            <span class="stat-card-value" id="stat-pending">{{ $stats['pending'] ?? 0 }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-info">
         <div class="stat-card-icon"><i class="bi bi-truck"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">In Transit</span>
-            <span class="stat-card-value">{{ $stats['in_transit'] ?? 0 }}</span>
+            <span class="stat-card-value" id="stat-in_transit">{{ $stats['in_transit'] ?? 0 }}</span>
         </div>
     </div>
     <div class="stat-card stat-card-success">
         <div class="stat-card-icon"><i class="bi bi-check-circle"></i></div>
         <div class="stat-card-content">
             <span class="stat-card-label">Delivered</span>
-            <span class="stat-card-value">{{ $stats['delivered'] ?? 0 }}</span>
+            <span class="stat-card-value" id="stat-delivered">{{ $stats['delivered'] ?? 0 }}</span>
         </div>
     </div>
 </div>
@@ -393,20 +393,20 @@
     // Update stats cards after AJAX filtering
     function updateStatsCards(stats) {
         if (stats.total !== undefined) {
-            document.querySelector('.text-primary').textContent = stats.total;
+            const totalEl = document.getElementById('stat-total');
+            if (totalEl) totalEl.textContent = stats.total;
         }
-        const statCards = document.querySelectorAll('.card-body .h4');
-        if (stats.pending !== undefined && statCards[1]) {
-            statCards[1].textContent = stats.pending;
+        if (stats.pending !== undefined) {
+            const pendingEl = document.getElementById('stat-pending');
+            if (pendingEl) pendingEl.textContent = stats.pending;
         }
-        if (stats.in_transit !== undefined && statCards[2]) {
-            statCards[2].textContent = stats.in_transit;
+        if (stats.in_transit !== undefined) {
+            const inTransitEl = document.getElementById('stat-in_transit');
+            if (inTransitEl) inTransitEl.textContent = stats.in_transit;
         }
-        if (stats.delivered !== undefined && statCards[3]) {
-            statCards[3].textContent = stats.delivered;
-        }
-        if (stats.returned !== undefined && statCards[4]) {
-            statCards[4].textContent = stats.returned;
+        if (stats.delivered !== undefined) {
+            const deliveredEl = document.getElementById('stat-delivered');
+            if (deliveredEl) deliveredEl.textContent = stats.delivered;
         }
     }
 
@@ -464,7 +464,7 @@
         
         document.getElementById('bulkActionInput').value = action;
         document.getElementById('bulkIdsInput').value = JSON.stringify(Array.from(selectedItems));
-        document.getElementById('bulkActionForm').action = '{{ route('admin.delivery.bulk-tracking-action') }}';
+        document.getElementById('bulkActionForm').action = '{{ route('admin.delivery.tracking.bulk-action') }}';
         document.getElementById('bulkActionForm').submit();
     }
 

@@ -42,34 +42,6 @@
         </div>
     </div>
 
-    <!-- Bulk Actions Bar -->
-    <div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
-        <div class="card-body py-2">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="text-muted"><span id="selectedCount">0</span> selected</span>
-                    <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="clearSelection()">
-                        Clear Selection
-                    </button>
-                </div>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-sm btn-success" onclick="bulkAction('activate')">
-                        <i class="bi bi-play-circle me-1"></i> Activate
-                    </button>
-                    <button type="button" class="btn btn-sm btn-warning" onclick="bulkAction('pause')">
-                        <i class="bi bi-pause-circle me-1"></i> Pause
-                    </button>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="bulkAction('cancel')">
-                        <i class="bi bi-x-circle me-1"></i> Cancel
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="bulkAction('delete')">
-                        <i class="bi bi-trash me-1"></i> Delete
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Filters -->
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-body py-3">
@@ -152,6 +124,34 @@
         </div>
     </div>
 
+    <!-- Bulk Actions Bar -->
+    <div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
+        <div class="card-body py-2">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted"><span id="selectedCount">0</span> selected</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="clearSelection()">
+                        Clear Selection
+                    </button>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-success" onclick="bulkAction('activate')">
+                        <i class="bi bi-play-circle me-1"></i> Activate
+                    </button>
+                    <button type="button" class="btn btn-sm btn-warning" onclick="bulkAction('pause')">
+                        <i class="bi bi-pause-circle me-1"></i> Pause
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="bulkAction('cancel')">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="bulkAction('delete')">
+                        <i class="bi bi-trash me-1"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Subscriptions Table -->
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
@@ -162,14 +162,49 @@
                             <th width="40">
                                 <input type="checkbox" class="form-check-input" id="selectAll" onclick="toggleSelectAll()">
                             </th>
-                            <th>Subscription</th>
+                            <th>
+                                <a href="{{ route('admin.subscriptions.index', array_merge(request()->query(), ['sort' => 'subscription_number', 'direction' => request('sort') == 'subscription_number' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                    Subscription
+                                    @if(request('sort') == 'subscription_number')
+                                        <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
+                                    @endif
+                                </a>
+                            </th>
                             <th>Customer</th>
                             <th>Product</th>
-                            <th>Frequency</th>
-                            <th>Next Billing</th>
-                            <th>Status</th>
+                            <th>
+                                <a href="{{ route('admin.subscriptions.index', array_merge(request()->query(), ['sort' => 'billing_frequency', 'direction' => request('sort') == 'billing_frequency' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                    Frequency
+                                    @if(request('sort') == 'billing_frequency')
+                                        <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ route('admin.subscriptions.index', array_merge(request()->query(), ['sort' => 'next_billing_date', 'direction' => request('sort') == 'next_billing_date' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                    Next Billing
+                                    @if(request('sort') == 'next_billing_date')
+                                        <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ route('admin.subscriptions.index', array_merge(request()->query(), ['sort' => 'status', 'direction' => request('sort') == 'status' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                    Status
+                                    @if(request('sort') == 'status')
+                                        <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
+                                    @endif
+                                </a>
+                            </th>
                             <th>Payment</th>
-                            <th>Total</th>
+                            <th>
+                                <a href="{{ route('admin.subscriptions.index', array_merge(request()->query(), ['sort' => 'total_price', 'direction' => request('sort') == 'total_price' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                    Total
+                                    @if(request('sort') == 'total_price')
+                                        <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
+                                    @endif
+                                </a>
+                            </th>
                             <th width="120">Actions</th>
                         </tr>
                     </thead>

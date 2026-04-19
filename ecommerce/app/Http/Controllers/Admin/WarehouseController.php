@@ -183,7 +183,11 @@ class WarehouseController extends Controller
     {
         $warehouse->update(['is_active' => !$warehouse->is_active]);
 
-        return back()->with('success', 'Status updated successfully.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Status updated successfully.',
+            'is_active' => $warehouse->is_active
+        ]);
     }
 
     /**

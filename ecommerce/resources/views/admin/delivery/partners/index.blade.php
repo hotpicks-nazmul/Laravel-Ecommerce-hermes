@@ -228,10 +228,42 @@
 @push('scripts')
 <script>
 function showToast(message, type = 'info') {
-    const title = type === 'success' ? 'Success' : 
-                  type === 'error' ? 'Error' : 
+    const title = type === 'success' ? 'Success' :
+                  type === 'error' ? 'Error' :
                   type === 'warning' ? 'Warning' : 'Info';
     adminToast(type, title, message);
+}
+
+function adminToast(type, title, message) {
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(container);
+    }
+
+    container.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+
+    setTimeout(() => {
+        toast.remove();
+    }, 5000);
 }
 
 let selectedPartners = new Set();

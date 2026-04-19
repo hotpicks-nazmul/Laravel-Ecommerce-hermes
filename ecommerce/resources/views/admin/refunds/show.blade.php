@@ -3,8 +3,19 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0">Refund Details</h4>
-    <a href="{{ route('admin.refunds.requests') }}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> Back to Requests
+    @php
+        $previousUrl = url()->previous();
+        $refundUrls = [
+            route('admin.refunds.index'),
+            route('admin.refunds.requests'),
+            route('admin.refunds.approved'),
+            route('admin.refunds.rejected'),
+            route('admin.refunds.configuration'),
+        ];
+        $backUrl = in_array($previousUrl, $refundUrls) ? $previousUrl : route('admin.refunds.index');
+    @endphp
+    <a href="{{ $backUrl }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back
     </a>
 </div>
 

@@ -8,6 +8,7 @@ use App\Models\AbandonedCartSettings;
 use App\Models\Cart;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class AbandonedCartController extends Controller
@@ -77,44 +78,47 @@ class AbandonedCartController extends Controller
             return back()->with('error', 'Customer email not found for this cart.');
         }
 
-        if ($record->email_sent_count >= 3) {
-            return back()->with('error', 'Maximum reminder emails (3) already sent for this cart.');
-        }
-
         // Get settings
         $settings = AbandonedCartSettings::getSettings();
 
-        // Generate recovery link
-        $recoveryLink = url('/cart/recover?email=' . urlencode($record->customer_email) . '&cart_id=' . $record->cart_id);
+        // Use max_emails_per_cart from settings instead of hardcoded value
+        $maxEmails = $settings->max_emails_per_cart ?? 3;
+
+        if ($record->email_sent_count >= $maxEmails) {
+            return back()->with('error', "Maximum reminder emails ({$maxEmails}) already sent for this cart.");
+        }
+
+        // Generate recovery link using route helper
+        $recoveryLink = route('cart.recover', ['email' => $record->customer_email, 'cart_id' => $record->cart_id]);
 
         // Prepare email content
-        $subject = $settings->email_subject ?? 'You left something behind!';
-        
-        // Build cart items HTML
+        $subject = e($settings->email_subject ?? 'You left something behind!');
+
+        // Build cart items HTML with XSS protection (escape all user-generated content)
         $cartItemsHtml = '';
         if ($record->cart && $record->cart->items) {
             foreach ($record->cart->items as $item) {
                 $cartItemsHtml .= '<div style="padding: 10px; border-bottom: 1px solid #eee;">';
-                $cartItemsHtml .= '<strong>' . $item['name'] . '</strong><br>';
-                $cartItemsHtml .= 'Qty: ' . $item['quantity'] . ' | Price: ' . format_price($item['price']);
+                $cartItemsHtml .= '<strong>' . e($item['name']) . '</strong><br>';
+                $cartItemsHtml .= 'Qty: ' . (int)$item['quantity'] . ' | Price: ' . format_price($item['price']);
                 $cartItemsHtml .= '</div>';
             }
         }
 
         // Replace placeholders in template
         $emailBody = $settings->email_template ?? '';
-        $emailBody = str_replace('{{customer_name}}', $record->customer_name ?? 'Customer', $emailBody);
+        $emailBody = str_replace('{{customer_name}}', e($record->customer_name ?? 'Customer'), $emailBody);
         $emailBody = str_replace('{{cart_items}}', $cartItemsHtml, $emailBody);
         $emailBody = str_replace('{{cart_total}}', format_price($record->cart_total), $emailBody);
         $emailBody = str_replace('{{recovery_link}}', $recoveryLink, $emailBody);
-        $emailBody = str_replace('{{shop_name}}', getSetting('site_name') ?? config('app.name'), $emailBody);
+        $emailBody = str_replace('{{shop_name}}', e(getSetting('site_name') ?? config('app.name')), $emailBody);
 
         // Add discount offer if enabled
         if ($settings->include_discount && $settings->discount_code) {
             $discountHtml = '<p style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">';
-            $discountHtml .= '<strong>Special Offer!</strong> Use code <strong>' . $settings->discount_code . '</strong>';
+            $discountHtml .= '<strong>Special Offer!</strong> Use code <strong>' . e($settings->discount_code) . '</strong>';
             if ($settings->discount_percentage) {
-                $discountHtml .= ' to get ' . $settings->discount_percentage . '% off!';
+                $discountHtml .= ' to get ' . (int)$settings->discount_percentage . '% off!';
             }
             $discountHtml .= '</p>';
             $emailBody = str_replace('{{discount_offer}}', $discountHtml, $emailBody);
@@ -122,11 +126,16 @@ class AbandonedCartController extends Controller
             $emailBody = str_replace('{{discount_offer}}', '', $emailBody);
         }
 
-        // TODO: Send email (uncomment when mail is configured)
-        // Mail::html($emailBody, function ($message) use ($record, $subject) {
-        //     $message->to($record->customer_email)
-        //         ->subject($subject);
-        // });
+        // Send email
+        try {
+            Mail::html($emailBody, function ($message) use ($record, $subject) {
+                $message->to($record->customer_email)
+                    ->subject($subject);
+            });
+        } catch (\Exception $e) {
+            Log::error('Abandoned cart email failed: ' . $e->getMessage());
+            return back()->with('error', 'Failed to send recovery email: ' . $e->getMessage());
+        }
 
         // Update record
         $record->update([

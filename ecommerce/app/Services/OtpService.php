@@ -195,11 +195,28 @@ class OtpService
     }
 
     /**
+     * Map purpose to template key
+     */
+    private function getTemplateKey($purpose)
+    {
+        $mapping = [
+            'verification' => 'otp_verification_template',
+            'login' => 'login_notification_template',
+            'registration' => 'registration_template',
+            'password_reset' => 'password_reset_template',
+            'payment' => 'payment_template',
+            'order' => 'order_confirmation_template',
+        ];
+
+        return $mapping[$purpose] ?? $purpose . '_template';
+    }
+
+    /**
      * Get message template
      */
     public function getMessageTemplate($purpose, $data = [])
     {
-        $templateKey = $purpose . '_template';
+        $templateKey = $this->getTemplateKey($purpose);
         $template = OtpConfiguration::get($templateKey, '');
         
         if (empty($template)) {
@@ -403,6 +420,238 @@ class OtpService
         }
         
         return $phone;
+    }
+
+    /**
+     * Check SMS balance for configured gateway
+     */
+    public function checkBalance()
+    {
+        $gateway = OtpConfiguration::get('sms_gateway', 'custom');
+
+        try {
+            switch ($gateway) {
+                case 'twilio':
+                    return $this->checkTwilioBalance();
+                case 'msg91':
+                    return $this->checkMsg91Balance();
+                case 'ssl':
+                    return $this->checkSslWirelessBalance();
+                case 'nexmo':
+                    return $this->checkNexmoBalance();
+                case 'banglalion':
+                    return $this->checkBanglalionBalance();
+                case 'mim':
+                    return $this->checkMimBalance();
+                case 'custom':
+                default:
+                    return $this->checkCustomApiBalance();
+            }
+        } catch (\Exception $e) {
+            Log::error('Balance Check Error: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+                'balance' => 'Unable to check balance'
+            ];
+        }
+    }
+
+    /**
+     * Check balance via Custom API (if available)
+     */
+    private function checkCustomApiBalance()
+    {
+        $apiUrl = OtpConfiguration::get('custom_api_url');
+        $apiKey = OtpConfiguration::get('custom_api_key');
+
+        if (empty($apiUrl) || empty($apiKey)) {
+            return [
+                'success' => true,
+                'balance' => 'Configure Custom API URL to check balance',
+                'message' => 'No API URL configured'
+            ];
+        }
+
+        return [
+            'success' => true,
+            'balance' => 'N/A',
+            'message' => 'Custom API - Check provider dashboard for balance'
+        ];
+    }
+
+    /**
+     * Check Twilio balance
+     */
+    private function checkTwilioBalance()
+    {
+        $sid = OtpConfiguration::get('twilio_sid');
+        $token = OtpConfiguration::get('twilio_token');
+
+        if (empty($sid) || empty($token)) {
+            return [
+                'success' => false,
+                'balance' => 'Not configured',
+                'message' => 'Twilio credentials not configured'
+            ];
+        }
+
+        try {
+            $response = Http::withBasicAuth($sid, $token)
+                ->get("https://api.twilio.com/2010-04-01/Accounts/{$sid}/Balance.json");
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return [
+                    'success' => true,
+                    'balance' => $data['balance'] . ' ' . $data['currency'],
+                    'message' => 'Balance retrieved successfully'
+                ];
+            }
+
+            return [
+                'success' => false,
+                'balance' => 'Unable to retrieve',
+                'message' => $response->body()
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'balance' => 'Error',
+                'message' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Check MSG91 balance
+     */
+    private function checkMsg91Balance()
+    {
+        $authkey = OtpConfiguration::get('msg91_authkey');
+
+        if (empty($authkey)) {
+            return [
+                'success' => false,
+                'balance' => 'Not configured',
+                'message' => 'MSG91 auth key not configured'
+            ];
+        }
+
+        return [
+            'success' => true,
+            'balance' => 'N/A',
+            'message' => 'Check MSG91 dashboard for balance'
+        ];
+    }
+
+    /**
+     * Check SSL Wireless balance
+     */
+    private function checkSslWirelessBalance()
+    {
+        $user = OtpConfiguration::get('ssl_sms_user');
+        $pass = OtpConfiguration::get('ssl_sms_pass');
+
+        if (empty($user) || empty($pass)) {
+            return [
+                'success' => false,
+                'balance' => 'Not configured',
+                'message' => 'SSL Wireless credentials not configured'
+            ];
+        }
+
+        return [
+            'success' => true,
+            'balance' => 'N/A',
+            'message' => 'Check SSL Wireless portal for balance'
+        ];
+    }
+
+    /**
+     * Check Nexmo (Vonage) balance
+     */
+    private function checkNexmoBalance()
+    {
+        $apiKey = OtpConfiguration::get('nexmo_api_key');
+        $apiSecret = OtpConfiguration::get('nexmo_api_secret');
+
+        if (empty($apiKey) || empty($apiSecret)) {
+            return [
+                'success' => false,
+                'balance' => 'Not configured',
+                'message' => 'Nexmo credentials not configured'
+            ];
+        }
+
+        try {
+            $response = Http::get("https://dashboard.nexmo.com/api/get-balance?api_key={$apiKey}&api_secret={$apiSecret}");
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return [
+                    'success' => true,
+                    'balance' => $data['balance'] . ' EUR',
+                    'message' => 'Balance retrieved successfully'
+                ];
+            }
+
+            return [
+                'success' => false,
+                'balance' => 'Unable to retrieve',
+                'message' => $response->body()
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'balance' => 'Error',
+                'message' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Check Banglalion balance
+     */
+    private function checkBanglalionBalance()
+    {
+        $apiKey = OtpConfiguration::get('banglalion_api_key');
+
+        if (empty($apiKey)) {
+            return [
+                'success' => false,
+                'balance' => 'Not configured',
+                'message' => 'Banglalion API key not configured'
+            ];
+        }
+
+        return [
+            'success' => true,
+            'balance' => 'N/A',
+            'message' => 'Check Banglalion portal for balance'
+        ];
+    }
+
+    /**
+     * Check MIM SMS balance
+     */
+    private function checkMimBalance()
+    {
+        $apiKey = OtpConfiguration::get('mim_api_key');
+
+        if (empty($apiKey)) {
+            return [
+                'success' => false,
+                'balance' => 'Not configured',
+                'message' => 'MIM SMS API key not configured'
+            ];
+        }
+
+        return [
+            'success' => true,
+            'balance' => 'N/A',
+            'message' => 'Check MIM SMS portal for balance'
+        ];
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class PriceRuleController extends Controller
 {
@@ -94,28 +95,34 @@ class PriceRuleController extends Controller
         ]);
 
         $data = $request->all();
-        $data['slug'] = Str::slug($request->name);
-        
-        // Handle featured
+        $data['slug'] = $this->generateUniqueSlug($request->name);
         $data['is_featured'] = $request->boolean('is_featured', false);
 
-        $priceRule = PriceRule::create($data);
+        DB::beginTransaction();
+        try {
+            $priceRule = PriceRule::create($data);
 
-        // Attach products if any
-        if ($request->product_ids) {
-            $products = [];
-            foreach ($request->product_ids as $productId) {
-                $products[$productId] = [
-                    'discount' => $request->discount_value,
-                    'discount_type' => $request->discount_type,
-                ];
+            // Attach products if any
+            if ($request->product_ids) {
+                $products = [];
+                foreach ($request->product_ids as $productId) {
+                    $products[$productId] = [
+                        'discount' => $request->discount_value,
+                        'discount_type' => $request->discount_type,
+                    ];
+                }
+                $priceRule->products()->sync($products);
             }
-            $priceRule->products()->sync($products);
-        }
 
-        // Attach categories if any
-        if ($request->category_ids) {
-            $priceRule->categories()->sync($request->category_ids);
+            // Attach categories if any
+            if ($request->category_ids) {
+                $priceRule->categories()->sync($request->category_ids);
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to create price rule: ' . $e->getMessage())->withInput();
         }
 
         return redirect()->route('admin.marketing.price-rules.index')
@@ -164,28 +171,36 @@ class PriceRuleController extends Controller
         ]);
 
         $data = $request->all();
-        $data['slug'] = Str::slug($request->name);
+        $data['slug'] = $this->generateUniqueSlug($request->name, $id);
         $data['is_featured'] = $request->boolean('is_featured', false);
 
-        $priceRule->update($data);
+        DB::beginTransaction();
+        try {
+            $priceRule->update($data);
 
-        // Sync products
-        if ($request->has('product_ids') && $request->product_ids) {
-            $products = [];
-            foreach ($request->product_ids as $productId) {
-                $products[$productId] = [
-                    'discount' => $request->discount_value,
-                    'discount_type' => $request->discount_type,
-                ];
+            // Sync products
+            if ($request->has('product_ids') && $request->product_ids) {
+                $products = [];
+                foreach ($request->product_ids as $productId) {
+                    $products[$productId] = [
+                        'discount' => $request->discount_value,
+                        'discount_type' => $request->discount_type,
+                    ];
+                }
+                $priceRule->products()->sync($products);
+            } else {
+                $priceRule->products()->detach();
             }
-            $priceRule->products()->sync($products);
-        } else {
-            $priceRule->products()->detach();
-        }
 
-        // Sync categories
-        if ($request->has('category_ids')) {
-            $priceRule->categories()->sync($request->category_ids ?? []);
+            // Sync categories
+            if ($request->has('category_ids')) {
+                $priceRule->categories()->sync($request->category_ids ?? []);
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to update price rule: ' . $e->getMessage())->withInput();
         }
 
         return redirect()->route('admin.marketing.price-rules.index')
@@ -294,6 +309,32 @@ class PriceRuleController extends Controller
         $priceRule->products()->detach($productId);
 
         return back()->with('success', 'Product removed from price rule.');
+    }
+
+    /**
+     * Generate a unique slug from the name.
+     */
+    private function generateUniqueSlug($name, $excludeId = null)
+    {
+        $slug = Str::slug($name);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        $query = PriceRule::where('slug', $slug);
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        while ($query->exists()) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+            $query = PriceRule::where('slug', $slug);
+            if ($excludeId) {
+                $query->where('id', '!=', $excludeId);
+            }
+        }
+
+        return $slug;
     }
 
     /**

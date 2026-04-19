@@ -52,6 +52,11 @@
         @endif
     </td>
     <td>
+        <span class="badge bg-primary" title="Products">
+            <i class="bi bi-box me-1"></i>{{ $store->products_count }}
+        </span>
+    </td>
+    <td>
         <div class="d-flex gap-2">
             <a href="{{ route('admin.multi-store.show', $store->id) }}" class="btn btn-sm btn-outline-secondary" title="View">
                 <i class="bi bi-eye"></i>
@@ -59,7 +64,15 @@
             <a href="{{ route('admin.multi-store.edit', $store->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                 <i class="bi bi-pencil"></i>
             </a>
-            @if(!$store->is_default)
+            @if($store->is_default)
+                <button type="button" class="btn btn-sm btn-outline-secondary" title="Cannot delete default store" disabled>
+                    <i class="bi bi-trash"></i>
+                </button>
+            @elseif($store->products_count > 0)
+                <button type="button" class="btn btn-sm btn-outline-secondary" title="Cannot delete store with products" disabled>
+                    <i class="bi bi-trash"></i>
+                </button>
+            @else
                 <form action="{{ route('admin.multi-store.destroy', $store->id) }}" method="POST" class="d-inline">
                     @csrf
                     @method('DELETE')
@@ -67,17 +80,13 @@
                         <i class="bi bi-trash"></i>
                     </button>
                 </form>
-            @else
-                <button type="button" class="btn btn-sm btn-outline-secondary" title="Cannot delete default store" disabled>
-                    <i class="bi bi-trash"></i>
-                </button>
             @endif
         </div>
     </td>
 </tr>
 @empty
 <tr>
-    <td colspan="6" class="text-center py-5">
+    <td colspan="7" class="text-center py-5">
         <i class="bi bi-shop text-muted" style="font-size: 3rem;"></i>
         <p class="text-muted mb-2 mt-2">No stores found</p>
         <a href="{{ route('admin.multi-store.create') }}" class="btn btn-sm btn-primary mt-1">

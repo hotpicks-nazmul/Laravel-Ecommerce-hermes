@@ -79,12 +79,25 @@
                 </div>
                 
                 <!-- Date Range -->
-                <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="col-lg-2 col-md-3 col-sm-6">
                     <label class="form-label small text-muted">Date Range</label>
-                    <input type="text" name="date_range" id="dateRange" class="form-control form-control-sm" 
+                    <input type="text" name="date_range" id="dateRange" class="form-control form-control-sm"
                            placeholder="Select date range" value="{{ $dateRange }}">
                 </div>
-                
+
+                <!-- Category Filter -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Category</label>
+                    <select name="category" class="form-select form-select-sm">
+                        <option value="">All Categories</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ $categoryId == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <!-- Sort By -->
                 <div class="col-lg-2 col-md-3 col-sm-6">
                     <label class="form-label small text-muted">Sort By</label>
@@ -266,23 +279,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('liveSearch');
     const searchSpinner = document.getElementById('searchSpinner');
     const filterForm = document.getElementById('filterForm');
-    
+
     if (searchInput) {
         searchInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
             const searchTerm = this.value.trim();
-            
+
             // Show spinner
             if (searchSpinner) {
                 searchSpinner.style.display = 'block';
             }
-            
+
             // Debounce - wait 500ms after user stops typing
             searchTimeout = setTimeout(() => {
                 if (searchSpinner) {
                     searchSpinner.style.display = 'none';
                 }
+                filterForm.submit();
             }, 500);
+        });
+    }
+
+    // Auto-submit on category change
+    const categorySelect = document.querySelector('select[name="category"]');
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    }
+
+    // Auto-submit on sort change
+    const sortSelect = document.querySelector('select[name="sort"]');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            filterForm.submit();
         });
     }
     

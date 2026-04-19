@@ -244,7 +244,7 @@
                         @endif
                     </form>
                     
-                    @if(!$store->is_default)
+                    @if(!$store->is_default && $store->products_count == 0)
                     <form action="{{ route('admin.multi-store.destroy', $store->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this store?')">
                         @csrf
                         @method('DELETE')
@@ -252,6 +252,10 @@
                             <i class="bi bi-trash me-1"></i> Delete Store
                         </button>
                     </form>
+                    @elseif($store->products_count > 0)
+                    <button type="button" class="btn btn-outline-secondary w-100" disabled>
+                        <i class="bi bi-trash me-1"></i> Has Products
+                    </button>
                     @endif
                 </div>
             </div>
@@ -263,6 +267,13 @@
                 <h6 class="mb-0">Store Info</h6>
             </div>
             <div class="card-body">
+                <div class="mb-2">
+                    <label class="form-label text-muted small">Products</label>
+                    <div class="">
+                        <span class="badge bg-primary">{{ $store->products_count }}</span>
+                        <a href="{{ route('admin.products.index', ['store' => $store->id]) }}" class="ms-2">View Products</a>
+                    </div>
+                </div>
                 <div class="mb-2">
                     <label class="form-label text-muted small">Created</label>
                     <div class="">{{ $store->created_at->format('M d, Y h:i A') }}</div>

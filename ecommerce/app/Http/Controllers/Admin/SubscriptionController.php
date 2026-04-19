@@ -31,6 +31,23 @@ class SubscriptionController extends Controller
     }
 
     /**
+     * Get filtered stats based on current query filters.
+     */
+    protected function getFilteredStats($query)
+    {
+        return [
+            'total' => (clone $query)->count(),
+            'active' => (clone $query)->where('status', 'active')->count(),
+            'pending' => (clone $query)->where('status', 'pending')->count(),
+            'paused' => (clone $query)->where('status', 'paused')->count(),
+            'cancelled' => (clone $query)->where('status', 'cancelled')->count(),
+            'expired' => (clone $query)->where('status', 'expired')->count(),
+            'due_for_billing' => (clone $query)->where('status', 'active')
+                ->whereDate('next_billing_date', '<=', today())->count(),
+        ];
+    }
+
+    /**
      * Display a listing of subscriptions.
      */
     public function index(Request $request)
@@ -88,8 +105,12 @@ class SubscriptionController extends Controller
         $perPage = $request->per_page ?? 25;
         $subscriptions = $query->paginate($perPage);
 
-        // Get stats
-        $stats = $this->getStats();
+        // Get stats - filtered for AJAX, all stats for page load
+        if ($request->ajax()) {
+            $stats = $this->getFilteredStats($query);
+        } else {
+            $stats = $this->getStats();
+        }
 
         // AJAX response
         if ($request->ajax()) {

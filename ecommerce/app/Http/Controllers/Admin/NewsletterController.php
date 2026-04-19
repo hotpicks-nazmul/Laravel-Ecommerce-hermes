@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class NewsletterController extends Controller
 {
@@ -134,30 +135,51 @@ class NewsletterController extends Controller
         // Update newsletter recipients type
         $newsletter->update(['recipients_type' => $request->recipients_type]);
 
-        // Send emails
+        // Sanitize content for XSS protection and wrap with email template
+        $sanitizedContent = e($newsletter->content);
+        $emailHtml = $this->wrapEmailWithTemplate($sanitizedContent, $newsletter->subject);
+
+        // Send emails with unsubscribe link
         $sentCount = 0;
         $failedCount = 0;
 
-        foreach ($recipients as $recipient) {
-            try {
-                Mail::send([], [], function ($message) use ($recipient, $newsletter) {
-                    $message->to($recipient->email)
-                        ->subject($newsletter->subject)
-                        ->html($newsletter->content);
-                });
-                $sentCount++;
-            } catch (\Exception $e) {
-                Log::error('Failed to send newsletter email: ' . $e->getMessage());
-                $failedCount++;
-            }
-        }
+        DB::beginTransaction();
+        try {
+            foreach ($recipients as $recipient) {
+                try {
+                    $unsubscribeUrl = route('newsletter.unsubscribe', ['email' => $recipient->email]);
+                    $emailWithUnsubscribe = str_replace(
+                        '</body>',
+                        '<p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666;"><a href="' . $unsubscribeUrl . '" style="color: #666;">Unsubscribe</a> | <a href="{{ unsubscribe_url }}">Manage subscriptions</a></p></body>',
+                        $emailHtml
+                    );
+                    $emailWithUnsubscribe = str_replace('{{ unsubscribe_url }}', $unsubscribeUrl, $emailWithUnsubscribe);
 
-        // Update newsletter status
-        $newsletter->update([
-            'status' => $failedCount > 0 && $sentCount === 0 ? 'failed' : 'sent',
-            'sent_at' => now(),
-            'recipients_count' => $sentCount,
-        ]);
+                    Mail::send([], [], function ($message) use ($recipient, $newsletter, $emailWithUnsubscribe) {
+                        $message->to($recipient->email)
+                            ->subject($newsletter->subject)
+                            ->html($emailWithUnsubscribe);
+                    });
+                    $sentCount++;
+                } catch (\Exception $e) {
+                    Log::error('Failed to send newsletter email to ' . $recipient->email . ': ' . $e->getMessage());
+                    $failedCount++;
+                }
+            }
+
+            // Update newsletter status
+            $newsletter->update([
+                'status' => $failedCount > 0 && $sentCount === 0 ? 'failed' : 'sent',
+                'sent_at' => now(),
+                'recipients_count' => $sentCount,
+            ]);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('admin.marketing.newsletters.index')
+                ->with('error', 'Failed to send newsletter: ' . $e->getMessage());
+        }
 
         if ($sentCount > 0) {
             return redirect()->route('admin.marketing.newsletters.index')
@@ -166,6 +188,37 @@ class NewsletterController extends Controller
 
         return redirect()->route('admin.marketing.newsletters.index')
             ->with('error', 'Failed to send newsletter. Please try again.');
+    }
+
+    /**
+     * Wrap email content with a basic HTML template.
+     */
+    private function wrapEmailWithTemplate($content, $subject)
+    {
+        return '<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>' . e($subject) . '</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>' . e($subject) . '</h2>
+    </div>
+    <div class="content">
+        ' . $content . '
+    </div>
+    <div class="footer">
+        <p>You are receiving this email because you subscribed to our newsletter.</p>
+    </div>
+</body>
+</html>';
     }
 
     /**

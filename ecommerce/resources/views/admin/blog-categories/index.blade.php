@@ -88,6 +88,9 @@
                 <button type="button" class="btn btn-sm btn-success" onclick="bulkAction('activate')">
                     <i class="bi bi-check-circle me-1"></i> Activate
                 </button>
+                <button type="button" class="btn btn-sm btn-warning" onclick="bulkAction('deactivate')">
+                    <i class="bi bi-x-circle me-1"></i> Deactivate
+                </button>
                 <button type="button" class="btn btn-sm btn-danger" onclick="bulkAction('delete')">
                     <i class="bi bi-trash me-1"></i> Delete
                 </button>

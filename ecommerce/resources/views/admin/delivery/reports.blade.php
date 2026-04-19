@@ -442,10 +442,10 @@
 <script>
     // Delivery Trends Chart
     const trendsData = @json($trends);
-    const trendLabels = trendsData.map(t => t.date);
-    const trendTotal = trendsData.map(t => t.total);
-    const trendDelivered = trendsData.map(t => t.delivered);
-    const trendFailed = trendsData.map(t => t.failed);
+    const trendLabels = trendsData.length > 0 ? trendsData.map(t => t.date) : ['No Data'];
+    const trendTotal = trendsData.length > 0 ? trendsData.map(t => t.total) : [0];
+    const trendDelivered = trendsData.length > 0 ? trendsData.map(t => t.delivered) : [0];
+    const trendFailed = trendsData.length > 0 ? trendsData.map(t => t.failed) : [0];
 
     const trendsCtx = document.getElementById('deliveryTrendsChart').getContext('2d');
     new Chart(trendsCtx, {
@@ -497,8 +497,8 @@
 
     // Status Breakdown Chart
     const statusData = @json($statusBreakdown);
-    const statusLabels = statusData.map(s => s.status.charAt(0).toUpperCase() + s.status.slice(1));
-    const statusCounts = statusData.map(s => s.count);
+    const statusLabels = statusData.length > 0 ? statusData.map(s => s.status.charAt(0).toUpperCase() + s.status.slice(1)) : ['No Data'];
+    const statusCounts = statusData.length > 0 ? statusData.map(s => s.count) : [1];
 
     const statusCtx = document.getElementById('statusChart').getContext('2d');
     new Chart(statusCtx, {
@@ -507,14 +507,14 @@
             labels: statusLabels,
             datasets: [{
                 data: statusCounts,
-                backgroundColor: [
+                backgroundColor: statusData.length > 0 ? [
                     '#22c55e', // delivered - green
                     '#3b82f6', // shipped - blue
                     '#f59e0b', // pending - yellow
                     '#ef4444', // cancelled - red
                     '#8b5cf6', // refunded - purple
                     '#6b7280'  // other - gray
-                ]
+                ] : ['#e9ecef']
             }]
         },
         options: {

@@ -377,22 +377,91 @@
 
 @push('scripts')
 <script>
-// Auto-submit form on filter change
+// Live search with debounce and AJAX updates
+let searchTimeout;
+const searchInput = document.getElementById('liveSearch');
+const filterForm = document.getElementById('filterForm');
+
+function fetchResults() {
+    const formData = new FormData(filterForm);
+    const params = new URLSearchParams(formData);
+
+    fetch(`{{ route('admin.customers.loyalty.index') }}?${params.toString()}`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update table body
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = data.html;
+
+        // Update pagination
+        const footer = document.querySelector('.card.border-0.shadow-sm .card-footer');
+        if (footer && data.pagination) {
+            footer.innerHTML = `
+                <div class="text-muted small">
+                    Showing ${data.first_item} - ${data.last_item} of ${data.total} customers
+                </div>
+                <div>${data.pagination}</div>
+            `;
+        }
+
+        // Update URL without reload
+        const newUrl = window.location.pathname + '?' + params.toString();
+        window.history.pushState({}, '', newUrl);
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Search input event with debounce
+if (searchInput) {
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(fetchResults, 300);
+    });
+}
+
+// Filter change events
 document.querySelectorAll('#filterForm select, #filterForm input[type="number"]').forEach(element => {
     element.addEventListener('change', function() {
-        document.getElementById('filterForm').submit();
+        fetchResults();
     });
 });
 
-// Live search with debounce
-let searchTimeout;
-const searchInput = document.getElementById('liveSearch');
+// Handle pagination clicks via AJAX
+document.addEventListener('click', function(e) {
+    const paginationLink = e.target.closest('.pagination a');
+    if (paginationLink && paginationLink.href) {
+        e.preventDefault();
+        const url = new URL(paginationLink.href);
+        const params = url.searchParams.toString();
 
-searchInput.addEventListener('input', function() {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(function() {
-        document.getElementById('filterForm').submit();
-    }, 500);
+        fetch(`${window.location.pathname}?${params}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = data.html;
+
+            const footer = document.querySelector('.card.border-0.shadow-sm .card-footer');
+            if (footer && data.pagination) {
+                footer.innerHTML = `
+                    <div class="text-muted small">
+                        Showing ${data.first_item} - ${data.last_item} of ${data.total} customers
+                    </div>
+                    <div>${data.pagination}</div>
+                `;
+            }
+
+            window.history.pushState({}, '', url.toString());
+        })
+        .catch(error => console.error('Error:', error));
+    }
 });
 </script>
 @endpush

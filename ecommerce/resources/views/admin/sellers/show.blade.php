@@ -272,7 +272,7 @@
             </div>
             <div class="card-body">
                 @if($seller->verification_status === 'pending')
-                    <form action="{{ route('admin.sellers.process-verification', $seller->id) }}" method="POST" class="mb-2">
+                    <form action="{{ route('admin.sellers.verification.process', $seller->id) }}" method="POST" class="mb-2">
                         @csrf
                         <input type="hidden" name="action" value="approve">
                         <button type="submit" class="btn btn-success w-100">

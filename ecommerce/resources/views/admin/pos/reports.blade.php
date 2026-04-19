@@ -223,9 +223,9 @@
                                 <span class="fw-medium">{{ $order->order_number }}</span>
                             </td>
                             <td>{{ $order->created_at->format('Y-m-d H:i') }}</td>
-                            <td>{{ $order->orderItems->count() }}</td>
+                            <td>{{ $order->items->count() }}</td>
                             <td>৳{{ number_format($order->subtotal, 2) }}</td>
-                            <td>৳{{ number_format($order->discount, 2) }}</td>
+                            <td>৳{{ number_format($order->discount ?? 0, 2) }}</td>
                             <td class="fw-bold">৳{{ number_format($order->total, 2) }}</td>
                             <td>
                                 <span class="badge bg-secondary">{{ ucfirst($order->payment_method) }}</span>

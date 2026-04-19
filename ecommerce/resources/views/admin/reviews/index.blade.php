@@ -299,7 +299,6 @@
     </div>
 </form>
 
-@csrf
 @push('scripts')
 <script>
 let selectedItems = new Set();

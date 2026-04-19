@@ -85,6 +85,19 @@ class LoyaltyPointsController extends Controller
             ->take(10)
             ->get();
 
+        // AJAX response
+        if ($request->ajax() || $request->wantsJson()) {
+            $html = view('admin.loyalty-points.partials.table-rows', compact('customers'))->render();
+
+            return response()->json([
+                'html' => $html,
+                'pagination' => $customers->links()->toHtml(),
+                'first_item' => $customers->firstItem(),
+                'last_item' => $customers->lastItem(),
+                'total' => $customers->total(),
+            ]);
+        }
+
         return view('admin.loyalty-points.index', compact('customers', 'stats', 'recentTransactions'));
     }
 

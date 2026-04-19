@@ -399,7 +399,7 @@
     function syncColor(colorId, value) {
         const colorInput = document.getElementById(colorId);
         const textInput = document.getElementById(colorId + '_text');
-        if (/^#[0-9A-F]{6}$/i.test(value)) {
+        if (/^#[0-9A-Fa-f]{6}$/i.test(value)) {
             colorInput.value = value;
             textInput.value = value;
         }

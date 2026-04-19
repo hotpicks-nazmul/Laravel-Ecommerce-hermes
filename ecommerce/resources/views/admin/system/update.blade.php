@@ -256,6 +256,14 @@
                         <div class="form-text">Choose which updates to receive</div>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="update_server_url" class="form-label">Update Server URL</label>
+                        <input type="url" class="form-control" id="update_server_url" name="update_server_url"
+                               value="{{ $settings['update_server_url'] ?? 'https://api.yourdomain.com/updates/check' }}"
+                               placeholder="https://api.yourdomain.com/updates/check">
+                        <div class="form-text">URL of your update server API (leave default for official updates)</div>
+                    </div>
+
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="bi bi-check-lg me-1"></i> Save Settings
                     </button>

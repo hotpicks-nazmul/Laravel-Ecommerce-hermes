@@ -39,7 +39,7 @@ class CouponController extends Controller
             'total' => Coupon::count(),
             'active' => Coupon::where('status', 'active')->count(),
             'inactive' => Coupon::where('status', 'inactive')->count(),
-            'expired' => Coupon::where('status', 'active')
+            'expired' => Coupon::where('status', '!=', 'expired')
                 ->whereNotNull('end_date')
                 ->where('end_date', '<', now())
                 ->count(),

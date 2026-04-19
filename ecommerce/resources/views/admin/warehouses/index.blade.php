@@ -368,5 +368,29 @@ function changePerPage(perPage) {
     params.set('per_page', perPage);
     window.location.href = `${window.location.pathname}?${params.toString()}`;
 }
+
+// Toggle status
+function toggleStatus(id) {
+    fetch(`{{ route('admin.warehouses.toggle-status', ['warehouse' => 'ID']) }}`.replace('ID', id), {
+        method: 'PATCH',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            toastr.success(data.message);
+            setTimeout(() => {
+                location.reload();
+            }, 500);
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        toastr.error('Failed to update status');
+    });
+}
 </script>
 @endpush

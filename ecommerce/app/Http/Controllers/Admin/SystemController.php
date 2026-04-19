@@ -74,27 +74,51 @@ class SystemController extends Controller
      */
     protected function checkForUpdates()
     {
-        // Simulate checking for updates (in a real application, this would call an external API)
         $currentVersion = Setting::get('app_version', '1.0.0');
-        
-        // For demo purposes, we'll simulate that there's no update available
-        // In production, this would make an API call to check for updates
-        $updateAvailable = false;
-        $latestVersion = $currentVersion;
-        
-        // Update last check time
-        Setting::set('last_check', now()->toDateTimeString(), 'system_update');
-        
-        if ($updateAvailable) {
-            Setting::set('update_available', '1', 'system_update');
-            Setting::set('latest_version', $latestVersion, 'system_update');
-            
-            return redirect()->route('admin.system.update')
-                ->with('success', "A new version ($latestVersion) is available!");
+        $updateChannel = Setting::get('update_channel', 'stable', 'system_update') ?? 'stable';
+
+        try {
+            $updateServerUrl = Setting::get('update_server_url', 'https://api.yourdomain.com/updates/check', 'system_update');
+
+            $response = \Illuminate\Support\Facades\Http::timeout(10)
+                ->withHeaders([
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                ])
+                ->post($updateServerUrl, [
+                    'current_version' => $currentVersion,
+                    'channel' => $updateChannel,
+                    'domain' => request()->getHost(),
+                ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $updateAvailable = $data['update_available'] ?? false;
+                $latestVersion = $data['latest_version'] ?? $currentVersion;
+                $downloadUrl = $data['download_url'] ?? null;
+                $releaseNotes = $data['release_notes'] ?? null;
+
+                Setting::set('last_check', now()->toDateTimeString(), 'system_update');
+
+                if ($updateAvailable && version_compare($latestVersion, $currentVersion, '>')) {
+                    Setting::set('update_available', '1', 'system_update');
+                    Setting::set('latest_version', $latestVersion, 'system_update');
+                    Setting::set('download_url', $downloadUrl, 'system_update');
+                    Setting::set('release_notes', $releaseNotes, 'system_update');
+
+                    return redirect()->route('admin.system.update')
+                        ->with('success', "A new version ($latestVersion) is available!");
+                }
+            }
+        } catch (\Exception $e) {
+            // If update server is unreachable, fall back to local version check
+            // This allows the system to work even without an update server
         }
-        
+
+        Setting::set('last_check', now()->toDateTimeString(), 'system_update');
         Setting::set('update_available', '0', 'system_update');
-        
+        Setting::set('latest_version', $currentVersion, 'system_update');
+
         return redirect()->route('admin.system.update')
             ->with('info', 'Your system is up to date. No updates available.');
     }
@@ -109,22 +133,24 @@ class SystemController extends Controller
         ]);
 
         try {
-            // Create backup if requested
-            if ($request->backup_before_update == '1' || Setting::get('backup_before_update', '1') == '1') {
-                $this->createBackup();
+            if ($request->backup_before_update == '1' || Setting::get('backup_before_update', '1', 'system_update') == '1') {
+                $backupResult = $this->performActualBackup();
+                if (!$backupResult['success']) {
+                    return redirect()->route('admin.system.update')
+                        ->with('error', 'Backup failed: ' . $backupResult['message']);
+                }
             }
 
-            // Run migrations
             Artisan::call('migrate', ['--force' => true]);
-            
-            // Clear cache
+
             Artisan::call('cache:clear');
             Artisan::call('config:clear');
             Artisan::call('route:clear');
             Artisan::call('view:clear');
 
-            // Update version info
-            $newVersion = $request->new_version ?? '1.0.1';
+            $latestVersion = Setting::get('latest_version', null, 'system_update');
+            $newVersion = $request->new_version ?? $latestVersion ?? $this->getNextVersion();
+
             Setting::set('app_version', $newVersion);
             Setting::set('db_version', $newVersion);
             Setting::set('last_updated', now()->toDateTimeString());
@@ -139,36 +165,183 @@ class SystemController extends Controller
     }
 
     /**
+     * Get next version based on semantic versioning.
+     */
+    protected function getNextVersion()
+    {
+        $currentVersion = Setting::get('app_version', '1.0.0');
+        $parts = explode('.', $currentVersion);
+
+        if (count($parts) >= 3) {
+            $parts[2] = (int)$parts[2] + 1;
+        } else {
+            $parts[] = '1';
+        }
+
+        return implode('.', $parts);
+    }
+
+    /**
      * Create a system backup.
      */
     protected function createBackup()
     {
+        $result = $this->performActualBackup();
+
+        if ($result['success']) {
+            return redirect()->route('admin.system.update')
+                ->with('success', $result['message']);
+        }
+
+        return redirect()->route('admin.system.update')
+            ->with('error', 'Backup failed: ' . $result['message']);
+    }
+
+    /**
+     * Perform the actual backup operation.
+     */
+    protected function performActualBackup()
+    {
         try {
-            // In a real application, this would create a database backup
-            // For now, we'll just store the backup info
+            $backupDir = storage_path('app/backups');
+            if (!file_exists($backupDir)) {
+                mkdir($backupDir, 0755, true);
+            }
+
+            $timestamp = now()->format('Y-m-d_His');
+            $version = Setting::get('app_version', '1.0.0');
+            $backupPrefix = "backup_{$version}_{$timestamp}";
+
+            $backupFiles = [];
+
+            $dbType = DB::connection()->getDriverName();
+
+            if ($dbType === 'mysql') {
+                $backupFileName = "{$backupPrefix}_database.sql";
+                $backupPath = "{$backupDir}/{$backupFileName}";
+
+                $dbHost = config('database.connections.mysql.host');
+                $dbPort = config('database.connections.mysql.port');
+                $dbName = config('database.connections.mysql.database');
+                $dbUser = config('database.connections.mysql.username');
+                $dbPass = config('database.connections.mysql.password');
+
+                $command = "mysqldump --host={$dbHost} --port={$dbPort} --user={$dbUser} --password={$dbPass} {$dbName} > {$backupPath}";
+
+                exec($command, $output, $returnCode);
+
+                if ($returnCode !== 0) {
+                    return ['success' => false, 'message' => 'Database dump failed. mysqldump may not be installed.'];
+                }
+
+                $backupFiles[] = $backupFileName;
+
+            } elseif ($dbType === 'pgsql') {
+                $backupFileName = "{$backupPrefix}_database.sql";
+                $backupPath = "{$backupDir}/{$backupFileName}";
+
+                $dbHost = config('database.connections.pgsql.host');
+                $dbPort = config('database.connections.pgsql.port');
+                $dbName = config('database.connections.pgsql.database');
+                $dbUser = config('database.connections.pgsql.username');
+                $dbPass = config('database.connections.pgsql.password');
+
+                putenv("PGPASSWORD={$dbPass}");
+                $command = "pg_dump --host={$dbHost} --port={$dbPort} --user={$dbUser} --dbname={$dbName} -f {$backupPath}";
+
+                exec($command, $output, $returnCode);
+
+                if ($returnCode !== 0) {
+                    return ['success' => false, 'message' => 'Database dump failed. pg_dump may not be installed.'];
+                }
+
+                $backupFiles[] = $backupFileName;
+
+            } elseif ($dbType === 'sqlite') {
+                $backupFileName = "{$backupPrefix}_database.sqlite";
+                $backupPath = "{$backupDir}/{$backupFileName}";
+
+                $dbPath = config('database.connections.sqlite.database');
+                copy($dbPath, $backupPath);
+
+                $backupFiles[] = $backupFileName;
+            }
+
+            $exportDir = storage_path("app/backups/{$backupPrefix}_files");
+            if (!file_exists($exportDir)) {
+                mkdir($exportDir, 0755, true);
+            }
+
+            $uploadsDir = public_path('uploads');
+            if (file_exists($uploadsDir)) {
+                $uploadsBackup = "{$exportDir}/uploads.zip";
+                $this->createZipArchive($uploadsDir, $uploadsBackup);
+                $backupFiles[] = basename($exportDir) . '/uploads.zip';
+            }
+
+            $settingsBackup = "{$backupDir}/{$backupPrefix}_settings.json";
+            $settingsData = [
+                'version' => Setting::get('app_version', '1.0.0'),
+                'settings' => Setting::all(),
+                'backup_date' => now()->toDateTimeString(),
+            ];
+            file_put_contents($settingsBackup, json_encode($settingsData, JSON_PRETTY_PRINT));
+            $backupFiles[] = basename($settingsBackup);
+
             $backupInfo = [
                 'created_at' => now()->toDateTimeString(),
                 'version' => Setting::get('app_version', '1.0.0'),
                 'status' => 'success',
+                'files' => $backupFiles,
+                'path' => $backupDir,
             ];
-            
-            // Store backup info
-            $backups = json_decode(Setting::get('system_backups', '[]'), true);
+
+            $backups = json_decode(Setting::get('system_backups', '[]'), true) ?? [];
             $backups[] = $backupInfo;
-            
-            // Keep only last 10 backups
+
             if (count($backups) > 10) {
                 $backups = array_slice($backups, -10);
             }
-            
+
             Setting::set('system_backups', json_encode($backups));
-            
-            return redirect()->route('admin.system.update')
-                ->with('success', 'Backup created successfully!');
+
+            $filesList = implode(', ', $backupFiles);
+            return ['success' => true, 'message' => "Backup created successfully! Files: {$filesList}"];
+
         } catch (\Exception $e) {
-            return redirect()->route('admin.system.update')
-                ->with('error', 'Backup failed: ' . $e->getMessage());
+            return ['success' => false, 'message' => $e->getMessage()];
         }
+    }
+
+    /**
+     * Create a zip archive of a directory.
+     */
+    protected function createZipArchive($sourceDir, $destinationFile)
+    {
+        if (!file_exists($sourceDir)) {
+            return false;
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($destinationFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+            $files = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($sourceDir),
+                \RecursiveIteratorIterator::LEAVES_ONLY
+            );
+
+            foreach ($files as $file) {
+                if (!$file->isDir()) {
+                    $filePath = $file->getRealPath();
+                    $relativePath = substr($filePath, strlen($sourceDir) + 1);
+                    $zip->addFile($filePath, $relativePath);
+                }
+            }
+
+            $zip->close();
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -182,6 +355,7 @@ class SystemController extends Controller
             'update_channel' => 'sometimes|in:stable,beta,development',
             'notify_on_update' => 'sometimes|boolean',
             'backup_before_update' => 'sometimes|boolean',
+            'update_server_url' => 'sometimes|url',
         ]);
 
         $settings = [
@@ -190,6 +364,7 @@ class SystemController extends Controller
             'update_channel' => $request->update_channel ?? 'stable',
             'notify_on_update' => $request->notify_on_update ? '1' : '0',
             'backup_before_update' => $request->backup_before_update ? '1' : '0',
+            'update_server_url' => $request->update_server_url ?? 'https://api.yourdomain.com/updates/check',
         ];
 
         foreach ($settings as $key => $value) {

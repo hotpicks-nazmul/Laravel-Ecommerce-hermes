@@ -276,7 +276,7 @@
                     <label for="favicon" class="form-label">Favicon</label>
                     @if($store->favicon)
                     <div class="mb-2">
-                        <img src="{{ $store->favicon_url }}" alt="Current Favicon" style="max-width: 32px; max-height: 32px;">
+                        <img src="{{ $store->favicon_url }}" alt="Current Favicon" class="img-thumbnail" style="max-width: 32px; max-height: 32px;">
                         <span class="text-muted ms-2">Current favicon</span>
                     </div>
                     @endif
@@ -424,7 +424,7 @@
     function syncColor(colorId, value) {
         const colorInput = document.getElementById(colorId);
         const textInput = document.getElementById(colorId + '_text');
-        if (/^#[0-9A-F]{6}$/i.test(value)) {
+        if (/^#[0-9A-Fa-f]{6}$/i.test(value)) {
             colorInput.value = value;
             textInput.value = value;
         }

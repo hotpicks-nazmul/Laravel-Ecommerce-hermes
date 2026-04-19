@@ -88,8 +88,8 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="sort_order" class="form-label">Sort Order</label>
-                            <input type="number" id="sort_order" name="sort_order" class="form-control" 
-                                   value="{{ old('sort_order', $addon->sort_order) }}" min="0">
+                            <input type="number" id="sort_order" name="sort_order" class="form-control"
+                                   value="{{ old('sort_order', $addon->sort_order ?? 0) }}" min="0">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Status</label>
@@ -108,9 +108,19 @@
                         </div>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="settings" class="form-label">Addon Settings (JSON)</label>
+                        <textarea id="settings" name="settings" rows="4" class="form-control font-monospace @error('settings') is-invalid @enderror"
+                                  placeholder='{"key": "value"}'>{{ old('settings', $addon->settings ? json_encode($addon->settings, JSON_PRETTY_PRINT) : '') }}</textarea>
+                        @error('settings')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <div class="form-text">Enter addon-specific settings in JSON format.</div>
+                    </div>
+
                     @if(!$addon->is_core)
                     <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="is_core" name="is_core" value="1" 
+                        <input class="form-check-input" type="checkbox" id="is_core" name="is_core" value="1"
                                {{ old('is_core', $addon->is_core) ? 'checked' : '' }}>
                         <label class="form-check-label" for="is_core">
                             <i class="bi bi-info-circle text-info me-1"></i> Core Addon

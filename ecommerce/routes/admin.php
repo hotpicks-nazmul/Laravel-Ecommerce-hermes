@@ -186,7 +186,9 @@ Route::prefix('customers/segmentation')->name('customers.segmentation.')->group(
     Route::get('/', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'index'])->name('index');
     Route::get('/create', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'create'])->name('create');
     Route::post('/', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'store'])->name('store');
+    // General preview route - must be before {segment} routes to avoid being matched as segment ID
     Route::get('/preview', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'preview'])->name('preview');
+    // Segment-specific routes - {segment} parameter routes must come after specific routes
     Route::get('/{segment}/edit', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'edit'])->name('edit');
     Route::put('/{segment}', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'update'])->name('update');
     Route::delete('/{segment}', [\App\Http\Controllers\Admin\CustomerSegmentationController::class, 'destroy'])->name('destroy');
@@ -248,6 +250,7 @@ Route::resource('coupons', CouponController::class);
 // Reviews Management
 Route::resource('reviews', ReviewController::class)->only(['index', 'update', 'destroy']);
 Route::post('/reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
+Route::post('/reviews/{review}/reject', [ReviewController::class, 'reject'])->name('reviews.reject');
 
 // Wishlist Management
 Route::prefix('wishlists')->name('wishlists.')->group(function () {
@@ -310,11 +313,9 @@ Route::post('/media/upload', [\App\Http\Controllers\Admin\MediaController::class
 Route::delete('/media', [\App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('media.destroy');
 Route::post('/media/bulk-delete', [\App\Http\Controllers\Admin\MediaController::class, 'bulkDelete'])->name('media.bulk-delete');
 Route::get('/media/show', [\App\Http\Controllers\Admin\MediaController::class, 'show'])->name('media.show');
-Route::post('/media/folder', [\App\Http\Controllers\Admin\MediaController::class, 'createFolder'])->name('media.folder.create');
-Route::delete('/media/folder', [\App\Http\Controllers\Admin\MediaController::class, 'deleteFolder'])->name('media.folder.delete');
-Route::get('/media/stats', [\App\Http\Controllers\Admin\MediaController::class, 'stats'])->name('media.stats');
 
 // Blog Management
+Route::post('/blogs/{blog}/toggle', [\App\Http\Controllers\Admin\BlogController::class, 'toggle'])->name('blogs.toggle');
 Route::resource('blogs', \App\Http\Controllers\Admin\BlogController::class);
 Route::prefix('blog-settings')->name('blog-settings.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\BlogController::class, 'settings'])->name('index');
@@ -1081,6 +1082,7 @@ Route::prefix('affiliate')->middleware('permission:affiliate')->name('affiliate.
         Route::get('/', [\App\Http\Controllers\Admin\AffiliateBannerController::class, 'index'])->name('index');
         Route::get('/create', [\App\Http\Controllers\Admin\AffiliateBannerController::class, 'create'])->name('create');
         Route::post('/', [\App\Http\Controllers\Admin\AffiliateBannerController::class, 'store'])->name('store');
+        Route::post('/bulk-action', [\App\Http\Controllers\Admin\AffiliateBannerController::class, 'bulkAction'])->name('bulk-action');
         Route::get('/{id}/edit', [\App\Http\Controllers\Admin\AffiliateBannerController::class, 'edit'])->name('edit');
         Route::put('/{id}', [\App\Http\Controllers\Admin\AffiliateBannerController::class, 'update'])->name('update');
         Route::delete('/{id}', [\App\Http\Controllers\Admin\AffiliateBannerController::class, 'destroy'])->name('destroy');
@@ -1193,20 +1195,6 @@ Route::prefix('menus')->name('menus.')->group(function () {
 
 // Widget Manager
 Route::prefix('content/widgets')->name('content.widgets.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\WidgetController::class, 'index'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\WidgetController::class, 'create'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\WidgetController::class, 'store'])->name('store');
-    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\WidgetController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'update'])->name('update');
-    Route::delete('/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'destroy'])->name('destroy');
-    Route::post('/reorder', [\App\Http\Controllers\Admin\WidgetController::class, 'reorder'])->name('reorder');
-    Route::post('/toggle-status/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'toggleStatus'])->name('toggle-status');
-    Route::post('/toggle-featured/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'toggleFeatured'])->name('toggle-featured');
-    Route::post('/bulk-action', [\App\Http\Controllers\Admin\WidgetController::class, 'bulkAction'])->name('bulk-action');
-});
-
-// Widget Manager (Legacy route - works at /admin/widgets)
-Route::prefix('widgets')->name('widgets.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\WidgetController::class, 'index'])->name('index');
     Route::get('/create', [\App\Http\Controllers\Admin\WidgetController::class, 'create'])->name('create');
     Route::post('/', [\App\Http\Controllers\Admin\WidgetController::class, 'store'])->name('store');

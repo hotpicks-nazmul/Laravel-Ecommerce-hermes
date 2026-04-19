@@ -75,6 +75,12 @@
                 <button type="button" class="btn btn-sm btn-warning" onclick="bulkAction('deactivate')">
                     <i class="bi bi-x-circle me-1"></i> Deactivate
                 </button>
+                <button type="button" class="btn btn-sm btn-info" onclick="bulkAction('feature')">
+                    <i class="bi bi-star me-1"></i> Feature
+                </button>
+                <button type="button" class="btn btn-sm btn-secondary" onclick="bulkAction('unfeature')">
+                    <i class="bi bi-star-fill me-1"></i> Unfeature
+                </button>
                 <button type="button" class="btn btn-sm btn-danger" onclick="bulkAction('delete')">
                     <i class="bi bi-trash me-1"></i> Delete
                 </button>

@@ -128,7 +128,7 @@
 </div>
 
 <!-- Secondary Charts Row -->
-<div class="row mb-4">
+<div class="row mb-4 align-items-stretch">
     <!-- Revenue by Category -->
     <div class="col-xl-6 mb-4">
         <div class="card h-100 border-0 shadow-sm">
@@ -155,17 +155,17 @@
 </div>
 
 <!-- Data Tables Row -->
-<div class="row">
+<div class="row mb-4">
     <!-- Recent Orders -->
-    <div class="col-lg-8 mb-4">
-        <div class="card h-100 border-0 shadow-sm">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0 py-3 d-flex align-items-center justify-content-between">
                 <h5 class="card-title mb-0 fw-semibold">Recent Orders</h5>
                 <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-hover table-sm mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th>Order ID</th>
@@ -203,10 +203,12 @@
             </div>
         </div>
     </div>
-    
-    <!-- Top Selling Products -->
-    <div class="col-lg-4 mb-4">
-        <div class="card h-100 border-0 shadow-sm">
+</div>
+
+<!-- Top Selling Products Row -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm" style="min-height: 400px;">
             <div class="card-header bg-white border-0 py-3">
                 <h5 class="card-title mb-0 fw-semibold">Top Selling Products</h5>
             </div>
@@ -229,9 +231,43 @@
                 @endforelse
             </div>
         </div>
-        
-        <!-- Product Status -->
-        <div class="card border-0 shadow-sm mt-4">
+    </div>
+</div>
+
+<!-- Customer Stats & Product Status Row -->
+<div class="row mb-4">
+    <!-- Customer Stats -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 py-3 d-flex align-items-center justify-content-between">
+                <h5 class="card-title mb-0 fw-semibold">Customer Stats</h5>
+                <span class="badge bg-primary rounded-pill">{{ number_format($totalCustomers) }}</span>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div class="d-inline-flex align-items-center px-3 py-2 rounded-pill {{ $customerGrowth >= 0 ? 'bg-success bg-opacity-10' : 'bg-danger bg-opacity-10' }}">
+                        <i class="bi {{ $customerGrowth >= 0 ? 'bi-graph-up-arrow text-success' : 'bi-graph-down-arrow text-danger' }} me-2"></i>
+                        <span class="fw-semibold {{ $customerGrowth >= 0 ? 'text-success' : 'text-danger' }}">
+                            {{ number_format(abs($customerGrowth), 1) }}% {{ $customerGrowth >= 0 ? 'growth' : 'decline' }}
+                        </span>
+                    </div>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">This Month</span>
+                    <span class="fw-semibold">{{ number_format($currentMonthCustomers) }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Last Month</span>
+                    <span class="fw-semibold text-muted">{{ number_format($lastMonthCustomers) }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Status -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white border-0 py-3">
                 <h5 class="card-title mb-0 fw-semibold">Product Status</h5>
             </div>

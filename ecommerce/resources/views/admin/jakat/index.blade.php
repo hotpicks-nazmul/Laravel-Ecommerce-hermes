@@ -55,6 +55,48 @@
     </div>
 </div>
 
+<!-- Market Prices Update Card -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Market Prices</h6>
+                <small class="text-muted">Update gold and silver prices for accurate calculations</small>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#priceUpdateForm">
+                <i class="bi bi-pencil-square me-1"></i> Update Prices
+            </button>
+        </div>
+        <div class="collapse mt-3" id="priceUpdateForm">
+            <form action="{{ route('admin.jakat.prices') }}" method="POST" class="row g-3">
+                @csrf
+                <div class="col-md-6">
+                    <label class="form-label small">Gold Price (per gram)</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">৳</span>
+                        <input type="number" class="form-control" name="gold_price" value="{{ $goldPrice }}" min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small">Silver Price (per gram)</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">৳</span>
+                        <input type="number" class="form-control" name="silver_price" value="{{ $silverPrice }}" min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="bi bi-check-lg me-1"></i> Save Prices
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#priceUpdateForm">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <!-- Calculator Form -->
     <div class="col-lg-8">

@@ -24,7 +24,7 @@ class CustomerSegmentationController extends Controller
 
         // Filter by status
         if ($request->has('status') && $request->status !== '') {
-            $query->where('is_active', $request->status);
+            $query->where('is_active', $request->status === '1');
         }
 
         // Sorting

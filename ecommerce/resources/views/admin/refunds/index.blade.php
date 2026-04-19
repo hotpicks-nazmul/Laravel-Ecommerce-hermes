@@ -33,6 +33,13 @@
             <span class="stat-card-value" id="statRejected">{{ $stats['rejected'] ?? 0 }}</span>
         </div>
     </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-cash-stack"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Processed</span>
+            <span class="stat-card-value" id="statProcessed">{{ $stats['processed'] ?? 0 }}</span>
+        </div>
+    </div>
 </div>
 
 <!-- Header -->
@@ -338,6 +345,7 @@
                     document.getElementById('statPending').textContent = data.stats.pending || 0;
                     document.getElementById('statApproved').textContent = data.stats.approved || 0;
                     document.getElementById('statRejected').textContent = data.stats.rejected || 0;
+                    document.getElementById('statProcessed').textContent = data.stats.processed || 0;
                 }
                 
                 // Update URL without reload

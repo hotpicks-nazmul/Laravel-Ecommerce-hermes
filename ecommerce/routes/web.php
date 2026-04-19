@@ -54,6 +54,7 @@ Route::get('/pages/{slug}', [PageController::class, 'show'])->name('pages.show')
 
 // Newsletter Routes
 Route::post('/newsletter/subscribe', [PageController::class, 'newsletterSubscribe'])->name('newsletter.subscribe');
+Route::get('/newsletter/unsubscribe', [PageController::class, 'newsletterUnsubscribe'])->name('newsletter.unsubscribe');
 
 // Blog Routes
 Route::prefix('blogs')->name('blogs.')->group(function () {

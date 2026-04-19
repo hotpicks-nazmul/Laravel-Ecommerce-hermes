@@ -4,7 +4,7 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="stat-card-row mb-4">
+<div class="stat-card-row mb-4" id="statsCards">
     <div class="stat-card stat-card-primary">
         <div class="stat-card-icon"><i class="bi bi-cart-fill"></i></div>
         <div class="stat-card-content"><span class="stat-card-label">Total Orders</span><span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span></div>
@@ -343,6 +343,9 @@ function performLiveSearch(searchTerm) {
 
 // Update statistics cards
 function updateStats(stats) {
+    const statsContainer = document.getElementById('statsCards');
+    if (!statsContainer) return;
+
     const statMappings = {
         'Total Orders': stats.total ?? 0,
         'Pending': stats.pending ?? 0,
@@ -351,9 +354,8 @@ function updateStats(stats) {
         'Picked Up': stats.picked_up ?? 0,
         'Cancelled': stats.cancelled ?? 0,
     };
-    
-    // Get all stat cards and update by matching label text content
-    const statCards = document.querySelectorAll('.stat-card');
+
+    const statCards = statsContainer.querySelectorAll('.stat-card');
     statCards.forEach(card => {
         const labelEl = card.querySelector('.stat-card-label');
         const valueEl = card.querySelector('.stat-card-value');
@@ -370,7 +372,28 @@ function updateStats(stats) {
 function changePerPage(perPage) {
     const params = new URLSearchParams(window.location.search);
     params.set('per_page', perPage);
-    window.location.href = `${window.location.pathname}?${params.toString()}`;
+    params.delete('page'); // Reset to first page
+
+    // Check if we're in AJAX mode
+    if (document.querySelector('#orderTableBody')) {
+        fetch(`{{ route('admin.orders.pickup-point') }}?${params.toString()}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.html) {
+                document.querySelector('#orderTableBody').innerHTML = data.html;
+                if (data.stats) updateStats(data.stats);
+                if (data.pagination) document.getElementById('paginationLinks').innerHTML = data.pagination;
+                window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
+            }
+        });
+    } else {
+        window.location.search = params.toString();
+    }
 }
 
 // Bulk selection functionality

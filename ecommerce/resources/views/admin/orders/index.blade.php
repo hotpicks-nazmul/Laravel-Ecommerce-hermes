@@ -4,7 +4,7 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="stat-card-row mb-4">
+<div class="stat-card-row mb-4" id="statsCards">
     <div class="stat-card stat-card-primary">
         <div class="stat-card-icon"><i class="bi bi-cart-fill"></i></div>
         <div class="stat-card-content"><span class="stat-card-label">Total Orders</span><span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span></div>
@@ -29,13 +29,17 @@
         <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
         <div class="stat-card-content"><span class="stat-card-label">Cancelled</span><span class="stat-card-value">{{ $stats['cancelled'] ?? 0 }}</span></div>
     </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-arrow-counterclockwise"></i></div>
+        <div class="stat-card-content"><span class="stat-card-label">Refunded</span><span class="stat-card-value">{{ $stats['refunded'] ?? 0 }}</span></div>
+    </div>
 </div>
 
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">All Orders</h4>
     <div class="d-flex gap-2">
-        <a href="{{ route('admin.orders.index') }}?{{ http_build_query(array_merge(request()->query(), ['export' => 'csv'])) }}" class="btn btn-outline-secondary">
+        <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['export' => 'csv'])) }}" class="btn btn-outline-secondary">
             <i class="bi bi-download me-1"></i> Export CSV
         </a>
     </div>
@@ -284,27 +288,30 @@ function performLiveSearch(searchTerm) {
 
 // Update statistics cards
 function updateStats(stats) {
-    const statsContainer = document.querySelector('.stat-card-row');
+    const statsContainer = document.getElementById('statsCards');
     if (!statsContainer) return;
-    
-    const statCards = [
-        { label: 'Total Orders', value: stats.total || 0, icon: 'bi-cart-fill', variant: 'primary' },
-        { label: 'Pending', value: stats.pending || 0, icon: 'bi-clock', variant: 'warning' },
-        { label: 'Processing', value: stats.processing || 0, icon: 'bi-gear', variant: 'info' },
-        { label: 'Shipped', value: stats.shipped || 0, icon: 'bi-truck', variant: 'secondary' },
-        { label: 'Delivered', value: stats.delivered || 0, icon: 'bi-check2-all', variant: 'success' },
-        { label: 'Cancelled', value: stats.cancelled || 0, icon: 'bi-x-circle', variant: 'danger' }
-    ];
-    
-    statsContainer.innerHTML = statCards.map(card => `
-        <div class="stat-card stat-card-${card.variant}">
-            <div class="stat-card-icon"><i class="bi ${card.icon}"></i></div>
-            <div class="stat-card-content">
-                <span class="stat-card-label">${card.label}</span>
-                <span class="stat-card-value">${typeof card.value === 'number' ? card.value.toLocaleString() : card.value}</span>
-            </div>
-        </div>
-    `).join('');
+
+    const statMappings = {
+        'Total Orders': stats.total ?? 0,
+        'Pending': stats.pending ?? 0,
+        'Processing': stats.processing ?? 0,
+        'Shipped': stats.shipped ?? 0,
+        'Delivered': stats.delivered ?? 0,
+        'Cancelled': stats.cancelled ?? 0,
+        'Refunded': stats.refunded ?? 0,
+    };
+
+    const statCards = statsContainer.querySelectorAll('.stat-card');
+    statCards.forEach(card => {
+        const labelEl = card.querySelector('.stat-card-label');
+        const valueEl = card.querySelector('.stat-card-value');
+        if (labelEl && valueEl) {
+            const labelText = labelEl.textContent.trim();
+            if (statMappings[labelText] !== undefined) {
+                valueEl.textContent = statMappings[labelText];
+            }
+        }
+    });
 }
 
 // Change per page

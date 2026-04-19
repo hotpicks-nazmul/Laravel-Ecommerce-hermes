@@ -13,15 +13,44 @@ class AffiliateBannerController extends Controller
 {
     /**
      * Display list of affiliate banners
-     * 
+     *
+     * @param Request $request
      * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        $banners = AffiliateBanner::with('affiliate.user')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
-        
+        $query = AffiliateBanner::with('affiliate.user');
+
+        // Search functionality
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('size', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // Status filter
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        // Sorting
+        $sort = $request->sort ?? 'created_at';
+        $direction = $request->direction ?? 'desc';
+        $allowedSorts = ['id', 'name', 'width', 'height', 'clicks', 'created_at'];
+
+        if (in_array($sort, $allowedSorts)) {
+            $query->orderBy($sort, $direction);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        // Pagination
+        $perPage = $request->per_page ?? 15;
+        $banners = $query->paginate($perPage);
+
         // Statistics for stat cards
         $stats = [
             'total' => AffiliateBanner::count(),
@@ -29,7 +58,15 @@ class AffiliateBannerController extends Controller
             'inactive' => AffiliateBanner::where('status', 'inactive')->count(),
             'total_clicks' => AffiliateBanner::sum('clicks'),
         ];
-        
+
+        // AJAX response for live search
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('admin.affiliate.banners.partials.banner-rows', compact('banners'))->render(),
+                'stats' => $stats,
+            ]);
+        }
+
         return view('admin.affiliate.banners.index', compact('banners', 'stats'));
     }
 
@@ -174,5 +211,50 @@ class AffiliateBannerController extends Controller
 
         return redirect()->back()
             ->with('success', 'Affiliate banner deleted successfully.');
+    }
+
+    /**
+     * Bulk action for banners
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function bulkAction(Request $request)
+    {
+        $request->validate([
+            'action' => 'required|in:activate,deactivate,delete',
+            'ids' => 'required|json',
+        ]);
+
+        $ids = json_decode($request->ids, true);
+        $action = $request->action;
+
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'No banners selected.');
+        }
+
+        $banners = AffiliateBanner::whereIn('id', $ids)->get();
+
+        switch ($action) {
+            case 'activate':
+                $banners->each->update(['status' => 'active']);
+                return redirect()->back()->with('success', 'Selected banners activated.');
+
+            case 'deactivate':
+                $banners->each->update(['status' => 'inactive']);
+                return redirect()->back()->with('success', 'Selected banners deactivated.');
+
+            case 'delete':
+                // Delete images and banners
+                $banners->each(function ($banner) {
+                    if ($banner->image) {
+                        ImageHelper::deleteImage($banner->image, $banner->thumbnail ?? null);
+                    }
+                    $banner->delete();
+                });
+                return redirect()->back()->with('success', 'Selected banners deleted.');
+        }
+
+        return redirect()->back()->with('error', 'Invalid action.');
     }
 }

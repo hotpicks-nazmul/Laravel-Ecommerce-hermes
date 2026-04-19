@@ -1,5 +1,7 @@
 @extends('admin.layouts.app')
 
+@section('title', 'Refund Configuration')
+
 @section('content')
 @php
     $settings = $settings ?? collect();

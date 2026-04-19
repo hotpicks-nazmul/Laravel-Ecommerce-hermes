@@ -123,10 +123,48 @@
                         <th style="width: 40px;">
                             <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
                         </th>
-                        <th>Addon</th>
+                        <th>
+                            @php
+                                $sort = request('sort');
+                                $direction = request('direction');
+                                $isNameSort = $sort === 'name';
+                                $newDirection = ($isNameSort && $direction === 'asc') ? 'desc' : 'asc';
+                            @endphp
+                            <a href="{{ route('admin.addons.index', array_merge(request()->query(), ['sort' => 'name', 'direction' => $newDirection])) }}"
+                               class="text-decoration-none text-dark">
+                                Addon
+                                @if($isNameSort)
+                                    <i class="bi bi-chevron-{{ $direction === 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </a>
+                        </th>
                         <th>Version</th>
-                        <th>Author</th>
-                        <th>Status</th>
+                        <th>
+                            @php
+                                $isAuthorSort = $sort === 'author';
+                                $newDirection = ($isAuthorSort && $direction === 'asc') ? 'desc' : 'asc';
+                            @endphp
+                            <a href="{{ route('admin.addons.index', array_merge(request()->query(), ['sort' => 'author', 'direction' => $newDirection])) }}"
+                               class="text-decoration-none text-dark">
+                                Author
+                                @if($isAuthorSort)
+                                    <i class="bi bi-chevron-{{ $direction === 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </a>
+                        </th>
+                        <th>
+                            @php
+                                $isStatusSort = $sort === 'status';
+                                $newDirection = ($isStatusSort && $direction === 'asc') ? 'desc' : 'asc';
+                            @endphp
+                            <a href="{{ route('admin.addons.index', array_merge(request()->query(), ['sort' => 'status', 'direction' => $newDirection])) }}"
+                               class="text-decoration-none text-dark">
+                                Status
+                                @if($isStatusSort)
+                                    <i class="bi bi-chevron-{{ $direction === 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </a>
+                        </th>
                         <th>Type</th>
                         <th style="width: 150px;">Actions</th>
                     </tr>
@@ -176,7 +214,7 @@
                                     @if(!$addon->is_core)
                                     <form action="{{ route('admin.addons.toggle', $addon->id) }}" method="POST" class="d-inline">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm {{ $addon->status === 'active' ? 'btn-outline-warning' : 'btn-outline-success' }}" 
+                                        <button type="submit" class="btn btn-sm {{ $addon->status === 'active' ? 'btn-outline-warning' : 'btn-outline-success' }}"
                                                 title="{{ $addon->status === 'active' ? 'Deactivate' : 'Activate' }}">
                                             <i class="bi bi-{{ $addon->status === 'active' ? 'pause' : 'play' }}-circle"></i>
                                         </button>
@@ -187,7 +225,7 @@
                                     </a>
                                 @endif
                                 @if(!$addon->is_core && $addon->status !== 'uninstalled')
-                                <form action="{{ route('admin.addons.destroy', $addon->id) }}" method="POST" class="d-inline" 
+                                <form action="{{ route('admin.addons.destroy', $addon->id) }}" method="POST" class="d-inline"
                                       onsubmit="return confirm('Are you sure you want to uninstall this addon?')">
                                     @csrf
                                     @method('DELETE')
@@ -203,10 +241,17 @@
                     <tr>
                         <td colspan="7" class="text-center py-5">
                             <i class="bi bi-puzzle text-muted" style="font-size: 3rem;"></i>
-                            <p class="text-muted mb-2 mt-2">No addons found</p>
-                            <a href="{{ route('admin.addons.install') }}" class="btn btn-sm btn-primary mt-1">
-                                <i class="bi bi-plus-lg me-1"></i> Install Your First Addon
-                            </a>
+                            @if(request('search') || request('status'))
+                                <p class="text-muted mb-2 mt-2">No addons match your filters</p>
+                                <a href="{{ route('admin.addons.index') }}" class="btn btn-sm btn-outline-secondary mt-1">
+                                    <i class="bi bi-x-lg me-1"></i> Clear Filters
+                                </a>
+                            @else
+                                <p class="text-muted mb-2 mt-2">No addons found</p>
+                                <a href="{{ route('admin.addons.install') }}" class="btn btn-sm btn-primary mt-1">
+                                    <i class="bi bi-plus-lg me-1"></i> Install Your First Addon
+                                </a>
+                            @endif
                         </td>
                     </tr>
                     @endforelse
@@ -217,7 +262,8 @@
     @if($addons->hasPages())
     <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div class="text-muted small">
-            Showing {{ $addons->firstItem() }} - {{ $addons->lastItem() }} of {{ $addons->total() }} addons
+            Showing {{ $addons->firstItem() ?? 0 }} - {{ $addons->lastItem() ?? 0 }} of {{ $addons->total() }} addons
+            @if(request('search'))<span class="text-primary"> (filtered)</span>@endif
         </div>
         <div>
             {{ $addons->appends(request()->query())->links() }}

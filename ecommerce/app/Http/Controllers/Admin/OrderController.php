@@ -816,6 +816,22 @@ class OrderController extends Controller
     }
 
     /**
+     * Get filtered stats based on current query filters for pickup point orders.
+     */
+    protected function getFilteredPickupPointStats($query)
+    {
+        return [
+            'total' => (clone $query)->count(),
+            'pending' => (clone $query)->where('status', 'pending')->count(),
+            'processing' => (clone $query)->where('status', 'processing')->count(),
+            'confirmed' => (clone $query)->where('status', 'confirmed')->count(),
+            'ready' => (clone $query)->where('status', 'confirmed')->whereNull('picked_up_at')->count(),
+            'picked_up' => (clone $query)->whereNotNull('picked_up_at')->count(),
+            'cancelled' => (clone $query)->where('status', 'cancelled')->count(),
+        ];
+    }
+
+    /**
      * Display pickup point orders listing.
      */
     public function pickupPoint(Request $request)
@@ -873,8 +889,12 @@ class OrderController extends Controller
         $perPage = $request->per_page ?? 25;
         $orders = $query->paginate($perPage);
 
-        // Get stats
-        $stats = $this->getPickupPointStats();
+        // Get stats - filtered for AJAX, all stats for page load
+        if ($request->ajax()) {
+            $stats = $this->getFilteredPickupPointStats($query);
+        } else {
+            $stats = $this->getPickupPointStats();
+        }
 
         // Get pickup points for filter dropdown
         $pickupPoints = \App\Models\PickupPoint::active()->orderBy('name')->get();

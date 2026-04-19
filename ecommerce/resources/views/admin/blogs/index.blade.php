@@ -123,6 +123,12 @@
                             <a href="{{ route('admin.blogs.edit', $blog->slug) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                 <i class="bi bi-pencil"></i>
                             </a>
+                            <form action="{{ route('admin.blogs.toggle', $blog->slug) }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-outline-{{ $isPublished ? 'warning' : 'success' }}" title="{{ $isPublished ? 'Mark as Draft' : 'Mark as Published' }}">
+                                    <i class="bi bi-{{ $isPublished ? 'eye-slash' : 'eye' }}"></i>
+                                </button>
+                            </form>
                             <form action="{{ route('admin.blogs.destroy', $blog->slug) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this post?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">

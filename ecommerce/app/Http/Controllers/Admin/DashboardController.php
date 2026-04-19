@@ -197,6 +197,8 @@ class DashboardController extends Controller
             'categoryDistribution',
             'salesGrowth',
             'customerGrowth',
+            'currentMonthCustomers',
+            'lastMonthCustomers',
             'orderGrowth',
             'salesByCategory',
             'paymentMethods'
@@ -331,7 +333,18 @@ class DashboardController extends Controller
         $orderStatus = DB::table('orders')->whereBetween('created_at', [$start, $end])
             ->select('status', DB::raw('COUNT(*) as count'), DB::raw('SUM(total) as total'))
             ->groupBy('status')
-            ->get();
+            ->get()->keyBy('status');
+
+        $orderStatusColors = [
+            'pending' => '#fbbf24',
+            'processing' => '#3b82f6',
+            'completed' => '#22c55e',
+            'cancelled' => '#ef4444',
+            'delivered' => '#8b5cf6',
+            'shipped' => '#f97316',
+            'paid' => '#14b8a6',
+            'refunded' => '#64748b',
+        ];
         
         // ============ PAYMENT METHOD DISTRIBUTION ============
         $paymentMethods = DB::table('orders')->where('payment_status', 'paid')
@@ -371,16 +384,33 @@ class DashboardController extends Controller
                 ->sum('total'), 2);
         }
         
-        // ============ YEARLY COMPARISON ============
-        $yearlySales = [];
-        $yearlyLabels = [];
-        for ($i = 11; $i >= 0; $i--) {
-            $month = now()->copy()->subMonths($i);
-            $yearlyLabels[] = $month->format('M Y');
-            $yearlySales[] = round(DB::table('orders')->where('payment_status', 'paid')
-                ->whereYear('created_at', $month->year)
-                ->whereMonth('created_at', $month->month)
-                ->sum('total'), 2);
+        // ============ PERIOD-BASED COMPARISON CHART ============
+        $chartStart = Carbon::parse($start);
+        $chartEnd = Carbon::parse($end);
+        $diffInDays = $chartStart->diffInDays($chartEnd);
+
+        $chartLabels = [];
+        $chartData = [];
+
+        if ($diffInDays <= 31) {
+            $current = $chartStart->copy();
+            while ($current->lte($chartEnd)) {
+                $chartLabels[] = $current->format('d M');
+                $chartData[] = round(DB::table('orders')->where('payment_status', 'paid')
+                    ->whereDate('created_at', $current->format('Y-m-d'))
+                    ->sum('total'), 2);
+                $current->addDay();
+            }
+        } else {
+            $current = $chartStart->copy()->startOfMonth();
+            while ($current->lte($chartEnd)) {
+                $chartLabels[] = $current->format('M Y');
+                $chartData[] = round(DB::table('orders')->where('payment_status', 'paid')
+                    ->whereYear('created_at', $current->year)
+                    ->whereMonth('created_at', $current->month)
+                    ->sum('total'), 2);
+                $current->addMonth();
+            }
         }
         
         // ============ CUSTOMER SEGMENTS ============
@@ -415,6 +445,7 @@ class DashboardController extends Controller
             'topProducts',
             'topCategories',
             'orderStatus',
+            'orderStatusColors',
             'paymentMethods',
             'avgOrderValue',
             'avgGrowth',
@@ -423,8 +454,8 @@ class DashboardController extends Controller
             'topSearches',
             'last30DaysRevenue',
             'last30DaysLabels',
-            'yearlySales',
-            'yearlyLabels',
+            'chartLabels',
+            'chartData',
             'newCustomers',
             'returningCustomers',
             'salesByDay',

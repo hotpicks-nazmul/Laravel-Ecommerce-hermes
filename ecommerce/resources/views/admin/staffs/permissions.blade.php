@@ -85,18 +85,18 @@
                                 @endif
                             </td>
                             <td>
-                                @if($member->is_super_admin || $member->role === 'super_admin')
-                                    <span class="text-muted small">No action needed</span>
-                                @else
-                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#permissionsModal{{ $member->id }}">
-                                        <i class="bi bi-gear"></i> Manage
-                                    </button>
-                                @endif
+                                @if(!$member->is_super_admin)
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#permissionsModal{{ $member->id }}">
+                                <i class="bi bi-gear"></i> Manage
+                            </button>
+                        @else
+                            <span class="text-muted small">No action needed</span>
+                        @endif
                             </td>
                         </tr>
 
                         <!-- Permissions Modal -->
-                        @if(!$member->is_super_admin && $member->role !== 'super_admin')
+                        @if(!$member->is_super_admin)
                         <div class="modal fade" id="permissionsModal{{ $member->id }}" tabindex="-1" aria-labelledby="permissionsModalLabel{{ $member->id }}" aria-hidden="true">
                             <div class="modal-dialog modal-lg">
                                 <form action="{{ route('admin.staffs.permissions.update') }}" method="POST" id="permissionsForm{{ $member->id }}">
@@ -405,16 +405,13 @@
                     // Close modal
                     const modal = bootstrap.Modal.getInstance(form.closest('.modal'));
                     if (modal) modal.hide();
-                    
-                    // Show success toast
+
+                    // Show success toast (no page reload needed)
                     if (typeof adminToast !== 'undefined') {
                         adminToast('success', 'Success!', data.message || 'Permissions updated successfully.');
                     } else if (typeof toastr !== 'undefined') {
                         toastr.success(data.message || 'Permissions updated successfully.');
                     }
-                    
-                    // Reload page to reflect changes
-                    setTimeout(() => window.location.reload(), 500);
                 })
                 .catch(err => {
                     // On error, submit form normally (fallback)

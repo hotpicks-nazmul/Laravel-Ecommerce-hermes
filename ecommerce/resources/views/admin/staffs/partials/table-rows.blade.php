@@ -7,8 +7,8 @@
             <div class="d-flex align-items-center">
                 @php
                     $avatarUrl = $staff->avatar;
-                    if ($avatarUrl && !str_starts_with($avatarUrl, '/') && !str_starts_with($avatarUrl, 'http')) {
-                        $avatarUrl = '/' . $avatarUrl;
+                    if ($avatarUrl && !str_starts_with($avatarUrl, '/storage/') && !str_starts_with($avatarUrl, 'http')) {
+                        $avatarUrl = '/storage/' . $avatarUrl;
                     }
                 @endphp
                 @if($avatarUrl)

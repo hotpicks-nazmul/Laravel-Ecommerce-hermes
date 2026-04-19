@@ -15,30 +15,34 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="stat-card-row stat-card-row-6 mb-4">
+    <div class="stat-card-row stat-card-row-7 mb-4" id="statsCards">
         <div class="stat-card stat-card-primary">
             <div class="stat-card-icon"><i class="bi bi-file-earmark-text"></i></div>
-            <div class="stat-card-content"><span class="stat-card-label">Total</span><span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span></div>
+            <div class="stat-card-content"><span class="stat-card-label">Total</span><span class="stat-card-value" id="statTotal">{{ $stats['total'] ?? 0 }}</span></div>
         </div>
         <div class="stat-card stat-card-warning">
             <div class="stat-card-icon"><i class="bi bi-clock"></i></div>
-            <div class="stat-card-content"><span class="stat-card-label">Pending</span><span class="stat-card-value">{{ $stats['pending'] ?? 0 }}</span></div>
+            <div class="stat-card-content"><span class="stat-card-label">Pending</span><span class="stat-card-value" id="statPending">{{ $stats['pending'] ?? 0 }}</span></div>
         </div>
         <div class="stat-card stat-card-info">
             <div class="stat-card-icon"><i class="bi bi-send"></i></div>
-            <div class="stat-card-content"><span class="stat-card-label">Sent</span><span class="stat-card-value">{{ $stats['sent'] ?? 0 }}</span></div>
+            <div class="stat-card-content"><span class="stat-card-label">Sent</span><span class="stat-card-value" id="statSent">{{ $stats['sent'] ?? 0 }}</span></div>
         </div>
         <div class="stat-card stat-card-success">
             <div class="stat-card-icon"><i class="bi bi-check2-circle"></i></div>
-            <div class="stat-card-content"><span class="stat-card-label">Accepted</span><span class="stat-card-value">{{ $stats['accepted'] ?? 0 }}</span></div>
+            <div class="stat-card-content"><span class="stat-card-label">Accepted</span><span class="stat-card-value" id="statAccepted">{{ $stats['accepted'] ?? 0 }}</span></div>
+        </div>
+        <div class="stat-card stat-card-danger">
+            <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
+            <div class="stat-card-content"><span class="stat-card-label">Rejected</span><span class="stat-card-value" id="statRejected">{{ $stats['rejected'] ?? 0 }}</span></div>
         </div>
         <div class="stat-card stat-card-primary">
             <div class="stat-card-icon"><i class="bi bi-arrow-repeat"></i></div>
-            <div class="stat-card-content"><span class="stat-card-label">Converted</span><span class="stat-card-value">{{ $stats['converted'] ?? 0 }}</span></div>
+            <div class="stat-card-content"><span class="stat-card-label">Converted</span><span class="stat-card-value" id="statConverted">{{ $stats['converted'] ?? 0 }}</span></div>
         </div>
         <div class="stat-card stat-card-secondary">
             <div class="stat-card-icon"><i class="bi bi-calendar-x"></i></div>
-            <div class="stat-card-content"><span class="stat-card-label">Expired</span><span class="stat-card-value">{{ $stats['expired'] ?? 0 }}</span></div>
+            <div class="stat-card-content"><span class="stat-card-label">Expired</span><span class="stat-card-value" id="statExpired">{{ $stats['expired'] ?? 0 }}</span></div>
         </div>
     </div>
 
@@ -81,7 +85,17 @@
                         <label class="form-label small text-muted">To Date</label>
                         <input type="date" name="date_to" class="form-control form-control-sm" value="{{ request('date_to') }}">
                     </div>
-                    
+
+                    <div class="col-lg-2 col-md-3 col-sm-6">
+                        <label class="form-label small text-muted">Per Page</label>
+                        <select name="per_page" id="filterPerPage" class="form-select form-select-sm">
+                            <option value="10" {{ request('per_page') == '10' ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ request('per_page') == '25' || !request('per_page') ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ request('per_page') == '100' ? 'selected' : '' }}>100</option>
+                        </select>
+                    </div>
+
                     <div class="col-lg-2 col-md-4 col-sm-8">
                         <a href="{{ route('admin.quotations.index') }}" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-x-lg me-1"></i> Reset
@@ -124,12 +138,47 @@
                             <th style="width: 40px;">
                                 <input type="checkbox" class="form-check-input" id="selectAll">
                             </th>
-                            <th>Quotation #</th>
+                            <th>
+                                <a href="{{ route('admin.quotations.index', array_merge(request()->query(), ['sort' => 'quotation_number', 'direction' => request('sort') == 'quotation_number' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                    Quotation #
+                                    @if(request('sort') == 'quotation_number')
+                                        <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
+                                    @endif
+                                </a>
+                            </th>
                             <th>Customer</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>Valid Until</th>
-                            <th>Created</th>
+                            <th>
+                                <a href="{{ route('admin.quotations.index', array_merge(request()->query(), ['sort' => 'total', 'direction' => request('sort') == 'total' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                    Total
+                                    @if(request('sort') == 'total')
+                                        <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ route('admin.quotations.index', array_merge(request()->query(), ['sort' => 'status', 'direction' => request('sort') == 'status' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                    Status
+                                    @if(request('sort') == 'status')
+                                        <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ route('admin.quotations.index', array_merge(request()->query(), ['sort' => 'valid_until', 'direction' => request('sort') == 'valid_until' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                    Valid Until
+                                    @if(request('sort') == 'valid_until')
+                                        <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ route('admin.quotations.index', array_merge(request()->query(), ['sort' => 'created_at', 'direction' => request('sort') == 'created_at' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
+                                    Created
+                                    @if(request('sort') == 'created_at' || !request('sort'))
+                                        <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
+                                    @endif
+                                </a>
+                            </th>
                             <th style="width: 120px;" class="text-end">Actions</th>
                         </tr>
                     </thead>
@@ -189,11 +238,19 @@
         });
     });
 
+    // Per page filter
+    const filterPerPage = document.getElementById('filterPerPage');
+    if (filterPerPage) {
+        filterPerPage.addEventListener('change', function() {
+            performLiveSearch(searchInput.value.trim());
+        });
+    }
+
     function performLiveSearch(searchTerm) {
         const params = new URLSearchParams();
-        
+
         if (searchTerm) params.set('search', searchTerm);
-        
+
         const status = filterStatus.value;
         if (status) params.set('status', status);
 
@@ -202,10 +259,10 @@
 
         const dateTo = document.querySelector('input[name="date_to"]').value;
         if (dateTo) params.set('date_to', dateTo);
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('per_page')) params.set('per_page', urlParams.get('per_page'));
-        
+
+        const perPage = filterPerPage ? filterPerPage.value : '25';
+        params.set('per_page', perPage);
+
         fetch(`{{ route('admin.quotations.index') }}?${params.toString()}&ajax=1`, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
@@ -215,17 +272,40 @@
         .then(res => res.json())
         .then(data => {
             searchSpinner.style.display = 'none';
-            
+
             if (data.html) {
                 document.getElementById('tableBody').innerHTML = data.html;
-                
+
                 const newUrl = `${window.location.pathname}?${params.toString()}`;
                 window.history.pushState({}, '', newUrl);
-                
+
                 // Re-initialize checkboxes
                 initCheckboxes();
             }
+
+            // Update stats if provided
+            if (data.stats) {
+                updateStats(data.stats);
+            }
         });
+    }
+
+    // Update statistics cards
+    function updateStats(stats) {
+        const statIds = {
+            'statTotal': stats.total ?? 0,
+            'statPending': stats.pending ?? 0,
+            'statSent': stats.sent ?? 0,
+            'statAccepted': stats.accepted ?? 0,
+            'statRejected': stats.rejected ?? 0,
+            'statConverted': stats.converted ?? 0,
+            'statExpired': stats.expired ?? 0,
+        };
+
+        for (const [id, value] of Object.entries(statIds)) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        }
     }
 
     // Bulk selection

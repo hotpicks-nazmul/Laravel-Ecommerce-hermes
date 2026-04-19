@@ -30,6 +30,7 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 22. **Toast Notification for Status Toggle** - Show success notification when toggling status in tables
 23. **Delete Image Functionality** - Delete button style for existing images with AJAX
 24. **Auto-generate Slug from Name** - Real-time slug generation on name input
+25. **Admin Toast Notification** - Slide-in toast from right with white background for success/error messages
 
 ---
 
@@ -2569,6 +2570,220 @@ protected static function boot()
 | Slug not generating | JavaScript error before slug code | Check browser console for errors |
 | Null elements errors | References to non-existent elements | Add null checks before `.addEventListener()` |
 | Duplicate slugs | Slug not unique in database | Add unique validation rule |
+
+---
+
+## 25. Admin Toast Notification
+
+The admin panel has a built-in toast notification system that displays slide-in messages from the right side of the screen with a white background. This provides a clean, modern notification experience for success/error messages.
+
+### Overview
+
+- **Style**: White background with colored left border
+- **Animation**: Slides in from right to left
+- **Position**: Fixed at right side of screen
+- **Auto-dismiss**: Automatically removes after 4 seconds
+- **Manual dismiss**: Close button to dismiss immediately
+
+### How It Works
+
+The `adminToast` function is defined in the admin layout (`admin/layouts/app.blade.php`) and is available globally on all admin pages.
+
+### JavaScript API
+
+```javascript
+// Show success toast
+adminToast('success', 'Title', 'Success message here');
+
+// Show error toast
+adminToast('error', 'Error', 'Error message here');
+
+// Show warning toast
+adminToast('warning', 'Warning', 'Warning message here');
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `type` | string | Yes | Toast type: `success`, `error`, or `warning` |
+| `title` | string | Yes | Toast title (bold text) |
+| `message` | string | Yes | Toast message (body text) |
+| `duration` | number | No | Auto-dismiss time in ms (default: 4000) |
+
+### Display Toast After Page Reload
+
+When redirecting with a success message and you need to show the toast after page reload, pass the message via URL parameters:
+
+#### JavaScript Implementation
+
+```javascript
+// After successful AJAX operation, redirect with success message
+fetch('/admin/items/adjust', {
+    method: 'POST',
+    headers: {
+        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        'Accept': 'application/json'
+    },
+    body: formData
+})
+.then(res => res.json())
+.then(data => {
+    if (data.success) {
+        bootstrap.Modal.getInstance(document.getElementById('adjustModal')).hide();
+        // Redirect with success message as URL parameter
+        setTimeout(() => {
+            window.location.href = '/admin/items?success=' + encodeURIComponent(data.message) + '&type=success';
+        }, 300);
+    }
+});
+```
+
+#### Show Toast on Page Load
+
+Add this JavaScript in the `@push('scripts')` section to display the toast after page reload:
+
+```javascript
+// Check for success message in URL on page load
+window.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const type = urlParams.get('type') || 'success';
+
+    if (success) {
+        // Show the admin toast
+        if (typeof adminToast === 'function') {
+            adminToast(type, type === 'success' ? 'Success' : 'Error', decodeURIComponent(success));
+        }
+        // Remove the query parameter from URL without reload
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+    }
+});
+```
+
+### CSS Styling
+
+The toast styling is defined in `admin/layouts/app.blade.php`:
+
+```css
+.admin-toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.admin-toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    min-width: 300px;
+    max-width: 400px;
+    transform: translateX(120%);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.admin-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.admin-toast.hide {
+    transform: translateX(120%);
+    opacity: 0;
+}
+
+.admin-toast.success {
+    border-left: 4px solid #10b981;
+}
+
+.admin-toast.error {
+    border-left: 4px solid #ef4444;
+}
+
+.admin-toast.warning {
+    border-left: 4px solid #f59e0b;
+}
+```
+
+### Icon Colors by Type
+
+| Type | Border Color | Icon Color | Icon |
+|------|-------------|------------|------|
+| `success` | #10b981 (green) | #10b981 | `bi-check-circle-fill` |
+| `error` | #ef4444 (red) | #ef4444 | `bi-x-circle-fill` |
+| `warning` | #f59e0b (amber) | #f59e0b | `bi-exclamation-triangle-fill` |
+
+### Example: Inventory Adjustment
+
+Complete example showing how to use the admin toast with AJAX form submission:
+
+```javascript
+// Form submit handler
+document.getElementById('adjustForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+
+    fetch('/admin/inventory/adjust', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('adjustModal')).hide();
+            // Redirect with success message
+            setTimeout(() => {
+                window.location.href = '/admin/inventory?success=' + encodeURIComponent(data.message) + '&type=success';
+            }, 300);
+        } else {
+            alert(data.message || 'Failed');
+        }
+    });
+});
+
+// Page load - show toast if URL has success parameter
+window.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const type = urlParams.get('type') || 'success';
+
+    if (success) {
+        if (typeof adminToast === 'function') {
+            adminToast(type, type === 'success' ? 'Success' : 'Error', decodeURIComponent(success));
+        }
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+    }
+});
+```
+
+### Key Points
+
+1. **adminToast function** - Already available globally in admin layout
+2. **URL parameter approach** - Use when redirecting after form submission
+3. **Page load handler** - Check URL parameters on DOMContentLoaded
+4. **Clean URLs** - Use `history.replaceState` to remove query params
+5. **Safe function call** - Check `typeof adminToast === 'function'` before calling
+
+### Where Implemented
+
+- `/admin/inventory` - Stock adjustment success notification
+- `/admin/inventory/stock-alerts` - Threshold update notification
+- Admin layout - Global `adminToast` function
 
 ---
 

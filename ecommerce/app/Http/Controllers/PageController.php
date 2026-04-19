@@ -105,4 +105,34 @@ class PageController extends Controller
 
         return back()->with('success', 'Thank you for subscribing to our newsletter!');
     }
+
+    /**
+     * Unsubscribe from newsletter.
+     */
+    public function newsletterUnsubscribe(Request $request)
+    {
+        $email = $request->email;
+
+        if (!$email) {
+            return view('themes.general.pages.unsubscribe', [
+                'message' => 'Invalid unsubscribe request.',
+                'success' => false
+            ]);
+        }
+
+        $subscriber = \App\Models\Subscriber::where('email', $email)->first();
+
+        if ($subscriber) {
+            $subscriber->unsubscribe();
+            return view('themes.general.pages.unsubscribe', [
+                'message' => 'You have been successfully unsubscribed from our newsletter.',
+                'success' => true
+            ]);
+        }
+
+        return view('themes.general.pages.unsubscribe', [
+            'message' => 'Email not found in our subscription list.',
+            'success' => false
+        ]);
+    }
 }

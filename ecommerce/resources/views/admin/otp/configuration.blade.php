@@ -267,9 +267,9 @@
     
     <!-- Floating Buttons -->
     <div class="floating-save-container">
-        <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary floating-reset-btn">
+        <button type="button" class="btn btn-secondary floating-reset-btn" onclick="history.back()">
             <i class="bi bi-x-lg me-1"></i> Cancel
-        </a>
+        </button>
         <button type="submit" form="otpConfigForm" class="btn btn-primary floating-save-btn">
             <i class="bi bi-check-lg me-1"></i> Save Configuration
         </button>

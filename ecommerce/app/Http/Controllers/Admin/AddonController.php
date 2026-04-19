@@ -10,6 +10,57 @@ use Illuminate\Support\Str;
 class AddonController extends Controller
 {
     /**
+     * Get available addon templates data.
+     */
+    private function getAddonTemplates(): array
+    {
+        return [
+            'social-login' => [
+                'name' => 'Social Login',
+                'description' => 'Allow customers to login via social media platforms.',
+                'version' => '1.0.0',
+                'author' => 'Hamko Ecommerce',
+                'icon' => 'bi bi-person-bounding-box',
+            ],
+            'multi-vendor' => [
+                'name' => 'Multi-Vendor',
+                'description' => 'Enable multi-vendor marketplace functionality.',
+                'version' => '1.0.0',
+                'author' => 'Hamko Ecommerce',
+                'icon' => 'bi bi-shuffle',
+            ],
+            'live-chat' => [
+                'name' => 'Live Chat',
+                'description' => 'Add live chat support to your store.',
+                'version' => '1.0.0',
+                'author' => 'Hamko Ecommerce',
+                'icon' => 'bi bi-chat-dots',
+            ],
+            'pos' => [
+                'name' => 'Point of Sale',
+                'description' => 'Enable POS system for offline sales.',
+                'version' => '1.0.0',
+                'author' => 'Hamko Ecommerce',
+                'icon' => 'bi bi-cash-stack',
+            ],
+            'reviews-pro' => [
+                'name' => 'Product Reviews Pro',
+                'description' => 'Advanced product review system with ratings and photos.',
+                'version' => '1.0.0',
+                'author' => 'Hamko Ecommerce',
+                'icon' => 'bi bi-star',
+            ],
+            'seo-booster' => [
+                'name' => 'SEO Booster',
+                'description' => 'Advanced SEO tools to boost your search rankings.',
+                'version' => '1.0.0',
+                'author' => 'Hamko Ecommerce',
+                'icon' => 'bi bi-search',
+            ],
+        ];
+    }
+
+    /**
      * Display a listing of the addons.
      */
     public function index(Request $request)
@@ -76,7 +127,6 @@ class AddonController extends Controller
         $data['slug'] = Str::slug($request->name);
         $data['status'] = 'inactive';
         $data['is_core'] = $request->boolean('is_core');
-        $data['installed_at'] = now();
 
         Addon::create($data);
 
@@ -112,9 +162,21 @@ class AddonController extends Controller
             'is_core' => 'nullable|boolean',
         ]);
 
-        $data = $request->all();
-        $data['slug'] = Str::slug($request->name);
+        $data = $request->only(['name', 'description', 'version', 'author', 'author_website', 'website', 'icon', 'sort_order', 'is_core']);
+
+        if ($request->filled('name') && $addon->name !== $request->name) {
+            $data['slug'] = Str::slug($request->name);
+        }
+
         $data['is_core'] = $request->boolean('is_core');
+
+        if ($request->has('settings')) {
+            $settingsJson = $request->input('settings');
+            $data['settings'] = !empty($settingsJson) ? json_decode($settingsJson, true) : [];
+            if (json_last_error() !== JSON_ERROR_NONE && !empty($settingsJson)) {
+                return redirect()->back()->withInput()->with('error', 'Invalid JSON format in settings field.');
+            }
+        }
 
         $addon->update($data);
 
@@ -130,7 +192,7 @@ class AddonController extends Controller
         $addon = Addon::findOrFail($id);
 
         if ($addon->is_core) {
-            return redirect()->back()->with('error', 'Core addons cannot be deactivated.');
+            return redirect()->back()->with('error', 'Core addons cannot be activated or deactivated.');
         }
 
         $addon->activate();
@@ -147,7 +209,7 @@ class AddonController extends Controller
         $addon = Addon::findOrFail($id);
 
         if ($addon->is_core) {
-            return redirect()->back()->with('error', 'Core addons cannot be deactivated.');
+            return redirect()->back()->with('error', 'Core addons cannot be activated or deactivated.');
         }
 
         $addon->deactivate();
@@ -164,7 +226,7 @@ class AddonController extends Controller
         $addon = Addon::findOrFail($id);
 
         if ($addon->is_core) {
-            return redirect()->back()->with('error', 'Core addons status cannot be changed.');
+            return redirect()->back()->with('error', 'Core addons cannot be activated or deactivated.');
         }
 
         if ($addon->isActive()) {
@@ -216,6 +278,18 @@ class AddonController extends Controller
      */
     public function bulkAction(Request $request)
     {
+        $ids = $request->ids;
+
+        if (is_string($ids)) {
+            $ids = json_decode($ids, true);
+        }
+
+        if (empty($ids) || !is_array($ids)) {
+            return redirect()->back()->with('error', 'No addons selected.');
+        }
+
+        $request->merge(['ids' => $ids]);
+
         $request->validate([
             'action' => 'required|string|in:activate,deactivate,delete',
             'ids' => 'required|array',
@@ -281,57 +355,11 @@ class AddonController extends Controller
      */
     public function templates()
     {
-        // This can be extended to fetch addon templates from a remote server
-        $templates = collect([
-            (object)[
-                'name' => 'Social Login',
-                'slug' => 'social-login',
-                'description' => 'Allow customers to login via social media platforms.',
-                'version' => '1.0.0',
-                'author' => 'Hamko Ecommerce',
-                'icon' => 'bi bi-person-bounding-box',
-            ],
-            (object)[
-                'name' => 'Multi-Vendor',
-                'slug' => 'multi-vendor',
-                'description' => 'Enable multi-vendor marketplace functionality.',
-                'version' => '1.0.0',
-                'author' => 'Hamko Ecommerce',
-                'icon' => 'bi bi-shuffle',
-            ],
-            (object)[
-                'name' => 'Live Chat',
-                'slug' => 'live-chat',
-                'description' => 'Add live chat support to your store.',
-                'version' => '1.0.0',
-                'author' => 'Hamko Ecommerce',
-                'icon' => 'bi bi-chat-dots',
-            ],
-            (object)[
-                'name' => 'Point of Sale',
-                'slug' => 'pos',
-                'description' => 'Enable POS system for offline sales.',
-                'version' => '1.0.0',
-                'author' => 'Hamko Ecommerce',
-                'icon' => 'bi bi-cash-stack',
-            ],
-            (object)[
-                'name' => 'Product Reviews Pro',
-                'slug' => 'reviews-pro',
-                'description' => 'Advanced product review system with ratings and photos.',
-                'version' => '1.0.0',
-                'author' => 'Hamko Ecommerce',
-                'icon' => 'bi bi-star',
-            ],
-            (object)[
-                'name' => 'SEO Booster',
-                'slug' => 'seo-booster',
-                'description' => 'Advanced SEO tools to boost your search rankings.',
-                'version' => '1.0.0',
-                'author' => 'Hamko Ecommerce',
-                'icon' => 'bi bi-search',
-            ],
-        ]);
+        $templatesData = $this->getAddonTemplates();
+        $templates = collect($templatesData)->map(function ($data, $slug) {
+            $data['slug'] = $slug;
+            return (object) $data;
+        })->values();
 
         return response()->json(['templates' => $templates]);
     }
@@ -345,70 +373,22 @@ class AddonController extends Controller
             'slug' => 'required|string',
         ]);
 
-        // In a real implementation, this would fetch addon details from a remote server
-        $templateSlugs = ['social-login', 'multi-vendor', 'live-chat', 'pos', 'reviews-pro', 'seo-booster'];
+        $templates = $this->getAddonTemplates();
+        $slug = $request->slug;
 
-        if (!in_array($request->slug, $templateSlugs)) {
+        if (!array_key_exists($slug, $templates)) {
             return redirect()->back()->with('error', 'Invalid addon template.');
         }
 
-        // Check if already installed
-        $existing = Addon::where('slug', $request->slug)->first();
+        $existing = Addon::where('slug', $slug)->first();
         if ($existing) {
             return redirect()->back()->with('error', 'This addon is already installed.');
         }
 
-        // Create addon from template
-        $templateData = [
-            'social-login' => [
-                'name' => 'Social Login',
-                'description' => 'Allow customers to login via social media platforms.',
-                'version' => '1.0.0',
-                'author' => 'Hamko Ecommerce',
-                'icon' => 'bi bi-person-bounding-box',
-            ],
-            'multi-vendor' => [
-                'name' => 'Multi-Vendor',
-                'description' => 'Enable multi-vendor marketplace functionality.',
-                'version' => '1.0.0',
-                'author' => 'Hamko Ecommerce',
-                'icon' => 'bi bi-shuffle',
-            ],
-            'live-chat' => [
-                'name' => 'Live Chat',
-                'description' => 'Add live chat support to your store.',
-                'version' => '1.0.0',
-                'author' => 'Hamko Ecommerce',
-                'icon' => 'bi bi-chat-dots',
-            ],
-            'pos' => [
-                'name' => 'Point of Sale',
-                'description' => 'Enable POS system for offline sales.',
-                'version' => '1.0.0',
-                'author' => 'Hamko Ecommerce',
-                'icon' => 'bi bi-cash-stack',
-            ],
-            'reviews-pro' => [
-                'name' => 'Product Reviews Pro',
-                'description' => 'Advanced product review system with ratings and photos.',
-                'version' => '1.0.0',
-                'author' => 'Hamko Ecommerce',
-                'icon' => 'bi bi-star',
-            ],
-            'seo-booster' => [
-                'name' => 'SEO Booster',
-                'description' => 'Advanced SEO tools to boost your search rankings.',
-                'version' => '1.0.0',
-                'author' => 'Hamko Ecommerce',
-                'icon' => 'bi bi-search',
-            ],
-        ];
-
-        $data = $templateData[$request->slug];
-        $data['slug'] = $request->slug;
+        $data = $templates[$slug];
+        $data['slug'] = $slug;
         $data['status'] = 'inactive';
         $data['is_core'] = false;
-        $data['installed_at'] = now();
 
         Addon::create($data);
 

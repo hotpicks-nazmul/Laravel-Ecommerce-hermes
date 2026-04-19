@@ -82,6 +82,7 @@ class Setting extends Model
             'update_channel' => 'stable',
             'notify_on_update' => '1',
             'backup_before_update' => '1',
+            'update_server_url' => 'https://api.yourdomain.com/updates/check',
         ]);
     }
 

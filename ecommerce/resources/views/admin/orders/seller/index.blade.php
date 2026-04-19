@@ -4,7 +4,7 @@
 
 @section('content')
 <!-- Statistics Cards -->
-<div class="stat-card-row mb-4">
+<div class="stat-card-row mb-4" id="statsCards">
     <div class="stat-card stat-card-primary">
         <div class="stat-card-icon"><i class="bi bi-cart-fill"></i></div>
         <div class="stat-card-content"><span class="stat-card-label">Total Orders</span><span class="stat-card-value">{{ $stats['total'] ?? 0 }}</span></div>
@@ -43,7 +43,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0"><i class="bi bi-people me-2"></i>Seller Orders</h4>
     <div class="d-flex gap-2">
-        <a href="{{ route('admin.orders.seller') }}?{{ http_build_query(array_merge(request()->query(), ['export' => 'csv'])) }}" class="btn btn-outline-secondary">
+        <a href="{{ route('admin.orders.seller', array_merge(request()->query(), ['export' => 'csv'])) }}" class="btn btn-outline-secondary">
             <i class="bi bi-download me-1"></i> Export CSV
         </a>
     </div>
@@ -309,43 +309,31 @@ function performLiveSearch(searchTerm) {
 
 // Update statistics cards
 function updateStats(stats) {
-    const statsContainer = document.querySelector('.stat-card-row');
+    const statsContainer = document.getElementById('statsCards');
     if (!statsContainer) return;
-    
-    statsContainer.innerHTML = `
-        <div class="stat-card stat-card-primary">
-            <div class="stat-card-icon"><i class="bi bi-cart-fill"></i></div>
-            <div class="stat-card-content"><span class="stat-card-label">Total Orders</span><span class="stat-card-value">${stats.total || 0}</span></div>
-        </div>
-        <div class="stat-card stat-card-warning">
-            <div class="stat-card-icon"><i class="bi bi-clock"></i></div>
-            <div class="stat-card-content"><span class="stat-card-label">Pending</span><span class="stat-card-value">${stats.pending || 0}</span></div>
-        </div>
-        <div class="stat-card stat-card-info">
-            <div class="stat-card-icon"><i class="bi bi-gear"></i></div>
-            <div class="stat-card-content"><span class="stat-card-label">Processing</span><span class="stat-card-value">${stats.processing || 0}</span></div>
-        </div>
-        <div class="stat-card stat-card-secondary">
-            <div class="stat-card-icon"><i class="bi bi-check2"></i></div>
-            <div class="stat-card-content"><span class="stat-card-label">Confirmed</span><span class="stat-card-value">${stats.confirmed || 0}</span></div>
-        </div>
-        <div class="stat-card stat-card-primary">
-            <div class="stat-card-icon"><i class="bi bi-truck"></i></div>
-            <div class="stat-card-content"><span class="stat-card-label">Shipped</span><span class="stat-card-value">${stats.shipped || 0}</span></div>
-        </div>
-        <div class="stat-card stat-card-success">
-            <div class="stat-card-icon"><i class="bi bi-check2-all"></i></div>
-            <div class="stat-card-content"><span class="stat-card-label">Delivered</span><span class="stat-card-value">${stats.delivered || 0}</span></div>
-        </div>
-        <div class="stat-card stat-card-danger">
-            <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
-            <div class="stat-card-content"><span class="stat-card-label">Cancelled</span><span class="stat-card-value">${stats.cancelled || 0}</span></div>
-        </div>
-        <div class="stat-card stat-card-secondary">
-            <div class="stat-card-icon"><i class="bi bi-arrow-counterclockwise"></i></div>
-            <div class="stat-card-content"><span class="stat-card-label">Refunded</span><span class="stat-card-value">${stats.refunded || 0}</span></div>
-        </div>
-    `;
+
+    const statMappings = {
+        'Total Orders': stats.total ?? 0,
+        'Pending': stats.pending ?? 0,
+        'Processing': stats.processing ?? 0,
+        'Confirmed': stats.confirmed ?? 0,
+        'Shipped': stats.shipped ?? 0,
+        'Delivered': stats.delivered ?? 0,
+        'Cancelled': stats.cancelled ?? 0,
+        'Refunded': stats.refunded ?? 0,
+    };
+
+    const statCards = statsContainer.querySelectorAll('.stat-card');
+    statCards.forEach(card => {
+        const labelEl = card.querySelector('.stat-card-label');
+        const valueEl = card.querySelector('.stat-card-value');
+        if (labelEl && valueEl) {
+            const labelText = labelEl.textContent.trim();
+            if (statMappings[labelText] !== undefined) {
+                valueEl.textContent = statMappings[labelText];
+            }
+        }
+    });
 }
 
 // Change per page

@@ -39,6 +39,7 @@ class User extends Authenticatable
         'bank_routing_code',
         'commission_rate',
         'wallet_balance',
+        'wallet_points',
         'pending_balance',
         'verification_status',
         'verified_at',
@@ -55,6 +56,11 @@ class User extends Authenticatable
         'permissions',
         'warehouse_id',
         'is_super_admin',
+        // Customer specific fields
+        'loyalty_points',
+        'loyalty_points_spent',
+        'total_spent',
+        'customer_group_id',
     ];
 
     /**
@@ -220,6 +226,16 @@ class User extends Authenticatable
     public function customerGroup()
     {
         return $this->belongsTo(CustomerGroup::class, 'customer_group_id');
+    }
+
+    /**
+     * Get the customer segments this user belongs to
+     */
+    public function customerSegments()
+    {
+        return $this->belongsToMany(CustomerSegment::class, 'customer_segment_members', 'user_id', 'segment_id')
+            ->withPivot('added_at')
+            ->withTimestamps();
     }
 
     // ==================== Seller Methods ====================
@@ -428,14 +444,9 @@ class User extends Authenticatable
             return in_array($permission, $this->permissions);
         }
         
-        // Admin role - check permissions strictly (no auto-grant)
+        // Admin role - has all permissions by default (can manage staff)
         if ($this->role === 'admin') {
-            // Check other permissions
-            if (empty($this->permissions)) {
-                return false;
-            }
-            
-            return in_array($permission, $this->permissions);
+            return true;
         }
         
         // For other roles (customers, vendors, etc.), no permissions

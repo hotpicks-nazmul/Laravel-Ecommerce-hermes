@@ -354,23 +354,77 @@
     // Live search function
     function performLiveSearch(searchTerm) {
         const params = new URLSearchParams();
-        
+
         if (searchTerm) params.set('search', searchTerm);
-        
+
         // Add filter values
         const commission = document.getElementById('filterCommission').value;
         if (commission) params.set('commission_range', commission);
-        
+
         const status = document.getElementById('filterStatus').value;
         if (status) params.set('status', status);
-        
-        // Keep existing sort and per_page
+
+        // Keep existing per_page
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('per_page')) params.set('per_page', urlParams.get('per_page'));
-        
-        // Redirect with filters (non-AJAX for simplicity)
-        const newUrl = `${window.location.pathname}?${params.toString()}`;
-        window.location.href = newUrl;
+
+        // Show spinner
+        searchSpinner.style.display = 'block';
+
+        // AJAX request
+        fetch(`{{ route('admin.sellers.commission') }}?${params.toString()}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            searchSpinner.style.display = 'none';
+
+            if (data.html) {
+                // Update table body
+                document.querySelector('#tableBody').innerHTML = data.html;
+
+                // Update pagination
+                const paginationContainer = document.querySelector('.card-footer');
+                if (paginationContainer && data.pagination) {
+                    paginationContainer.innerHTML = data.pagination;
+                }
+
+                // Reinitialize modal event listeners for new rows
+                initModalListeners();
+
+                // Update URL without reload
+                const newUrl = `${window.location.pathname}?${params.toString()}`;
+                window.history.pushState({}, '', newUrl);
+            }
+        })
+        .catch(error => {
+            searchSpinner.style.display = 'none';
+            console.error('Search error:', error);
+            // Fallback to page reload on error
+            window.location.href = `${window.location.pathname}?${params.toString()}`;
+        });
     }
+
+    // Initialize modal listeners
+    function initModalListeners() {
+        document.querySelectorAll('#tableBody button[data-bs-target="#editCommissionModal"]').forEach(button => {
+            button.addEventListener('click', function() {
+                const sellerId = this.getAttribute('data-seller-id');
+                const sellerName = this.getAttribute('data-seller-name');
+                const shopName = this.getAttribute('data-shop-name');
+                const commissionRate = this.getAttribute('data-commission-rate');
+
+                document.getElementById('modalSellerId').value = sellerId;
+                document.getElementById('modalSellerName').value = shopName ? `${sellerName} (${shopName})` : sellerName;
+                document.getElementById('modalCommissionRate').value = commissionRate;
+            });
+        });
+    }
+
+    // Initialize on page load
+    initModalListeners();
 </script>
 @endpush

@@ -40,9 +40,11 @@
         @endif
     </td>
     <td>
-        <span class="badge {{ $warehouse->status_badge_class }}">
-            {{ $warehouse->status_text }}
-        </span>
+        <button type="button" class="btn btn-sm {{ $warehouse->is_active ? 'btn-success' : 'btn-outline-secondary' }}"
+                onclick="toggleStatus({{ $warehouse->id }})" title="Toggle Status">
+            <i class="bi {{ $warehouse->is_active ? 'bi-check-circle' : 'bi-x-circle' }}"></i>
+            {{ $warehouse->is_active ? 'Active' : 'Inactive' }}
+        </button>
     </td>
     <td>
         <div class="dropdown">

@@ -167,11 +167,16 @@ class GiftCardController extends Controller
 
     /**
      * Toggle the status of the gift card.
+     * Only active/inactive can be toggled. Expired and used are terminal states.
      */
     public function toggleStatus($id)
     {
         $giftCard = GiftCard::findOrFail($id);
-        
+
+        if (in_array($giftCard->status, ['expired', 'used'])) {
+            return back()->with('error', 'Cannot toggle status of ' . $giftCard->status . ' gift cards.');
+        }
+
         $newStatus = $giftCard->status === 'active' ? 'inactive' : 'active';
         $giftCard->update(['status' => $newStatus]);
 

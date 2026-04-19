@@ -166,7 +166,7 @@ function startTypingPolling() {
 function checkAdminTypingStatus() {
     if (!conversationId) return;
     
-    fetch(@json(route("api.chat.check-typing")) + '?conversation_id=' + conversationId)
+    fetch('/chat/check-typing?conversation_id=' + conversationId)
         .then(res => res.json())
         .then(data => {
             if (data.admin_is_typing) {
@@ -216,7 +216,7 @@ if (typeof window.unreadCount === 'undefined') {
 
 // Check if guest already exists on page load
 function checkExistingGuest() {
-    fetch('/api/chat/check-guest', {
+    fetch('/chat/check-guest', {
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json'
@@ -276,7 +276,7 @@ function checkExistingGuest() {
 
 // Create conversation for logged in user
 function createLoggedInConversation() {
-    fetch('/api/chat/register-logged-in', {
+    fetch('/chat/register-logged-in', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -384,7 +384,7 @@ function registerGuest(event) {
         return;
     }
     
-    fetch('/api/chat/register-guest', {
+    fetch('/chat/register-guest', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

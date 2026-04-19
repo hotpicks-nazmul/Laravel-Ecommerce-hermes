@@ -190,16 +190,35 @@
                             
                              <div class="mb-3">
                                 <label class="form-label">Select Attributes</label>
-                                <select class="form-select" id="productAttributesSelect" multiple="multiple">
-                                    @foreach($attributes as $attribute)
-                                        @if($attribute->activeValues->count() > 0)
-                                        <option value="{{ $attribute->id }}" data-name="{{ $attribute->name }}" data-values='@json($attribute->activeValues->map(function($v) { return ["id" => $v->id, "value" => $v->value]; })->toArray())'>
-                                            {{ $attribute->name }} ({{ $attribute->activeValues->count() }} values)
-                                        </option>
-                                        @endif
-                                    @endforeach
-                                </select>
-                                <div class="form-text">Hold Ctrl/Cmd to select multiple attributes</div>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" type="button" id="productAttributesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <span id="productAttributesLabel">Select attributes...</span>
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                    <div class="dropdown-menu w-100 p-0" aria-labelledby="productAttributesDropdown" style="max-height: 300px; overflow-y: auto;">
+                                        <div class="px-2 py-2 border-bottom">
+                                            <input type="text" class="form-control form-control-sm" id="productAttributesSearch" placeholder="Search...">
+                                        </div>
+                                        <div class="px-2 py-1" id="productAttributesList">
+                                            @foreach($attributes as $attribute)
+                                                @if($attribute->activeValues->count() > 0)
+                                                <div class="form-check">
+                                                    <input class="form-check-input attribute-checkbox" type="checkbox"
+                                                        value="{{ $attribute->id }}"
+                                                        id="attr_{{ $attribute->id }}"
+                                                        data-name="{{ $attribute->name }}"
+                                                        data-values='@json($attribute->activeValues->map(function($v) { return ["id" => $v->id, "value" => $v->value]; })->toArray())'>
+                                                    <label class="form-check-label w-100" for="attr_{{ $attribute->id }}">
+                                                        {{ $attribute->name }}
+                                                        <small class="text-muted">({{ $attribute->activeValues->count() }} values)</small>
+                                                    </label>
+                                                </div>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="selected-tags mt-2" id="productAttributesTags"></div>
                             </div>
                             
                             <div id="selectedAttributesContainer"></div>
@@ -216,14 +235,33 @@
                             
                             <div class="mb-3">
                                 <label class="form-label">Select Colors</label>
-                                <select class="form-select" id="productColorsSelect" multiple="multiple">
-                                    @foreach($colors as $color)
-                                    <option value="{{ $color->id }}" data-name="{{ $color->name }}" data-hex="{{ $color->hex_code }}">
-                                        {{ $color->name }}
-                                    </option>
-                                    @endforeach
-                                </select>
-                                <div class="form-text">Hold Ctrl/Cmd to select multiple colors</div>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" type="button" id="productColorsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <span id="productColorsLabel">Select colors...</span>
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                    <div class="dropdown-menu w-100 p-0" aria-labelledby="productColorsDropdown" style="max-height: 300px; overflow-y: auto;">
+                                        <div class="px-2 py-2 border-bottom">
+                                            <input type="text" class="form-control form-control-sm" id="productColorsSearch" placeholder="Search...">
+                                        </div>
+                                        <div class="px-2 py-1" id="productColorsList">
+                                            @foreach($colors as $color)
+                                            <div class="form-check">
+                                                <input class="form-check-input color-checkbox" type="checkbox"
+                                                    value="{{ $color->id }}"
+                                                    id="color_{{ $color->id }}"
+                                                    data-name="{{ $color->name }}"
+                                                    data-hex="{{ $color->hex_code }}">
+                                                <label class="form-check-label w-100" for="color_{{ $color->id }}">
+                                                    {{ $color->name }}
+                                                    <span style="background: {{ $color->hex_code }}; width: 16px; height: 16px; display: inline-block; border-radius: 50%; border: 1px solid #ddd; vertical-align: middle; margin-left: 8px;"></span>
+                                                </label>
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="selected-tags mt-2" id="productColorsTags"></div>
                             </div>
                             
                             <div id="selectedColorsContainer"></div>
@@ -419,6 +457,13 @@
     from { opacity: 1; transform: scale(1); }
     to { opacity: 0; transform: scale(0.8); }
 }
+.selected-tags .badge {
+    font-weight: 500;
+    padding: 4px 8px;
+}
+.dropdown-menu {
+    transform: none !important;
+}
 </style>
 @endpush
 
@@ -603,120 +648,154 @@ function previewColorImage(input, colorId) {
 const attributesData = @json($attributesData);
 const existingAttributes = @json($existingAttributes);
 
-let selectedAttributes = {};
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('existingAttributes:', existingAttributes);
-    console.log('attributes:', attributesData);
-    
-    // Load existing attributes
-    Object.keys(existingAttributes).forEach(attrId => {
-        const attrIdStr = String(attrId);
-        const attrIdInt = parseInt(attrId);
-        const option = document.querySelector(`#productAttributesSelect option[value="${attrIdStr}"], #productAttributesSelect option[value="${attrIdInt}"]`);
-        console.log('Looking for option:', attrIdStr, 'found:', option);
-        if (option) {
-            option.selected = true;
-            const attrName = option.dataset.name;
-            const attrValues = JSON.parse(option.dataset.values || '[]');
-            if (attrValues.length > 0) {
-                selectedAttributes[attrIdStr] = {
-                    name: attrName,
-                    values: []
-                };
-                let existingValues = [];
-                const existingAttrData = existingAttributes[attrIdStr] || existingAttributes[attrIdInt];
-                if (existingAttrData && existingAttrData.values) {
-                    existingValues = existingAttrData.values;
-                }
-                console.log('Rendering attribute:', attrIdStr, attrName, 'with values:', attrValues, 'existing:', existingValues);
-                renderAttributeValues(attrIdStr, { name: attrName, values: attrValues }, existingValues);
-            }
-        }
-    });
-    
-    // Setup change listener for attributes
-    document.getElementById('productAttributesSelect').addEventListener('change', function() {
-        const selectedOptions = Array.from(this.selectedOptions);
-        const selectedAttributeIds = selectedOptions.map(opt => opt.value);
-        
-        Object.keys(selectedAttributes).forEach(attrId => {
-            if (!selectedAttributeIds.includes(attrId)) {
-                delete selectedAttributes[attrId];
-                document.getElementById('attr-values-' + attrId)?.remove();
-            }
-        });
-        
-        selectedOptions.forEach(option => {
-            const attrId = option.value;
-            if (!selectedAttributes[attrId]) {
-                const attrName = option.dataset.name;
-                const attrValues = JSON.parse(option.dataset.values || '[]');
-                if (attrValues.length > 0) {
-                    selectedAttributes[attrId] = {
-                        name: attrName,
-                        values: []
-                    };
-                    renderAttributeValues(attrId, { name: attrName, values: attrValues });
-                }
-            }
-        });
-    });
-});
-
 // ==================== Product Colors Section ====================
 @php $colorsData = $colorsData ?? []; $existingColors = $existingColors ?? []; @endphp
 const colorsData = @json($colorsData);
 const existingColors = @json($existingColors);
 
+let selectedAttributes = {};
 let selectedProductColors = {};
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Load existing colors
-    if (existingColors && existingColors.length > 0) {
-        existingColors.forEach(colorData => {
-            const colorIdStr = String(colorData.color_id);
-            const option = document.querySelector(`#productColorsSelect option[value="${colorIdStr}"]`);
-            if (option) {
-                option.selected = true;
-                selectedProductColors[colorIdStr] = {
-                    name: option.dataset.name,
-                    hex_code: option.dataset.hex
-                };
-                renderProductColor(colorIdStr, option.dataset.name, option.dataset.hex, colorData);
+    const existingAttrIds = Object.keys(existingAttributes).map(id => parseInt(id));
+    existingAttrIds.forEach(attrId => {
+        const checkbox = document.getElementById('attr_' + attrId);
+        if (checkbox) {
+            checkbox.checked = true;
+            const attrName = checkbox.dataset.name;
+            const attrValues = JSON.parse(checkbox.dataset.values || '[]');
+            if (attrValues.length > 0 && !selectedAttributes[attrId]) {
+                selectedAttributes[attrId] = { name: attrName, values: [] };
+                let existingValues = [];
+                const existingAttrData = existingAttributes[attrId];
+                if (existingAttrData && existingAttrData.values) {
+                    existingValues = existingAttrData.values;
+                }
+                renderAttributeValues(attrId, { name: attrName, values: attrValues }, existingValues);
             }
+        }
+    });
+
+    existingColors.forEach(colorData => {
+        const checkbox = document.getElementById('color_' + colorData.color_id);
+        if (checkbox) {
+            checkbox.checked = true;
+            const colorName = checkbox.dataset.name;
+            const hexCode = checkbox.dataset.hex;
+            selectedProductColors[colorData.color_id] = { name: colorName, hex_code: hexCode };
+            renderProductColor(colorData.color_id, colorName, hexCode, colorData);
+        }
+    });
+
+    document.querySelectorAll('.attribute-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const checked = document.querySelectorAll('.attribute-checkbox:checked');
+            const selectedAttributeIds = Array.from(checked).map(c => c.value);
+
+            Object.keys(selectedAttributes).forEach(attrId => {
+                if (!selectedAttributeIds.includes(attrId)) {
+                    delete selectedAttributes[attrId];
+                    document.getElementById('attr-values-' + attrId)?.remove();
+                }
+            });
+
+            checked.forEach(checkbox => {
+                const attrId = checkbox.value;
+                if (!selectedAttributes[attrId]) {
+                    const attrName = checkbox.dataset.name;
+                    const attrValues = JSON.parse(checkbox.dataset.values || '[]');
+                    if (attrValues.length > 0) {
+                        selectedAttributes[attrId] = { name: attrName, values: [] };
+                        let existingValues = [];
+                        const existingAttrData = existingAttributes[attrId];
+                        if (existingAttrData && existingAttrData.values) {
+                            existingValues = existingAttrData.values;
+                        }
+                        renderAttributeValues(attrId, { name: attrName, values: attrValues }, existingValues);
+                    }
+                }
+            });
+
+            updateAttributesLabel();
         });
-    }
-    
-    // Setup change listener for colors
-    const productColorsSelect = document.getElementById('productColorsSelect');
-    if (productColorsSelect) {
-        productColorsSelect.addEventListener('change', function() {
-            const selectedOptions = Array.from(this.selectedOptions);
-            const colorIds = selectedOptions.map(opt => opt.value);
-            
+    });
+
+    document.querySelectorAll('.color-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const checked = document.querySelectorAll('.color-checkbox:checked');
+            const selectedColorIds = Array.from(checked).map(c => c.value);
+
             Object.keys(selectedProductColors).forEach(id => {
-                if (!colorIds.includes(id)) {
+                if (!selectedColorIds.includes(id)) {
                     delete selectedProductColors[id];
                     document.getElementById('product-color-' + id)?.remove();
                 }
             });
-            
-            selectedOptions.forEach(option => {
-                const colorId = option.value;
+
+            checked.forEach(checkbox => {
+                const colorId = checkbox.value;
                 if (!selectedProductColors[colorId]) {
-                    const colorName = option.getAttribute('data-name');
-                    const hexCode = option.getAttribute('data-hex');
-                    selectedProductColors[colorId] = {
-                        name: colorName,
-                        hex_code: hexCode
-                    };
-                    renderProductColor(colorId, colorName, hexCode);
+                    const colorName = checkbox.dataset.name;
+                    const hexCode = checkbox.dataset.hex;
+                    selectedProductColors[colorId] = { name: colorName, hex_code: hexCode };
+                    const existingColorData = existingColors.find(c => c.color_id == colorId);
+                    renderProductColor(colorId, colorName, hexCode, existingColorData);
                 }
             });
+
+            updateColorsLabel();
         });
-    }
+    });
+
+    document.getElementById('productAttributesSearch').addEventListener('input', function() {
+        const search = this.value.toLowerCase();
+        document.querySelectorAll('#productAttributesList .form-check').forEach(item => {
+            const text = item.textContent.toLowerCase();
+            item.style.display = text.includes(search) ? '' : 'none';
+        });
+    });
+
+    document.getElementById('productColorsSearch').addEventListener('input', function() {
+        const search = this.value.toLowerCase();
+        document.querySelectorAll('#productColorsList .form-check').forEach(item => {
+            const text = item.textContent.toLowerCase();
+            item.style.display = text.includes(search) ? '' : 'none';
+        });
+    });
+
+    updateAttributesLabel();
+    updateColorsLabel();
 });
+
+function updateAttributesLabel() {
+    const checked = document.querySelectorAll('.attribute-checkbox:checked');
+    const label = document.getElementById('productAttributesLabel');
+    const tagsContainer = document.getElementById('productAttributesTags');
+    if (checked.length === 0) {
+        label.textContent = 'Select attributes...';
+        tagsContainer.innerHTML = '';
+    } else {
+        label.textContent = checked.length + ' attribute(s) selected';
+        tagsContainer.innerHTML = Array.from(checked).map(cb =>
+            `<span class="badge bg-primary me-1">${cb.dataset.name} <i class="bi bi-x-circle-fill ms-1" style="cursor:pointer" onclick="this.parentElement.remove(); cb.checked=false; cb.dispatchEvent(new Event('change'));"></i></span>`
+        ).join('');
+    }
+}
+
+function updateColorsLabel() {
+    const checked = document.querySelectorAll('.color-checkbox:checked');
+    const label = document.getElementById('productColorsLabel');
+    const tagsContainer = document.getElementById('productColorsTags');
+    if (checked.length === 0) {
+        label.textContent = 'Select colors...';
+        tagsContainer.innerHTML = '';
+    } else {
+        label.textContent = checked.length + ' color(s) selected';
+        tagsContainer.innerHTML = Array.from(checked).map(cb =>
+            `<span class="badge me-1" style="background:${cb.dataset.hex}">${cb.dataset.name} <i class="bi bi-x-circle-fill ms-1" style="cursor:pointer;color:#fff" onclick="this.parentElement.remove(); cb.checked=false; cb.dispatchEvent(new Event('change'));"></i></span>`
+        ).join('');
+    }
+}
 
 function renderAttributeValues(attrId, attrData, existingValues = null) {
     const container = document.getElementById('selectedAttributesContainer');

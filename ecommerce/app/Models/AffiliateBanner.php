@@ -21,6 +21,7 @@ class AffiliateBanner extends Model
         'name',
         'affiliate_id',
         'image',
+        'thumbnail',
         'target_url',
         'size',
         'width',
@@ -81,6 +82,30 @@ class AffiliateBanner extends Model
      */
     public function getImageUrlAttribute()
     {
+        if (!$this->image) {
+            return null;
+        }
+
+        if (str_starts_with($this->image, '/storage/') || str_starts_with($this->image, 'http')) {
+            return asset($this->image);
+        }
+
         return asset('storage/' . $this->image);
+    }
+
+    /**
+     * Get the thumbnail URL.
+     */
+    public function getThumbnailUrlAttribute()
+    {
+        if (!$this->thumbnail) {
+            return null;
+        }
+
+        if (str_starts_with($this->thumbnail, '/storage/') || str_starts_with($this->thumbnail, 'http')) {
+            return asset($this->thumbnail);
+        }
+
+        return asset('storage/' . $this->thumbnail);
     }
 }

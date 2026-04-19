@@ -382,8 +382,17 @@
         .catch(err => {
             searchSpinner.style.display = 'none';
             console.error('Search error:', err);
-            // Fallback to regular page load
-            document.getElementById('filterForm').submit();
+            // Fallback to regular page load with proper URL parameters
+            const searchTerm = searchInput ? searchInput.value.trim() : '';
+            const params = new URLSearchParams();
+            if (searchTerm) params.set('search', searchTerm);
+            const type = document.getElementById('filterType')?.value;
+            if (type) params.set('type', type);
+            const status = document.getElementById('filterStatus')?.value;
+            if (status) params.set('status', status);
+            const perPage = document.getElementById('filterPerPage')?.value;
+            if (perPage) params.set('per_page', perPage);
+            window.location.href = `${window.location.pathname}?${params.toString()}`;
         });
     }
 

@@ -16,7 +16,7 @@ class StoreController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Store::query();
+        $query = Store::query()->withCount('products');
 
         // Search by name, code, city, or email
         if ($request->search) {
@@ -183,7 +183,7 @@ class StoreController extends Controller
 
         $store = Store::create($data);
 
-        return redirect()->route('admin.stores.index')
+        return redirect()->route('admin.multi-store.index')
             ->with('success', 'Store created successfully!');
     }
 
@@ -192,6 +192,7 @@ class StoreController extends Controller
      */
     public function show(Store $store)
     {
+        $store->loadCount('products');
         return view('admin.stores.show', compact('store'));
     }
 
@@ -251,6 +252,8 @@ class StoreController extends Controller
         if ($request->is_default && !$store->is_default) {
             Store::where('is_default', true)->update(['is_default' => false]);
             $data['is_default'] = true;
+        } elseif (!$request->is_default && $store->is_default) {
+            $data['is_default'] = false;
         }
 
         // Process logo image
@@ -309,7 +312,7 @@ class StoreController extends Controller
 
         $store->update($data);
 
-        return redirect()->route('admin.stores.index')
+        return redirect()->route('admin.multi-store.index')
             ->with('success', 'Store updated successfully!');
     }
 
@@ -318,9 +321,16 @@ class StoreController extends Controller
      */
     public function destroy(Store $store)
     {
+        // Prevent deleting if store has products
+        $productCount = $store->products()->count();
+        if ($productCount > 0) {
+            return redirect()->route('admin.multi-store.index')
+                ->with('error', "Cannot delete store! This store has {$productCount} product(s) assigned to it. Please remove or reassign products first.");
+        }
+
         // Prevent deleting the default store if it's the only one
         if ($store->is_default && Store::count() === 1) {
-            return redirect()->route('admin.stores.index')
+            return redirect()->route('admin.multi-store.index')
                 ->with('error', 'Cannot delete the default store!');
         }
 
@@ -342,7 +352,7 @@ class StoreController extends Controller
 
         $store->delete();
 
-        return redirect()->route('admin.stores.index')
+        return redirect()->route('admin.multi-store.index')
             ->with('success', 'Store deleted successfully!');
     }
 
@@ -363,7 +373,7 @@ class StoreController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.stores.index')
+        return redirect()->route('admin.multi-store.index')
             ->with('success', "Store {$status} successfully!");
     }
 
@@ -374,7 +384,7 @@ class StoreController extends Controller
     {
         Store::setAsDefault($store->id);
 
-        return redirect()->route('admin.stores.index')
+        return redirect()->route('admin.multi-store.index')
             ->with('success', 'Default store updated successfully!');
     }
 
@@ -402,16 +412,36 @@ class StoreController extends Controller
                 $message = 'Stores deactivated successfully!';
                 break;
             case 'delete':
-                // Don't delete default stores
+                // Don't delete default stores or stores with products
                 $stores = Store::whereIn('id', $ids)->where('is_default', false)->get();
+                $deletedCount = 0;
+                $skippedWithProducts = 0;
                 foreach ($stores as $store) {
+                    if ($store->products()->count() > 0) {
+                        $skippedWithProducts++;
+                        continue;
+                    }
                     if ($store->is_default && Store::count() > 1) {
-                        // Make another store default before deleting
                         Store::where('id', '!=', $store->id)->first()?->update(['is_default' => true]);
                     }
+                    // Delete associated images
+                    if ($store->logo) {
+                        ImageHelper::deleteImage($store->logo);
+                    }
+                    if ($store->favicon) {
+                        ImageHelper::deleteImage($store->favicon);
+                    }
+                    if ($store->banner) {
+                        ImageHelper::deleteImage($store->banner);
+                    }
                     $store->delete();
+                    $deletedCount++;
                 }
-                $message = 'Stores deleted successfully!';
+                if ($skippedWithProducts > 0) {
+                    $message = "{$deletedCount} store(s) deleted. {$skippedWithProducts} store(s) with products were skipped.";
+                } else {
+                    $message = "{$deletedCount} store(s) deleted successfully!";
+                }
                 break;
             default:
                 return response()->json(['success' => false, 'message' => 'Invalid action!'], 400);
@@ -421,7 +451,7 @@ class StoreController extends Controller
             return response()->json(['success' => true, 'message' => $message]);
         }
 
-        return redirect()->route('admin.stores.index')->with('success', $message);
+        return redirect()->route('admin.multi-store.index')->with('success', $message);
     }
 
     /**

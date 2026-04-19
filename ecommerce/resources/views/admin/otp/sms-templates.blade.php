@@ -63,7 +63,7 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="otp_verification_template" class="form-label">Verification Code Message <span class="text-danger">*</span></label>
-                            <textarea id="otp_verification_template" name="otp_verification_template" class="form-control @error('otp_verification_template') is-invalid @enderror" rows="3" placeholder="Enter your OTP verification message">{{ old('otp_verification_template', $templates['otp_verification_template'] ?? 'Your verification code is: {otp}. Valid for {expiry} minutes.') }}</textarea>
+                            <textarea id="otp_verification_template" name="otp_verification_template" class="form-control template-input @error('otp_verification_template') is-invalid @enderror" rows="3" placeholder="Enter your OTP verification message">{{ old('otp_verification_template', $templates['otp_verification_template'] ?? 'Your verification code is: {otp}. Valid for {expiry} minutes.') }}</textarea>
                             @error('otp_verification_template')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -88,13 +88,19 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="registration_template" class="form-label">Welcome Message (Optional)</label>
-                            <textarea id="registration_template" name="registration_template" class="form-control @error('registration_template') is-invalid @enderror" rows="3" placeholder="Enter welcome message after registration">{{ old('registration_template', $templates['registration_template'] ?? 'Welcome to {site_name}! Your account has been created successfully.') }}</textarea>
+                            <textarea id="registration_template" name="registration_template" class="form-control template-input @error('registration_template') is-invalid @enderror" rows="3" placeholder="Enter welcome message after registration">{{ old('registration_template', $templates['registration_template'] ?? 'Welcome to {site_name}! Your account has been created successfully.') }}</textarea>
                             @error('registration_template')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                             <div class="form-text">
                                 This message is sent after successful phone verification during registration. Use <code>{site_name}</code>, <code>{user_name}</code>
                             </div>
+                        </div>
+                        <div class="p-3 bg-light rounded">
+                            <span class="text-muted small">Preview:</span>
+                            <p class="mb-0 mt-2 small" id="registrationPreview">
+                                Welcome to <strong>Hamko Ecommerce</strong>! Your account has been created successfully.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -107,13 +113,19 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="password_reset_template" class="form-label">Password Reset OTP Message</label>
-                            <textarea id="password_reset_template" name="password_reset_template" class="form-control @error('password_reset_template') is-invalid @enderror" rows="3" placeholder="Enter password reset message">{{ old('password_reset_template', $templates['password_reset_template'] ?? 'Your password reset OTP is: {otp}. Do not share this code with anyone.') }}</textarea>
+                            <textarea id="password_reset_template" name="password_reset_template" class="form-control template-input @error('password_reset_template') is-invalid @enderror" rows="3" placeholder="Enter password reset message">{{ old('password_reset_template', $templates['password_reset_template'] ?? 'Your password reset OTP is: {otp}. Do not share this code with anyone.') }}</textarea>
                             @error('password_reset_template')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                             <div class="form-text">
                                 Use <code>{otp}</code> for the OTP code, <code>{site_name}</code>
                             </div>
+                        </div>
+                        <div class="p-3 bg-light rounded">
+                            <span class="text-muted small">Preview:</span>
+                            <p class="mb-0 mt-2 small" id="passwordResetPreview">
+                                Your password reset OTP is: <strong>123456</strong>. Do not share this code with anyone.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -126,13 +138,19 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="payment_template" class="form-label">Payment OTP Message</label>
-                            <textarea id="payment_template" name="payment_template" class="form-control @error('payment_template') is-invalid @enderror" rows="3" placeholder="Enter payment verification message">{{ old('payment_template', $templates['payment_template'] ?? 'Your payment verification code is: {otp}. Amount: {amount}.') }}</textarea>
+                            <textarea id="payment_template" name="payment_template" class="form-control template-input @error('payment_template') is-invalid @enderror" rows="3" placeholder="Enter payment verification message">{{ old('payment_template', $templates['payment_template'] ?? 'Your payment verification code is: {otp}. Amount: {amount}.') }}</textarea>
                             @error('payment_template')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                             <div class="form-text">
                                 Use <code>{otp}</code> for the OTP code, <code>{amount}</code> for payment amount, <code>{site_name}</code>
                             </div>
+                        </div>
+                        <div class="p-3 bg-light rounded">
+                            <span class="text-muted small">Preview:</span>
+                            <p class="mb-0 mt-2 small" id="paymentPreview">
+                                Your payment verification code is: <strong>123456</strong>. Amount: <strong>1000</strong>.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -145,13 +163,19 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="order_confirmation_template" class="form-label">Order OTP Message</label>
-                            <textarea id="order_confirmation_template" name="order_confirmation_template" class="form-control @error('order_confirmation_template') is-invalid @enderror" rows="3" placeholder="Enter order confirmation message">{{ old('order_confirmation_template', $templates['order_confirmation_template'] ?? 'Your order OTP is: {otp}. Order ID: {order_id}.') }}</textarea>
+                            <textarea id="order_confirmation_template" name="order_confirmation_template" class="form-control template-input @error('order_confirmation_template') is-invalid @enderror" rows="3" placeholder="Enter order confirmation message">{{ old('order_confirmation_template', $templates['order_confirmation_template'] ?? 'Your order OTP is: {otp}. Order ID: {order_id}.') }}</textarea>
                             @error('order_confirmation_template')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                             <div class="form-text">
                                 Use <code>{otp}</code> for the OTP code, <code>{order_id}</code> for order ID, <code>{site_name}</code>
                             </div>
+                        </div>
+                        <div class="p-3 bg-light rounded">
+                            <span class="text-muted small">Preview:</span>
+                            <p class="mb-0 mt-2 small" id="orderConfirmationPreview">
+                                Your order OTP is: <strong>123456</strong>. Order ID: <strong>ORD-12345</strong>.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -164,13 +188,19 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="login_notification_template" class="form-label">Login OTP Message</label>
-                            <textarea id="login_notification_template" name="login_notification_template" class="form-control @error('login_notification_template') is-invalid @enderror" rows="3" placeholder="Enter login notification message">{{ old('login_notification_template', $templates['login_notification_template'] ?? 'Your login OTP is: {otp}. If you did not request this, please ignore.') }}</textarea>
+                            <textarea id="login_notification_template" name="login_notification_template" class="form-control template-input @error('login_notification_template') is-invalid @enderror" rows="3" placeholder="Enter login notification message">{{ old('login_notification_template', $templates['login_notification_template'] ?? 'Your login OTP is: {otp}. If you did not request this, please ignore.') }}</textarea>
                             @error('login_notification_template')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                             <div class="form-text">
                                 Use <code>{otp}</code> for the OTP code, <code>{site_name}</code>
                             </div>
+                        </div>
+                        <div class="p-3 bg-light rounded">
+                            <span class="text-muted small">Preview:</span>
+                            <p class="mb-0 mt-2 small" id="loginNotificationPreview">
+                                Your login OTP is: <strong>123456</strong>. If you did not request this, please ignore.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -242,9 +272,9 @@
     
     <!-- Floating Buttons -->
     <div class="floating-save-container">
-        <a href="{{ route('admin.otp.configuration') }}" class="btn btn-secondary floating-reset-btn">
+        <button type="button" class="btn btn-secondary floating-reset-btn" onclick="history.back()">
             <i class="bi bi-x-lg me-1"></i> Cancel
-        </a>
+        </button>
         <button type="submit" form="smsTemplateForm" class="btn btn-primary floating-save-btn">
             <i class="bi bi-check-lg me-1"></i> Save Templates
         </button>
@@ -261,30 +291,55 @@
 
 @push('scripts')
 <script>
-    // Update preview when template changes
     document.addEventListener('DOMContentLoaded', function() {
-        const verificationTemplate = document.getElementById('otp_verification_template');
-        const preview = document.getElementById('verificationPreview');
+        const templateInputs = document.querySelectorAll('.template-input');
         const charCountEl = document.getElementById('charCount');
-        
-        // Function to update preview
-        function updatePreview() {
-            if (verificationTemplate && preview) {
-                let text = verificationTemplate.value
-                    .replace(/{otp}/g, '<strong>123456</strong>')
-                    .replace(/{expiry}/g, '<strong>5</strong>')
-                    .replace(/{site_name}/g, '<strong>Hamko Ecommerce</strong>');
-                preview.innerHTML = text || 'Your verification code is: <strong>123456</strong>. Valid for <strong>5</strong> minutes.';
+
+        const previewMap = {
+            'otp_verification_template': 'verificationPreview',
+            'registration_template': 'registrationPreview',
+            'password_reset_template': 'passwordResetPreview',
+            'payment_template': 'paymentPreview',
+            'order_confirmation_template': 'orderConfirmationPreview',
+            'login_notification_template': 'loginNotificationPreview'
+        };
+
+        const defaultValues = {
+            'otp_verification_template': 'Your verification code is: <strong>123456</strong>. Valid for <strong>5</strong> minutes.',
+            'registration_template': 'Welcome to <strong>Hamko Ecommerce</strong>! Your account has been created successfully.',
+            'password_reset_template': 'Your password reset OTP is: <strong>123456</strong>. Do not share this code with anyone.',
+            'payment_template': 'Your payment verification code is: <strong>123456</strong>. Amount: <strong>1000</strong>.',
+            'order_confirmation_template': 'Your order OTP is: <strong>123456</strong>. Order ID: <strong>ORD-12345</strong>.',
+            'login_notification_template': 'Your login OTP is: <strong>123456</strong>. If you did not request this, please ignore.'
+        };
+
+        function replacePlaceholders(text) {
+            return text
+                .replace(/{otp}/g, '<strong>123456</strong>')
+                .replace(/{expiry}/g, '<strong>5</strong>')
+                .replace(/{site_name}/g, '<strong>Hamko Ecommerce</strong>')
+                .replace(/{user_name}/g, '<strong>John Doe</strong>')
+                .replace(/{amount}/g, '<strong>1000</strong>')
+                .replace(/{order_id}/g, '<strong>ORD-12345</strong>')
+                .replace(/{email}/g, '<strong>user@example.com</strong>')
+                .replace(/{phone}/g, '<strong>01712345678</strong>');
+        }
+
+        function updatePreview(input) {
+            const previewId = previewMap[input.id];
+            const previewEl = document.getElementById(previewId);
+            if (previewEl) {
+                const text = input.value || defaultValues[input.id] || '';
+                previewEl.innerHTML = replacePlaceholders(text);
             }
         }
-        
-        // Function to update character count
-        function updateCharCount() {
-            if (verificationTemplate && charCountEl) {
-                const len = verificationTemplate.value.length;
+
+        function updateCharCount(input) {
+            if (input && charCountEl) {
+                const len = input.value.length;
                 const segments = Math.ceil(len / 160) || 1;
                 charCountEl.textContent = `${len}/160 (${segments} segment${segments > 1 ? 's' : ''})`;
-                
+
                 if (len > 160) {
                     charCountEl.classList.remove('bg-primary');
                     charCountEl.classList.add('bg-warning');
@@ -294,18 +349,20 @@
                 }
             }
         }
-        
-        // Initialize on page load
-        updatePreview();
-        updateCharCount();
-        
-        // Update on input
-        if (verificationTemplate) {
-            verificationTemplate.addEventListener('input', function() {
-                updatePreview();
-                updateCharCount();
+
+        templateInputs.forEach(input => {
+            updatePreview(input);
+            updateCharCount(input);
+
+            input.addEventListener('input', function() {
+                updatePreview(this);
+                updateCharCount(this);
             });
-        }
+
+            input.addEventListener('focus', function() {
+                updateCharCount(this);
+            });
+        });
     });
 </script>
 @endpush

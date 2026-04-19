@@ -556,6 +556,13 @@
             max-width: 100% !important;
             box-sizing: border-box;
         }
+
+        .stat-card-row-7 {
+            grid-template-columns: repeat(7, 1fr);
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
+        }
         
         @media (max-width: 992px) {
             .stat-card-row {
@@ -564,10 +571,16 @@
             .stat-card-row-6 {
                 grid-template-columns: repeat(3, 1fr);
             }
+            .stat-card-row-7 {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
         
         @media (max-width: 768px) {
             .stat-card-row-6 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .stat-card-row-7 {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
@@ -577,6 +590,9 @@
                 grid-template-columns: 1fr;
             }
             .stat-card-row-6 {
+                grid-template-columns: 1fr;
+            }
+            .stat-card-row-7 {
                 grid-template-columns: 1fr;
             }
         }
@@ -1004,6 +1020,8 @@
         .dataTables_paginate .paginate_button i::before {
             font-size: 14px !important;
         }
+
+
     </style>
     
     @include('partials.global-styles')
@@ -2536,8 +2554,13 @@
             loadNotifications();
             setInterval(loadNotifications, 30000);
         });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNotifications();
+            setInterval(loadNotifications, 30000);
+        });
     </script>
-    
+
     @stack('scripts')
 </body>
 </html>

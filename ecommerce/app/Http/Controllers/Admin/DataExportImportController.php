@@ -934,32 +934,40 @@ class DataExportImportController extends Controller
         if (!$email) return null;
 
         $query = User::where('email', $email);
-        
+
         if ($action === 'update' || $action === 'both') {
             $user = $query->first();
             if ($user) {
-                $user->update([
+                $updateData = [
                     'name' => $data['name'] ?? $user->name,
                     'phone' => $data['phone'] ?? $user->phone,
                     'is_active' => isset($data['is_active']) ? ($data['is_active'] === '1' || $data['is_active'] === 'true') : $user->is_active,
-                ]);
+                ];
+
+                if (!empty($data['password'])) {
+                    $updateData['password'] = bcrypt($data['password']);
+                }
+
+                $user->update($updateData);
                 return 'updated';
             }
         }
-        
+
         if ($action === 'create' || $action === 'both') {
             if (!$query->exists()) {
+                $randomPassword = Str::random(12);
+
                 User::create([
                     'name' => $data['name'] ?? 'User',
                     'email' => $email,
                     'phone' => $data['phone'] ?? null,
-                    'password' => bcrypt('password'), // Default password, should be changed by user
+                    'password' => bcrypt($randomPassword),
                     'is_active' => $data['is_active'] ?? true,
                 ]);
                 return 'created';
             }
         }
-        
+
         return null;
     }
 
@@ -969,42 +977,74 @@ class DataExportImportController extends Controller
         if (!$name) return null;
 
         $slug = $data['slug'] ?? Str::slug($name);
-        
+
         $query = Product::where('slug', $slug);
-        
-        if ($query->exists()) {
-            return null; // Skip existing products for create action
+
+        if ($action === 'update' || $action === 'both') {
+            $product = $query->first();
+            if ($product) {
+                $categoryId = $product->category_id;
+                if (!empty($data['category_id'])) {
+                    $categoryId = $data['category_id'];
+                }
+
+                $product->update([
+                    'name' => $data['name'] ?? $product->name,
+                    'sku' => $data['sku'] ?? $product->sku,
+                    'category_id' => $categoryId,
+                    'brand_id' => $data['brand_id'] ?? $product->brand_id,
+                    'price' => $data['price'] ?? $product->price,
+                    'purchase_price' => $data['purchase_price'] ?? $product->purchase_price,
+                    'discount_price' => $data['discount_price'] ?? $product->discount_price,
+                    'quantity' => $data['quantity'] ?? $product->quantity,
+                    'description' => $data['description'] ?? $product->description,
+                    'short_description' => $data['short_description'] ?? $product->short_description,
+                    'featured_image' => $data['featured_image'] ?? $product->featured_image,
+                    'gallery_images' => $data['gallery_images'] ?? $product->gallery_images,
+                    'is_featured' => isset($data['is_featured']) ? ($data['is_featured'] === '1' || $data['is_featured'] === 'true') : $product->is_featured,
+                    'is_active' => isset($data['is_active']) ? ($data['is_active'] === '1' || $data['is_active'] === 'true') : $product->is_active,
+                    'is_digital' => isset($data['is_digital']) ? ($data['is_digital'] === '1' || $data['is_digital'] === 'true') : $product->is_digital,
+                    'digital_file' => $data['digital_file'] ?? $product->digital_file,
+                    'meta_title' => $data['meta_title'] ?? $product->meta_title,
+                    'meta_description' => $data['meta_description'] ?? $product->meta_description,
+                ]);
+                return 'updated';
+            }
         }
-        
-        // Find category by name if provided
-        $categoryId = null;
-        if (!empty($data['category_id'])) {
-            $categoryId = $data['category_id'];
+
+        if ($action === 'create' || $action === 'both') {
+            if (!$query->exists()) {
+                $categoryId = null;
+                if (!empty($data['category_id'])) {
+                    $categoryId = $data['category_id'];
+                }
+
+                Product::create([
+                    'name' => $name,
+                    'slug' => $slug,
+                    'sku' => $data['sku'] ?? null,
+                    'category_id' => $categoryId,
+                    'brand_id' => $data['brand_id'] ?? null,
+                    'price' => $data['price'] ?? 0,
+                    'purchase_price' => $data['purchase_price'] ?? 0,
+                    'discount_price' => $data['discount_price'] ?? 0,
+                    'quantity' => $data['quantity'] ?? 0,
+                    'description' => $data['description'] ?? null,
+                    'short_description' => $data['short_description'] ?? null,
+                    'featured_image' => $data['featured_image'] ?? null,
+                    'gallery_images' => $data['gallery_images'] ?? null,
+                    'is_featured' => isset($data['is_featured']) ? ($data['is_featured'] === '1' || $data['is_featured'] === 'true') : false,
+                    'is_active' => isset($data['is_active']) ? ($data['is_active'] === '1' || $data['is_active'] === 'true') : true,
+                    'is_digital' => isset($data['is_digital']) ? ($data['is_digital'] === '1' || $data['is_digital'] === 'true') : false,
+                    'digital_file' => $data['digital_file'] ?? null,
+                    'meta_title' => $data['meta_title'] ?? null,
+                    'meta_description' => $data['meta_description'] ?? null,
+                ]);
+                return 'created';
+            }
         }
-        
-        Product::create([
-            'name' => $name,
-            'slug' => $slug,
-            'sku' => $data['sku'] ?? null,
-            'category_id' => $categoryId,
-            'brand_id' => $data['brand_id'] ?? null,
-            'price' => $data['price'] ?? 0,
-            'purchase_price' => $data['purchase_price'] ?? 0,
-            'discount_price' => $data['discount_price'] ?? 0,
-            'quantity' => $data['quantity'] ?? 0,
-            'description' => $data['description'] ?? null,
-            'short_description' => $data['short_description'] ?? null,
-            'featured_image' => $data['featured_image'] ?? null,
-            'gallery_images' => $data['gallery_images'] ?? null,
-            'is_featured' => isset($data['is_featured']) ? ($data['is_featured'] === '1' || $data['is_featured'] === 'true') : false,
-            'is_active' => isset($data['is_active']) ? ($data['is_active'] === '1' || $data['is_active'] === 'true') : true,
-            'is_digital' => isset($data['is_digital']) ? ($data['is_digital'] === '1' || $data['is_digital'] === 'true') : false,
-            'digital_file' => $data['digital_file'] ?? null,
-            'meta_title' => $data['meta_title'] ?? null,
-            'meta_description' => $data['meta_description'] ?? null,
-        ]);
-        
-        return 'created';
+
+        return null;
     }
 
     private function importBlog($data, $action)
@@ -1013,28 +1053,48 @@ class DataExportImportController extends Controller
         if (!$title) return null;
 
         $slug = $data['slug'] ?? Str::slug($title);
-        
+
         $query = Blog::where('slug', $slug);
-        
-        if ($query->exists()) {
-            return null;
+
+        if ($action === 'update' || $action === 'both') {
+            $blog = $query->first();
+            if ($blog) {
+                $blog->update([
+                    'title' => $data['title'] ?? $blog->title,
+                    'category_id' => $data['category_id'] ?? $blog->category_id,
+                    'author_id' => $data['author_id'] ?? $blog->author_id,
+                    'featured_image' => $data['featured_image'] ?? $blog->featured_image,
+                    'short_description' => $data['short_description'] ?? $blog->short_description,
+                    'content' => $data['content'] ?? $blog->content,
+                    'meta_title' => $data['meta_title'] ?? $blog->meta_title,
+                    'meta_description' => $data['meta_description'] ?? $blog->meta_description,
+                    'is_published' => isset($data['is_published']) ? ($data['is_published'] === '1' || $data['is_published'] === 'true') : $blog->is_published,
+                    'published_at' => $data['published_at'] ?? $blog->published_at,
+                ]);
+                return 'updated';
+            }
         }
-        
-        Blog::create([
-            'title' => $title,
-            'slug' => $slug,
-            'category_id' => $data['category_id'] ?? null,
-            'author_id' => $data['author_id'] ?? 1,
-            'featured_image' => $data['featured_image'] ?? null,
-            'short_description' => $data['short_description'] ?? null,
-            'content' => $data['content'] ?? null,
-            'meta_title' => $data['meta_title'] ?? null,
-            'meta_description' => $data['meta_description'] ?? null,
-            'is_published' => isset($data['is_published']) ? ($data['is_published'] === '1' || $data['is_published'] === 'true') : false,
-            'published_at' => $data['published_at'] ?? now(),
-        ]);
-        
-        return 'created';
+
+        if ($action === 'create' || $action === 'both') {
+            if (!$query->exists()) {
+                Blog::create([
+                    'title' => $title,
+                    'slug' => $slug,
+                    'category_id' => $data['category_id'] ?? null,
+                    'author_id' => $data['author_id'] ?? 1,
+                    'featured_image' => $data['featured_image'] ?? null,
+                    'short_description' => $data['short_description'] ?? null,
+                    'content' => $data['content'] ?? null,
+                    'meta_title' => $data['meta_title'] ?? null,
+                    'meta_description' => $data['meta_description'] ?? null,
+                    'is_published' => isset($data['is_published']) ? ($data['is_published'] === '1' || $data['is_published'] === 'true') : false,
+                    'published_at' => $data['published_at'] ?? now(),
+                ]);
+                return 'created';
+            }
+        }
+
+        return null;
     }
 
     private function importProductBundle($data, $action)
@@ -1043,26 +1103,44 @@ class DataExportImportController extends Controller
         if (!$title) return null;
 
         $slug = $data['slug'] ?? Str::slug($title);
-        
+
         $query = ProductBundle::where('slug', $slug);
-        
-        if ($query->exists()) {
-            return null;
+
+        if ($action === 'update' || $action === 'both') {
+            $bundle = $query->first();
+            if ($bundle) {
+                $bundle->update([
+                    'title' => $data['title'] ?? $bundle->title,
+                    'sku' => $data['sku'] ?? $bundle->sku,
+                    'discount_type' => $data['discount_type'] ?? $bundle->discount_type,
+                    'discount_value' => $data['discount_value'] ?? $bundle->discount_value,
+                    'start_date' => $data['start_date'] ?? $bundle->start_date,
+                    'end_date' => $data['end_date'] ?? $bundle->end_date,
+                    'is_featured' => isset($data['is_featured']) ? ($data['is_featured'] === '1' || $data['is_featured'] === 'true') : $bundle->is_featured,
+                    'is_active' => isset($data['is_active']) ? ($data['is_active'] === '1' || $data['is_active'] === 'true') : $bundle->is_active,
+                ]);
+                return 'updated';
+            }
         }
-        
-        ProductBundle::create([
-            'title' => $title,
-            'slug' => $slug,
-            'sku' => $data['sku'] ?? null,
-            'discount_type' => $data['discount_type'] ?? 'percent',
-            'discount_value' => $data['discount_value'] ?? 0,
-            'start_date' => $data['start_date'] ?? now(),
-            'end_date' => $data['end_date'] ?? now()->addDays(30),
-            'is_featured' => isset($data['is_featured']) ? ($data['is_featured'] === '1' || $data['is_featured'] === 'true') : false,
-            'is_active' => isset($data['is_active']) ? ($data['is_active'] === '1' || $data['is_active'] === 'true') : true,
-        ]);
-        
-        return 'created';
+
+        if ($action === 'create' || $action === 'both') {
+            if (!$query->exists()) {
+                ProductBundle::create([
+                    'title' => $title,
+                    'slug' => $slug,
+                    'sku' => $data['sku'] ?? null,
+                    'discount_type' => $data['discount_type'] ?? 'percent',
+                    'discount_value' => $data['discount_value'] ?? 0,
+                    'start_date' => $data['start_date'] ?? now(),
+                    'end_date' => $data['end_date'] ?? now()->addDays(30),
+                    'is_featured' => isset($data['is_featured']) ? ($data['is_featured'] === '1' || $data['is_featured'] === 'true') : false,
+                    'is_active' => isset($data['is_active']) ? ($data['is_active'] === '1' || $data['is_active'] === 'true') : true,
+                ]);
+                return 'created';
+            }
+        }
+
+        return null;
     }
 
     /**

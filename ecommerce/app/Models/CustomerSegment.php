@@ -48,53 +48,66 @@ class CustomerSegment extends Model
     public function applyConditions($query = null)
     {
         $baseQuery = $query ?? User::where('role', 'customer');
-        
+
         if (empty($this->conditions)) {
             return $baseQuery;
         }
 
         $conditions = $this->conditions;
-        
-        // Handle different condition types
+
+        // Handle order count conditions
         if (isset($conditions['order_count_min']) || isset($conditions['order_count_max'])) {
-            $baseQuery = $baseQuery->whereHas('orders', function ($q) use ($conditions) {
-                $q->selectRaw('COUNT(*) as order_count');
-                if (isset($conditions['order_count_min'])) {
-                    $q->havingRaw('COUNT(*) >= ?', [$conditions['order_count_min']]);
-                }
-                if (isset($conditions['order_count_max'])) {
-                    $q->havingRaw('COUNT(*) <= ?', [$conditions['order_count_max']]);
-                }
-            });
+            $orderCountQuery = User::where('role', 'customer')
+                ->select('users.id')
+                ->withCount('orders');
+
+            if (isset($conditions['order_count_min'])) {
+                $orderCountQuery->having('orders_count', '>=', $conditions['order_count_min']);
+            }
+            if (isset($conditions['order_count_max'])) {
+                $orderCountQuery->having('orders_count', '<=', $conditions['order_count_max']);
+            }
+
+            $matchingUserIds = $orderCountQuery->pluck('id')->toArray();
+            $baseQuery->whereIn('id', $matchingUserIds);
         }
 
+        // Handle total spent conditions
         if (isset($conditions['total_spent_min']) || isset($conditions['total_spent_max'])) {
-            $baseQuery = $baseQuery->whereHas('orders', function ($q) use ($conditions) {
-                if (isset($conditions['total_spent_min'])) {
-                    $q->havingRaw('SUM(grand_total) >= ?', [$conditions['total_spent_min']]);
-                }
-                if (isset($conditions['total_spent_max'])) {
-                    $q->havingRaw('SUM(grand_total) <= ?', [$conditions['total_spent_max']]);
-                }
-            });
+            $spentQuery = User::where('role', 'customer')
+                ->select('users.id')
+                ->withSum('orders as total_spent', 'grand_total');
+
+            if (isset($conditions['total_spent_min'])) {
+                $spentQuery->having('total_spent', '>=', $conditions['total_spent_min']);
+            }
+            if (isset($conditions['total_spent_max'])) {
+                $spentQuery->having('total_spent', '<=', $conditions['total_spent_max']);
+            }
+
+            $matchingUserIds = $spentQuery->pluck('id')->toArray();
+            $baseQuery->whereIn('id', $matchingUserIds);
         }
 
+        // Handle last order days condition
         if (isset($conditions['last_order_days'])) {
-            $baseQuery->whereHas('orders', function ($q) use ($conditions) {
-                $q->where('created_at', '>=', now()->subDays($conditions['last_order_days']))
-                  ->orderBy('created_at', 'desc')
-                  ->limit(1);
+            $days = $conditions['last_order_days'];
+            $baseQuery->whereHas('orders', function ($q) use ($days) {
+                $q->where('created_at', '>=', now()->subDays($days));
             });
         }
 
+        // Handle customer group condition
         if (isset($conditions['customer_group_id'])) {
             $baseQuery->where('customer_group_id', $conditions['customer_group_id']);
         }
 
+        // Handle customer active status condition
         if (isset($conditions['is_active'])) {
             $baseQuery->where('is_active', $conditions['is_active']);
         }
 
+        // Handle registration date conditions
         if (isset($conditions['registration_date_from'])) {
             $baseQuery->where('created_at', '>=', $conditions['registration_date_from']);
         }

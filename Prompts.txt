@@ -159,11 +159,53 @@ if you do not understand my requirement, just ask me before start.
 
 Featured Image, Gallery Images, Product Attributes table image column, Product Colors table image column
 
+--------------------------------------------------------------------------
+
+in this page: http://127.0.0.1:8000/admin/attributes/2/edit
+functionality of Slug will be the same
+reference  page: http://127.0.0.1:8000/admin/attributes
+-----------------------------------------------------------
+
+in Admin > Products
+Brand
+Attribute
+Colors
+Product Reviews
+Product Q&A
+Wishlist Management
+Inventory Overview
+Stock Alerts
+Stock History
 
 
-in this page: http://127.0.0.1:8000/admin/products/41/edit
-Product Attributes table image column, Product Colors table image column
-change the delete image button above the image.and make the button flat bootstrap button no animation needed
+
+check all sub sections are fully functional or not, also find bugs.
+give me a full report.
+
+perform the task as a professional QC tester and System engineer
+Verify the fixes. if it is accurate or i can do it menual.
 
 if you do not understand my requirement, just ask me before start.
+
+
+-------------------------------------------------------------------
+
+in Admin > Analytics 
+
+
+check if everything is fully functional or not, also find bugs.
+give me a full report.
+
+perform the task as a professional QC tester and System engineer
+Verify the fixes. if it is accurate or i can do it menual.
+
+if you do not understand my requirement, just ask me before start.
+
+
+
+
+
+
+
+
 

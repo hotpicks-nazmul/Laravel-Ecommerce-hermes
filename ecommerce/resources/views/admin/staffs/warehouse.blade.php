@@ -55,7 +55,7 @@
         <form method="GET" id="filterForm">
             <div class="row g-2 align-items-end">
                 <!-- Search -->
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-4 col-md-4">
                     <label class="form-label small text-muted">Search</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -68,8 +68,19 @@
                     </div>
                 </div>
 
+                <!-- Status -->
+                <div class="col-lg-2 col-md-3">
+                    <label class="form-label small text-muted">Status</label>
+                    <select name="status" id="filterStatus" class="form-select form-select-sm">
+                        <option value="">All Status</option>
+                        <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
+                        <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                        <option value="banned" {{ request('status') === 'banned' ? 'selected' : '' }}>Banned</option>
+                    </select>
+                </div>
+
                 <!-- Warehouse -->
-                <div class="col-lg-3 col-md-4">
+                <div class="col-lg-2 col-md-4">
                     <label class="form-label small text-muted">Warehouse</label>
                     <select name="warehouse_id" id="filterWarehouse" class="form-select form-select-sm">
                         <option value="">All Warehouses</option>
@@ -299,6 +310,13 @@
             .then(data => {
                 tableBody.innerHTML = data.html;
 
+                // Update stats
+                if (data.stats) {
+                    document.querySelectorAll('.stat-card-value')[0].textContent = data.stats.total;
+                    document.querySelectorAll('.stat-card-value')[1].textContent = data.stats.active;
+                    document.querySelectorAll('.stat-card-value')[2].textContent = data.stats.inactive;
+                }
+
                 // Update pagination
                 const paginationContainer = document.querySelector('.card-footer');
                 if (paginationContainer && data.pagination) {
@@ -329,6 +347,7 @@
     searchInput.addEventListener('input', fetchResults);
 
     // Filter listeners
+    document.getElementById('filterStatus').addEventListener('change', fetchResults);
     document.getElementById('filterWarehouse').addEventListener('change', fetchResults);
     document.getElementById('perPage').addEventListener('change', fetchResults);
 

@@ -232,6 +232,22 @@ class Store extends Model
     }
 
     /**
+     * Check if store has products.
+     */
+    public function hasProducts(): bool
+    {
+        return $this->products()->exists();
+    }
+
+    /**
+     * Get product count.
+     */
+    public function getProductsCountAttribute(): int
+    {
+        return $this->products()->count();
+    }
+
+    /**
      * Set a store as default.
      */
     public static function setAsDefault($id)

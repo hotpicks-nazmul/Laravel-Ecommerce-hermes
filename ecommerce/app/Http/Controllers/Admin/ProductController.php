@@ -21,10 +21,22 @@ class ProductController extends Controller
 {
     /**
      * Display products list with advanced filtering.
+     *
+     * @param Request $request
      */
     public function index(Request $request)
     {
+        // Determine if this is for in-house products or all products
+        // Check both route parameter (for backward compatibility) and route name
+        $isInHouse = $request->get('view') === 'in-house' || $request->routeIs('products.in-house');
+
+        // Start with base query - always filter non-digital for physical product listings
         $query = Product::with('category')->where('is_digital', false);
+
+        // Apply in-house filter if viewing in-house products
+        if ($isInHouse) {
+            $query->inHouse();
+        }
 
         // Search by name, SKU, Product Code, or description
         if ($request->search) {
@@ -67,11 +79,6 @@ class ProductController extends Controller
             $query->where('is_featured', $request->featured === 'yes');
         }
 
-        // Filter by featured status
-        if ($request->featured !== null && $request->featured !== '') {
-            $query->where('is_featured', $request->featured === 'yes');
-        }
-
         // Filter by price range
         if ($request->price_min) {
             $query->where('price', '>=', $request->price_min);
@@ -91,7 +98,7 @@ class ProductController extends Controller
         // Sorting
         $sortField = $request->sort ?? 'created_at';
         $sortDirection = $request->direction ?? 'desc';
-        
+
         $allowedSorts = ['name', 'price', 'quantity', 'created_at', 'sale_price', 'purchase_price', 'low_stock_threshold'];
         if (in_array($sortField, $allowedSorts)) {
             $query->orderBy($sortField, $sortDirection);
@@ -104,48 +111,51 @@ class ProductController extends Controller
 
         $products = $query->paginate($perPage)->appends($request->query());
         $categories = Category::where('status', 'active')->get();
-        
+
         // Get unique brands for filter
-        $brands = Product::inHouse()
+        $brandQuery = $isInHouse ? Product::inHouse() : Product::query();
+        $brands = $brandQuery
             ->whereNotNull('brand')
+            ->where('brand', '!=', '')
             ->distinct()
             ->pluck('brand')
             ->sort()
             ->values();
-        
+
         // Get brands from Brand model for dropdown
         $brandModels = Brand::where('is_active', true)
             ->orderBy('name')
             ->pluck('name', 'id');
-        
+
         // Convert to array for dropdown
         $brands = $brandModels->toArray();
 
-        // Statistics for In-House products
+        // Statistics - use appropriate scope based on list type
+        $statsQuery = $isInHouse ? Product::inHouse() : Product::query();
         $stats = [
-            'total' => Product::inHouse()->count(),
-            'active' => Product::inHouse()->where('is_active', true)->count(),
-            'inactive' => Product::inHouse()->where('is_active', false)->count(),
-            'featured' => Product::inHouse()->where('is_featured', true)->count(),
-            'low_stock' => Product::inHouse()
+            'total' => $statsQuery->count(),
+            'active' => $statsQuery->where('is_active', true)->count(),
+            'inactive' => $statsQuery->where('is_active', false)->count(),
+            'featured' => $statsQuery->where('is_featured', true)->count(),
+            'low_stock' => $statsQuery
                 ->whereColumn('quantity', '<=', 'low_stock_threshold')
                 ->where('quantity', '>', 0)
                 ->count(),
-            'out_of_stock' => Product::inHouse()->where('quantity', '<=', 0)->count(),
-            'total_stock_value' => Product::inHouse()->sum(DB::raw('quantity * COALESCE(purchase_price, cost_price, 0)')),
-            'total_retail_value' => Product::inHouse()->sum(DB::raw('quantity * COALESCE(sale_price, price, 0)')),
-            'total_quantity' => Product::inHouse()->sum('quantity'),
+            'out_of_stock' => $statsQuery->where('quantity', '<=', 0)->count(),
+            'total_stock_value' => $statsQuery->sum(DB::raw('quantity * COALESCE(purchase_price, cost_price, 0)')),
+            'total_retail_value' => $statsQuery->sum(DB::raw('quantity * COALESCE(sale_price, price, 0)')),
+            'total_quantity' => $statsQuery->sum('quantity'),
         ];
 
         // Return JSON for AJAX requests
         if ($request->ajax || $request->ajax == '1' || $request->wantsJson()) {
             $html = view('admin.products.partials.in-house-product-rows', compact('products'))->render();
-            
+
             $pagination = '';
             if ($products->hasPages()) {
                 $pagination = '<div class="d-flex justify-content-center mt-3">' . $products->links()->toHtml() . '</div>';
             }
-            
+
             return response()->json([
                 'html' => $html,
                 'pagination' => $pagination,
@@ -154,7 +164,12 @@ class ProductController extends Controller
             ]);
         }
 
-        return view('admin.products.in-house', compact('products', 'categories', 'brands', 'stats'));
+        // Return appropriate view based on list type
+        if ($isInHouse) {
+            return view('admin.products.in-house', compact('products', 'categories', 'brands', 'stats'));
+        }
+
+        return view('admin.products.index', compact('products', 'categories', 'brands', 'stats'));
     }
 
     /**

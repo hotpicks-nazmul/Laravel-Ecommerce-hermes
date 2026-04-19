@@ -250,36 +250,38 @@
 </div>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+@endpush
+
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-    // Date range picker
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize flatpickr date range picker
     const dateRangeInput = document.getElementById('dateRange');
     if (dateRangeInput) {
-        // Simple date range handling - can be enhanced with a datepicker library
-        dateRangeInput.addEventListener('focus', function() {
-            this.type = 'date';
-        });
-        dateRangeInput.addEventListener('blur', function() {
-            if (!this.value) {
-                this.type = 'text';
-                this.placeholder = 'Select date range';
-            }
+        flatpickr(dateRangeInput, {
+            mode: 'range',
+            dateFormat: 'Y-m-d',
+            allowInput: true,
+            placeholder: 'Select date range'
         });
     }
-    
+
     // Debounced live search
     let searchTimeout;
     const searchInput = document.getElementById('liveSearch');
     const searchSpinner = document.getElementById('searchSpinner');
-    
+
     if (searchInput) {
         searchInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
             const searchTerm = this.value.trim();
-            
+
             if (searchTerm.length >= 3 || searchTerm.length === 0) {
                 searchSpinner.style.display = 'block';
-                
+
                 searchTimeout = setTimeout(() => {
                     // Auto-submit form after 500ms delay
                     document.getElementById('filterForm').submit();
@@ -287,5 +289,19 @@
             }
         });
     }
+
+    // Auto-submit on dropdown changes
+    const statusSelect = document.querySelector('select[name="status"]');
+    const sellerSelect = document.querySelector('select[name="seller"]');
+    const sortSelect = document.querySelector('select[name="sort"]');
+
+    [statusSelect, sellerSelect, sortSelect].forEach(function(select) {
+        if (select) {
+            select.addEventListener('change', function() {
+                document.getElementById('filterForm').submit();
+            });
+        }
+    });
+});
 </script>
 @endpush

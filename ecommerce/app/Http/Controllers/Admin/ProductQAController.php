@@ -69,13 +69,13 @@ class ProductQAController extends Controller
         // AJAX response
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('admin.support.product-queries.partials.table-rows', compact('qaEntries'))->render(),
+                'html' => view('admin.product-qa.partials.table-rows', compact('qaEntries'))->render(),
                 'pagination' => $qaEntries->links()->toHtml(),
                 'stats' => $stats,
             ]);
         }
 
-        return view('admin.support.product-queries.index', compact('qaEntries', 'stats', 'products'));
+        return view('admin.product-qa.index', compact('qaEntries', 'stats', 'products'));
     }
 
     /**
@@ -93,7 +93,7 @@ class ProductQAController extends Controller
             ->take(5)
             ->get();
 
-        return view('admin.support.product-queries.show', compact('product_qa', 'relatedQA'));
+        return view('admin.product-qa.show', compact('product_qa', 'relatedQA'));
     }
 
     /**

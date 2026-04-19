@@ -86,12 +86,35 @@ class SmsController extends Controller
 
         $recipients = $this->getRecipients($request->recipients_type);
 
-        // If specific numbers provided, parse them
+        // If specific numbers provided, parse and validate them
         if ($request->recipients_type === 'specific_numbers' && $request->specific_numbers) {
             $numbers = array_filter(array_map('trim', explode(',', $request->specific_numbers)));
-            $recipients = collect($numbers)->map(function ($num) {
-                return (object) ['phone' => $num, 'name' => 'Specific Number'];
-            });
+            $validNumbers = [];
+            $invalidNumbers = [];
+
+            foreach ($numbers as $num) {
+                if ($this->isValidPhone($num)) {
+                    $validNumbers[] = $num;
+                } else {
+                    $invalidNumbers[] = $num;
+                }
+            }
+
+            if (empty($validNumbers)) {
+                return redirect()->back()->with('error', 'No valid phone numbers provided. Please enter valid Bangladeshi phone numbers.');
+            }
+
+            if (!empty($invalidNumbers)) {
+                $recipients = collect($validNumbers)->map(function ($num) {
+                    return (object) ['phone' => $num, 'name' => 'Specific Number'];
+                });
+                // Continue with valid numbers, but warn about invalid ones
+                session()->flash('warning', 'Some phone numbers were invalid and skipped: ' . implode(', ', $invalidNumbers));
+            } else {
+                $recipients = collect($validNumbers)->map(function ($num) {
+                    return (object) ['phone' => $num, 'name' => 'Specific Number'];
+                });
+            }
         }
 
         // Filter out invalid phone numbers
@@ -185,9 +208,7 @@ class SmsController extends Controller
         return [
             'total_customers' => $totalCustomers,
             'total_subscribers' => $totalSubscribers,
-            'total_registered_users' => User::whereNotNull('phone')
-                ->where('phone', '!=', '')
-                ->count(),
+            'total_registered_users' => $totalCustomers, // Same as total_customers
             'total_sent' => $history->count(),
             'successful' => $history->where('status', 'sent')->count(),
             'partial' => $history->where('status', 'partial')->count(),

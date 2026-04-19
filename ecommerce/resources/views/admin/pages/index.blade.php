@@ -81,6 +81,12 @@
                                 <a href="{{ route('admin.pages.edit', $page->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
+                                <form action="{{ route('admin.pages.toggle', $page->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-outline-{{ $page->status === 'published' ? 'warning' : 'success' }}" title="{{ $page->status === 'published' ? 'Mark as Draft' : 'Mark as Published' }}">
+                                        <i class="bi bi-{{ $page->status === 'published' ? 'eye-slash' : 'eye' }}"></i>
+                                    </button>
+                                </form>
                                 @if($page->status === 'published')
                                 <a href="{{ route('pages.show', $page->slug) }}" target="_blank" class="btn btn-sm btn-outline-success" title="View">
                                     <i class="bi bi-eye"></i>

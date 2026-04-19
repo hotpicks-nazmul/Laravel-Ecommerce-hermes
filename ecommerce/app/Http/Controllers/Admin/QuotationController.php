@@ -32,6 +32,25 @@ class QuotationController extends Controller
     }
 
     /**
+     * Get filtered stats based on current query filters.
+     */
+    protected function getFilteredStats($query)
+    {
+        return [
+            'total' => (clone $query)->count(),
+            'pending' => (clone $query)->where('status', 'pending')->count(),
+            'sent' => (clone $query)->where('status', 'sent')->count(),
+            'accepted' => (clone $query)->where('status', 'accepted')->count(),
+            'rejected' => (clone $query)->where('status', 'rejected')->count(),
+            'converted' => (clone $query)->where('status', 'converted')->count(),
+            'expired' => (clone $query)->where(function($q) {
+                $q->where('valid_until', '<', now()->startOfDay())
+                  ->whereNotIn('status', ['converted', 'rejected']);
+            })->count(),
+        ];
+    }
+
+    /**
      * Display a listing of quotations.
      */
     public function index(Request $request)
@@ -75,8 +94,12 @@ class QuotationController extends Controller
         $perPage = $request->per_page ?? 25;
         $quotations = $query->paginate($perPage);
 
-        // Get stats
-        $stats = $this->getStats();
+        // Get stats - filtered for AJAX, all stats for page load
+        if ($request->ajax()) {
+            $stats = $this->getFilteredStats($query);
+        } else {
+            $stats = $this->getStats();
+        }
 
         // Get search term for highlighting
         $search = $request->get('search');

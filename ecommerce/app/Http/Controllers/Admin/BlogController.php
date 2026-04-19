@@ -226,9 +226,21 @@ class BlogController extends Controller
         if ($blog->featured_image) {
             ImageHelper::deleteImage($blog->featured_image);
         }
-        
+
         $blog->delete();
         return redirect()->route('admin.blogs.index')->with('success', 'Blog post deleted successfully.');
+    }
+
+    public function toggle(Blog $blog)
+    {
+        $newStatus = $blog->status === 'published' ? 'draft' : 'published';
+        $blog->update(['status' => $newStatus]);
+
+        if ($newStatus === 'published' && !$blog->published_at) {
+            $blog->update(['published_at' => now()]);
+        }
+
+        return back()->with('success', 'Blog post status updated.');
     }
 
     /**

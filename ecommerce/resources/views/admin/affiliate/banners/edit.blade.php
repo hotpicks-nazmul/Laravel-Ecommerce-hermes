@@ -112,15 +112,16 @@
                             <label for="presetSizes" class="form-label">Preset Sizes</label>
                             <select class="form-select" id="presetSizes" onchange="applyPreset()">
                                 <option value="">Custom Size</option>
-                                <option value="728,90">Leaderboard (728x90)</option>
-                                <option value="468,60">Banner (468x60)</option>
-                                <option value="300,250">Medium Rectangle (300x250)</option>
-                                <option value="336,280">Large Rectangle (336x280)</option>
-                                <option value="160,600">Wide Skyscraper (160x600)</option>
-                                <option value="120,600">Skyscraper (120x600)</option>
-                                <option value="320,50">Mobile Banner (320x50)</option>
-                                <option value="320,100">Large Mobile Banner (320x100)</option>
+                                <option value="728,90,Leaderboard">Leaderboard (728x90)</option>
+                                <option value="468,60,Banner">Banner (468x60)</option>
+                                <option value="300,250,Medium Rectangle">Medium Rectangle (300x250)</option>
+                                <option value="336,280,Large Rectangle">Large Rectangle (336x280)</option>
+                                <option value="160,600,Wide Skyscraper">Wide Skyscraper (160x600)</option>
+                                <option value="120,600,Skyscraper">Skyscraper (120x600)</option>
+                                <option value="320,50,Mobile Banner">Mobile Banner (320x50)</option>
+                                <option value="320,100,Large Mobile Banner">Large Mobile Banner (320x100)</option>
                             </select>
+                            <input type="hidden" name="size" id="sizeField" value="{{ old('size', $banner->size) }}">
                         </div>
                     </div>
 
@@ -227,9 +228,12 @@
     function applyPreset() {
         var preset = document.getElementById('presetSizes').value;
         if (preset) {
-            var sizes = preset.split(',');
-            document.getElementById('width').value = sizes[0];
-            document.getElementById('height').value = sizes[1];
+            var parts = preset.split(',');
+            document.getElementById('width').value = parts[0];
+            document.getElementById('height').value = parts[1];
+            document.getElementById('sizeField').value = parts[2] || '';
+        } else {
+            document.getElementById('sizeField').value = '';
         }
     }
     

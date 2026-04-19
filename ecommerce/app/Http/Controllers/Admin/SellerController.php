@@ -518,6 +518,14 @@ class SellerController extends Controller
             });
         }
 
+        // Date range filter
+        if ($request->date_from) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->date_to) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
         // Sort
         $sortBy = $request->sort_by ?? 'created_at';
         $sortOrder = $request->sort_order ?? 'desc';
@@ -721,6 +729,60 @@ class SellerController extends Controller
             'avg_commission' => number_format(User::sellers()->avg('commission_rate') ?? 0, 2),
             'total_revenue' => User::sellers()->sum('wallet_balance'),
         ];
+
+        // AJAX request
+        if ($request->ajax()) {
+            $html = '';
+            foreach ($sellers as $key => $seller) {
+                $html .= '<tr>';
+                $html .= '<td>' . ($sellers->firstItem() + $key) . '</td>';
+                $html .= '<td>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle bg-primary text-white me-2">' . strtoupper(substr($seller->name ?? 'S', 0, 1)) . '</div>
+                        <div class="fw-medium">' . $seller->name . '</div>
+                    </div>
+                </td>';
+                $html .= '<td>' . ($seller->shop_name ?? '-') . '</td>';
+                $html .= '<td>' . $seller->email . '</td>';
+                $html .= '<td><span class="badge bg-info">' . ($seller->commission_rate ?? $defaultCommission) . '%</span></td>';
+                $html .= '<td>৳' . number_format($seller->wallet_balance ?? 0, 2) . '</td>';
+                $html .= '<td>' . ($seller->status === 'active' ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>') . '</td>';
+                $html .= '<td>
+                    <button type="button" class="btn btn-sm btn-outline-primary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editCommissionModal"
+                            data-seller-id="' . $seller->id . '"
+                            data-seller-name="' . htmlspecialchars($seller->name) . '"
+                            data-shop-name="' . htmlspecialchars($seller->shop_name ?? '') . '"
+                            data-commission-rate="' . ($seller->commission_rate ?? $defaultCommission) . '"
+                            title="Edit Commission">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                </td>';
+                $html .= '</tr>';
+            }
+
+            if ($sellers->isEmpty()) {
+                $html .= '<tr><td colspan="8" class="text-center py-5">
+                    <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mb-2 mt-2">No sellers found</p>
+                </td></tr>';
+            }
+
+            $paginationHtml = '';
+            if ($sellers->hasPages()) {
+                $paginationHtml = '<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="text-muted small">Showing ' . $sellers->firstItem() . ' - ' . $sellers->lastItem() . ' of ' . $sellers->total() . ' sellers</div>
+                    <div>' . $sellers->appends(request()->query())->links() . '</div>
+                </div>';
+            }
+
+            return response()->json([
+                'html' => $html,
+                'pagination' => $paginationHtml,
+                'stats' => $stats,
+            ]);
+        }
 
         return view('admin.sellers.commission', compact('sellers', 'defaultCommission', 'stats'));
     }

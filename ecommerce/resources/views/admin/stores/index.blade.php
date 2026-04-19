@@ -33,6 +33,13 @@
             <span class="stat-card-value">{{ $stats['physical'] ?? 0 }}</span>
         </div>
     </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-globe2"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Online Stores</span>
+            <span class="stat-card-value">{{ $stats['online'] ?? 0 }}</span>
+        </div>
+    </div>
 </div>
 
 <!-- Header -->
@@ -105,6 +112,7 @@
                         <th>Location</th>
                         <th>Contact</th>
                         <th>Status</th>
+                        <th style="width: 80px;">Products</th>
                         <th style="width: 180px;">Actions</th>
                     </tr>
                 </thead>
@@ -235,6 +243,7 @@ function updateStats(stats) {
     if (statValues[1]) statValues[1].textContent = stats.active ?? 0;
     if (statValues[2]) statValues[2].textContent = stats.inactive ?? 0;
     if (statValues[3]) statValues[3].textContent = stats.physical ?? 0;
+    if (statValues[4]) statValues[4].textContent = stats.online ?? 0;
 }
 
 // Change per page

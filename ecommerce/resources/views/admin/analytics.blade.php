@@ -61,8 +61,8 @@
     </div>
 </div>
 
-<!-- Statistics Cards - 6 Column Row -->
-<div class="stat-card-row stat-card-row-6 mb-4" id="statsCards">
+<!-- Statistics Cards - 7 Column Row -->
+<div class="stat-card-row stat-card-row-7 mb-4" id="statsCards">
     <div class="stat-card stat-card-primary">
         <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
         <div class="stat-card-content">
@@ -103,6 +103,52 @@
         <div class="stat-card-content">
             <span class="stat-card-label">Out of Stock</span>
             <span class="stat-card-value">{{ number_format($outOfStockProducts) }}</span>
+        </div>
+    </div>
+    <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon"><i class="bi bi-exclamation-diamond"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Low Stock</span>
+            <span class="stat-card-value">{{ number_format($lowStockProducts) }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Growth Metrics Cards -->
+<div class="stat-card-row mb-4">
+    <!-- Orders Growth -->
+    <div class="stat-card {{ $orderGrowth >= 0 ? 'stat-card-success' : 'stat-card-danger' }}">
+        <div class="stat-card-icon"><i class="bi {{ $orderGrowth >= 0 ? 'bi-graph-up-arrow' : 'bi-graph-down-arrow' }}"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Orders Growth</span>
+            <span class="stat-card-value">{{ number_format($orderGrowth, 1) }}%</span>
+        </div>
+    </div>
+    
+    <!-- Customers Growth -->
+    <div class="stat-card {{ $customerGrowth >= 0 ? 'stat-card-success' : 'stat-card-danger' }}">
+        <div class="stat-card-icon"><i class="bi {{ $customerGrowth >= 0 ? 'bi-graph-up-arrow' : 'bi-graph-down-arrow' }}"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Customers Growth</span>
+            <span class="stat-card-value">{{ number_format($customerGrowth, 1) }}%</span>
+        </div>
+    </div>
+    
+    <!-- Products Growth -->
+    <div class="stat-card {{ $productGrowth >= 0 ? 'stat-card-success' : 'stat-card-danger' }}">
+        <div class="stat-card-icon"><i class="bi {{ $productGrowth >= 0 ? 'bi-graph-up-arrow' : 'bi-graph-down-arrow' }}"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Products Growth</span>
+            <span class="stat-card-value">{{ number_format($productGrowth, 1) }}%</span>
+        </div>
+    </div>
+    
+    <!-- Avg Order Value Growth -->
+    <div class="stat-card {{ $avgGrowth >= 0 ? 'stat-card-success' : 'stat-card-danger' }}">
+        <div class="stat-card-icon"><i class="bi {{ $avgGrowth >= 0 ? 'bi-graph-up-arrow' : 'bi-graph-down-arrow' }}"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Avg Value Growth</span>
+            <span class="stat-card-value">{{ number_format($avgGrowth, 1) }}%</span>
         </div>
     </div>
 </div>
@@ -176,15 +222,29 @@
             <div class="card-header bg-white border-0 py-3">
                 <h5 class="card-title mb-0 fw-semibold">Order Status</h5>
             </div>
-            <div class="card-body d-flex align-items-center justify-content-center">
-                <div class="position-relative" style="width: 220px; height: 220px;">
+            @if($orderStatus->isNotEmpty())
+            <div class="card-body">
+                <div style="position: relative; width: 180px; height: 180px; margin: 0 auto 15px;">
                     <canvas id="orderStatusChart"></canvas>
-                    <div class="position-absolute top-50 start-50 translate-middle text-center">
-                        <h4 class="mb-0 fw-bold">{{ $currentOrders }}</h4>
-                        <span class="text-muted small">Orders</span>
+                </div>
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    @foreach($orderStatus as $status)
+                    <div class="text-center" style="min-width: 50px;">
+                        <span class="badge rounded-circle d-block mx-auto mb-1" style="width: 10px; height: 10px; background-color: {{ $orderStatusColors[$status->status] ?? '#6c757d' }};"></span>
+                        <div class="small text-muted text-capitalize">{{ $status->status }}</div>
+                        <div class="fw-bold">{{ $status->count }}</div>
                     </div>
+                    @endforeach
                 </div>
             </div>
+            @else
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-pie-chart" style="font-size: 3rem;"></i>
+                    <p class="mt-2">No order data available</p>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </div>
@@ -198,7 +258,14 @@
                 <h5 class="card-title mb-0 fw-semibold">Sales by Category</h5>
             </div>
             <div class="card-body">
-                <canvas id="categoryChart" height="250"></canvas>
+                @if($topCategories->isNotEmpty())
+                    <canvas id="categoryChart" height="250"></canvas>
+                @else
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-folder" style="font-size: 3rem;"></i>
+                        <p class="mt-2">No category data available</p>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -444,15 +511,22 @@
     </div>
 </div>
 
-<!-- Yearly Comparison Chart -->
+<!-- Period-Based Comparison Chart -->
 <div class="row">
     <div class="col-12">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0 py-3">
-                <h5 class="card-title mb-0 fw-semibold">Monthly Revenue (Last 12 Months)</h5>
+                <h5 class="card-title mb-0 fw-semibold">{{ $period === 'this_year' || $period === 'last_year' ? 'Monthly Revenue (Last 12 Months)' : 'Revenue Comparison' }}</h5>
             </div>
             <div class="card-body">
-                <canvas id="yearlyChart" height="100"></canvas>
+                @if(count($chartLabels) > 0 && array_sum($chartData) > 0)
+                <canvas id="periodChart" style="height: 120px;"></canvas>
+                @else
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-bar-chart" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">No revenue data for selected period</p>
+                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -486,7 +560,6 @@
 @endpush
 
 @push('scripts')
-<script src="{{ asset('vendor/js/chart.js') }}"></script>
 <script>
     // Period select handler
     document.getElementById('periodSelect').addEventListener('change', function() {
@@ -536,21 +609,15 @@
 
     // Order Status Chart
     const statusCtx = document.getElementById('orderStatusChart').getContext('2d');
-    const statusData = {!! json_encode($orderStatus) !!};
+    const statusData = {!! json_encode($orderStatus->values()) !!};
+    const statusColors = {!! json_encode($orderStatusColors) !!};
     new Chart(statusCtx, {
         type: 'doughnut',
         data: {
             labels: statusData.map(s => s.status.charAt(0).toUpperCase() + s.status.slice(1)),
             datasets: [{
                 data: statusData.map(s => s.count),
-                backgroundColor: [
-                    '#fbbf24', // pending - yellow
-                    '#3b82f6', // processing - blue
-                    '#22c55e', // completed - green
-                    '#ef4444', // cancelled - red
-                    '#8b5cf6', // delivered - purple
-                    '#f97316'  // shipped - orange
-                ],
+                backgroundColor: statusData.map(s => statusColors[s.status] || '#6c757d'),
                 borderWidth: 0
             }]
         },
@@ -559,15 +626,30 @@
             maintainAspectRatio: false,
             cutout: '70%',
             plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        usePointStyle: true
-                    }
-                }
+                legend: { display: false }
             }
-        }
+        },
+        plugins: [{
+            id: 'centerText',
+            beforeDraw: function(chart) {
+                const ctx = chart.ctx;
+                const fontStyle = 'bold';
+                const fontSize = 24;
+                ctx.font = fontSize + 'px ' + fontStyle;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
+                const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
+                
+                ctx.fillStyle = '#333';
+                ctx.fillText('{{ $currentOrders }}', centerX, centerY - 8);
+                
+                ctx.font = '12px sans-serif';
+                ctx.fillStyle = '#888';
+                ctx.fillText('Orders', centerX, centerY + 14);
+            }
+        }]
     });
 
     // Category Chart
@@ -612,15 +694,15 @@
         }
     });
 
-    // Yearly Comparison Chart
-    const yearlyCtx = document.getElementById('yearlyChart').getContext('2d');
-    new Chart(yearlyCtx, {
+    // Period-Based Comparison Chart
+    const periodCtx = document.getElementById('periodChart').getContext('2d');
+    new Chart(periodCtx, {
         type: 'bar',
         data: {
-            labels: {!! json_encode($yearlyLabels) !!},
+            labels: {!! json_encode($chartLabels) !!},
             datasets: [{
                 label: 'Revenue',
-                data: {!! json_encode($yearlySales) !!},
+                data: {!! json_encode($chartData) !!},
                 backgroundColor: '#6366f1',
                 borderRadius: 6
             }]

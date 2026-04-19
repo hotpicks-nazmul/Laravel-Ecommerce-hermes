@@ -407,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Edit field
 function editField(fieldId) {
-    fetch(`/admin/form-builder/${{{ $form->id }}}/fields/${fieldId}`, {
+    fetch(`/admin/form-builder/{{ $form->id }}/fields/${fieldId}`, {
         headers: {
             'Accept': 'application/json'
         }

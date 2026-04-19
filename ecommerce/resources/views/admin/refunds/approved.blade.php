@@ -33,6 +33,13 @@
             <span class="stat-card-value">{{ $stats['rejected'] ?? 0 }}</span>
         </div>
     </div>
+    <div class="stat-card stat-card-info">
+        <div class="stat-card-icon"><i class="bi bi-cash-stack"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Processed</span>
+            <span class="stat-card-value">{{ $stats['processed'] ?? 0 }}</span>
+        </div>
+    </div>
 </div>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -368,6 +375,13 @@
                                 <div class="stat-card-content">
                                     <span class="stat-card-label">Rejected</span>
                                     <span class="stat-card-value">${data.stats.rejected ?? 0}</span>
+                                </div>
+                            </div>
+                            <div class="stat-card stat-card-info">
+                                <div class="stat-card-icon"><i class="bi bi-cash-stack"></i></div>
+                                <div class="stat-card-content">
+                                    <span class="stat-card-label">Processed</span>
+                                    <span class="stat-card-value">${data.stats.processed ?? 0}</span>
                                 </div>
                             </div>
                         `;

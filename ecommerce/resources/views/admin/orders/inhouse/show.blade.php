@@ -8,7 +8,9 @@
         <h4 class="mb-0">Order #{{ $order->order_number }}</h4>
         <small class="text-muted">
             <i class="bi bi-calendar3 me-1"></i>Created: {{ $order->created_at->format('d M, Y H:i') }}
-            <span class="badge bg-info ms-2">Inhouse Order</span>
+            <span class="badge {{ $order->order_type === 'pos' ? 'bg-warning' : 'bg-info' }} ms-2">
+                                    {{ $order->order_type === 'pos' ? 'POS Order' : 'Inhouse Order' }}
+                                </span>
         </small>
     </div>
     <div class="d-flex gap-2">

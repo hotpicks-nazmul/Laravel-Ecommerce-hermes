@@ -116,21 +116,43 @@ class SubscriberController extends Controller
 
         $subscribers = $query->get();
 
-        // Create CSV content
+        // Create CSV content with proper escaping to prevent CSV injection
         $csvContent = "Email,Name,Status,Subscribed Date,Unsubscribed Date\n";
-        
+
         foreach ($subscribers as $subscriber) {
-            $csvContent .= "{$subscriber->email},{$subscriber->name},{$subscriber->status},";
-            $csvContent .= "{$subscriber->created_at},";
-            $csvContent .= ($subscriber->unsubscribed_at ? $subscriber->unsubscribed_at : '') . "\n";
+            $csvContent .= $this->escapeCsvValue($subscriber->email) . ',';
+            $csvContent .= $this->escapeCsvValue($subscriber->name) . ',';
+            $csvContent .= $this->escapeCsvValue($subscriber->status) . ',';
+            $csvContent .= $this->escapeCsvValue($subscriber->created_at) . ',';
+            $csvContent .= $this->escapeCsvValue($subscriber->unsubscribed_at ? $subscriber->unsubscribed_at : '') . "\n";
         }
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename=subscribers.csv',
+            'Content-Disposition' => 'attachment; filename=subscribers_export_' . date('Y-m-d_His') . '.csv',
         ];
 
         return response($csvContent, 200, $headers);
+    }
+
+    /**
+     * Escape a value for CSV to prevent CSV injection attacks.
+     */
+    private function escapeCsvValue($value)
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        $value = (string) $value;
+
+        // If value contains comma, quote, newline, or starts with =, +, -, @, tab
+        if (preg_match('/[,"\n\r\t^=+\-@]/', $value)) {
+            // Escape quotes by doubling them and wrap in quotes
+            $value = '"' . str_replace('"', '""', $value) . '"';
+        }
+
+        return $value;
     }
 
     /**

@@ -115,6 +115,9 @@ class Carrier extends Model
     public function getLogoUrlAttribute()
     {
         if ($this->logo) {
+            if (str_starts_with($this->logo, 'http')) {
+                return $this->logo;
+            }
             return asset('storage/' . $this->logo);
         }
         return asset('images/default-carrier.png');

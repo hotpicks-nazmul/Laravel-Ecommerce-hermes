@@ -38,7 +38,7 @@
         <a href="{{ route('admin.orders.in-house.create') }}" class="btn btn-primary">
             <i class="bi bi-plus-lg me-1"></i> Create Order
         </a>
-        <a href="{{ route('admin.orders.in-house') }}?{{ http_build_query(array_merge(request()->query(), ['export' => 'csv'])) }}" class="btn btn-outline-secondary">
+        <a href="{{ route('admin.orders.in-house', array_merge(request()->query(), ['export' => 'csv'])) }}" class="btn btn-outline-secondary">
             <i class="bi bi-download me-1"></i> Export CSV
         </a>
     </div>

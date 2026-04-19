@@ -344,6 +344,11 @@ class StaffController extends Controller
             $query->where('warehouse_id', $request->warehouse_id);
         }
 
+        // Filter by status
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
         $sortBy = $request->sort_by ?? 'created_at';
         $sortOrder = $request->sort_order ?? 'desc';
         $query->orderBy($sortBy, $sortOrder);
@@ -363,6 +368,11 @@ class StaffController extends Controller
                 'html' => view('admin.staffs.partials.warehouse-table-rows', compact('staffs'))->render(),
                 'pagination' => $staffs->links()->toHtml(),
                 'showing_text' => $showingText,
+                'stats' => [
+                    'total' => $staffs->total(),
+                    'active' => (clone $query)->where('status', 'active')->count(),
+                    'inactive' => (clone $query)->where('status', 'inactive')->count(),
+                ],
             ]);
         }
 
@@ -375,19 +385,36 @@ class StaffController extends Controller
     public function permissions(Request $request)
     {
         $currentUser = auth()->user();
-        
+
         // Staff cannot access permissions page
         if ($currentUser->role === 'staff') {
             abort(403, 'Unauthorized access. Staff members cannot manage permissions.');
         }
-        
+
         // Use adminPanel for super_admin/admin, staff scope for others
         if ($currentUser->role === 'super_admin' || $currentUser->role === 'admin') {
-            $staff = User::adminPanel()->with('warehouse')->get();
+            $query = User::adminPanel()->with('warehouse');
         } else {
-            $staff = User::staff()->with('warehouse')->get();
+            $query = User::staff()->with('warehouse');
         }
-        
+
+        // Search
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by warehouse
+        if ($request->warehouse_id) {
+            $query->where('warehouse_id', $request->warehouse_id);
+        }
+
+        $perPage = $request->per_page ?? 25;
+        $staff = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
         $warehouses = Warehouse::where('is_active', 1)->orderBy('name')->get();
 
         return view('admin.staffs.permissions', compact('staff', 'warehouses'));

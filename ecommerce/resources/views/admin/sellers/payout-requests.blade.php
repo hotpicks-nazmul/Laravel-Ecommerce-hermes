@@ -48,20 +48,20 @@
         <form method="GET" id="filterForm">
             <div class="row g-2 align-items-end">
                 <!-- Search Input -->
-                <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="col-lg-3 col-md-4 col-sm-6">
                     <label class="form-label small text-muted">Search</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" name="search" id="liveSearch" class="form-control" 
+                        <input type="text" name="search" id="liveSearch" class="form-control"
                                placeholder="Seller name, email, shop..." value="{{ request('search') }}">
                         <span class="input-group-text" id="searchSpinner" style="display: none;">
                             <div class="spinner-border spinner-border-sm"></div>
                         </span>
                     </div>
                 </div>
-                
+
                 <!-- Status Filter -->
-                <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="col-lg-2 col-md-3 col-sm-6">
                     <label class="form-label small text-muted">Status</label>
                     <select name="status" id="filterStatus" class="form-select form-select-sm">
                         <option value="pending_approved" {{ request('status') === 'pending_approved' ? 'selected' : '' }}>Pending & Approved</option>
@@ -71,9 +71,21 @@
                         <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
                     </select>
                 </div>
-                
+
+                <!-- Date From -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Date From</label>
+                    <input type="date" name="date_from" id="filterDateFrom" class="form-control form-control-sm" value="{{ request('date_from') }}">
+                </div>
+
+                <!-- Date To -->
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Date To</label>
+                    <input type="date" name="date_to" id="filterDateTo" class="form-control form-control-sm" value="{{ request('date_to') }}">
+                </div>
+
                 <!-- Reset Button -->
-                <div class="col-lg-2 col-md-4 col-sm-6">
+                <div class="col-lg-3 col-md-4 col-sm-6">
                     <a href="{{ route('admin.sellers.payout-requests') }}" class="btn btn-outline-secondary btn-sm w-100">
                         <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
                     </a>
@@ -326,14 +338,29 @@
         performLiveSearch(searchInput.value.trim());
     });
 
+    // Date filters trigger search on change
+    document.getElementById('filterDateFrom')?.addEventListener('change', function() {
+        performLiveSearch(searchInput.value.trim());
+    });
+
+    document.getElementById('filterDateTo')?.addEventListener('change', function() {
+        performLiveSearch(searchInput.value.trim());
+    });
+
     function performLiveSearch(searchTerm) {
         const params = new URLSearchParams();
-        
+
         if (searchTerm) params.set('search', searchTerm);
-        
+
         const status = document.getElementById('filterStatus').value;
         if (status) params.set('status', status);
-        
+
+        const dateFrom = document.getElementById('filterDateFrom').value;
+        if (dateFrom) params.set('date_from', dateFrom);
+
+        const dateTo = document.getElementById('filterDateTo').value;
+        if (dateTo) params.set('date_to', dateTo);
+
         fetch(`{{ route('admin.sellers.payout-requests') }}?${params.toString()}`, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
