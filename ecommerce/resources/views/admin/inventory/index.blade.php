@@ -27,7 +27,7 @@
     </div>
     <div class="stat-card stat-card-info">
         <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
-        <div class="stat-card-content"><span class="stat-card-label">Stock Value</span><span class="stat-card-value" id="statValue">${{ number_format($stats['total_value'] ?? 0, 2) }}</span></div>
+        <div class="stat-card-content"><span class="stat-card-label">Stock Value</span><span class="stat-card-value" id="statValue">{{ config('app.currency_symbol', '৳') }}{{ number_format($stats['total_value'] ?? 0, 2) }}</span></div>
     </div>
 </div>
 

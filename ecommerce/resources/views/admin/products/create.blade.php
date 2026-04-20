@@ -234,17 +234,21 @@
                             </div>
                             <div class="px-2 py-1" id="productColorsList">
                                 @foreach($colors as $color)
-                                <div class="form-check">
-                                    <input class="form-check-input color-checkbox" type="checkbox"
-                                        value="{{ $color->id }}"
-                                        id="color_{{ $color->id }}"
-                                        data-name="{{ $color->name }}"
-                                        data-hex="{{ $color->hex_code }}">
-                                    <label class="form-check-label w-100" for="color_{{ $color->id }}">
-                                        {{ $color->name }}
-                                        <span style="background: {{ $color->hex_code }}; width: 16px; height: 16px; display: inline-block; border-radius: 50%; border: 1px solid #ddd; vertical-align: middle; margin-left: 8px;"></span>
-                                    </label>
-                                </div>
+                                    @if($color->activeValues->count() > 0)
+                                    <div class="form-check">
+                                        <input class="form-check-input color-checkbox" type="checkbox"
+                                            value="{{ $color->id }}"
+                                            id="color_{{ $color->id }}"
+                                            data-name="{{ $color->name }}"
+                                            data-hex="{{ $color->hex_code }}"
+                                            data-values='@json($color->activeValues->map(function($v) { return ["id" => $v->id, "value" => $v->value, "hex_code" => $v->hex_code]; })->toArray())'>
+                                        <label class="form-check-label w-100" for="color_{{ $color->id }}">
+                                            {{ $color->name }}
+                                            <small class="text-muted">({{ $color->activeValues->count() }} values)</small>
+                                            <span style="background: {{ $color->hex_code }}; width: 16px; height: 16px; display: inline-block; border-radius: 50%; border: 1px solid #ddd; vertical-align: middle; margin-left: 8px;"></span>
+                                        </label>
+                                    </div>
+                                    @endif
                                 @endforeach
                             </div>
                         </div>
@@ -602,21 +606,21 @@ function previewAttrImage(input, uniqueId) {
     }
 }
 
-function previewColorImage(input, colorId) {
-    let preview = document.getElementById('preview-color-' + colorId);
+function previewColorImage(input, previewId) {
+    let preview = document.getElementById('preview-color-' + previewId);
     if (!preview) {
-        const label = document.querySelector(`label[for="color-img-${colorId}"]`);
+        const label = document.querySelector(`label[for="color-img-${previewId}"]`);
         if (label) {
             preview = document.createElement('div');
-            preview.id = 'preview-color-' + colorId;
+            preview.id = 'preview-color-' + previewId;
             preview.className = 'mt-1';
             label.parentNode.insertBefore(preview, label.nextSibling);
         }
     }
-    
+
     if (preview) {
         preview.innerHTML = '';
-        
+
         if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -700,8 +704,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!selectedProductColors[colorId]) {
                     const colorName = checkbox.dataset.name;
                     const hexCode = checkbox.dataset.hex;
-                    selectedProductColors[colorId] = { name: colorName, hex_code: hexCode };
-                    renderProductColor(colorId, colorName, hexCode);
+                    const colorValues = JSON.parse(checkbox.dataset.values || '[]');
+                    selectedProductColors[colorId] = { name: colorName, hex_code: hexCode, values: colorValues };
+                    renderProductColor(colorId, colorName, hexCode, colorValues);
                 }
             });
 
@@ -1156,7 +1161,7 @@ function updateProductAttributeSection() {
     }
 }
 
-function renderProductColor(colorId, colorName, hexCode) {
+function renderProductColor(colorId, colorName, hexCode, values = []) {
     const container = document.getElementById('selectedColorsContainer');
     let html = `
     <div class="card mb-3" id="product-color-${colorId}">
@@ -1173,37 +1178,61 @@ function renderProductColor(colorId, colorName, hexCode) {
             <table class="table table-sm table-bordered mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 25%;">Price (৳)</th>
-                        <th style="width: 25%;">Quantity</th>
-                        <th style="width: 35%;">SKU</th>
-                        <th style="width: 15%;" class="text-center">Image</th>
+                        <th style="width: 30%;">Value</th>
+                        <th style="width: 20%;">Price (৳)</th>
+                        <th style="width: 15%;">Quantity</th>
+                        <th style="width: 25%;">SKU</th>
+                        <th style="width: 10%;" class="text-center">Image</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>
-                            <input type="number" class="form-control form-control-sm" name="product_colors[${colorId}][price]" value="0" min="0" step="0.01" placeholder="0.00">
-                        </td>
-                        <td>
-                            <input type="number" class="form-control form-control-sm" name="product_colors[${colorId}][quantity]" value="${getStockQty()}" min="0" placeholder="0">
-                        </td>
-                        <td>
-                            <input type="text" class="form-control form-control-sm" name="product_colors[${colorId}][sku]" value="${getNextSku()}" readonly>
-                        </td>
-                        <td class="text-center">
-                            <input type="file" class="d-none" id="color-img-${colorId}" name="product_colors[${colorId}][image]" accept="image/*" onchange="previewColorImage(this, '${colorId}')">
-                            <label for="color-img-${colorId}" class="btn btn-sm btn-outline-secondary mb-0">
-                                <i class="bi bi-image"></i>
-                            </label>
-                            <div id="preview-color-${colorId}" class="mt-1"></div>
-                        </td>
-                    </tr>
+    `;
+
+    if (values && values.length > 0) {
+        values.forEach(value => {
+            const valueHex = value.hex_code || hexCode;
+            html += `
+            <tr>
+                <td>
+                    <input type="hidden" name="product_colors[${colorId}][values][${value.id}][value_id]" value="${value.id}">
+                    <input type="hidden" name="product_colors[${colorId}][values][${value.id}][value_name]" value="${value.value}">
+                    <span style="background-color: ${valueHex}; width: 16px; height: 16px; display: inline-block; border-radius: 3px; border: 1px solid #ddd; vertical-align: middle; margin-right: 6px;"></span>
+                    ${value.value}
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="product_colors[${colorId}][values][${value.id}][price]" value="0" min="0" step="0.01" placeholder="0.00">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="product_colors[${colorId}][values][${value.id}][quantity]" value="${getStockQty()}" min="0" placeholder="0">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="product_colors[${colorId}][values][${value.id}][sku]" value="${getNextSku()}" readonly>
+                </td>
+                <td class="text-center">
+                    <input type="file" class="d-none" id="color-img-${colorId}-${value.id}" name="product_colors[${colorId}][values][${value.id}][image]" accept="image/*" onchange="previewColorImage(this, '${colorId}-${value.id}')">
+                    <label for="color-img-${colorId}-${value.id}" class="btn btn-sm btn-outline-secondary mb-0">
+                        <i class="bi bi-image"></i>
+                    </label>
+                    <div id="preview-color-${colorId}-${value.id}" class="mt-1"></div>
+                </td>
+            </tr>
+            `;
+        });
+    } else {
+        html += `
+            <tr>
+                <td colspan="5" class="text-center text-muted">No values available for this color</td>
+            </tr>
+        `;
+    }
+
+    html += `
                 </tbody>
             </table>
         </div>
     </div>
     `;
-    
+
     container.insertAdjacentHTML('beforeend', html);
 }
 

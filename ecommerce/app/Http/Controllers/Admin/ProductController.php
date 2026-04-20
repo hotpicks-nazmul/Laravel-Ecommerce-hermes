@@ -186,8 +186,8 @@ class ProductController extends Controller
         // Get active attributes with their values
         $attributes = Attribute::with('activeValues')->where('is_active', true)->get();
         
-        // Get active colors
-        $colors = Color::where('is_active', true)->get();
+        // Get active colors with their values
+        $colors = Color::with('activeValues')->where('is_active', true)->get();
         
         // Generate SKU based on timestamp for uniqueness
         $nextSku = 'SKU-' . date('YmdHis');
@@ -1933,17 +1933,23 @@ class ProductController extends Controller
 
         return response()->json([
             'products' => $products->map(function ($product) {
+                $isOnSale = $product->isOnSale();
+                $hasDiscount = $product->sale_price && $product->sale_price < $product->price;
+                $discountPercentage = ($hasDiscount && $product->price > 0) 
+                    ? round((($product->price - $product->sale_price) / $product->price) * 100) 
+                    : 0;
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'sku' => $product->sku,
                     'price' => $product->price,
                     'sale_price' => $product->sale_price,
+                    'discount_percentage' => $discountPercentage,
                     'category' => $product->category->name ?? 'N/A',
                     'quantity' => $product->quantity,
                     'discount_starts_at' => $product->discount_starts_at?->format('Y-m-d H:i:s'),
                     'discount_ends_at' => $product->discount_ends_at?->format('Y-m-d H:i:s'),
-                    'is_on_sale' => $product->isOnSale(),
+                    'is_on_sale' => $isOnSale,
                 ];
             }),
         ]);

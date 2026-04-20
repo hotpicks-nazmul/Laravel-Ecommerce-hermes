@@ -49,6 +49,24 @@ class Color extends Model
     }
 
     /**
+     * Get the values for this color.
+     */
+    public function values()
+    {
+        return $this->hasMany(ColorValue::class)->orderBy('display_order');
+    }
+
+    /**
+     * Get active values for this color.
+     */
+    public function activeValues()
+    {
+        return $this->hasMany(ColorValue::class)
+            ->where('is_active', true)
+            ->orderBy('display_order');
+    }
+
+    /**
      * Get products that have this color.
      */
     public function products()

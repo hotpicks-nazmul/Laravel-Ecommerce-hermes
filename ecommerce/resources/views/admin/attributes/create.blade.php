@@ -79,15 +79,14 @@
                 <div class="card border-0 shadow-sm mb-3">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>Attribute Values</h6>
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addValueRow()">
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="addValueBtn">
                             <i class="bi bi-plus-lg me-1"></i> Add Value
                         </button>
                     </div>
                     <div class="card-body">
                         <p class="text-muted small mb-3">Add values for this attribute (e.g., Small, Medium, Large for Size)</p>
-                        
+
                         <div id="valuesContainer">
-                            <!-- Value rows will be added here -->
                         </div>
                     </div>
                 </div>
@@ -188,20 +187,31 @@
 
 @push('scripts')
 <script>
+    // Attribute Values management - defined outside DOMContentLoaded
     let valueIndex = 0;
 
-    function addValueRow(value = '') {
+    function addValueRow(value = '', displayOrder = '', isActive = true) {
         const container = document.getElementById('valuesContainer');
         const row = document.createElement('div');
         row.className = 'value-item';
         row.id = `value-row-${valueIndex}`;
         row.innerHTML = `
             <div class="row align-items-center">
-                <div class="col-md-10 mb-2 mb-md-0">
-                    <input type="text" name="values[${valueIndex}][value]" class="form-control form-control-sm" 
-                           value="${value}" placeholder="Value (e.g., Large, Cotton)">
+                <div class="col-md-6 mb-2 mb-md-0">
+                    <input type="text" name="values[${valueIndex}][value]" class="form-control form-control-sm"
+                           value="${value || ''}" placeholder="Value (e.g., Large)">
                 </div>
-                <div class="col-md-2 text-end">
+                <div class="col-md-3 mb-2 mb-md-0">
+                    <input type="number" name="values[${valueIndex}][display_order]" class="form-control form-control-sm"
+                           value="${displayOrder || ''}" placeholder="Order" min="0">
+                </div>
+                <div class="col-md-2 mb-2 mb-md-0">
+                    <div class="form-check form-switch mt-1">
+                        <input type="checkbox" name="values[${valueIndex}][is_active]" class="form-check-input" id="valueActive${valueIndex}" ${isActive ? 'checked' : ''}>
+                        <label class="form-check-label" for="valueActive${valueIndex}">Active</label>
+                    </div>
+                </div>
+                <div class="col-md-1 text-end">
                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeValueRow(${valueIndex})">
                         <i class="bi bi-trash"></i>
                     </button>
@@ -219,11 +229,11 @@
         }
     }
 
-    // Auto-generate slug from name (real-time)
     document.addEventListener('DOMContentLoaded', function() {
+        // Auto-generate slug from name (real-time)
         const nameInput = document.querySelector('input[name="name"]');
         const slugInput = document.querySelector('input[name="slug"]');
-        
+
         if (nameInput && slugInput) {
             nameInput.addEventListener('input', function() {
                 slugInput.value = this.value.toLowerCase()
@@ -233,9 +243,136 @@
                     .replace(/^-|-$/g, '');
             });
         }
-    });
 
-    // Add initial value row
-    addValueRow();
+        // Add Value button handler
+        document.getElementById('addValueBtn').addEventListener('click', function() {
+            addValueRow();
+        });
+
+        // Add initial empty row
+        addValueRow();
+
+        // Clear all previous validation errors
+        function clearValidationErrors() {
+            document.querySelectorAll('.is-invalid').forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+            document.querySelectorAll('.invalid-feedback').forEach(el => {
+                el.remove();
+            });
+        }
+
+        // Show validation errors below fields using Bootstrap style
+        function showValidationErrors(errors) {
+            clearValidationErrors();
+
+            Object.entries(errors).forEach(([field, messages]) => {
+                let input = document.querySelector(`[name="${field}"]`);
+
+                // Try alternative formats: values.0.value -> values[0][value]
+                if (!input) {
+                    const altName = field.replace(/(\w+)\.(\d+)\.(\w+)/, '$1[$2][$3]');
+                    input = document.querySelector(`[name="${altName}"]`);
+                }
+
+                if (!input) {
+                    return;
+                }
+
+                input.classList.add('is-invalid');
+
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'invalid-feedback';
+                errorDiv.textContent = Array.isArray(messages) ? messages.join(', ') : (typeof messages === 'string' ? messages : JSON.stringify(messages));
+
+                if (input.parentElement.classList.contains('input-group')) {
+                    input.parentElement.parentElement.appendChild(errorDiv);
+                } else {
+                    input.parentElement.appendChild(errorDiv);
+                }
+            });
+        }
+
+        // AJAX form submission
+        const form = document.getElementById('attributeForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                clearValidationErrors();
+
+                const formData = new FormData(form);
+                const url = form.action;
+                const scrollPosition = window.scrollY;
+
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+                fetch(url, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json()
+                            .then(data => ({ status: response.status, data }))
+                            .catch(() => ({ status: response.status, data: { success: false, message: 'Invalid JSON' } }));
+                    }
+                    return { status: response.status, data: { success: false, message: 'Non-JSON response' } };
+                })
+                .then(result => {
+                    if (!result) return;
+
+                    const { status, data } = result;
+
+                    if (status === 200 && data.success) {
+                        // Success - show toast and redirect
+                        if (typeof adminToast === 'function') {
+                            adminToast('success', 'Success', data.message || 'Attribute created successfully.');
+                        }
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url || '{{ route('admin.attributes.index') }}';
+                        }, 500);
+                    } else if (status === 422 && data.errors) {
+                        // Validation errors - show below fields
+                        showValidationErrors(data.errors);
+                        window.scrollTo(0, scrollPosition);
+                    } else if (status === 200 && !data.success) {
+                        showValidationErrors({ form: [data.message || 'Something went wrong.'] });
+                    }
+                })
+                .catch(error => {
+                    console.error('Request error:', error);
+                });
+
+                return false;
+            });
+        }
+
+        // Show toast on page load if URL has success parameter (after redirect)
+        const urlParams = new URLSearchParams(window.location.search);
+        const successMsg = urlParams.get('success');
+        const errorMsg = urlParams.get('error');
+
+        if (successMsg) {
+            if (typeof adminToast === 'function') {
+                adminToast('success', 'Success', decodeURIComponent(successMsg));
+            }
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+
+        if (errorMsg) {
+            if (typeof adminToast === 'function') {
+                adminToast('error', 'Error', decodeURIComponent(errorMsg));
+            }
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+    });
 </script>
 @endpush

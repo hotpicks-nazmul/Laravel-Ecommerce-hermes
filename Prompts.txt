@@ -201,7 +201,10 @@ Verify the fixes. if it is accurate or i can do it menual.
 
 if you do not understand my requirement, just ask me before start.
 
+make  the style of Attribute Values section of this page: http://127.0.0.1:8000/admin/attributes/2/edit
 
+as same as this pages: http://127.0.0.1:8000/admin/colors/4/edit
+Color Values section style.
 
 
 

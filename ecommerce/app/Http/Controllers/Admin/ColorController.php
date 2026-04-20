@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Helpers\ImageHelper;
 use App\Models\Color;
+use App\Models\ColorValue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -15,7 +16,7 @@ class ColorController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Color::withCount('products');
+        $query = Color::withCount(['products', 'values', 'activeValues']);
 
         // Search
         if ($request->search) {
@@ -80,11 +81,13 @@ class ColorController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:colors,slug',
             'code' => 'nullable|string|max:10|unique:colors,code',
-            'hex_code' => 'required|string|max:7|regex:/^#[0-9A-Fa-f]{6}$/',
+            'hex_code' => 'nullable|string|max:7|regex:/^#[0-9A-Fa-f]{6}$/',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'description' => 'nullable|string',
             'display_order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
+            'values' => 'required|array|min:1',
+            'values.*.value' => 'required|string|max:255',
         ]);
 
         // Handle image upload
@@ -106,12 +109,37 @@ class ColorController extends Controller
             'name' => $validated['name'],
             'slug' => $validated['slug'] ?? Str::slug($validated['name']),
             'code' => $validated['code'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $validated['name']), 0, 3)),
-            'hex_code' => $validated['hex_code'],
+            'hex_code' => $validated['hex_code'] ?? '#000000',
             'image' => $imagePath,
             'description' => $validated['description'] ?? null,
             'display_order' => $validated['display_order'] ?? 0,
             'is_active' => $request->has('is_active'),
         ]);
+
+        if ($request->has('values')) {
+            foreach ($request->values as $index => $valueData) {
+                if (!empty($valueData['value'])) {
+                    $baseSlug = Str::slug($valueData['value']);
+                    $slug = $baseSlug;
+                    $counter = 1;
+
+                    // Ensure slug is unique for this color
+                    while ($color->values()->where('slug', $slug)->exists()) {
+                        $slug = $baseSlug . '-' . $counter;
+                        $counter++;
+                    }
+
+                    ColorValue::create([
+                        'color_id' => $color->id,
+                        'value' => $valueData['value'],
+                        'slug' => $slug,
+                        'hex_code' => $valueData['hex_code'] ?? null,
+                        'display_order' => $valueData['display_order'] ?? $index,
+                        'is_active' => isset($valueData['is_active']) ? true : false,
+                    ]);
+                }
+            }
+        }
 
         return redirect()->route('admin.colors.index')
             ->with('success', 'Color created successfully.');
@@ -122,6 +150,10 @@ class ColorController extends Controller
      */
     public function edit(Color $color)
     {
+        $color->load(['values' => function ($query) {
+            $query->orderBy('display_order');
+        }]);
+
         return view('admin.colors.edit', compact('color'));
     }
 
@@ -134,7 +166,7 @@ class ColorController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:colors,slug,' . $color->id,
             'code' => 'nullable|string|max:10|unique:colors,code,' . $color->id,
-            'hex_code' => 'required|string|max:7|regex:/^#[0-9A-Fa-f]{6}$/',
+            'hex_code' => 'nullable|string|max:7|regex:/^#[0-9A-Fa-f]{6}$/',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'description' => 'nullable|string',
             'display_order' => 'nullable|integer|min:0',
@@ -163,12 +195,59 @@ class ColorController extends Controller
             'name' => $validated['name'],
             'slug' => $validated['slug'] ?? Str::slug($validated['name']),
             'code' => $validated['code'] ?? $color->code,
-            'hex_code' => $validated['hex_code'],
+            'hex_code' => $validated['hex_code'] ?? $color->hex_code,
             'image' => $validated['image'] ?? $color->image,
             'description' => $validated['description'] ?? null,
             'display_order' => $validated['display_order'] ?? 0,
             'is_active' => $request->has('is_active'),
         ]);
+
+        // Handle color values - sync existing and create new
+        $submittedIds = [];
+        if ($request->has('values')) {
+            foreach ($request->values as $index => $valueData) {
+                if (!empty($valueData['value'])) {
+                    if (!empty($valueData['id'])) {
+                        $submittedIds[] = (int) $valueData['id'];
+                        $colorValue = ColorValue::where('id', $valueData['id'])
+                            ->where('color_id', $color->id)
+                            ->first();
+                        if ($colorValue) {
+                            $colorValue->update([
+                                'value' => $valueData['value'],
+                                'hex_code' => $valueData['hex_code'] ?? null,
+                                'display_order' => $valueData['display_order'] ?? $index,
+                                'is_active' => isset($valueData['is_active']) ? true : false,
+                            ]);
+                        }
+                    } else {
+                        $baseSlug = Str::slug($valueData['value']);
+                        $slug = $baseSlug;
+                        $counter = 1;
+                        while ($color->values()->where('slug', $slug)->exists()) {
+                            $slug = $baseSlug . '-' . $counter;
+                            $counter++;
+                        }
+                        $newValue = ColorValue::create([
+                            'color_id' => $color->id,
+                            'value' => $valueData['value'],
+                            'slug' => $slug,
+                            'hex_code' => $valueData['hex_code'] ?? null,
+                            'display_order' => $valueData['display_order'] ?? $index,
+                            'is_active' => isset($valueData['is_active']) ? true : false,
+                        ]);
+                        $submittedIds[] = $newValue->id;
+                    }
+                }
+            }
+        }
+
+        // Delete values that were removed in the form
+        if (!empty($submittedIds)) {
+            $color->values()->whereNotIn('id', $submittedIds)->delete();
+        } else {
+            $color->values()->delete();
+        }
 
         return redirect()->route('admin.colors.index')
             ->with('success', 'Color updated successfully.');
@@ -323,6 +402,100 @@ class ColorController extends Controller
 
         return response()->json([
             'colors' => $colors,
+        ]);
+    }
+
+    /**
+     * Get color values for AJAX requests.
+     */
+    public function getValues(Color $color)
+    {
+        $values = $color->values()->orderBy('display_order')->get();
+
+        return response()->json([
+            'values' => $values,
+        ]);
+    }
+
+    /**
+     * Store a new color value.
+     */
+    public function storeValue(Request $request, Color $color)
+    {
+        $validated = $request->validate([
+            'value' => 'required|string|max:255',
+            'hex_code' => 'nullable|string|max:7',
+        ]);
+
+        $createData = [
+            'color_id' => $color->id,
+            'value' => $validated['value'],
+            'slug' => Str::slug($validated['value']),
+            'hex_code' => $validated['hex_code'] ?? null,
+            'display_order' => $color->values()->count(),
+            'is_active' => true,
+        ];
+
+        $value = ColorValue::create($createData);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Color value added successfully.',
+            'value' => $value,
+        ]);
+    }
+
+    /**
+     * Update a color value.
+     */
+    public function updateValue(Request $request, Color $color, ColorValue $value)
+    {
+        $validated = $request->validate([
+            'value' => 'required|string|max:255',
+            'hex_code' => 'nullable|string|max:7',
+        ]);
+
+        $updateData = [
+            'value' => $validated['value'],
+            'slug' => Str::slug($validated['value']),
+            'hex_code' => $validated['hex_code'] ?? null,
+        ];
+
+        $value->update($updateData);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Color value updated successfully.',
+            'value' => $value,
+        ]);
+    }
+
+    /**
+     * Delete a color value.
+     */
+    public function destroyValue(Color $color, ColorValue $value)
+    {
+        $value->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Color value deleted successfully.',
+        ]);
+    }
+
+    /**
+     * Toggle color value status.
+     */
+    public function toggleValueStatus(Color $color, ColorValue $value)
+    {
+        $value->update([
+            'is_active' => !$value->is_active,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Color value status updated.',
+            'is_active' => $value->is_active,
         ]);
     }
 }

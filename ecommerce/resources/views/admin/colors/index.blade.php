@@ -128,22 +128,20 @@
                         <th width="40">
                             <input type="checkbox" class="form-check-input" id="selectAll">
                         </th>
-                        <th width="60">Color</th>
                         <th>
                             <a href="{{ route('admin.colors.index', array_merge(request()->all(), ['sort' => 'name', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc', 'per_page' => request('per_page')])) }}" class="text-decoration-none text-dark">
                                 Name <i class="bi bi-arrow-down-up"></i>
                             </a>
                         </th>
-                        <th>Code</th>
-                        <th>Hex Code</th>
                         <th>
                             <a href="{{ route('admin.colors.index', array_merge(request()->all(), ['sort' => 'display_order', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc', 'per_page' => request('per_page')])) }}" class="text-decoration-none text-dark">
                                 Order <i class="bi bi-arrow-down-up"></i>
                             </a>
                         </th>
+                        <th>Values</th>
                         <th>Products</th>
                         <th>Status</th>
-                        <th width="120">Actions</th>
+                        <th width="150">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -160,23 +158,20 @@
                             <input type="checkbox" class="form-check-input item-checkbox" value="{{ $color->id }}">
                         </td>
                         <td>
-                            <span class="color-swatch" style="background-color: {{ $color->hex_code }};" title="{{ $color->name }}"></span>
-                        </td>
-                        <td>
                             <a href="{{ route('admin.colors.edit', $color->id) }}" class="text-decoration-none fw-medium">
                                 {{ $color->name }}
                             </a>
                             @if($color->description)
-                            <br><small class="text-muted">{{ Str::limit($color->description, 40) }}</small>
+                            <br><small class="text-muted">{{ Str::limit($color->description, 50) }}</small>
                             @endif
                         </td>
-                        <td><code>{{ $color->code }}</code></td>
-                        <td>
-                            <span class="badge font-monospace" style="background-color: {{ $color->hex_code }}; color: {{ $color->contrast_color }};">
-                                {{ $color->hex_code }}
-                            </span>
-                        </td>
                         <td>{{ $color->display_order }}</td>
+                        <td>
+                            <span class="badge bg-light text-dark">{{ $color->values_count }} values</span>
+                            @if($color->active_values_count > 0)
+                            <span class="badge bg-success">{{ $color->active_values_count }} active</span>
+                            @endif
+                        </td>
                         <td>
                             <span class="badge bg-light text-dark">{{ $color->products_count }} products</span>
                         </td>
@@ -200,7 +195,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="text-center py-5">
+                        <td colspan="8" class="text-center py-5">
                             <i class="bi bi-palette text-muted" style="font-size: 3rem;"></i>
                             <p class="text-muted mt-2">No colors found</p>
                             <a href="{{ route('admin.colors.create') }}" class="btn btn-primary btn-sm">
@@ -242,13 +237,13 @@
 @push('styles')
 <style>
     .color-swatch {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
         display: inline-block;
         vertical-align: middle;
-        border: 2px solid #fff;
-        box-shadow: 0 0 0 1px #ddd;
+        border: 1px solid #ddd;
+        flex-shrink: 0;
     }
     
     /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */

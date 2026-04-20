@@ -77,60 +77,33 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Attribute Values Card -->
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>Attribute Values</h6>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="addValueBtn">
+                            <i class="bi bi-plus-lg me-1"></i> Add Value
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">Manage values for this attribute</p>
+
+                        <div id="valuesContainer">
+                        </div>
+
+                        @if($errors->any())
+                            <div class="alert alert-danger py-2 mt-3 mb-0">
+                                <ul class="mb-0 ps-3">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                    </div>
+                </div>
             </form>
-
-            <!-- Attribute Values Card -->
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>Attribute Values</h6>
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addValueRow()">
-                        <i class="bi bi-plus-lg me-1"></i> Add Value
-                    </button>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted small mb-3">Manage values for this attribute</p>
-                    
-                    <div id="valuesContainer">
-                        @forelse($attribute->values as $value)
-                        <div class="value-item" data-id="{{ $value->id }}">
-                            <div class="row align-items-center">
-                                <div class="col-md-10 mb-2 mb-md-0">
-                                    <input type="text" class="form-control form-control-sm value-input" 
-                                           value="{{ $value->value }}" placeholder="Value"
-                                           data-id="{{ $value->id }}">
-                                </div>
-                                <div class="col-md-2 text-end">
-                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="saveValue({{ $value->id }})" title="Save">
-                                        <i class="bi bi-check-lg"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteValue({{ $value->id }})" title="Delete">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        @empty
-                        <p class="text-muted text-center py-3">No values added yet</p>
-                        @endforelse
-                    </div>
-
-                    <!-- Add New Value Form -->
-                    <div class="mt-4 pt-3 border-top">
-                        <h6 class="mb-3">Add New Value</h6>
-                        <div class="row align-items-end">
-                            <div class="col-md-10 mb-2 mb-md-0">
-                                <label class="form-label small">Value</label>
-                                <input type="text" id="newValue" class="form-control form-control-sm" placeholder="e.g., Large">
-                            </div>
-                            <div class="col-md-2">
-                                <button type="button" class="btn btn-sm btn-primary w-100" onclick="addNewValue()">
-                                    <i class="bi bi-plus-lg me-1"></i> Add
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <div class="col-lg-4">
@@ -217,175 +190,115 @@
     .value-item:hover {
         background: #f1f3f5;
     }
-    .color-preview {
-        width: 30px;
-        height: 30px;
-        border-radius: 4px;
-        display: inline-block;
-        vertical-align: middle;
-        border: 1px solid #ddd;
+    .toast-notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+    .toast-notification.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    .toast-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 20px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .toast-success .toast-content {
+        border-left: 4px solid #28a745;
+    }
+    .toast-success .toast-content i {
+        color: #28a745;
+    }
+    .toast-error .toast-content {
+        border-left: 4px solid #dc3545;
+    }
+    .toast-error .toast-content i {
+        color: #dc3545;
     }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-    // Sync color picker and text input
-    if (document.getElementById('newColorPicker')) {
-        document.getElementById('newColorPicker').addEventListener('input', function() {
-            document.getElementById('newColorCode').value = this.value;
-        });
-    }
-    if (document.getElementById('newColorCode')) {
-        document.getElementById('newColorCode').addEventListener('input', function() {
-            if (/^#[0-9A-Fa-f]{6}$/.test(this.value)) {
-                document.getElementById('newColorPicker').value = this.value;
-            }
-        });
+    // Attribute Values management - defined outside DOMContentLoaded
+    let valueIndex = 0;
+
+    function addValueRow(value = '', displayOrder = '', isActive = true, valueId = null) {
+        const container = document.getElementById('valuesContainer');
+        const row = document.createElement('div');
+        row.className = 'value-item';
+        row.id = `value-row-${valueIndex}`;
+        const idField = valueId ? `<input type="hidden" name="values[${valueIndex}][id]" value="${valueId}">` : '';
+        row.innerHTML = `
+            <div class="row align-items-center">
+                <div class="col-md-6 mb-2 mb-md-0">
+                    ${idField}
+                    <input type="text" name="values[${valueIndex}][value]" class="form-control form-control-sm"
+                           value="${value || ''}" placeholder="Value (e.g., Large)">
+                </div>
+                <div class="col-md-3 mb-2 mb-md-0">
+                    <input type="number" name="values[${valueIndex}][display_order]" class="form-control form-control-sm"
+                           value="${displayOrder || ''}" placeholder="Order" min="0">
+                </div>
+                <div class="col-md-2 mb-2 mb-md-0">
+                    <div class="form-check form-switch mt-1">
+                        <input type="checkbox" name="values[${valueIndex}][is_active]" class="form-check-input" id="valueActive${valueIndex}" ${isActive ? 'checked' : ''}>
+                        <label class="form-check-label" for="valueActive${valueIndex}">Active</label>
+                    </div>
+                </div>
+                <div class="col-md-1 text-end">
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeValueRow(${valueIndex})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        container.appendChild(row);
+        valueIndex++;
     }
 
-    // Sync existing color pickers
-    if (document.querySelectorAll('.color-picker').length) {
-        document.querySelectorAll('.color-picker').forEach(picker => {
-            picker.addEventListener('input', function() {
-                const id = this.dataset.id;
-                document.querySelector(`.color-code-input[data-id="${id}"]`).value = this.value;
+    function removeValueRow(index) {
+        const row = document.getElementById(`value-row-${index}`);
+        if (row) {
+            row.remove();
+        }
+    }
+
+    function populateExistingValues() {
+        const existingValues = @json($attribute->values->toArray());
+        const container = document.getElementById('valuesContainer');
+        container.innerHTML = '';
+        valueIndex = 0;
+
+        if (existingValues && existingValues.length > 0) {
+            existingValues.forEach(function(valueData, idx) {
+                addValueRow(
+                    valueData.value || '',
+                    valueData.display_order || '',
+                    valueData.is_active ? true : false,
+                    valueData.id
+                );
             });
-        });
-    }
-    if (document.querySelectorAll('.color-code-input').length) {
-        document.querySelectorAll('.color-code-input').forEach(input => {
-            input.addEventListener('input', function() {
-                if (/^#[0-9A-Fa-f]{6}$/.test(this.value)) {
-                    const id = this.dataset.id;
-                    document.querySelector(`.color-picker[data-id="${id}"]`).value = this.value;
-                }
-            });
-        });
-    }
-
-    // Add new value
-    function addNewValue() {
-        const value = document.getElementById('newValue').value.trim();
-        
-        if (!value) {
-            alert('Please enter a value');
-            return;
         }
 
-        const formData = new FormData();
-        formData.append('value', value);
-
-        fetch(`{{ route('admin.attributes.values.store', $attribute->id) }}`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json'
-            },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert(data.message || 'Error adding value');
-            }
-        });
+        // Always add an empty row at the end
+        addValueRow();
     }
 
-    // Save value
-    function saveValue(id) {
-        const value = document.querySelector(`.value-input[data-id="${id}"]`).value.trim();
-
-        if (!value) {
-            alert('Please enter a value');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('value', value);
-
-        fetch(`{{ route('admin.attributes.values.update', [$attribute->id, 'VALUE_ID']) }}`.replace('VALUE_ID', id), {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json'
-            },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert(data.message || 'Error updating value');
-            }
-        });
-    }
-
-    // Save value
-    function saveValue(id) {
-        const value = document.querySelector(`.value-input[data-id="${id}"]`).value.trim();
-        const price = document.querySelector(`.price-input[data-id="${id}"]`).value;
-        const imageInput = document.querySelector(`.image-input[data-id="${id}"]`);
-
-        if (!value) {
-            alert('Please enter a value');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('value', value);
-        formData.append('price', price || '');
-        if (imageInput && imageInput.files.length > 0) {
-            formData.append('image', imageInput.files[0]);
-        }
-
-        fetch(`{{ route('admin.attributes.values.update', [$attribute->id, 'VALUE_ID']) }}`.replace('VALUE_ID', id), {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json'
-            },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert(data.message || 'Error updating value');
-            }
-        });
-    }
-
-    // Delete value
-    function deleteValue(id) {
-        if (!confirm('Are you sure you want to delete this value?')) return;
-
-        fetch(`{{ route('admin.attributes.values.destroy', [$attribute->id, 'VALUE_ID']) }}`.replace('VALUE_ID', id), {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json'
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert(data.message || 'Error deleting value');
-            }
-        });
-    }
-
-    // Auto-generate slug from name (real-time)
     document.addEventListener('DOMContentLoaded', function() {
+        // Auto-generate slug from name (real-time)
         const nameInput = document.querySelector('input[name="name"]');
         const slugInput = document.querySelector('input[name="slug"]');
-        
+
         if (nameInput && slugInput) {
             nameInput.addEventListener('input', function() {
                 slugInput.value = this.value.toLowerCase()
@@ -395,6 +308,149 @@
                     .replace(/^-|-$/g, '');
             });
         }
+
+        // Add Value button handler
+        document.getElementById('addValueBtn').addEventListener('click', function() {
+            addValueRow();
+        });
+
+        // Populate existing values
+        populateExistingValues();
+
+        // Clear all previous validation errors
+        function clearValidationErrors() {
+            document.querySelectorAll('.is-invalid').forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+            document.querySelectorAll('.invalid-feedback').forEach(el => {
+                el.remove();
+            });
+        }
+
+        // Show validation errors below fields using Bootstrap style
+        function showValidationErrors(errors) {
+            clearValidationErrors();
+            
+            console.log('Validation errors:', errors);
+            console.log('Error keys:', Object.keys(errors));
+            
+            Object.entries(errors).forEach(([field, messages]) => {
+                console.log('Processing field:', field, 'messages:', messages);
+                
+                let input = document.querySelector(`[name="${field}"]`);
+                
+                // Try bracket notation: values.0.value -> values[0][value]
+                if (!input) {
+                    const altName = field.replace(/(\w+)\.(\d+)\.(\w+)/, '$1[$2][$3]');
+                    input = document.querySelector(`[name="${altName}"]`);
+                    console.log('Trying alt name:', altName, 'found:', !!input);
+                }
+                
+                if (!input) {
+                    console.log('Field not found:', field);
+                    return;
+                }
+                
+                input.classList.add('is-invalid');
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'invalid-feedback';
+                errorDiv.textContent = Array.isArray(messages) ? messages.join(', ') : messages;
+                
+                if (input.parentElement.classList.contains('input-group')) {
+                    input.parentElement.parentElement.appendChild(errorDiv);
+                } else {
+                    input.parentElement.appendChild(errorDiv);
+                }
+            });
+        }
+
+        // AJAX form submission
+        const form = document.getElementById('attributeForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                clearValidationErrors();
+                
+                const formData = new FormData(form);
+                const url = form.action;
+                const scrollPosition = window.scrollY;
+
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+                fetch(url, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json()
+                            .then(data => ({ status: response.status, data }))
+                            .catch(() => ({ status: response.status, data: { success: false, message: 'Invalid JSON' } }));
+                    }
+                    return { status: response.status, data: { success: false, message: 'Non-JSON response' } };
+                })
+                .then(result => {
+                    if (!result) return;
+
+                    const { status, data } = result;
+
+                    if (status === 200 && data.success) {
+                        // Success - page stays in place, show toast
+                        if (typeof adminToast === 'function') {
+                            adminToast('success', 'Success', data.message || 'Attribute updated successfully.');
+                        }
+                        if (data.attribute) {
+                            const statsSection = document.querySelector('.col-lg-4 .card-body');
+                            if (statsSection) {
+                                const strongs = statsSection.querySelectorAll('strong');
+                                if (strongs[0]) strongs[0].textContent = data.attribute.values_count || '0';
+                                if (strongs[1]) strongs[1].textContent = data.attribute.active_values_count || '0';
+                                if (strongs[3]) strongs[3].textContent = data.attribute.updated_at;
+                            }
+                        }
+                        window.scrollTo(0, scrollPosition);
+                    } else if (status === 422 && data.errors) {
+                        // Validation errors - show below fields
+                        showValidationErrors(data.errors);
+                        window.scrollTo(0, scrollPosition);
+                    }
+                })
+                .catch(error => {
+                    console.error('Request error:', error);
+                });
+
+                return false;
+            });
+        }
+
+        // Show toast on page load if URL has success parameter (after redirect)
+        const urlParams = new URLSearchParams(window.location.search);
+        const successMsg = urlParams.get('success');
+        const errorMsg = urlParams.get('error');
+
+        if (successMsg) {
+            if (typeof adminToast === 'function') {
+                adminToast('success', 'Success', decodeURIComponent(successMsg));
+            }
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+
+        if (errorMsg) {
+            if (typeof adminToast === 'function') {
+                adminToast('error', 'Error', decodeURIComponent(errorMsg));
+            }
+            window.history.replaceState({}, '', window.location.pathname);
+        }
     });
-</script>
+
+    </script>
 @endpush

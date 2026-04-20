@@ -489,6 +489,13 @@ Route::get('/colors-export', [\App\Http\Controllers\Admin\ColorController::class
 Route::get('/colors/api/list', [\App\Http\Controllers\Admin\ColorController::class, 'getColors'])->name('colors.api.list');
 Route::delete('/colors/{color}/image', [\App\Http\Controllers\Admin\ColorController::class, 'deleteImage'])->name('colors.image.delete');
 
+// Color Values Management
+Route::post('/colors/{color}/values', [\App\Http\Controllers\Admin\ColorController::class, 'storeValue'])->name('colors.values.store');
+Route::put('/colors/{color}/values/{value}', [\App\Http\Controllers\Admin\ColorController::class, 'updateValue'])->name('colors.values.update');
+Route::delete('/colors/{color}/values/{value}', [\App\Http\Controllers\Admin\ColorController::class, 'destroyValue'])->name('colors.values.destroy');
+Route::post('/colors/{color}/values/{value}/toggle-status', [\App\Http\Controllers\Admin\ColorController::class, 'toggleValueStatus'])->name('colors.values.toggle-status');
+Route::get('/colors/{color}/values', [\App\Http\Controllers\Admin\ColorController::class, 'getValues'])->name('colors.values.list');
+
 // Brands Management
 Route::resource('brands', \App\Http\Controllers\Admin\BrandController::class);
 Route::post('/brands/{brand}/toggle-status', [\App\Http\Controllers\Admin\BrandController::class, 'toggleStatus'])->name('brands.toggle-status');

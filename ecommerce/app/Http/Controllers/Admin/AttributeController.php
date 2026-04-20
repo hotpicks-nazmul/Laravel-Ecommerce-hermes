@@ -91,9 +91,11 @@ class AttributeController extends Controller
             'is_active' => 'nullable',
             'is_filterable' => 'nullable',
             'values' => 'nullable|array',
-            'values.*.value' => 'required_with:values|string|max:255',
+            'values.*.value' => 'sometimes|nullable|string|max:255',
             'values.*.price' => 'nullable|numeric|min:0',
             'values.*.image' => 'nullable|image|max:2048',
+        ], [
+            'values.*.value.unique' => 'This value already exists.',
         ]);
 
         // Create attribute
@@ -106,21 +108,63 @@ class AttributeController extends Controller
             'is_filterable' => $request->has('is_filterable'),
         ]);
 
-        // Create attribute values
-        if (!empty($validated['values'])) {
-            foreach ($validated['values'] as $index => $valueData) {
+        if ($request->has('values')) {
+            $duplicateErrors = [];
+            $createdValues = [];
+            
+            foreach ($request->values as $index => $valueData) {
                 if (!empty($valueData['value'])) {
-                    $valueCreateData = [
-                        'attribute_id' => $attribute->id,
-                        'value' => $valueData['value'],
-                        'slug' => Str::slug($valueData['value']),
-                        'display_order' => $index,
-                        'is_active' => true,
-                    ];
+                    $value = $valueData['value'];
                     
-                    AttributeValue::create($valueCreateData);
+                    // Check for duplicate within submitted values
+                    $countInSubmitted = count(array_filter($createdValues, fn($v) => strtolower($v) === strtolower($value)));
+                    if ($countInSubmitted > 0) {
+                        $duplicateErrors["values.{$index}.value"] = "Value '{$value}' is duplicated.";
+                        continue;
+                    }
+                    
+                    // Check if value exists in any attribute
+                    $existingValue = AttributeValue::whereRaw('LOWER(value) = ?', [strtolower($value)])->first();
+                    if ($existingValue) {
+                        $duplicateErrors["values.{$index}.value"] = "Value '{$value}' already exists in attribute '{$existingValue->attribute->name}'.";
+                        continue;
+                    }
+                    
+                    $baseSlug = Str::slug($valueData['value']);
+                    $slug = $baseSlug;
+                    $counter = 1;
+                    while (AttributeValue::where('slug', $slug)->exists()) {
+                        $slug = $baseSlug . '-' . $counter;
+                        $counter++;
+                    }
+                    
+                    $newValue = AttributeValue::create([
+                        'attribute_id' => $attribute->id,
+                        'value' => $value,
+                        'slug' => $slug,
+                        'display_order' => $valueData['display_order'] ?? $index,
+                        'is_active' => isset($valueData['is_active']) ? true : false,
+                    ]);
+                    $createdValues[] = $value;
                 }
             }
+            
+            if (!empty($duplicateErrors)) {
+                $attribute->delete(); // Rollback created attribute
+                
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'errors' => $duplicateErrors], 422);
+                }
+                return redirect()->back()->withInput()->withErrors($duplicateErrors);
+            }
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Attribute created successfully.',
+                'redirect_url' => route('admin.attributes.index'),
+            ]);
         }
 
         return redirect()->route('admin.attributes.index')
@@ -132,7 +176,12 @@ class AttributeController extends Controller
      */
     public function edit(Attribute $attribute)
     {
-        $attribute->load('values');
+        $attribute->load(['values' => function ($query) {
+            $query->orderBy('display_order');
+        }]);
+        $attribute->loadCount(['values', 'values as active_values_count' => function ($q) {
+            $q->where('is_active', true);
+        }]);
         return view('admin.attributes.edit', compact('attribute'));
     }
 
@@ -146,8 +195,8 @@ class AttributeController extends Controller
             'slug' => 'nullable|string|max:255|unique:attributes,slug,' . $attribute->id,
             'description' => 'nullable|string',
             'display_order' => 'nullable|integer|min:0',
-            'is_active' => 'boolean',
-            'is_filterable' => 'boolean',
+            'is_active' => 'nullable',
+            'is_filterable' => 'nullable',
         ]);
 
         $attribute->update([
@@ -159,7 +208,94 @@ class AttributeController extends Controller
             'is_filterable' => $request->has('is_filterable'),
         ]);
 
-        return redirect()->route('admin.attributes.index')
+        // Handle attribute values - sync existing and create new
+        $duplicateErrors = [];
+        $submittedIds = [];
+        if ($request->has('values')) {
+            foreach ($request->values as $index => $valueData) {
+                if (!empty($valueData['value'])) {
+                    if (!empty($valueData['id'])) {
+                        $submittedIds[] = (int) $valueData['id'];
+                        $attributeValue = AttributeValue::where('id', $valueData['id'])
+                            ->where('attribute_id', $attribute->id)
+                            ->first();
+                        if ($attributeValue) {
+                            $duplicateCheck = $attribute->values()
+                                ->where('value', $valueData['value'])
+                                ->where('id', '!=', $valueData['id'])
+                                ->first();
+                            if ($duplicateCheck) {
+                                $duplicateErrors["values.{$index}.value"] = "Value '{$valueData['value']}' already exists.";
+                                continue;
+                            }
+                            $attributeValue->update([
+                                'value' => $valueData['value'],
+                                'display_order' => $valueData['display_order'] ?? $index,
+                                'is_active' => isset($valueData['is_active']) ? true : false,
+                            ]);
+                        }
+                    } else {
+                        $existingValue = $attribute->values()->where('value', $valueData['value'])->first();
+                        if ($existingValue) {
+                            $duplicateErrors["values.{$index}.value"] = "Value '{$valueData['value']}' already exists.";
+                            continue;
+                        }
+                        $baseSlug = Str::slug($valueData['value']);
+                        $slug = $baseSlug;
+                        $counter = 1;
+                        while ($attribute->values()->where('slug', $slug)->exists()) {
+                            $slug = $baseSlug . '-' . $counter;
+                            $counter++;
+                        }
+                        $newValue = AttributeValue::create([
+                            'attribute_id' => $attribute->id,
+                            'value' => $valueData['value'],
+                            'slug' => $slug,
+                            'display_order' => $valueData['display_order'] ?? $index,
+                            'is_active' => isset($valueData['is_active']) ? true : false,
+                        ]);
+                        $submittedIds[] = $newValue->id;
+                    }
+                }
+            }
+        }
+
+        // Delete values that were removed in the form
+        if (!empty($submittedIds)) {
+            $attribute->values()->whereNotIn('id', $submittedIds)->delete();
+        } else {
+            $attribute->values()->delete();
+        }
+
+        $attribute->load(['values' => function ($query) {
+            $query->orderBy('display_order');
+        }]);
+        $attribute->loadCount(['values', 'values as active_values_count' => function ($q) {
+            $q->where('is_active', true);
+        }]);
+
+        if (!empty($duplicateErrors)) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'errors' => $duplicateErrors], 422);
+            }
+            return view('admin.attributes.edit', compact('attribute'))
+                ->with('old_values', $request->input('values', []))
+                ->withErrors($duplicateErrors);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Attribute updated successfully.',
+                'attribute' => [
+                    'values_count' => $attribute->values_count,
+                    'active_values_count' => $attribute->active_values_count,
+                    'updated_at' => $attribute->updated_at->format('M d, Y'),
+                ]
+            ]);
+        }
+
+        return redirect()->route('admin.attributes.edit', $attribute->id)
             ->with('success', 'Attribute updated successfully.');
     }
 

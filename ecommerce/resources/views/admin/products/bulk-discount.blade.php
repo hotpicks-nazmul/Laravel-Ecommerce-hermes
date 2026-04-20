@@ -125,16 +125,13 @@
                         <!-- Product Search -->
                         <div class="mb-3">
                             <div class="input-group">
-                                <input type="text" id="productSearch" class="form-control" placeholder="Search products by name or SKU...">
-                                <select id="productCategoryFilter" class="form-select" style="max-width: 200px;">
+                                <input type="text" id="productSearch" class="form-control" placeholder="Search products by name or SKU..." oninput="debouncedSearch()">
+                                <select id="productCategoryFilter" class="form-select" style="max-width: 200px;" onchange="debouncedSearch()">
                                     <option value="">All Categories</option>
                                     @foreach($categories as $category)
                                         <option value="{{ $category->id }}">{{ $category->name }}</option>
                                     @endforeach
                                 </select>
-                                <button type="button" class="btn btn-outline-primary" onclick="searchProducts()">
-                                    <i class="bi bi-search"></i>
-                                </button>
                             </div>
                         </div>
 
@@ -162,11 +159,12 @@
                                         <th>Product Code</th>
                                         <th>Price</th>
                                         <th>Sale Price</th>
+                                        <th>% Applied</th>
                                     </tr>
                                 </thead>
                                 <tbody id="productList">
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted py-3">
+                                        <td colspan="6" class="text-center text-muted py-3">
                                             Search for products to select
                                         </td>
                                     </tr>
@@ -601,6 +599,13 @@
 <script>
     let selectedProducts = new Set();
     let allProducts = [];
+    let searchTimeout;
+
+    // Debounced search
+    function debouncedSearch() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(searchProducts, 300);
+    }
 
     // Discount type change
     document.getElementById('discountType').addEventListener('change', function() {
@@ -649,6 +654,11 @@
             
             // Update required attributes
             document.getElementById('categoryId').required = this.value === 'category';
+            
+            // Auto-search when product selection becomes visible
+            if (this.value === 'selected' && allProducts.length === 0) {
+                searchProducts();
+            }
         });
     });
 
@@ -672,7 +682,7 @@
         if (products.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="text-center text-muted py-3">
+                    <td colspan="6" class="text-center text-muted py-3">
                         No products found
                     </td>
                 </tr>
@@ -696,6 +706,9 @@
                 <td>
                     ${p.sale_price ? '<span class="text-success">৳' + parseFloat(p.sale_price).toFixed(2) + '</span>' : '<span class="text-muted">-</span>'}
                     ${p.discount_starts_at || p.discount_ends_at ? '<br><small class="text-info">' + formatDiscountDates(p.discount_starts_at, p.discount_ends_at, p.is_on_sale) + '</small>' : ''}
+                </td>
+                <td>
+                    ${p.discount_percentage > 0 ? '<span class="badge bg-success">' + p.discount_percentage + '%</span>' : '<span class="text-muted">-</span>'}
                 </td>
             </tr>
         `).join('');
