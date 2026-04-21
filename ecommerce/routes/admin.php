@@ -63,6 +63,7 @@ Route::delete('/products/{product}/images/{image}', [ProductController::class, '
 Route::delete('/products/{product}/featured-image', [ProductController::class, 'deleteFeaturedImage'])->name('products.featured-image.delete');
 Route::delete('/products/{product}/attributes/{attrId}/{valueId}/image', [ProductController::class, 'deleteAttributeImage'])->name('products.attributes.image.delete');
 Route::delete('/products/{product}/colors/{colorId}/image', [ProductController::class, 'deleteColorImage'])->name('products.colors.image.delete');
+Route::delete('/products/{product}/colors/{colorId}/values/{valueId}/image', [ProductController::class, 'deleteColorValueImage'])->name('products.colors.values.image.delete');
 Route::post('/products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
 Route::post('/products/{product}/toggle-featured', [ProductController::class, 'toggleFeatured'])->name('products.toggle-featured');
 Route::post('/products/{product}/quick-update', [ProductController::class, 'quickUpdate'])->name('products.quick-update');
@@ -484,6 +485,7 @@ Route::get('/attributes/{attribute}/values', [\App\Http\Controllers\Admin\Attrib
 // Colors Management
 Route::resource('colors', \App\Http\Controllers\Admin\ColorController::class);
 Route::post('/colors/{color}/toggle-status', [\App\Http\Controllers\Admin\ColorController::class, 'toggleStatus'])->name('colors.toggle-status');
+Route::post('/colors/{color}/toggle-filterable', [\App\Http\Controllers\Admin\ColorController::class, 'toggleFilterable'])->name('colors.toggle-filterable');
 Route::post('/colors/bulk-action', [\App\Http\Controllers\Admin\ColorController::class, 'bulkAction'])->name('colors.bulk-action');
 Route::get('/colors-export', [\App\Http\Controllers\Admin\ColorController::class, 'export'])->name('colors.export');
 Route::get('/colors/api/list', [\App\Http\Controllers\Admin\ColorController::class, 'getColors'])->name('colors.api.list');

@@ -205,6 +205,27 @@ make  the style of Attribute Values section of this page: http://127.0.0.1:8000/
 
 as same as this pages: http://127.0.0.1:8000/admin/colors/4/edit
 Color Values section style.
+-------------------------------------------
+in this page : http://127.0.0.1:8000/admin/colors/12/edit
+in Attribute Values
+add duplicate value check.
+
+get reference from this page: http://127.0.0.1:8000/admin/attributes/2/edit
+
+if you do not understand my requirement, just ask me before start.
+---------------------------------------------------------
+
+in this pages:
+-> http://127.0.0.1:8000/admin/products/create
+in Product Attributes and Product Colors
+
+the drop down menu is not showing properly. i can see only 1 check box.
+
+
+pin point the problem and fix it carefully
+
+if you do not understand my requirement, just ask me before start.
+
 
 
 

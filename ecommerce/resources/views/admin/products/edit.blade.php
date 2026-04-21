@@ -181,21 +181,21 @@
                     </div>
                     
                     <!-- Product Attributes Section -->
-                    <div class="card border-0 shadow-sm mb-3">
+                    <div class="card border-0 shadow-sm mb-3" style="overflow: visible !important;">
                         <div class="card-header bg-white">
                             <h6 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Product Attributes</h6>
                         </div>
                         <div class="card-body">
                             <p class="text-muted small mb-3">Select attributes to add price, quantity, image and SKU for each value</p>
-                            
+
                              <div class="mb-3">
-                                <label class="form-label">Select Attributes</label>
-                                <div class="dropdown">
-                                    <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" type="button" id="productAttributesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <span id="productAttributesLabel">Select attributes...</span>
-                                        <i class="bi bi-chevron-down"></i>
-                                    </button>
-                                    <div class="dropdown-menu w-100 p-0" aria-labelledby="productAttributesDropdown" style="max-height: 300px; overflow-y: auto;">
+                                 <label class="form-label">Select Attributes</label>
+                                 <div class="dropdown">
+                                     <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" type="button" id="productAttributesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                         <span id="productAttributesLabel">Select attributes...</span>
+                                         <i class="bi bi-chevron-down"></i>
+                                     </button>
+                                     <div class="dropdown-menu w-100 p-0" aria-labelledby="productAttributesDropdown" style="max-height: 300px; overflow-y: auto;">
                                         <div class="px-2 py-2 border-bottom">
                                             <input type="text" class="form-control form-control-sm" id="productAttributesSearch" placeholder="Search...">
                                         </div>
@@ -226,13 +226,13 @@
                     </div>
                     
                     <!-- Product Colors Section -->
-                    <div class="card border-0 shadow-sm mb-3">
+                    <div class="card border-0 shadow-sm mb-3" style="overflow: visible !important;">
                         <div class="card-header bg-white">
                             <h6 class="mb-0"><i class="bi bi-palette me-2"></i>Product Colors</h6>
                         </div>
                         <div class="card-body">
                             <p class="text-muted small mb-3">Select colors to add price, quantity, image and SKU for each</p>
-                            
+
                             <div class="mb-3">
                                 <label class="form-label">Select Colors</label>
                                 <div class="dropdown">
@@ -251,7 +251,8 @@
                                                     value="{{ $color->id }}"
                                                     id="color_{{ $color->id }}"
                                                     data-name="{{ $color->name }}"
-                                                    data-hex="{{ $color->hex_code }}">
+                                                    data-hex="{{ $color->hex_code }}"
+                                                    data-values='@json($color->activeValues->map(function($v) { return ["id" => $v->id, "value" => $v->value, "hex_code" => $v->hex_code]; })->toArray())'>
                                                 <label class="form-check-label w-100" for="color_{{ $color->id }}">
                                                     {{ $color->name }}
                                                     <span style="background: {{ $color->hex_code }}; width: 16px; height: 16px; display: inline-block; border-radius: 50%; border: 1px solid #ddd; vertical-align: middle; margin-left: 8px;"></span>
@@ -463,6 +464,28 @@
 }
 .dropdown-menu {
     transform: none !important;
+    clip: auto !important;
+    clip-path: none !important;
+}
+.card-dropdown-wrapper {
+    overflow: visible !important;
+    position: relative !important;
+    z-index: 1000 !important;
+}
+.card-dropdown-wrapper .card-body {
+    overflow: visible !important;
+    position: relative !important;
+    z-index: 1000 !important;
+}
+.card-dropdown-wrapper .dropdown {
+    position: relative !important;
+    z-index: 1001 !important;
+}
+.card-dropdown-wrapper .dropdown-menu {
+    position: absolute !important;
+    z-index: 1002 !important;
+    top: 100% !important;
+    left: 0 !important;
 }
 </style>
 @endpush
@@ -615,28 +638,15 @@ function previewAttrImage(input, uniqueId) {
     }
 }
 
-function previewColorImage(input, colorId) {
-    const colorCard = document.getElementById('product-color-' + colorId);
-    if (!colorCard) return;
-    
-    let previewContainer = colorCard.querySelector('#preview-color-' + colorId);
-    if (!previewContainer) {
-        const fileInput = colorCard.querySelector(`input[id="color-img-${colorId}"]`);
-        if (fileInput) {
-            previewContainer = document.createElement('div');
-            previewContainer.id = 'preview-color-' + colorId;
-            previewContainer.className = 'mt-1';
-            fileInput.parentNode.insertBefore(previewContainer, fileInput.nextSibling);
-        }
-    }
-    
-    if (previewContainer) {
-        previewContainer.innerHTML = '';
-        
+function previewColorImage(input, uniqueId) {
+    const preview = document.getElementById('preview-color-' + uniqueId);
+    if (preview) {
+        preview.innerHTML = '';
+
         if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                previewContainer.innerHTML = '<img src="' + e.target.result + '" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); animation: fadeIn 0.3s ease;">';
+                preview.innerHTML = '<img src="' + e.target.result + '" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); animation: fadeIn 0.3s ease;">';
             };
             reader.readAsDataURL(input.files[0]);
         }
@@ -682,8 +692,32 @@ document.addEventListener('DOMContentLoaded', function() {
             checkbox.checked = true;
             const colorName = checkbox.dataset.name;
             const hexCode = checkbox.dataset.hex;
-            selectedProductColors[colorData.color_id] = { name: colorName, hex_code: hexCode };
-            renderProductColor(colorData.color_id, colorName, hexCode, colorData);
+            const colorValues = JSON.parse(checkbox.dataset.values || '[]');
+            selectedProductColors[colorData.color_id] = { name: colorName, hex_code: hexCode, values: colorValues };
+            const hasExistingValues = colorData.values && typeof colorData.values === 'object' && Object.keys(colorData.values).length > 0;
+            
+            // Look up hex_code from colorsData (database) instead of relying on stored data
+            let valuesArray;
+            if (hasExistingValues) {
+                valuesArray = Object.values(colorData.values).map(v => {
+                    // Try to get hex_code from colorsData (fresh from database)
+                    const freshColor = colorsData.find(c => c.id == colorData.color_id);
+                    let hex_code = v.hex_code || hexCode;
+                    if (!hex_code || hex_code === hexCode) {
+                        // hex_code missing or same as parent - look up from fresh data
+                        if (freshColor && freshColor.values) {
+                            const freshValue = freshColor.values.find(fv => fv.id == v.value_id);
+                            if (freshValue && freshValue.hex_code) {
+                                hex_code = freshValue.hex_code;
+                            }
+                        }
+                    }
+                    return { id: v.value_id, value: v.value_name, hex_code: hex_code };
+                });
+            } else {
+                valuesArray = colorValues;
+            }
+            renderProductColor(colorData.color_id, colorName, hexCode, valuesArray, colorData);
         }
     });
 
@@ -737,9 +771,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!selectedProductColors[colorId]) {
                     const colorName = checkbox.dataset.name;
                     const hexCode = checkbox.dataset.hex;
-                    selectedProductColors[colorId] = { name: colorName, hex_code: hexCode };
+                    const colorValues = JSON.parse(checkbox.dataset.values || '[]');
+                    selectedProductColors[colorId] = { name: colorName, hex_code: hexCode, values: colorValues };
                     const existingColorData = existingColors.find(c => c.color_id == colorId);
-                    renderProductColor(colorId, colorName, hexCode, existingColorData);
+                    const hasExistingValues = existingColorData && existingColorData.values && typeof existingColorData.values === 'object' && Object.keys(existingColorData.values).length > 0;
+                    if (hasExistingValues) {
+                        const valuesArray = Object.values(existingColorData.values).map(v => {
+                            // Try to get hex_code from colorsData (fresh from database)
+                            let hex_code = v.hex_code || hexCode;
+                            if (!hex_code || hex_code === hexCode) {
+                                const freshColor = colorsData.find(c => c.id == colorId);
+                                if (freshColor && freshColor.values) {
+                                    const freshValue = freshColor.values.find(fv => fv.id == v.value_id);
+                                    if (freshValue && freshValue.hex_code) {
+                                        hex_code = freshValue.hex_code;
+                                    }
+                                }
+                            }
+                            return { id: v.value_id, value: v.value_name, hex_code: hex_code };
+                        });
+                        renderProductColor(colorId, colorName, hexCode, valuesArray, existingColorData);
+                    } else {
+                        renderProductColor(colorId, colorName, hexCode, colorValues, existingColorData);
+                    }
                 }
             });
 
@@ -908,13 +962,15 @@ function renderAttributeValues(attrId, attrData, existingValues = null) {
 }
 
 function removeAttributeValues(attrId) {
+    if (!confirm('Are you sure you want to remove this attribute? All associated data will be lost.')) return;
+
     document.getElementById('attr-values-' + attrId)?.remove();
     delete selectedAttributes[attrId];
-    
-    const select = document.getElementById('productAttributesSelect');
-    const option = select.querySelector(`option[value="${attrId}"]`);
-    if (option) {
-        option.selected = false;
+
+    const checkbox = document.getElementById('attr_' + attrId);
+    if (checkbox) {
+        checkbox.checked = false;
+        checkbox.dispatchEvent(new Event('change'));
     }
 }
 
@@ -964,21 +1020,21 @@ function removeAttrImage(attrId, valueId) {
     });
 }
 
-function renderProductColor(colorId, colorName, hexCode, existingData = null) {
+function renderProductColor(colorId, colorName, hexCode, values = [], existingData = null) {
     const container = document.getElementById('selectedColorsContainer');
-    
+
     let existingPrice = 0;
     let existingQuantity = 0;
     let existingSku = '';
     let existingImage = null;
-    
+
     if (existingData) {
         existingPrice = existingData.price_adjustment || existingData.price || 0;
         existingQuantity = existingData.quantity || 0;
         existingSku = existingData.sku || '';
         existingImage = existingData.image || null;
     }
-    
+
     let imageHtml = '';
     if (existingImage) {
         imageHtml = `
@@ -995,7 +1051,7 @@ function renderProductColor(colorId, colorName, hexCode, existingData = null) {
             <input type="hidden" name="product_colors[${colorId}][existing_image]" value="${existingImage}">
         `;
     }
-    
+
     let html = `
     <div class="card mb-3" id="product-color-${colorId}">
         <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
@@ -1011,49 +1067,102 @@ function renderProductColor(colorId, colorName, hexCode, existingData = null) {
             <table class="table table-sm table-bordered mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 25%;">Price (৳)</th>
-                        <th style="width: 25%;">Quantity</th>
-                        <th style="width: 35%;">SKU</th>
-                        <th style="width: 15%;" class="text-center">Image</th>
+                        <th style="width: 30%;">Value</th>
+                        <th style="width: 20%;">Price (৳)</th>
+                        <th style="width: 15%;">Quantity</th>
+                        <th style="width: 25%;">SKU</th>
+                        <th style="width: 10%;" class="text-center">Image</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>
-                            <input type="number" class="form-control form-control-sm" name="product_colors[${colorId}][price]" value="${existingPrice}" min="0" step="0.01" placeholder="0.00">
-                        </td>
-                        <td>
-                            <input type="number" class="form-control form-control-sm" name="product_colors[${colorId}][quantity]" value="${existingQuantity}" min="0" placeholder="0">
-                        </td>
-                        <td>
-                            <input type="text" class="form-control form-control-sm" name="product_colors[${colorId}][sku]" value="${existingSku}" readonly>
-                        </td>
-                        <td class="text-center">
-                            ${imageHtml}
-                            <input type="file" class="d-none" id="color-img-${colorId}" name="product_colors[${colorId}][image]" accept="image/*" onchange="previewColorImage(this, '${colorId}')">
-                            <label for="color-img-${colorId}" class="btn btn-sm btn-outline-secondary mb-0">
-                                <i class="bi bi-image"></i>
-                            </label>
-                            <div id="preview-color-${colorId}" class="mt-1"></div>
-                        </td>
-                    </tr>
+    `;
+
+    if (values && values.length > 0) {
+        values.forEach(value => {
+            const valueHex = value.hex_code || hexCode;
+            const valueId = value.id || value.value_id;
+            const valueName = value.value || value.value_name || value.name;
+            const valueObj = existingData && existingData.values && existingData.values[valueId] ? existingData.values[valueId] : null;
+            const valuePrice = valueObj ? (valueObj.price || 0) : 0;
+            const valueQty = valueObj ? (valueObj.quantity || 0) : 0;
+            const valueSku = valueObj ? (valueObj.sku || '') : '';
+            const valueImg = valueObj ? (valueObj.image || '') : '';
+
+            let valueImageHtml = '';
+            if (valueImg) {
+                valueImageHtml = `
+                    <div class="position-relative d-inline-block" style="display: inline-block;">
+                        <div style="width: 50px; height: 50px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                            <img src="${valueImg}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <button type="button" class="badge bg-danger rounded-circle border-0 position-absolute top-0 start-100 translate-middle p-0"
+                            style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer;"
+                            onclick="removeColorValueImage('${colorId}', '${valueId}')">
+                            <i class="bi bi-x" style="font-size: 12px;"></i>
+                        </button>
+                    </div>
+                    <input type="hidden" name="product_colors[${colorId}][values][${valueId}][existing_image]" value="${valueImg}">
+                `;
+            }
+
+            html += `
+            <tr>
+                <td>
+                    <input type="hidden" name="product_colors[${colorId}][values][${valueId}][value_id]" value="${valueId}">
+                    <input type="hidden" name="product_colors[${colorId}][values][${valueId}][value_name]" value="${valueName}">
+                    <input type="hidden" name="product_colors[${colorId}][values][${valueId}][hex_code]" value="${valueHex}">
+                    <span style="background-color: ${valueHex}; width: 16px; height: 16px; display: inline-block; border-radius: 3px; border: 1px solid #ddd; vertical-align: middle; margin-right: 6px;"></span>
+                    ${valueName}
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="product_colors[${colorId}][values][${valueId}][price]" value="${valuePrice}" min="0" step="0.01" placeholder="0.00">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="product_colors[${colorId}][values][${valueId}][quantity]" value="${valueQty}" min="0" placeholder="0">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="product_colors[${colorId}][values][${valueId}][sku]" value="${valueSku}" readonly>
+                </td>
+                <td class="text-center">
+                    ${valueImageHtml}
+                    <input type="file" class="d-none" id="color-img-${colorId}-${valueId}" name="product_colors[${colorId}][values][${valueId}][image]" accept="image/*" onchange="previewColorImage(this, '${colorId}-${valueId}')">
+                    <label for="color-img-${colorId}-${valueId}" class="btn btn-sm btn-outline-secondary mb-0">
+                        <i class="bi bi-image"></i>
+                    </label>
+                    <div id="preview-color-${colorId}-${valueId}" class="mt-1"></div>
+                </td>
+            </tr>
+            `;
+        });
+    } else {
+        html += `
+            <tr>
+                <td colspan="5" class="text-center text-muted">No values available for this color</td>
+            </tr>
+        `;
+    }
+
+    html += `
                 </tbody>
             </table>
         </div>
     </div>
     `;
-    
+
     container.insertAdjacentHTML('beforeend', html);
 }
 
 function removeProductColor(colorId) {
+    if (!confirm('Are you sure you want to remove this color? All associated data will be lost.')) return;
+
     delete selectedProductColors[colorId];
     document.getElementById('product-color-' + colorId)?.remove();
-    
-    const select = document.getElementById('productColorsSelect');
-    Array.from(select.options).forEach(opt => {
-        if (opt.value === colorId) opt.selected = false;
-    });
+
+    const checkbox = document.getElementById('color_' + colorId);
+    if (checkbox) {
+        checkbox.checked = false;
+        checkbox.dispatchEvent(new Event('change'));
+    }
 }
 
 // Gallery Image Deletion (AJAX)
@@ -1135,12 +1244,12 @@ function deleteFeaturedImage(productId) {
 // Delete Color Image (AJAX)
 function removeColorImage(colorId) {
     if (!confirm('Delete this image?')) return;
-    
+
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    
+
     const colorCard = document.getElementById('product-color-' + colorId);
     const imgContainer = colorCard ? colorCard.querySelector('.position-relative.d-inline-block') : null;
-    
+
     fetch(`/admin/products/{{ $product->id }}/colors/${colorId}/image`, {
         method: 'POST',
         headers: {
@@ -1167,6 +1276,52 @@ function removeColorImage(colorId) {
                 }
                 if (imgContainer) {
                     imgContainer.remove();
+                }
+            }
+        } else {
+            alert('Failed to delete image');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while deleting the image');
+    });
+}
+
+function removeColorValueImage(colorId, valueId) {
+    if (!confirm('Delete this image?')) return;
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    const colorCard = document.getElementById('product-color-' + colorId);
+    const row = colorCard ? colorCard.querySelector(`tr:has(input[value="${valueId}"])`) : null;
+    const imgDiv = row ? row.querySelector('.position-relative.d-inline-block') : null;
+
+    fetch(`/admin/products/{{ $product->id }}/colors/${colorId}/values/${valueId}/image`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: '_method=DELETE'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            if (row) {
+                const hiddenInput = row.querySelector(`input[name$="[existing_image]"]`);
+                if (hiddenInput) {
+                    hiddenInput.remove();
+                }
+                if (imgDiv) {
+                    imgDiv.remove();
                 }
             }
         } else {

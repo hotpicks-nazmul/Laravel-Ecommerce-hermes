@@ -163,7 +163,7 @@
         </div>
         
         <!-- Product Attributes Section -->
-        <div class="card border-0 shadow-sm mb-3">
+        <div class="card border-0 shadow-sm mb-3" style="overflow: visible !important;">
             <div class="card-header bg-white">
                 <h6 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Product Attributes</h6>
             </div>
@@ -171,13 +171,13 @@
                 <p class="text-muted small mb-3">Select attributes to add price, quantity, image and SKU for each value</p>
                 
                  <div class="mb-3">
-                     <label class="form-label">Select Attributes</label>
-                     <div class="dropdown">
-                         <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" type="button" id="productAttributesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                             <span id="productAttributesLabel">Select attributes...</span>
-                             <i class="bi bi-chevron-down"></i>
-                         </button>
-                         <div class="dropdown-menu w-100 p-0" aria-labelledby="productAttributesDropdown" style="max-height: 300px; overflow-y: auto;">
+                      <label class="form-label">Select Attributes</label>
+                      <div class="dropdown">
+                          <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center" type="button" id="productAttributesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                              <span id="productAttributesLabel">Select attributes...</span>
+                              <i class="bi bi-chevron-down"></i>
+                          </button>
+                          <div class="dropdown-menu w-100 p-0" aria-labelledby="productAttributesDropdown" style="max-height: 300px; overflow-y: auto;">
                              <div class="px-2 py-2 border-bottom">
                                  <input type="text" class="form-control form-control-sm" id="productAttributesSearch" placeholder="Search...">
                              </div>
@@ -214,7 +214,7 @@
         </div>
         
         <!-- Product Colors Section -->
-        <div class="card border-0 shadow-sm mb-3">
+        <div class="card border-0 shadow-sm mb-3" style="overflow: visible !important;">
             <div class="card-header bg-white">
                 <h6 class="mb-0"><i class="bi bi-palette me-2"></i>Product Colors</h6>
             </div>
@@ -443,6 +443,28 @@
     }
     .dropdown-menu {
         transform: none !important;
+        clip: auto !important;
+        clip-path: none !important;
+    }
+    .card-dropdown-wrapper {
+        overflow: visible !important;
+        position: relative !important;
+        z-index: 1000 !important;
+    }
+    .card-dropdown-wrapper .card-body {
+        overflow: visible !important;
+        position: relative !important;
+        z-index: 1000 !important;
+    }
+    .card-dropdown-wrapper .dropdown {
+        position: relative !important;
+        z-index: 1001 !important;
+    }
+    .card-dropdown-wrapper .dropdown-menu {
+        position: absolute !important;
+        z-index: 1002 !important;
+        top: 100% !important;
+        left: 0 !important;
     }
 </style>
 @endpush
@@ -865,19 +887,17 @@ function renderAttributeValues(attrId, attrData) {
 }
 
 function removeAttributeValues(attrId) {
-    // Remove the attribute values container
+    if (!confirm('Are you sure you want to remove this attribute? All associated data will be lost.')) return;
+
     document.getElementById('attr-values-' + attrId)?.remove();
-    
-    // Remove from selectedAttributes
     delete selectedAttributes[attrId];
-    
-    // Update dropdown selection
-    const select = document.getElementById('productAttributesSelect');
-    const option = select.querySelector(`option[value="${attrId}"]`);
-    if (option) {
-        option.selected = false;
+
+    const checkbox = document.getElementById('attr_' + attrId);
+    if (checkbox) {
+        checkbox.checked = false;
+        checkbox.dispatchEvent(new Event('change'));
     }
-    
+
     updateGenerateButton();
     hideVariantsIfNoSelection();
 }
@@ -1140,18 +1160,18 @@ function renderProductAttribute(attrId, attrName, values) {
 }
 
 function removeProductAttribute(attrId) {
+    if (!confirm('Are you sure you want to remove this attribute? All associated data will be lost.')) return;
+
     delete selectedProductAttributes[attrId];
     document.getElementById('product-attr-' + attrId)?.remove();
-    
-    // Update dropdown selection
-    const select = document.getElementById('productAttributesSelect');
-    const option = select.querySelector(`option[value="${attrId}"]`);
-    if (option) {
-        option.selected = false;
+
+    const checkbox = document.getElementById('attr_' + attrId);
+    if (checkbox) {
+        checkbox.checked = false;
+        checkbox.dispatchEvent(new Event('change'));
     }
-    
+
     updateProductAttributeSection();
-    updateDebugInfo();
 }
 
 function updateProductAttributeSection() {
@@ -1237,15 +1257,17 @@ function renderProductColor(colorId, colorName, hexCode, values = []) {
 }
 
 function removeProductColor(colorId) {
+    if (!confirm('Are you sure you want to remove this color? All associated data will be lost.')) return;
+
     delete selectedProductColors[colorId];
     document.getElementById('product-color-' + colorId)?.remove();
-    
-    // Deselect in dropdown
-    const select = document.getElementById('productColorsSelect');
-    Array.from(select.options).forEach(opt => {
-        if (opt.value === colorId) opt.selected = false;
-    });
-    
+
+    const checkbox = document.getElementById('color_' + colorId);
+    if (checkbox) {
+        checkbox.checked = false;
+        checkbox.dispatchEvent(new Event('change'));
+    }
+
     updateProductColorsSection();
 }
 

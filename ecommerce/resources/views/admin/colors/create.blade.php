@@ -69,6 +69,13 @@
                         </label>
                         <div class="form-text">Enable this color to make it available for product variations</div>
                     </div>
+                    <div class="form-check form-switch mb-3">
+                        <input type="checkbox" class="form-check-input" id="isFilterable" name="is_filterable" value="1" form="colorForm" checked>
+                        <label class="form-check-label" for="isFilterable">
+                            <i class="bi bi-funnel text-info me-1"></i> Filterable
+                        </label>
+                        <div class="form-text">Enable to show this color in frontend product filters</div>
+                    </div>
                 </div>
             </div>
 
@@ -83,7 +90,7 @@
                 <div class="card-body">
                     <p class="text-muted small mb-3">Add color values with their hex codes (e.g., Red: #FF0000, Light Red: #FF6666)</p>
 
-                    <div id="valuesContainer">
+                    <div id="valuesContainer" style="overflow: visible !important;">
                     </div>
                 </div>
             </div>
@@ -214,6 +221,16 @@
 
 @push('styles')
 <style>
+    .content-area {
+        padding-bottom: 100px !important;
+        overflow: visible !important;
+    }
+    .col-lg-8, .col-lg-4 {
+        overflow: visible !important;
+    }
+    .row {
+        overflow: visible !important;
+    }
     .color-swatch {
         width: 16px;
         height: 16px;
@@ -226,17 +243,151 @@
         border-radius: 8px;
         padding: 15px;
         margin-bottom: 10px;
+        position: relative;
+        z-index: 1000;
+        overflow: visible !important;
     }
     .value-item:hover {
         background: #f1f3f5;
+    }
+    .value-item select,
+    .value-item .form-select {
+        position: relative;
+        z-index: 1001;
+        overflow: visible !important;
+    }
+    .card-header {
+        overflow: visible !important;
+    }
+    .floating-save-container {
+        z-index: 500 !important;
     }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-    // All code inside DOMContentLoaded to ensure DOM is ready
     document.addEventListener('DOMContentLoaded', function() {
+        // Clear all previous validation errors
+        function clearValidationErrors() {
+            document.querySelectorAll('.is-invalid').forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+            document.querySelectorAll('.invalid-feedback').forEach(el => {
+                el.remove();
+            });
+        }
+
+        // Show validation errors below fields using Bootstrap style
+        function showValidationErrors(errors) {
+            clearValidationErrors();
+
+            Object.entries(errors).forEach(([field, messages]) => {
+                let input = document.querySelector(`[name="${field}"]`);
+
+                // Try alternative formats: values.0.value -> values[0][value]
+                if (!input) {
+                    const altName = field.replace(/(\w+)\.(\d+)\.(\w+)/, '$1[$2][$3]');
+                    input = document.querySelector(`[name="${altName}"]`);
+                }
+
+                if (!input) {
+                    return;
+                }
+
+                input.classList.add('is-invalid');
+
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'invalid-feedback';
+                errorDiv.textContent = Array.isArray(messages) ? messages.join(', ') : (typeof messages === 'string' ? messages : JSON.stringify(messages));
+
+                if (input.parentElement.classList.contains('input-group')) {
+                    input.parentElement.parentElement.appendChild(errorDiv);
+                } else {
+                    input.parentElement.appendChild(errorDiv);
+                }
+            });
+        }
+
+        // AJAX form submission
+        const form = document.getElementById('colorForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                clearValidationErrors();
+
+                const formData = new FormData(form);
+                const url = form.action;
+                const scrollPosition = window.scrollY;
+
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+                fetch(url, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json()
+                            .then(data => ({ status: response.status, data }))
+                            .catch(() => ({ status: response.status, data: { success: false, message: 'Invalid JSON' } }));
+                    }
+                    return { status: response.status, data: { success: false, message: 'Non-JSON response' } };
+                })
+                .then(result => {
+                    if (!result) return;
+
+                    const { status, data } = result;
+
+                    if (status === 200 && data.success) {
+                        if (typeof adminToast === 'function') {
+                            adminToast('success', 'Success', data.message || 'Color created successfully.');
+                        }
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url || '{{ route('admin.colors.index') }}';
+                        }, 500);
+                    } else if (status === 422 && data.errors) {
+                        showValidationErrors(data.errors);
+                        window.scrollTo(0, scrollPosition);
+                    } else if (status === 200 && !data.success) {
+                        showValidationErrors({ form: [data.message || 'Something went wrong.'] });
+                    }
+                })
+                .catch(error => {
+                    console.error('Request error:', error);
+                });
+
+                return false;
+            });
+        }
+
+        // Show toast on page load if URL has success parameter (after redirect)
+        const urlParams = new URLSearchParams(window.location.search);
+        const successMsg = urlParams.get('success');
+        const errorMsg = urlParams.get('error');
+
+        if (successMsg) {
+            if (typeof adminToast === 'function') {
+                adminToast('success', 'Success', decodeURIComponent(successMsg));
+            }
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+
+        if (errorMsg) {
+            if (typeof adminToast === 'function') {
+                adminToast('error', 'Error', decodeURIComponent(errorMsg));
+            }
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+
         // Scroll to first error if validation fails
         @if($errors->any())
             var firstErrorField = document.querySelector('.is-invalid');
@@ -301,7 +452,15 @@
         // Add Value button handler
         document.getElementById('addValueBtn').addEventListener('click', function() {
             addValueRow();
+            attachDuplicateCheckListeners();
         });
+
+        @if(old('values'))
+            repopulateValues();
+        @else
+            addValueRow();
+        @endif
+        attachDuplicateCheckListeners();
     });
 
     // Color Values management - defined outside DOMContentLoaded
@@ -359,6 +518,54 @@
         textInput.value = input.value.toUpperCase();
     }
 
+    function checkDuplicateValues() {
+        const valueInputs = document.querySelectorAll('input[name^="values"][name$="[value]"]');
+        const seenValues = new Map();
+
+        valueInputs.forEach(input => {
+            const row = input.closest('.value-item');
+            if (!row) return;
+
+            row.classList.remove('is-duplicate');
+            const existingFeedback = row.querySelector('.duplicate-feedback');
+            if (existingFeedback) existingFeedback.remove();
+
+            const value = input.value.trim();
+            if (!value) return;
+
+            const lowerValue = value.toLowerCase();
+            if (seenValues.has(lowerValue)) {
+                const firstRow = seenValues.get(lowerValue);
+                firstRow.classList.add('is-duplicate');
+                row.classList.add('is-duplicate');
+
+                if (!firstRow.querySelector('.duplicate-feedback')) {
+                    const feedback = document.createElement('div');
+                    feedback.className = 'duplicate-feedback text-danger mt-1';
+                    feedback.textContent = 'Duplicate value';
+                    firstRow.querySelector('.col-md-3').appendChild(feedback);
+                }
+
+                const feedback = document.createElement('div');
+                feedback.className = 'duplicate-feedback text-danger mt-1';
+                feedback.textContent = 'Duplicate value';
+                row.querySelector('.col-md-3').appendChild(feedback);
+            } else {
+                seenValues.set(lowerValue, row);
+            }
+        });
+    }
+
+    function attachDuplicateCheckListeners() {
+        const valueInputs = document.querySelectorAll('input[name^="values"][name$="[value]"]');
+        valueInputs.forEach(input => {
+            input.removeEventListener('input', checkDuplicateValues);
+            input.removeEventListener('blur', checkDuplicateValues);
+            input.addEventListener('input', checkDuplicateValues);
+            input.addEventListener('blur', checkDuplicateValues);
+        });
+    }
+
     // Re-populate values after all functions are defined
     function repopulateValues() {
         const oldValuesRaw = @json(old('values', []));
@@ -386,12 +593,5 @@
     }
 
     // Always add initial row on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        @if(old('values'))
-            repopulateValues();
-        @else
-            addValueRow();
-        @endif
-    });
 </script>
 @endpush

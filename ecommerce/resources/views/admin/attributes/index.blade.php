@@ -100,10 +100,13 @@
     <!-- Bulk Actions Bar -->
     <div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
         <div class="card-body py-2">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
                     <span class="text-muted"><span id="selectedCount">0</span> selected</span>
-                    <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="clearSelection()">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="selectAllItems()">
+                        Select All {{ $attributes->total() }} Items
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
                         Clear Selection
                     </button>
                 </div>
@@ -137,13 +140,9 @@
                                     Name <i class="bi bi-arrow-down-up"></i>
                                 </a>
                             </th>
-                            <th>Slug</th>
                             <th>Values</th>
+                            <th>Products</th>
                             <th>
-                                <a href="{{ route('admin.attributes.index', array_merge(request()->all(), ['sort' => 'display_order', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
-                                    Order <i class="bi bi-arrow-down-up"></i>
-                                </a>
-                            </th>
                             <th>Status</th>
                             <th>Filterable</th>
                             <th width="150">Actions</th>
@@ -163,12 +162,14 @@
                                 <br><small class="text-muted">{{ Str::limit($attribute->description, 50) }}</small>
                                 @endif
                             </td>
-                            <td><code>{{ $attribute->slug }}</code></td>
                             <td>
                                 <span class="badge bg-light text-dark">{{ $attribute->values_count }} values</span>
                                 @if($attribute->active_values_count > 0)
                                 <span class="badge bg-success">{{ $attribute->active_values_count }} active</span>
                                 @endif
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">{{ $attribute->products_count }} products</span>
                             </td>
                             <td>{{ $attribute->display_order }}</td>
                             <td>
@@ -300,7 +301,18 @@
                 const newUrl = `${window.location.pathname}?${params.toString()}`;
                 window.history.pushState({}, '', newUrl);
             }
+            
+            if (data.stats) {
+                updateStats(data.stats);
+            }
         });
+    }
+    
+    function updateStats(stats) {
+        document.querySelector('#statTotal').textContent = stats.total;
+        document.querySelector('#statActive').textContent = stats.active;
+        document.querySelector('#statInactive').textContent = stats.inactive;
+        document.querySelector('#statFilterable').textContent = stats.filterable;
     }
 
     // Select all
@@ -341,6 +353,16 @@
         document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = false);
         document.getElementById('selectAll').checked = false;
         updateBulkActions();
+    }
+
+    function selectAllItems() {
+        const checkboxes = document.querySelectorAll('.item-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = true;
+            selectedItems.add(parseInt(cb.value));
+        });
+        document.getElementById('selectedCount').textContent = '{{ $attributes->total() }} (all pages)';
+        document.getElementById('bulkActionsBar').style.display = 'block';
     }
 
     function bulkAction(action) {

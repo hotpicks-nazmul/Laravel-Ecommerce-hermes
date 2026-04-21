@@ -70,6 +70,13 @@
                         </label>
                         <div class="form-text">Enable this color to make it available for product variations</div>
                     </div>
+                    <div class="form-check form-switch mb-3">
+                        <input type="checkbox" class="form-check-input" id="isFilterable" name="is_filterable" value="1" form="colorForm" {{ old('is_filterable', $color->is_filterable) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="isFilterable">
+                            <i class="bi bi-funnel text-info me-1"></i> Filterable
+                        </label>
+                        <div class="form-text">Enable to show this color in frontend product filters</div>
+                    </div>
                 </div>
             </div>
 
@@ -261,6 +268,15 @@
     .value-item:hover {
         background: #f1f3f5;
     }
+    .value-item .is-duplicate {
+        border-color: #dc3545 !important;
+        background-color: #fff5f5;
+    }
+    .duplicate-feedback {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 4px;
+    }
 </style>
 @endpush
 
@@ -332,9 +348,9 @@
         // Add Value button handler
         document.getElementById('addValueBtn').addEventListener('click', function() {
             addValueRow();
+            attachDuplicateCheckListeners();
         });
 
-        // Populate existing values
         populateExistingValues();
     });
 
@@ -415,6 +431,55 @@
 
         // Always add an empty row at the end
         addValueRow();
+        attachDuplicateCheckListeners();
+    }
+
+    function checkDuplicateValues() {
+        const valueInputs = document.querySelectorAll('input[name^="values"][name$="[value]"]');
+        const seenValues = new Map();
+
+        valueInputs.forEach(input => {
+            const row = input.closest('.value-item');
+            if (!row) return;
+
+            row.classList.remove('is-duplicate');
+            const existingFeedback = row.querySelector('.duplicate-feedback');
+            if (existingFeedback) existingFeedback.remove();
+
+            const value = input.value.trim();
+            if (!value) return;
+
+            const lowerValue = value.toLowerCase();
+            if (seenValues.has(lowerValue)) {
+                const firstRow = seenValues.get(lowerValue);
+                firstRow.classList.add('is-duplicate');
+                row.classList.add('is-duplicate');
+
+                if (!firstRow.querySelector('.duplicate-feedback')) {
+                    const feedback = document.createElement('div');
+                    feedback.className = 'duplicate-feedback';
+                    feedback.textContent = 'Duplicate value';
+                    firstRow.querySelector('.col-md-3').appendChild(feedback);
+                }
+
+                const feedback = document.createElement('div');
+                feedback.className = 'duplicate-feedback';
+                feedback.textContent = 'Duplicate value';
+                row.querySelector('.col-md-3').appendChild(feedback);
+            } else {
+                seenValues.set(lowerValue, row);
+            }
+        });
+    }
+
+    function attachDuplicateCheckListeners() {
+        const valueInputs = document.querySelectorAll('input[name^="values"][name$="[value]"]');
+        valueInputs.forEach(input => {
+            input.removeEventListener('input', checkDuplicateValues);
+            input.removeEventListener('blur', checkDuplicateValues);
+            input.addEventListener('input', checkDuplicateValues);
+            input.addEventListener('blur', checkDuplicateValues);
+        });
     }
 
     // Delete existing color image (AJAX)

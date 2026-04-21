@@ -17,7 +17,7 @@ class AttributeController extends Controller
     {
         $query = Attribute::withCount(['values', 'values as active_values_count' => function ($q) {
             $q->where('is_active', true);
-        }]);
+        }, 'products']);
 
         // Search
         if ($request->search) {
@@ -120,13 +120,6 @@ class AttributeController extends Controller
                     $countInSubmitted = count(array_filter($createdValues, fn($v) => strtolower($v) === strtolower($value)));
                     if ($countInSubmitted > 0) {
                         $duplicateErrors["values.{$index}.value"] = "Value '{$value}' is duplicated.";
-                        continue;
-                    }
-                    
-                    // Check if value exists in any attribute
-                    $existingValue = AttributeValue::whereRaw('LOWER(value) = ?', [strtolower($value)])->first();
-                    if ($existingValue) {
-                        $duplicateErrors["values.{$index}.value"] = "Value '{$value}' already exists in attribute '{$existingValue->attribute->name}'.";
                         continue;
                     }
                     
@@ -395,7 +388,7 @@ class AttributeController extends Controller
      */
     public function export()
     {
-        $attributes = Attribute::with('values')->get();
+        $attributes = Attribute::withCount('products')->with('values')->get();
 
         $filename = 'attributes_' . date('Y-m-d_H-i-s') . '.csv';
         $headers = [
@@ -405,7 +398,7 @@ class AttributeController extends Controller
 
         $callback = function () use ($attributes) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['ID', 'Name', 'Slug', 'Description', 'Status', 'Filterable', 'Values Count', 'Created At']);
+            fputcsv($file, ['ID', 'Name', 'Slug', 'Description', 'Status', 'Filterable', 'Values Count', 'Products Count', 'Created At']);
 
             foreach ($attributes as $attribute) {
                 fputcsv($file, [
@@ -416,6 +409,7 @@ class AttributeController extends Controller
                     $attribute->is_active ? 'Active' : 'Inactive',
                     $attribute->is_filterable ? 'Yes' : 'No',
                     $attribute->values_count,
+                    $attribute->products_count,
                     $attribute->created_at->format('Y-m-d H:i:s'),
                 ]);
             }

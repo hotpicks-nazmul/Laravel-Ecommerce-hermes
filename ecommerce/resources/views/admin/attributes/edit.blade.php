@@ -224,6 +224,15 @@
     .toast-error .toast-content i {
         color: #dc3545;
     }
+    .value-item .is-duplicate {
+        border-color: #dc3545 !important;
+        background-color: #fff5f5;
+    }
+    .duplicate-feedback {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 4px;
+    }
 </style>
 @endpush
 
@@ -292,6 +301,55 @@
 
         // Always add an empty row at the end
         addValueRow();
+        attachDuplicateCheckListeners();
+    }
+
+    function checkDuplicateValues() {
+        const valueInputs = document.querySelectorAll('input[name^="values"][name$="[value]"]');
+        const seenValues = new Map();
+
+        valueInputs.forEach(input => {
+            const row = input.closest('.value-item');
+            if (!row) return;
+
+            row.classList.remove('is-duplicate');
+            const existingFeedback = row.querySelector('.duplicate-feedback');
+            if (existingFeedback) existingFeedback.remove();
+
+            const value = input.value.trim();
+            if (!value) return;
+
+            const lowerValue = value.toLowerCase();
+            if (seenValues.has(lowerValue)) {
+                const firstRow = seenValues.get(lowerValue);
+                firstRow.classList.add('is-duplicate');
+                row.classList.add('is-duplicate');
+
+                if (!firstRow.querySelector('.duplicate-feedback')) {
+                    const feedback = document.createElement('div');
+                    feedback.className = 'duplicate-feedback';
+                    feedback.textContent = 'Duplicate value';
+                    firstRow.querySelector('.col-md-6').appendChild(feedback);
+                }
+
+                const feedback = document.createElement('div');
+                feedback.className = 'duplicate-feedback';
+                feedback.textContent = 'Duplicate value';
+                row.querySelector('.col-md-6').appendChild(feedback);
+            } else {
+                seenValues.set(lowerValue, row);
+            }
+        });
+    }
+
+    function attachDuplicateCheckListeners() {
+        const valueInputs = document.querySelectorAll('input[name^="values"][name$="[value]"]');
+        valueInputs.forEach(input => {
+            input.removeEventListener('input', checkDuplicateValues);
+            input.removeEventListener('blur', checkDuplicateValues);
+            input.addEventListener('input', checkDuplicateValues);
+            input.addEventListener('blur', checkDuplicateValues);
+        });
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -309,148 +367,131 @@
             });
         }
 
-        // Add Value button handler
+// Add Value button handler
         document.getElementById('addValueBtn').addEventListener('click', function() {
             addValueRow();
+            attachDuplicateCheckListeners();
         });
 
-        // Populate existing values
         populateExistingValues();
-
-        // Clear all previous validation errors
-        function clearValidationErrors() {
-            document.querySelectorAll('.is-invalid').forEach(el => {
-                el.classList.remove('is-invalid');
-            });
-            document.querySelectorAll('.invalid-feedback').forEach(el => {
-                el.remove();
-            });
-        }
-
-        // Show validation errors below fields using Bootstrap style
-        function showValidationErrors(errors) {
-            clearValidationErrors();
-            
-            console.log('Validation errors:', errors);
-            console.log('Error keys:', Object.keys(errors));
-            
-            Object.entries(errors).forEach(([field, messages]) => {
-                console.log('Processing field:', field, 'messages:', messages);
-                
-                let input = document.querySelector(`[name="${field}"]`);
-                
-                // Try bracket notation: values.0.value -> values[0][value]
-                if (!input) {
-                    const altName = field.replace(/(\w+)\.(\d+)\.(\w+)/, '$1[$2][$3]');
-                    input = document.querySelector(`[name="${altName}"]`);
-                    console.log('Trying alt name:', altName, 'found:', !!input);
-                }
-                
-                if (!input) {
-                    console.log('Field not found:', field);
-                    return;
-                }
-                
-                input.classList.add('is-invalid');
-                
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'invalid-feedback';
-                errorDiv.textContent = Array.isArray(messages) ? messages.join(', ') : messages;
-                
-                if (input.parentElement.classList.contains('input-group')) {
-                    input.parentElement.parentElement.appendChild(errorDiv);
-                } else {
-                    input.parentElement.appendChild(errorDiv);
-                }
-            });
-        }
-
-        // AJAX form submission
-        const form = document.getElementById('attributeForm');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                clearValidationErrors();
-                
-                const formData = new FormData(form);
-                const url = form.action;
-                const scrollPosition = window.scrollY;
-
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-
-                fetch(url, {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': csrfToken,
-                    },
-                    body: formData
-                })
-                .then(response => {
-                    const contentType = response.headers.get('content-type');
-                    if (contentType && contentType.includes('application/json')) {
-                        return response.json()
-                            .then(data => ({ status: response.status, data }))
-                            .catch(() => ({ status: response.status, data: { success: false, message: 'Invalid JSON' } }));
-                    }
-                    return { status: response.status, data: { success: false, message: 'Non-JSON response' } };
-                })
-                .then(result => {
-                    if (!result) return;
-
-                    const { status, data } = result;
-
-                    if (status === 200 && data.success) {
-                        // Success - page stays in place, show toast
-                        if (typeof adminToast === 'function') {
-                            adminToast('success', 'Success', data.message || 'Attribute updated successfully.');
-                        }
-                        if (data.attribute) {
-                            const statsSection = document.querySelector('.col-lg-4 .card-body');
-                            if (statsSection) {
-                                const strongs = statsSection.querySelectorAll('strong');
-                                if (strongs[0]) strongs[0].textContent = data.attribute.values_count || '0';
-                                if (strongs[1]) strongs[1].textContent = data.attribute.active_values_count || '0';
-                                if (strongs[3]) strongs[3].textContent = data.attribute.updated_at;
-                            }
-                        }
-                        window.scrollTo(0, scrollPosition);
-                    } else if (status === 422 && data.errors) {
-                        // Validation errors - show below fields
-                        showValidationErrors(data.errors);
-                        window.scrollTo(0, scrollPosition);
-                    }
-                })
-                .catch(error => {
-                    console.error('Request error:', error);
-                });
-
-                return false;
-            });
-        }
-
-        // Show toast on page load if URL has success parameter (after redirect)
-        const urlParams = new URLSearchParams(window.location.search);
-        const successMsg = urlParams.get('success');
-        const errorMsg = urlParams.get('error');
-
-        if (successMsg) {
-            if (typeof adminToast === 'function') {
-                adminToast('success', 'Success', decodeURIComponent(successMsg));
-            }
-            window.history.replaceState({}, '', window.location.pathname);
-        }
-
-        if (errorMsg) {
-            if (typeof adminToast === 'function') {
-                adminToast('error', 'Error', decodeURIComponent(errorMsg));
-            }
-            window.history.replaceState({}, '', window.location.pathname);
-        }
     });
 
+    function clearValidationErrors() {
+        document.querySelectorAll('.is-invalid').forEach(el => {
+            el.classList.remove('is-invalid');
+        });
+        document.querySelectorAll('.invalid-feedback').forEach(el => {
+            el.remove();
+        });
+    }
+
+    function showValidationErrors(errors) {
+        clearValidationErrors();
+
+        Object.entries(errors).forEach(([field, messages]) => {
+            let input = document.querySelector(`[name="${field}"]`);
+
+            if (!input) {
+                const altName = field.replace(/(\w+)\.(\d+)\.(\w+)/, '$1[$2][$3]');
+                input = document.querySelector(`[name="${altName}"]`);
+            }
+
+            if (!input) return;
+
+            input.classList.add('is-invalid');
+
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'invalid-feedback';
+            errorDiv.textContent = Array.isArray(messages) ? messages.join(', ') : messages;
+
+            if (input.parentElement.classList.contains('input-group')) {
+                input.parentElement.parentElement.appendChild(errorDiv);
+            } else {
+                input.parentElement.appendChild(errorDiv);
+            }
+        });
+    }
+
+    const form = document.getElementById('attributeForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            clearValidationErrors();
+
+            const formData = new FormData(form);
+            const url = form.action;
+            const scrollPosition = window.scrollY;
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+            fetch(url, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: formData
+            })
+            .then(response => {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json()
+                        .then(data => ({ status: response.status, data }))
+                        .catch(() => ({ status: response.status, data: { success: false, message: 'Invalid JSON' } }));
+                }
+                return { status: response.status, data: { success: false, message: 'Non-JSON response' } };
+            })
+            .then(result => {
+                if (!result) return;
+
+                const { status, data } = result;
+
+                if (status === 200 && data.success) {
+                    if (typeof adminToast === 'function') {
+                        adminToast('success', 'Success', data.message || 'Attribute updated successfully.');
+                    }
+                    if (data.attribute) {
+                        const statsSection = document.querySelector('.col-lg-4 .card-body');
+                        if (statsSection) {
+                            const strongs = statsSection.querySelectorAll('strong');
+                            if (strongs[0]) strongs[0].textContent = data.attribute.values_count || '0';
+                            if (strongs[1]) strongs[1].textContent = data.attribute.active_values_count || '0';
+                            if (strongs[3]) strongs[3].textContent = data.attribute.updated_at;
+                        }
+                    }
+                    window.scrollTo(0, scrollPosition);
+                } else if (status === 422 && data.errors) {
+                    showValidationErrors(data.errors);
+                    window.scrollTo(0, scrollPosition);
+                }
+            })
+            .catch(error => {
+                console.error('Request error:', error);
+            });
+
+            return false;
+        });
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const successMsg = urlParams.get('success');
+    const errorMsg = urlParams.get('error');
+
+    if (successMsg) {
+        if (typeof adminToast === 'function') {
+            adminToast('success', 'Success', decodeURIComponent(successMsg));
+        }
+        window.history.replaceState({}, '', window.location.pathname);
+    }
+
+    if (errorMsg) {
+        if (typeof adminToast === 'function') {
+            adminToast('error', 'Error', decodeURIComponent(errorMsg));
+        }
+        window.history.replaceState({}, '', window.location.pathname);
+    }
     </script>
 @endpush

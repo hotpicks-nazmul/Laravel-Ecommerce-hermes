@@ -86,7 +86,7 @@
                     <div class="card-body">
                         <p class="text-muted small mb-3">Add values for this attribute (e.g., Small, Medium, Large for Size)</p>
 
-                        <div id="valuesContainer">
+                        <div id="valuesContainer" style="overflow: visible !important;">
                         </div>
                     </div>
                 </div>
@@ -163,6 +163,13 @@
 <style>
     .content-area {
         padding-bottom: 100px !important;
+        overflow: visible !important;
+    }
+    .col-lg-8, .col-lg-4 {
+        overflow: visible !important;
+    }
+    .row {
+        overflow: visible !important;
     }
     .value-item {
         background: #f8f9fa;
@@ -170,17 +177,33 @@
         border-radius: 8px;
         padding: 15px;
         margin-bottom: 10px;
+        position: relative;
+        z-index: 1000;
+        overflow: visible !important;
     }
     .value-item:hover {
         background: #f1f3f5;
     }
-    .color-preview {
-        width: 30px;
-        height: 30px;
-        border-radius: 4px;
-        display: inline-block;
-        vertical-align: middle;
-        border: 1px solid #ddd;
+    .value-item select,
+    .value-item .form-select {
+        position: relative;
+        z-index: 1001;
+        overflow: visible !important;
+    }
+    .card-header {
+        overflow: visible !important;
+    }
+    .value-item .is-duplicate {
+        border-color: #dc3545 !important;
+        background-color: #fff5f5;
+    }
+    .duplicate-feedback {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+    .floating-save-container {
+        z-index: 500 !important;
     }
 </style>
 @endpush
@@ -229,6 +252,54 @@
         }
     }
 
+    function checkDuplicateValues() {
+        const valueInputs = document.querySelectorAll('input[name^="values"][name$="[value]"]');
+        const seenValues = new Map();
+
+        valueInputs.forEach(input => {
+            const row = input.closest('.value-item');
+            if (!row) return;
+
+            row.classList.remove('is-duplicate');
+            const existingFeedback = row.querySelector('.duplicate-feedback');
+            if (existingFeedback) existingFeedback.remove();
+
+            const value = input.value.trim();
+            if (!value) return;
+
+            const lowerValue = value.toLowerCase();
+            if (seenValues.has(lowerValue)) {
+                const firstRow = seenValues.get(lowerValue);
+                firstRow.classList.add('is-duplicate');
+                row.classList.add('is-duplicate');
+
+                if (!firstRow.querySelector('.duplicate-feedback')) {
+                    const feedback = document.createElement('div');
+                    feedback.className = 'duplicate-feedback';
+                    feedback.textContent = 'Duplicate value';
+                    firstRow.querySelector('.col-md-6').appendChild(feedback);
+                }
+
+                const feedback = document.createElement('div');
+                feedback.className = 'duplicate-feedback';
+                feedback.textContent = 'Duplicate value';
+                row.querySelector('.col-md-6').appendChild(feedback);
+            } else {
+                seenValues.set(lowerValue, row);
+            }
+        });
+    }
+
+    function attachDuplicateCheckListeners() {
+        const valueInputs = document.querySelectorAll('input[name^="values"][name$="[value]"]');
+        valueInputs.forEach(input => {
+            input.removeEventListener('input', checkDuplicateValues);
+            input.removeEventListener('blur', checkDuplicateValues);
+            input.addEventListener('input', checkDuplicateValues);
+            input.addEventListener('blur', checkDuplicateValues);
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Auto-generate slug from name (real-time)
         const nameInput = document.querySelector('input[name="name"]');
@@ -247,10 +318,11 @@
         // Add Value button handler
         document.getElementById('addValueBtn').addEventListener('click', function() {
             addValueRow();
+            attachDuplicateCheckListeners();
         });
 
-        // Add initial empty row
         addValueRow();
+        attachDuplicateCheckListeners();
 
         // Clear all previous validation errors
         function clearValidationErrors() {

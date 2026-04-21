@@ -19,10 +19,12 @@ class Color extends Model
         'description',
         'display_order',
         'is_active',
+        'is_filterable',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_filterable' => 'boolean',
     ];
 
     /**
@@ -82,6 +84,14 @@ class Color extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope for filterable colors.
+     */
+    public function scopeFilterable($query)
+    {
+        return $query->where('is_filterable', true);
     }
 
     /**

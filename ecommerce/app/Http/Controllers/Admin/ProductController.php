@@ -138,8 +138,8 @@ class ProductController extends Controller
             'inactive' => $statsQuery->where('is_active', false)->count(),
             'featured' => $statsQuery->where('is_featured', true)->count(),
             'low_stock' => $statsQuery
-                ->whereColumn('quantity', '<=', 'low_stock_threshold')
                 ->where('quantity', '>', 0)
+                ->whereRaw('quantity <= COALESCE(low_stock_threshold, 10)')
                 ->count(),
             'out_of_stock' => $statsQuery->where('quantity', '<=', 0)->count(),
             'total_stock_value' => $statsQuery->sum(DB::raw('quantity * COALESCE(purchase_price, cost_price, 0)')),
@@ -226,7 +226,7 @@ class ProductController extends Controller
                 'min:0',
                 function ($attribute, $value, $fail) use ($request) {
                     $price = $request->input('price', 0);
-                    if ($value > 0 && $value > $price) {
+                    if ($value !== null && $value > 0 && $value > $price) {
                         $fail('Sale Price cannot be higher than Regular Price (' . $price . ').');
                     }
                 },
@@ -242,7 +242,7 @@ class ProductController extends Controller
                 'min:0',
                 function ($attribute, $value, $fail) use ($request) {
                     $lowStockThreshold = $request->input('low_stock_threshold', 0);
-                    if ($value < $lowStockThreshold) {
+                    if ($value < $lowStockThreshold && $lowStockThreshold > 0) {
                         $fail('Stock Quantity must be greater than or equal to Low Stock Alert (' . $lowStockThreshold . ').');
                     }
                 },
@@ -387,6 +387,35 @@ class ProductController extends Controller
                     }
                 }
                 
+                // Handle color values (like sizes) with their images
+                $valuesData = [];
+                if (isset($colorData['values']) && is_array($colorData['values'])) {
+                    foreach ($colorData['values'] as $valueId => $valueData) {
+                        $valueItem = [
+                            'value_id' => $valueData['value_id'] ?? $valueId,
+                            'value_name' => $valueData['value_name'] ?? '',
+                            'price' => floatval($valueData['price'] ?? 0),
+                            'quantity' => intval($valueData['quantity'] ?? 0),
+                            'sku' => $valueData['sku'] ?? '',
+                            'image' => null,
+                        ];
+                        
+                        // Handle value image upload with WebP conversion
+                        if (isset($valueData['image']) && $valueData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                            if (ImageHelper::isValidImage($valueData['image'])) {
+                                $imageResult = ImageHelper::processImage($valueData['image'], 'products/colors', 600, 0, 85);
+                                $valueItem['image'] = $imageResult['path'];
+                            }
+                        }
+                        
+                        $valuesData[$valueId] = $valueItem;
+                    }
+                }
+                
+                if (!empty($valuesData)) {
+                    $colorItem['values'] = $valuesData;
+                }
+                
                 $colorsData[] = $colorItem;
             }
             if (!empty($colorsData)) {
@@ -438,14 +467,21 @@ class ProductController extends Controller
             ];
         })->toArray();
         
-        $colors = Color::where('is_active', true)->get();
+        $colors = Color::with('activeValues')->where('is_active', true)->get();
         
         // Prepare colors data for JavaScript
         $colorsData = $colors->map(function($color) {
             return [
                 'id' => $color->id,
                 'name' => $color->name,
-                'hex_code' => $color->hex_code
+                'hex_code' => $color->hex_code,
+                'values' => $color->activeValues->map(function($v) {
+                    return [
+                        'id' => $v->id,
+                        'value' => $v->value,
+                        'hex_code' => $v->hex_code
+                    ];
+                })->toArray()
             ];
         })->toArray();
         
@@ -501,7 +537,17 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
-            'sale_price' => 'nullable|numeric|min:0',
+            'sale_price' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                function ($attribute, $value, $fail) use ($request) {
+                    $price = $request->input('price', 0);
+                    if ($value !== null && $value > 0 && $value > $price) {
+                        $fail('Sale Price cannot be higher than Regular Price (' . $price . ').');
+                    }
+                },
+            ],
             'purchase_price' => 'nullable|numeric|min:0',
             'sku' => 'required|string|max:100|unique:products,sku,' . $product->id,
             'product_code' => 'nullable|string|max:100|unique:products,product_code,' . $product->id,
@@ -643,15 +689,41 @@ class ProductController extends Controller
                     'sku' => $colorData['sku'] ?? '',
                     'image' => $colorData['existing_image'] ?? null,
                 ];
-                
-                // Handle new image upload with WebP conversion
+
+                // Handle new image upload with WebP conversion (old format)
                 if (isset($colorData['image']) && $colorData['image'] instanceof \Illuminate\Http\UploadedFile) {
                     if (ImageHelper::isValidImage($colorData['image'])) {
                         $imageResult = ImageHelper::processImage($colorData['image'], 'products/colors', 600, 0, 85);
                         $colorItem['image'] = $imageResult['path'];
                     }
                 }
-                
+
+                // Handle color values images (new format)
+                if (isset($colorData['values']) && is_array($colorData['values'])) {
+                    $colorItem['values'] = [];
+                    foreach ($colorData['values'] as $valueId => $valueData) {
+                        $valueItem = [
+                            'value_id' => $valueData['value_id'] ?? $valueId,
+                            'value_name' => $valueData['value_name'] ?? '',
+                            'hex_code' => $valueData['hex_code'] ?? null,
+                            'price' => floatval($valueData['price'] ?? 0),
+                            'quantity' => intval($valueData['quantity'] ?? 0),
+                            'sku' => $valueData['sku'] ?? '',
+                            'image' => $valueData['existing_image'] ?? null,
+                        ];
+
+                        // Handle new image upload for value
+                        if (isset($valueData['image']) && $valueData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                            if (ImageHelper::isValidImage($valueData['image'])) {
+                                $imageResult = ImageHelper::processImage($valueData['image'], 'products/colors', 600, 0, 85);
+                                $valueItem['image'] = $imageResult['path'];
+                            }
+                        }
+
+                        $colorItem['values'][$valueId] = $valueItem;
+                    }
+                }
+
                 $colorsData[] = $colorItem;
             }
             if (!empty($colorsData)) {
@@ -1020,6 +1092,34 @@ class ProductController extends Controller
         }
 
         return back()->with('success', 'Color image deleted successfully.');
+    }
+
+    /**
+     * Delete color value image.
+     */
+    public function deleteColorValueImage(Request $request, Product $product, $colorId, $valueId)
+    {
+        $product->refresh();
+        $colors = json_decode($product->colors ?? '[]', true);
+
+        if ($colors) {
+            foreach ($colors as $index => $color) {
+                if (isset($colors[$index]['color_id']) && $colors[$index]['color_id'] == $colorId) {
+                    if (isset($colors[$index]['values'][$valueId]['image']) && $colors[$index]['values'][$valueId]['image']) {
+                        ImageHelper::deleteImage($colors[$index]['values'][$valueId]['image']);
+                    }
+                    $colors[$index]['values'][$valueId]['image'] = null;
+                    $product->update(['colors' => json_encode($colors)]);
+                    break;
+                }
+            }
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Color value image deleted successfully.']);
+        }
+
+        return back()->with('success', 'Color value image deleted successfully.');
     }
 
     /**

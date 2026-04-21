@@ -742,10 +742,15 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            z-index: 1000;
+            z-index: 999;
             display: flex;
             gap: 10px;
             align-items: center;
+            pointer-events: none;
+        }
+        
+        .floating-save-container * {
+            pointer-events: auto;
         }
         
         .floating-save-btn {

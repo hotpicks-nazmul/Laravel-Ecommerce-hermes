@@ -34,6 +34,13 @@ class ColorController extends Controller
             $query->where('is_active', false);
         }
 
+        // Filterable filter
+        if ($request->filterable === 'yes') {
+            $query->where('is_filterable', true);
+        } elseif ($request->filterable === 'no') {
+            $query->where('is_filterable', false);
+        }
+
         // Sorting
         $sort = $request->sort ?? 'display_order';
         $direction = $request->direction ?? 'asc';
@@ -48,6 +55,7 @@ class ColorController extends Controller
             'total' => Color::count(),
             'active' => Color::where('is_active', true)->count(),
             'inactive' => Color::where('is_active', false)->count(),
+            'filterable' => Color::where('is_filterable', true)->count(),
             'products' => \DB::table('product_colors')->count(),
         ];
 
@@ -86,6 +94,7 @@ class ColorController extends Controller
             'description' => 'nullable|string',
             'display_order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
+            'is_filterable' => 'boolean',
             'values' => 'required|array|min:1',
             'values.*.value' => 'required|string|max:255',
         ]);
@@ -114,11 +123,24 @@ class ColorController extends Controller
             'description' => $validated['description'] ?? null,
             'display_order' => $validated['display_order'] ?? 0,
             'is_active' => $request->has('is_active'),
+            'is_filterable' => $request->has('is_filterable'),
         ]);
 
         if ($request->has('values')) {
+            $duplicateErrors = [];
+            $createdValues = [];
+
             foreach ($request->values as $index => $valueData) {
                 if (!empty($valueData['value'])) {
+                    $value = $valueData['value'];
+
+                    // Check for duplicate within submitted values
+                    $countInSubmitted = count(array_filter($createdValues, fn($v) => strtolower($v) === strtolower($value)));
+                    if ($countInSubmitted > 0) {
+                        $duplicateErrors["values.{$index}.value"] = "Value '{$value}' is duplicated.";
+                        continue;
+                    }
+
                     $baseSlug = Str::slug($valueData['value']);
                     $slug = $baseSlug;
                     $counter = 1;
@@ -137,8 +159,26 @@ class ColorController extends Controller
                         'display_order' => $valueData['display_order'] ?? $index,
                         'is_active' => isset($valueData['is_active']) ? true : false,
                     ]);
+                    $createdValues[] = $value;
                 }
             }
+
+            if (!empty($duplicateErrors)) {
+                $color->delete(); // Rollback created color
+
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'errors' => $duplicateErrors], 422);
+                }
+                return redirect()->back()->withInput()->withErrors($duplicateErrors);
+            }
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Color created successfully.',
+                'redirect_url' => route('admin.colors.index'),
+            ]);
         }
 
         return redirect()->route('admin.colors.index')
@@ -171,6 +211,7 @@ class ColorController extends Controller
             'description' => 'nullable|string',
             'display_order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
+            'is_filterable' => 'boolean',
         ]);
 
         // Handle image upload
@@ -200,9 +241,11 @@ class ColorController extends Controller
             'description' => $validated['description'] ?? null,
             'display_order' => $validated['display_order'] ?? 0,
             'is_active' => $request->has('is_active'),
+            'is_filterable' => $request->has('is_filterable'),
         ]);
 
         // Handle color values - sync existing and create new
+        $duplicateErrors = [];
         $submittedIds = [];
         if ($request->has('values')) {
             foreach ($request->values as $index => $valueData) {
@@ -213,6 +256,15 @@ class ColorController extends Controller
                             ->where('color_id', $color->id)
                             ->first();
                         if ($colorValue) {
+                            // Check for duplicate value (excluding current value)
+                            $duplicateCheck = $color->values()
+                                ->where('value', $valueData['value'])
+                                ->where('id', '!=', $valueData['id'])
+                                ->first();
+                            if ($duplicateCheck) {
+                                $duplicateErrors["values.{$index}.value"] = "Value '{$valueData['value']}' already exists.";
+                                continue;
+                            }
                             $colorValue->update([
                                 'value' => $valueData['value'],
                                 'hex_code' => $valueData['hex_code'] ?? null,
@@ -221,6 +273,12 @@ class ColorController extends Controller
                             ]);
                         }
                     } else {
+                        // Check if value already exists in this color
+                        $existingValue = $color->values()->where('value', $valueData['value'])->first();
+                        if ($existingValue) {
+                            $duplicateErrors["values.{$index}.value"] = "Value '{$valueData['value']}' already exists.";
+                            continue;
+                        }
                         $baseSlug = Str::slug($valueData['value']);
                         $slug = $baseSlug;
                         $counter = 1;
@@ -247,6 +305,27 @@ class ColorController extends Controller
             $color->values()->whereNotIn('id', $submittedIds)->delete();
         } else {
             $color->values()->delete();
+        }
+
+        if (!empty($duplicateErrors)) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'errors' => $duplicateErrors], 422);
+            }
+            return view('admin.colors.edit', compact('color'))
+                ->with('old_values', $request->input('values', []))
+                ->withErrors($duplicateErrors);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Color updated successfully.',
+                'color' => [
+                    'values_count' => $color->values()->count(),
+                    'active_values_count' => $color->activeValues()->count(),
+                    'updated_at' => $color->updated_at->format('M d, Y'),
+                ]
+            ]);
         }
 
         return redirect()->route('admin.colors.index')
@@ -305,6 +384,22 @@ class ColorController extends Controller
             'success' => true,
             'message' => 'Color status updated.',
             'is_active' => $color->is_active,
+        ]);
+    }
+
+    /**
+     * Toggle color filterable status.
+     */
+    public function toggleFilterable(Color $color)
+    {
+        $color->update([
+            'is_filterable' => !$color->is_filterable,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Color filterable status updated.',
+            'is_filterable' => $color->is_filterable,
         ]);
     }
 

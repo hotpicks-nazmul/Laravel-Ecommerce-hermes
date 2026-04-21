@@ -48,6 +48,13 @@
             <span class="stat-card-value" id="statProducts" data-stat="products">{{ $stats['products'] }}</span>
         </div>
     </div>
+    <div class="stat-card stat-card-secondary">
+        <div class="stat-card-icon"><i class="bi bi-funnel"></i></div>
+        <div class="stat-card-content">
+            <span class="stat-card-label">Filterable</span>
+            <span class="stat-card-value" id="statFilterable" data-stat="filterable">{{ $stats['filterable'] }}</span>
+        </div>
+    </div>
 </div>
 
 <!-- Filter Card -->
@@ -74,6 +81,14 @@
                         <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
                     </select>
                 </div>
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Filterable</label>
+                    <select name="filterable" id="filterFilterable" class="form-select form-select-sm">
+                        <option value="">All</option>
+                        <option value="yes" {{ request('filterable') === 'yes' ? 'selected' : '' }}>Yes</option>
+                        <option value="no" {{ request('filterable') === 'no' ? 'selected' : '' }}>No</option>
+                    </select>
+                </div>
                 <div class="col-lg-2 col-md-3 col-sm-4">
                     <label class="form-label small text-muted">Per Page</label>
                     <select name="per_page" id="filterPerPage" class="form-select form-select-sm">
@@ -96,10 +111,13 @@
 <!-- Bulk Actions Bar -->
 <div class="card border-0 shadow-sm mb-3" id="bulkActionsBar" style="display: none;">
     <div class="card-body py-2">
-        <div class="d-flex align-items-center justify-content-between">
-            <div>
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3">
                 <span class="text-muted"><span id="selectedCount">0</span> selected</span>
-                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="clearSelection()">
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="selectAllItems()">
+                    Select All {{ $colors->total() }} Items
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
                     Clear Selection
                 </button>
             </div>
@@ -141,6 +159,7 @@
                         <th>Values</th>
                         <th>Products</th>
                         <th>Status</th>
+                        <th>Filterable</th>
                         <th width="150">Actions</th>
                     </tr>
                 </thead>
@@ -176,10 +195,17 @@
                             <span class="badge bg-light text-dark">{{ $color->products_count }} products</span>
                         </td>
                         <td>
-                            <button type="button" class="btn btn-sm {{ $color->is_active ? 'btn-success' : 'btn-outline-secondary' }}" 
+                            <button type="button" class="btn btn-sm {{ $color->is_active ? 'btn-success' : 'btn-outline-secondary' }}"
                                     onclick="toggleStatus({{ $color->id }})" title="Toggle Status">
                                 <i class="bi {{ $color->is_active ? 'bi-check-circle' : 'bi-x-circle' }}"></i>
                                 {{ $color->is_active ? 'Active' : 'Inactive' }}
+                            </button>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm {{ $color->is_filterable ? 'btn-info' : 'btn-outline-secondary' }}"
+                                    onclick="toggleFilterable({{ $color->id }})" title="Toggle Filterable">
+                                <i class="bi {{ $color->is_filterable ? 'bi-funnel' : 'bi-funnel-fill' }}"></i>
+                                {{ $color->is_filterable ? 'Yes' : 'No' }}
                             </button>
                         </td>
                         <td>
@@ -287,7 +313,7 @@
     });
 
     // Filter dropdowns
-    ['filterStatus', 'filterPerPage'].forEach(id => {
+    ['filterStatus', 'filterFilterable', 'filterPerPage'].forEach(id => {
         const select = document.getElementById(id);
         if (select) {
             select.addEventListener('change', function() {
@@ -303,7 +329,10 @@
         
         const status = document.getElementById('filterStatus').value;
         if (status) params.set('status', status);
-        
+
+        const filterable = document.getElementById('filterFilterable').value;
+        if (filterable) params.set('filterable', filterable);
+
         const perPage = document.getElementById('filterPerPage').value;
         if (perPage) params.set('per_page', perPage);
         
@@ -342,6 +371,7 @@
         document.querySelector('[data-stat="total"]').textContent = stats.total;
         document.querySelector('[data-stat="active"]').textContent = stats.active;
         document.querySelector('[data-stat="inactive"]').textContent = stats.inactive;
+        document.querySelector('[data-stat="filterable"]').textContent = stats.filterable;
         document.querySelector('[data-stat="products"]').textContent = stats.products;
     }
 
@@ -385,6 +415,16 @@
         updateBulkActions();
     }
 
+    function selectAllItems() {
+        const checkboxes = document.querySelectorAll('.item-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = true;
+            selectedItems.add(parseInt(cb.value));
+        });
+        document.getElementById('selectedCount').textContent = '{{ $colors->total() }} (all pages)';
+        document.getElementById('bulkActionsBar').style.display = 'block';
+    }
+
     function bulkAction(action) {
         if (selectedItems.size === 0) {
             alert('Please select at least one color.');
@@ -401,6 +441,22 @@
 
     function toggleStatus(id) {
         fetch(`{{ route('admin.colors.toggle-status', ['color' => 'ID']) }}`.replace('ID', id), {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+
+    function toggleFilterable(id) {
+        fetch(`{{ route('admin.colors.toggle-filterable', ['color' => 'ID']) }}`.replace('ID', id), {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,

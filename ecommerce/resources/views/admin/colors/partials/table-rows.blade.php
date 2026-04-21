@@ -32,10 +32,17 @@
         <span class="badge bg-light text-dark">{{ $color->products_count }} products</span>
     </td>
     <td>
-        <button type="button" class="btn btn-sm {{ $color->is_active ? 'btn-success' : 'btn-outline-secondary' }}" 
+        <button type="button" class="btn btn-sm {{ $color->is_active ? 'btn-success' : 'btn-outline-secondary' }}"
                 onclick="toggleStatus({{ $color->id }})" title="Toggle Status">
             <i class="bi {{ $color->is_active ? 'bi-check-circle' : 'bi-x-circle' }}"></i>
             {{ $color->is_active ? 'Active' : 'Inactive' }}
+        </button>
+    </td>
+    <td>
+        <button type="button" class="btn btn-sm {{ $color->is_filterable ? 'btn-info' : 'btn-outline-secondary' }}"
+                onclick="toggleFilterable({{ $color->id }})" title="Toggle Filterable">
+            <i class="bi {{ $color->is_filterable ? 'bi-funnel' : 'bi-funnel-fill' }}"></i>
+            {{ $color->is_filterable ? 'Yes' : 'No' }}
         </button>
     </td>
     <td>
