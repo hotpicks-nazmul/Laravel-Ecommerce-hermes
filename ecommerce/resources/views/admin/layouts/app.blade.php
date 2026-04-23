@@ -1032,7 +1032,7 @@
     @include('partials.global-styles')
     @stack('styles')
 </head>
-<body>
+<body class="admin-panel">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <button class="sidebar-toggle-btn" id="sidebarCollapseBtn" title="Toggle Sidebar">

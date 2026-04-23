@@ -245,8 +245,23 @@
             <div class="text-muted small">
                 Showing {{ $products->firstItem() }} - {{ $products->lastItem() }} of {{ $products->total() }} products
             </div>
-            <div>
-                {{ $products->appends(request()->query())->links() }}
+            <div style="flex-shrink: 0;">
+                <style>
+                    #inventoryPagination .page-link {
+                        padding: 0.125rem 0.375rem !important;
+                        font-size: 0.75rem !important;
+                        min-width: 1.5rem !important;
+                        height: 1.5rem !important;
+                        line-height: 1.2 !important;
+                    }
+                    #inventoryPagination .page-link i,
+                    #inventoryPagination .page-link i::before {
+                        font-size: 0.625rem !important;
+                    }
+                </style>
+                <div id="inventoryPagination">
+                    {{ $products->appends(request()->query())->links('vendor.pagination.simple-default') }}
+                </div>
             </div>
         </div>
         @endif

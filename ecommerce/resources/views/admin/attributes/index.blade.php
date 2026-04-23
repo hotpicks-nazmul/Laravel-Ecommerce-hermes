@@ -4,9 +4,6 @@
 
 @push('styles')
 <style>
-    .content-area {
-        padding-bottom: 100px !important;
-    }
     .color-preview {
         width: 24px;
         height: 24px;
@@ -125,6 +122,43 @@
         </div>
     </div>
 
+    <!-- Products Modal -->
+<div class="modal fade" id="attributeProductsModal" tabindex="-1" aria-labelledby="attributeProductsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="attributeProductsModalLabel">Products with Attribute</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Edited</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attributeProductsTableBody">
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <div class="spinner-border spinner-border-sm"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
     <!-- Attributes Table -->
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
@@ -169,7 +203,14 @@
                                 @endif
                             </td>
                             <td>
+                                @if($attribute->products_count > 0)
+                                <button type="button" class="badge bg-primary text-white text-decoration-none border-0" 
+                                        onclick="showAttributeProducts({{ $attribute->id }}, '{{ $attribute->name }}')">
+                                    {{ $attribute->products_count }} products
+                                </button>
+                                @else
                                 <span class="badge bg-light text-dark">{{ $attribute->products_count }} products</span>
+                                @endif
                             </td>
                             <td>{{ $attribute->display_order }}</td>
                             <td>
@@ -417,6 +458,48 @@
         const form = document.getElementById('deleteForm');
         form.action = `{{ route('admin.attributes.destroy', ['attribute' => 'ID']) }}`.replace('ID', id);
         form.submit();
+    }
+
+    let attributeProductsModal = null;
+    
+    function showAttributeProducts(id, name) {
+        document.getElementById('attributeProductsModalLabel').textContent = 'Products with "' + name + '" Attribute';
+        document.getElementById('attributeProductsTableBody').innerHTML = '<tr><td colspan="4" class="text-center py-4"><div class="spinner-border spinner-border-sm"></div></td></tr>';
+        
+        if (!attributeProductsModal) {
+            attributeProductsModal = new bootstrap.Modal(document.getElementById('attributeProductsModal'));
+        }
+        attributeProductsModal.show();
+        
+        fetch(`{{ route('admin.attributes.products.list', ['attribute' => 'ID']) }}`.replace('ID', id), {
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.products && data.products.length > 0) {
+                let html = '';
+                data.products.forEach(function(product) {
+                    var editUrl = '{{ url("/admin/products") }}/' + product.id + '/edit';
+                    var isEdited = product.is_complete === 1 || product.is_complete === true ? '<span class="badge bg-success">Done</span>' : '<span class="badge bg-warning text-dark">Pending</span>';
+                    html += '<tr>';
+                    html += '<td><a href="' + editUrl + '" class="text-decoration-none fw-medium">' + product.name + '</a></td>';
+                    html += '<td>৳' + Number(product.price).toLocaleString() + '</td>';
+                    html += '<td><span class="badge ' + (product.status === 'Active' ? 'bg-success' : 'bg-secondary') + '">' + product.status + '</span></td>';
+                    html += '<td>' + isEdited + '</td>';
+                    html += '<td><a href="' + editUrl + '" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a></td>';
+                    html += '</tr>';
+                });
+                document.getElementById('attributeProductsTableBody').innerHTML = html;
+            } else {
+                document.getElementById('attributeProductsTableBody').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No products found</td></tr>';
+            }
+        })
+        .catch(error => {
+            document.getElementById('attributeProductsTableBody').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-danger">Error loading products</td></tr>';
+        });
     }
 </script>
 @endpush

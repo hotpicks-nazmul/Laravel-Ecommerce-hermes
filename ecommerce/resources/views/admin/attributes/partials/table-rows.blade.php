@@ -11,11 +11,20 @@
         <br><small class="text-muted">{{ Str::limit($attribute->description, 50) }}</small>
         @endif
     </td>
-    <td><code>{{ $attribute->slug }}</code></td>
     <td>
         <span class="badge bg-light text-dark">{{ $attribute->values_count }} values</span>
         @if($attribute->active_values_count > 0)
         <span class="badge bg-success">{{ $attribute->active_values_count }} active</span>
+        @endif
+    </td>
+    <td>
+        @if($attribute->products_count > 0)
+        <button type="button" class="badge bg-primary text-white text-decoration-none border-0 p-1" 
+                onclick="showAttributeProducts({{ $attribute->id }}, '{{ $attribute->name }}')">
+            {{ $attribute->products_count }} products
+        </button>
+        @else
+        <span class="badge bg-light text-dark">{{ $attribute->products_count }} products</span>
         @endif
     </td>
     <td>{{ $attribute->display_order }}</td>

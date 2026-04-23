@@ -69,13 +69,76 @@ class Color extends Model
     }
 
     /**
-     * Get products that have this color.
+     * Get products that have this color via JSON column.
      */
     public function products()
     {
         return $this->belongsToMany(Product::class, 'product_colors')
             ->withPivot(['image', 'quantity', 'price_adjustment', 'sku'])
             ->withTimestamps();
+    }
+
+    /**
+     * Get products that have this color in the JSON colors column.
+     */
+    public function productsWithJson()
+    {
+        return Product::whereNotNull('colors')
+            ->where('colors', '!=', '[]');
+    }
+
+    /**
+     * Get the count of products using this color (from JSON column).
+     */
+    public function getProductsCountAttribute()
+    {
+        $colorId = $this->id;
+        return $this->productsWithJson()->get()->filter(function ($product) use ($colorId) {
+            $colorsData = json_decode($product->colors, true);
+            if (!$colorsData || !is_array($colorsData)) {
+                return false;
+            }
+            foreach ($colorsData as $colorItem) {
+                if (is_string($colorItem)) {
+                    $color = json_decode($colorItem, true);
+                } elseif (is_array($colorItem)) {
+                    $color = $colorItem;
+                } else {
+                    continue;
+                }
+                if (isset($color['color_id']) && $color['color_id'] == $colorId) {
+                    return true;
+                }
+            }
+            return false;
+        })->count();
+    }
+
+    /**
+     * Get products using this color.
+     */
+    public function getProductsAttribute()
+    {
+        $colorId = $this->id;
+        return $this->productsWithJson()->get()->filter(function ($product) use ($colorId) {
+            $colorsData = json_decode($product->colors, true);
+            if (!$colorsData || !is_array($colorsData)) {
+                return false;
+            }
+            foreach ($colorsData as $colorItem) {
+                if (is_string($colorItem)) {
+                    $color = json_decode($colorItem, true);
+                } elseif (is_array($colorItem)) {
+                    $color = $colorItem;
+                } else {
+                    continue;
+                }
+                if (isset($color['color_id']) && $color['color_id'] == $colorId) {
+                    return true;
+                }
+            }
+            return false;
+        });
     }
 
     /**
@@ -100,14 +163,6 @@ class Color extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('display_order')->orderBy('name');
-    }
-
-    /**
-     * Get the count of products using this color.
-     */
-    public function getProductsCountAttribute()
-    {
-        return $this->products()->count();
     }
 
     /**

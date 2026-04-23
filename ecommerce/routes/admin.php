@@ -481,6 +481,7 @@ Route::put('/attributes/{attribute}/values/{value}', [\App\Http\Controllers\Admi
 Route::delete('/attributes/{attribute}/values/{value}', [\App\Http\Controllers\Admin\AttributeController::class, 'destroyValue'])->name('attributes.values.destroy');
 Route::post('/attributes/{attribute}/values/{value}/toggle-status', [\App\Http\Controllers\Admin\AttributeController::class, 'toggleValueStatus'])->name('attributes.values.toggle-status');
 Route::get('/attributes/{attribute}/values', [\App\Http\Controllers\Admin\AttributeController::class, 'getValues'])->name('attributes.values.list');
+Route::get('/attributes/{attribute}/products', [\App\Http\Controllers\Admin\AttributeController::class, 'getProducts'])->name('attributes.products.list');
 
 // Colors Management
 Route::resource('colors', \App\Http\Controllers\Admin\ColorController::class);
@@ -497,6 +498,7 @@ Route::put('/colors/{color}/values/{value}', [\App\Http\Controllers\Admin\ColorC
 Route::delete('/colors/{color}/values/{value}', [\App\Http\Controllers\Admin\ColorController::class, 'destroyValue'])->name('colors.values.destroy');
 Route::post('/colors/{color}/values/{value}/toggle-status', [\App\Http\Controllers\Admin\ColorController::class, 'toggleValueStatus'])->name('colors.values.toggle-status');
 Route::get('/colors/{color}/values', [\App\Http\Controllers\Admin\ColorController::class, 'getValues'])->name('colors.values.list');
+Route::get('/colors/{color}/products', [\App\Http\Controllers\Admin\ColorController::class, 'getProducts'])->name('colors.products.list');
 
 // Brands Management
 Route::resource('brands', \App\Http\Controllers\Admin\BrandController::class);

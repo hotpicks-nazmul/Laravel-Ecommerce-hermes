@@ -112,8 +112,8 @@ class ProductController extends Controller
 
         // Also build attribute options from attribute values with price and image from pivot table
         $attributeOptions = [];
-        if ($product->attributeValues->count() > 0) {
-            foreach ($product->attributeValues as $value) {
+        if ($product->visibleAttributeValues()->count() > 0) {
+            foreach ($product->visibleAttributeValues as $value) {
                 if ($value->attribute) {
                     $attrName = $value->attribute->name;
                     if (!isset($attributeOptions[$attrName])) {
@@ -169,16 +169,16 @@ class ProductController extends Controller
 
         // Get product attributes grouped by attribute name
         $attributes = [];
-        if ($product->attributeValues->count() > 0) {
-            foreach ($product->attributeValues as $value) {
+        if ($product->visibleAttributeValues()->count() > 0) {
+            foreach ($product->visibleAttributeValues as $value) {
                 if ($value->attribute) {
                     $attributes[$value->attribute->name][] = $value;
                 }
             }
         }
 
-        // Get product colors with price, quantity, sku from pivot
-        $colors = $product->colors()->where('is_active', true)->orderBy('display_order')->get();
+        // Get visible product colors with price, quantity, sku from pivot
+        $colors = $product->visibleColors()->where('is_active', true)->orderBy('display_order')->get();
         
         // Build color options with price from pivot
         $colorOptions = [];

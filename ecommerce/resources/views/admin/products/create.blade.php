@@ -828,7 +828,7 @@ function renderAttributeValues(attrId, attrData) {
                     <input type="number" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${value.id}][quantity]" value="${getStockQty()}" min="0" placeholder="0">
                 </td>
                 <td>
-                    <input type="text" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${value.id}][sku]" value="${getNextSku()}" readonly>
+                    <input type="text" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${value.id}][sku]" value="${getNextSku('attr', attrId)}" readonly>
                 </td>
                 <td class="text-center">
                     <input type="file" class="d-none" id="attr-img-${attrId}-${value.id}" name="product_attributes[${attrId}][values][${value.id}][image]" accept="image/*" onchange="previewAttrImage(this, '${attrId}-${value.id}')">
@@ -837,13 +837,19 @@ function renderAttributeValues(attrId, attrData) {
                     </label>
                     <div id="preview-attr-${attrId}-${value.id}" class="mt-1"></div>
                 </td>
+                <td class="text-center">
+                    <div class="form-check form-switch d-flex justify-content-center">
+                        <input type="hidden" name="product_attributes[${attrId}][values][${value.id}][is_visible]" value="1">
+                        <input type="checkbox" class="form-check-input" checked onchange="this.previousElementSibling.value = this.checked ? '1' : '0';">
+                    </div>
+                </td>
             </tr>
             `;
         });
     } else {
         html += `
             <tr>
-                <td colspan="5" class="text-center text-muted">No values available for this attribute</td>
+                <td colspan="6" class="text-center text-muted">No values available for this attribute</td>
             </tr>
         `;
     }
@@ -950,7 +956,7 @@ function generateVariants() {
             id: idx,
             combination: combo,
             name: variantKey,
-            sku: getNextSku(),
+            sku: getNextSku('attr', attrId),
             price: '',
             stock: getStockQty(),
             image: null
@@ -1036,25 +1042,18 @@ function generateAllCombinations() {
 
 // ==================== Product Attributes Section ====================
 let selectedProductAttributes = {};
-let skuCounter = 0;
-let nextUniqueSku = '{{ $nextUniqueSku ?? "SKU-" . date("YmdHis") }}';
+let colorSkuCounters = {};
+let attrSkuCounters = {};
 
-function getNextSku() {
-    const baseSku = nextUniqueSku || 'SKU-' + new Date().getTime();
-    const parts = baseSku.split('-');
-    let num = 0;
-    if (parts.length >= 3) {
-        num = parseInt(parts[parts.length - 1]) || 0;
-    } else if (parts.length === 2) {
-        num = parseInt(parts[1]) || 0;
+function getNextSku(type, id) {
+    const counters = type === 'color' ? colorSkuCounters : attrSkuCounters;
+    if (!counters[id]) {
+        counters[id] = 0;
     }
-    skuCounter++;
-    // Build SKU: SKU-YYYYMMDD-nnn or SKU-YYYYMMDDHHMMSS-nnn
-    if (parts.length >= 3) {
-        parts[parts.length - 1] = num + skuCounter;
-        return parts.join('-');
-    }
-    return 'SKU-' + (num + skuCounter);
+    counters[id]++;
+    const timestamp = new Date().getTime();
+    const random = Math.floor(Math.random() * 1000);
+    return 'SKU-' + timestamp + '-' + random;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -1105,13 +1104,14 @@ function renderProductAttribute(attrId, attrName, values) {
         </div>
         <div class="card-body py-2">
             <table class="table table-sm table-bordered mb-0">
-                <thead class="table-light">
+<thead class="table-light">
                     <tr>
-                        <th style="width: 30%;">Value</th>
-                        <th style="width: 20%;">Price (৳)</th>
-                        <th style="width: 15%;">Quantity</th>
-                        <th style="width: 25%;">SKU</th>
-                        <th style="width: 10%;">Image</th>
+                        <th style="width: 25%;">Value</th>
+                        <th style="width: 15%;">Price (৳)</th>
+                        <th style="width: 12%;">Quantity</th>
+                        <th style="width: 18%;">SKU</th>
+                        <th style="width: 8%;" class="text-center">Image</th>
+                        <th style="width: 12%;" class="text-center">Visibility</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1131,15 +1131,21 @@ function renderProductAttribute(attrId, attrName, values) {
                 <td>
                     <input type="number" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${val.id}][quantity]" value="${getStockQty()}" min="0" placeholder="0">
                 </td>
-<td>
-                            <input type="text" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${val.id}][sku]" value="${getNextSku()}" readonly>
-                        </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${val.id}][sku]" value="${getNextSku('attr', attrId)}" readonly>
+                </td>
                 <td>
                     <input type="file" class="d-none" id="attr-${attrId}-${val.id}" name="product_attributes[${attrId}][values][${val.id}][image]" accept="image/*" onchange="previewAttrImage(this, '${attrId}-${val.id}')">
                     <label for="attr-${attrId}-${val.id}" class="btn btn-sm btn-outline-secondary mb-0">
                         <i class="bi bi-image"></i>
                     </label>
                     <div id="preview-attr-${attrId}-${val.id}" class="mt-1"></div>
+                </td>
+                <td class="text-center">
+                    <div class="form-check form-switch d-flex justify-content-center">
+                        <input type="hidden" name="product_attributes[${attrId}][values][${val.id}][is_visible]" value="1">
+                        <input type="checkbox" class="form-check-input" checked onchange="this.previousElementSibling.value = this.checked ? '1' : '0';">
+                    </div>
                 </td>
             </tr>
         `;
@@ -1198,11 +1204,12 @@ function renderProductColor(colorId, colorName, hexCode, values = []) {
             <table class="table table-sm table-bordered mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 30%;">Value</th>
-                        <th style="width: 20%;">Price (৳)</th>
-                        <th style="width: 15%;">Quantity</th>
-                        <th style="width: 25%;">SKU</th>
-                        <th style="width: 10%;" class="text-center">Image</th>
+                        <th style="width: 25%;">Value</th>
+                        <th style="width: 15%;">Price (৳)</th>
+                        <th style="width: 12%;">Quantity</th>
+                        <th style="width: 18%;">SKU</th>
+                        <th style="width: 8%;" class="text-center">Image</th>
+                        <th style="width: 12%;" class="text-center">Visibility</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1226,7 +1233,7 @@ function renderProductColor(colorId, colorName, hexCode, values = []) {
                     <input type="number" class="form-control form-control-sm" name="product_colors[${colorId}][values][${value.id}][quantity]" value="${getStockQty()}" min="0" placeholder="0">
                 </td>
                 <td>
-                    <input type="text" class="form-control form-control-sm" name="product_colors[${colorId}][values][${value.id}][sku]" value="${getNextSku()}" readonly>
+                    <input type="text" class="form-control form-control-sm" name="product_colors[${colorId}][values][${value.id}][sku]" value="${getNextSku('color', colorId)}" readonly>
                 </td>
                 <td class="text-center">
                     <input type="file" class="d-none" id="color-img-${colorId}-${value.id}" name="product_colors[${colorId}][values][${value.id}][image]" accept="image/*" onchange="previewColorImage(this, '${colorId}-${value.id}')">
@@ -1235,13 +1242,19 @@ function renderProductColor(colorId, colorName, hexCode, values = []) {
                     </label>
                     <div id="preview-color-${colorId}-${value.id}" class="mt-1"></div>
                 </td>
+                <td class="text-center">
+                    <div class="form-check form-switch d-flex justify-content-center">
+                        <input type="hidden" name="product_colors[${colorId}][values][${value.id}][is_visible]" value="1">
+                        <input type="checkbox" class="form-check-input" checked onchange="this.previousElementSibling.value = this.checked ? '1' : '0';">
+                    </div>
+                </td>
             </tr>
             `;
         });
     } else {
         html += `
             <tr>
-                <td colspan="5" class="text-center text-muted">No values available for this color</td>
+                <td colspan="6" class="text-center text-muted">No values available for this color</td>
             </tr>
         `;
     }

@@ -16,7 +16,7 @@ class ColorController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Color::withCount(['products', 'values', 'activeValues']);
+        $query = Color::withCount(['values', 'activeValues']);
 
         // Search
         if ($request->search) {
@@ -56,7 +56,9 @@ class ColorController extends Controller
             'active' => Color::where('is_active', true)->count(),
             'inactive' => Color::where('is_active', false)->count(),
             'filterable' => Color::where('is_filterable', true)->count(),
-            'products' => \DB::table('product_colors')->count(),
+            'products' => \App\Models\Product::whereNotNull('colors')
+                ->where('colors', '!=', '[]')
+                ->count(),
         ];
 
         // AJAX response
@@ -513,6 +515,67 @@ class ColorController extends Controller
     }
 
     /**
+     * Get products for this color.
+     */
+    public function getProducts(Color $color)
+    {
+        $products = $color->getProductsAttribute();
+        $colorId = (string) $color->id;
+
+        $productList = $products->map(function ($product) use ($colorId) {
+            $attrsData = json_decode($product->getOriginal('attributes'), true);
+            $colorsData = json_decode($product->colors, true);
+            $isComplete = true;
+            
+            // Check ALL attributes - if ANY value has price <= 0, mark Pending
+            if ($attrsData && is_array($attrsData)) {
+                foreach ($attrsData as $attrId => $attrData) {
+                    if (isset($attrData['values']) && is_array($attrData['values'])) {
+                        foreach ($attrData['values'] as $valueId => $valueData) {
+                            $price = $valueData['price'] ?? null;
+                            if ($price === null || $price <= 0) {
+                                $isComplete = false;
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Check ALL colors - if ANY value has price <= 0, mark Pending
+            if ($isComplete && $colorsData && is_array($colorsData)) {
+                foreach ($colorsData as $colorItem) {
+                    if (is_string($colorItem)) {
+                        $colorItem = json_decode($colorItem, true);
+                    }
+                    
+                    if ($colorItem && isset($colorItem['values']) && is_array($colorItem['values'])) {
+                        foreach ($colorItem['values'] as $valueId => $valueData) {
+                            if (($valueData['price'] ?? null) === null || $valueData['price'] <= 0) {
+                                $isComplete = false;
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'price' => $product->price,
+                'status' => $product->is_active ? 'Active' : 'Inactive',
+                'is_complete' => $isComplete,
+            ];
+        })->values()->all();
+
+        return response()->json([
+            'products' => $productList,
+        ]);
+    }
+
+    /**
      * Store a new color value.
      */
     public function storeValue(Request $request, Color $color)
@@ -532,6 +595,50 @@ class ColorController extends Controller
         ];
 
         $value = ColorValue::create($createData);
+
+        // Sync this new value to all products using this color
+        $products = $color->getProductsAttribute();
+        $colorId = $color->id;
+        $newValueId = (string) $value->id;
+
+        foreach ($products as $product) {
+            $colorsData = json_decode($product->colors, true);
+
+            if (!$colorsData) {
+                continue;
+            }
+
+            foreach ($colorsData as &$colorItem) {
+                if (is_string($colorItem)) {
+                    $colorItem = json_decode($colorItem, true);
+                }
+
+                if (isset($colorItem['color_id']) && $colorItem['color_id'] == $colorId) {
+                    // Initialize values array if not exists
+                    if (!isset($colorItem['values'])) {
+                        $colorItem['values'] = [];
+                    }
+
+                    // Add new value if not exists
+                    if (!isset($colorItem['values'][$newValueId])) {
+                        $colorItem['values'][$newValueId] = [
+                            'value_id' => $newValueId,
+                            'value_name' => $value->value,
+                            'hex_code' => $value->hex_code ?? '#000000',
+                            'price' => (float) $product->price > 0 ? (float) $product->price : 1,
+                            'quantity' => (int) $product->quantity > 0 ? (int) $product->quantity : 0,
+                            'sku' => $product->sku ? $product->sku . '-' . Str::slug($value->value) : '',
+                            'image' => null,
+                            'is_visible' => true,
+                        ];
+                    }
+                    break;
+                }
+            }
+
+            $product->colors = json_encode($colorsData);
+            $product->save();
+        }
 
         return response()->json([
             'success' => true,

@@ -16,7 +16,7 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 8. **Statistics Cards** - Full-width centered cards and compact card style
 9. **Important Implementation Rule** - Admin Panel + Frontend Integration Rule
 10. **Route Conflict Prevention** - Avoid placeholder routes conflicting with actual implementations
-11. **Sidebar Navigation State** - Keep menu expanded when child item is active
+11. **Sidebar Navigation State** - Keep menu expanded when child route is active
 12. **Product Images** - Proper image path handling for admin tables
 13. **404 Errors Due to Route Ordering** - Fix for routes not matching correctly
 14. **Create/Edit Form Layout** - Proper form structure for multi-card forms
@@ -31,6 +31,7 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 23. **Delete Image Functionality** - Delete button style for existing images with AJAX
 24. **Auto-generate Slug from Name** - Real-time slug generation on name input
 25. **Admin Toast Notification** - Slide-in toast from right with white background for success/error messages
+26. **Pagination Styling** - Fix for default pagination using Tailwind instead of Bootstrap
 
 ---
 
@@ -2784,6 +2785,102 @@ window.addEventListener('DOMContentLoaded', function() {
 - `/admin/inventory` - Stock adjustment success notification
 - `/admin/inventory/stock-alerts` - Threshold update notification
 - Admin layout - Global `adminToast` function
+
+---
+
+## Pagination Styling
+
+### Problem
+
+Admin pages were rendering pagination with Tailwind CSS styles instead of Bootstrap 5 styles. This happened because Laravel's default pagination view is `pagination::tailwind`, but the admin panel uses Bootstrap 5.
+
+**Symptoms:**
+- Pagination buttons appeared with Tailwind styling (gray borders, rounded-md, etc.)
+- Not matching the Bootstrap-based admin panel design
+- Pagination was inconsistent with other admin UI elements
+
+### Root Cause
+
+Laravel's `Illuminate\Pagination\AbstractPaginator` has a static property `$defaultView` set to `'pagination::tailwind'`. The config file `config/pagination.php` exists but was not being read by the paginator at runtime.
+
+### Solution
+
+Create a service provider to explicitly set the default pagination view:
+
+#### 1. Create `app/Providers/PaginationServiceProvider.php`
+
+```php
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\ServiceProvider;
+
+class PaginationServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        //
+    }
+
+    public function boot(): void
+    {
+        Paginator::defaultView('pagination::bootstrap-5');
+        Paginator::defaultSimpleView('pagination::simple-bootstrap-5');
+    }
+}
+```
+
+#### 2. Register in `bootstrap/providers.php`
+
+```php
+return [
+    App\Providers\AppServiceProvider::class,
+    App\Providers\CurrencyServiceProvider::class,
+    App\Providers\PaginationServiceProvider::class,  // Add this
+];
+```
+
+#### 3. Use the correct pagination view in views
+
+In admin listing pages, use the simple version to avoid duplicate "Showing X to Y of Z" text:
+
+```blade
+{{ $products->links('pagination::simple-bootstrap-5') }}
+```
+
+### Pagination Footer Structure
+
+For proper alignment in card-footer, use this structure:
+
+```blade
+@if($products->hasPages())
+<div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 py-2">
+    <div class="text-muted small d-flex align-items-center">
+        Showing {{ $products->firstItem() ?? 0 }} - {{ $products->lastItem() ?? 0 }} of {{ $products->total() }} entries
+    </div>
+    <div>
+        {{ $products->links('pagination::simple-bootstrap-5') }}
+    </div>
+</div>
+@endif
+```
+
+### Key Points
+
+| Item | Value |
+|------|-------|
+| **Default pagination view** | `pagination::bootstrap-5` |
+| **Simple pagination view** | `pagination::simple-bootstrap-5` |
+| **Why simple version** | Bootstrap-5 has its own "Showing X to Y" text which conflicts with custom text |
+| **Use in card-footer** | `py-2` for vertical padding, `d-flex align-items-center` for alignment |
+
+### Files Created/Modified
+
+- **Created:** `app/Providers/PaginationServiceProvider.php`
+- **Modified:** `bootstrap/providers.php` - Added PaginationServiceProvider
+- **Modified:** `admin/inventory/index.blade.php` - Updated pagination structure
 
 ---
 

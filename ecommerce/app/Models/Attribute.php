@@ -73,6 +73,45 @@ class Attribute extends Model
     }
 
     /**
+     * Get products that have this attribute in the JSON attributes column.
+     */
+    public function productsWithJson()
+    {
+        return Product::whereNotNull('attributes')
+            ->where('attributes', '!=', '[]');
+    }
+
+    /**
+     * Get the count of products using this attribute (from JSON column).
+     */
+    public function getProductsCountAttribute()
+    {
+        $attrId = (string) $this->id;
+        return $this->productsWithJson()->get()->filter(function ($product) use ($attrId) {
+            $attrsData = json_decode($product->getOriginal('attributes'), true);
+            if (!$attrsData || !is_array($attrsData)) {
+                return false;
+            }
+            return isset($attrsData[$attrId]);
+        })->count();
+    }
+
+    /**
+     * Get products using this attribute.
+     */
+    public function getProductsAttribute()
+    {
+        $attrId = (string) $this->id;
+        return $this->productsWithJson()->get()->filter(function ($product) use ($attrId) {
+            $attrsData = json_decode($product->getOriginal('attributes'), true);
+            if (!$attrsData || !is_array($attrsData)) {
+                return false;
+            }
+            return isset($attrsData[$attrId]);
+        });
+    }
+
+    /**
      * Scope for active attributes.
      */
     public function scopeActive($query)

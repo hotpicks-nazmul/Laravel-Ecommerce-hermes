@@ -200,8 +200,17 @@ class Product extends Model
     public function attributeValues()
     {
         return $this->belongsToMany(AttributeValue::class, 'product_attribute_values')
-            ->withPivot('attribute_id', 'price', 'quantity', 'image', 'sku')
+            ->withPivot('attribute_id', 'price', 'quantity', 'image', 'sku', 'is_visible')
             ->withTimestamps();
+    }
+
+    /**
+     * Get visible attribute values for this product.
+     */
+    public function visibleAttributeValues()
+    {
+        return $this->attributeValues()
+            ->wherePivot('is_visible', true);
     }
 
     /**
@@ -210,8 +219,17 @@ class Product extends Model
     public function colors()
     {
         return $this->belongsToMany(Color::class, 'product_colors')
-            ->withPivot(['image', 'quantity', 'price_adjustment', 'sku'])
+            ->withPivot(['image', 'quantity', 'price_adjustment', 'sku', 'is_visible'])
             ->withTimestamps();
+    }
+
+    /**
+     * Get visible colors for this product.
+     */
+    public function visibleColors()
+    {
+        return $this->colors()
+            ->wherePivot('is_visible', true);
     }
 
     /**

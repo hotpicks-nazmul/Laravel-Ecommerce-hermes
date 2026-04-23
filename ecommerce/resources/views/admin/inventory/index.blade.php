@@ -145,12 +145,12 @@
         </div>
         
         @if($products->hasPages())
-        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div class="text-muted small">
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 py-2">
+            <div class="text-muted small d-flex align-items-center">
                 Showing {{ $products->firstItem() ?? 0 }} - {{ $products->lastItem() ?? 0 }} of {{ $products->total() }} entries
             </div>
             <div>
-                {{ $products->appends(request()->query())->links() }}
+                {{ $products->links('pagination::simple-bootstrap-5') }}
             </div>
         </div>
         @endif

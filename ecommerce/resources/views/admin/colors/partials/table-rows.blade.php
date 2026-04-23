@@ -11,25 +11,29 @@
         <input type="checkbox" class="form-check-input item-checkbox" value="{{ $color->id }}">
     </td>
     <td>
-        <span class="color-swatch" style="background-color: {{ $color->hex_code }};" title="{{ $color->name }}"></span>
-    </td>
-    <td>
         <a href="{{ route('admin.colors.edit', $color->id) }}" class="text-decoration-none fw-medium">
             {{ $color->name }}
         </a>
         @if($color->description)
-        <br><small class="text-muted">{{ Str::limit($color->description, 40) }}</small>
+        <br><small class="text-muted">{{ Str::limit($color->description, 50) }}</small>
         @endif
-    </td>
-    <td><code>{{ $color->code }}</code></td>
-    <td>
-        <span class="badge font-monospace" style="background-color: {{ $color->hex_code }}; color: {{ $color->contrast_color }};">
-            {{ $color->hex_code }}
-        </span>
     </td>
     <td>{{ $color->display_order }}</td>
     <td>
+        <span class="badge bg-light text-dark">{{ $color->values_count }} values</span>
+        @if($color->active_values_count > 0)
+        <span class="badge bg-success">{{ $color->active_values_count }} active</span>
+        @endif
+    </td>
+    <td>
+        @if($color->products_count > 0)
+        <button type="button" class="badge bg-primary text-white text-decoration-none border-0" 
+                onclick="showColorProducts({{ $color->id }}, '{{ $color->name }}')">
+            {{ $color->products_count }} products
+        </button>
+        @else
         <span class="badge bg-light text-dark">{{ $color->products_count }} products</span>
+        @endif
     </td>
     <td>
         <button type="button" class="btn btn-sm {{ $color->is_active ? 'btn-success' : 'btn-outline-secondary' }}"
@@ -46,11 +50,11 @@
         </button>
     </td>
     <td>
-        <div class="btn-group btn-group-sm">
-            <a href="{{ route('admin.colors.edit', $color->id) }}" class="btn btn-outline-primary" title="Edit">
+        <div class="btn-group">
+            <a href="{{ route('admin.colors.edit', $color->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                 <i class="bi bi-pencil"></i>
             </a>
-            <button type="button" class="btn btn-outline-danger" onclick="deleteItem({{ $color->id }})" title="Delete">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteItem({{ $color->id }})" title="Delete">
                 <i class="bi bi-trash"></i>
             </button>
         </div>

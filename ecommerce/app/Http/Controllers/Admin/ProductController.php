@@ -345,6 +345,7 @@ class ProductController extends Controller
                             'quantity' => intval($valueData['quantity'] ?? 0),
                             'sku' => $valueData['sku'] ?? '',
                             'image' => null,
+                            'is_visible' => isset($valueData['is_visible']) ? filter_var($valueData['is_visible'], FILTER_VALIDATE_BOOLEAN) : true,
                         ];
                         
                         // Handle image upload with WebP conversion
@@ -398,6 +399,7 @@ class ProductController extends Controller
                             'quantity' => intval($valueData['quantity'] ?? 0),
                             'sku' => $valueData['sku'] ?? '',
                             'image' => null,
+                            'is_visible' => isset($valueData['is_visible']) ? filter_var($valueData['is_visible'], FILTER_VALIDATE_BOOLEAN) : true,
                         ];
                         
                         // Handle value image upload with WebP conversion
@@ -656,6 +658,7 @@ class ProductController extends Controller
                             'quantity' => intval($valueData['quantity'] ?? 0),
                             'sku' => $valueData['sku'] ?? '',
                             'image' => $valueData['existing_image'] ?? null,
+                            'is_visible' => isset($valueData['is_visible']) ? filter_var($valueData['is_visible'], FILTER_VALIDATE_BOOLEAN) : true,
                         ];
                         
                         // Handle new image upload
@@ -678,7 +681,37 @@ class ProductController extends Controller
             }
         }
         
+        // Handle attribute deletion: remove attributes that were in DB but not in submitted data
+        $existingAttributes = json_decode($product->attributes ?? '{}', true);
+        if (!empty($existingAttributes)) {
+            $submittedAttrIds = $request->has('product_attributes') ? array_keys($request->product_attributes) : [];
+            $attrsToDelete = array_diff(array_keys($existingAttributes), $submittedAttrIds);
+            if (!empty($attrsToDelete)) {
+                foreach ($attrsToDelete as $attrId) {
+                    if (isset($existingAttributes[$attrId]) && isset($existingAttributes[$attrId]['values'])) {
+                        foreach ($existingAttributes[$attrId]['values'] as $value) {
+                            if (!empty($value['image'])) {
+                                ImageHelper::deleteImage($value['image']);
+                            }
+                        }
+                    }
+                }
+                $filteredAttrs = array_filter($existingAttributes, function($key) use ($attrsToDelete) {
+                    return !in_array($key, $attrsToDelete);
+                }, ARRAY_FILTER_USE_KEY);
+                $product->attributes = json_encode($filteredAttrs);
+                $product->save();
+            }
+        }
+        
+        // If product_attributes submitted but empty, clear all attributes
+        if ($request->has('product_attributes') && empty($request->product_attributes)) {
+            $product->attributes = json_encode([]);
+            $product->save();
+        }
+        
         // Save product colors
+        $submittedColorIds = [];
         if ($request->has('product_colors')) {
             $colorsData = [];
             foreach ($request->product_colors as $colorId => $colorData) {
@@ -689,6 +722,8 @@ class ProductController extends Controller
                     'sku' => $colorData['sku'] ?? '',
                     'image' => $colorData['existing_image'] ?? null,
                 ];
+
+                $submittedColorIds[] = $colorId;
 
                 // Handle new image upload with WebP conversion (old format)
                 if (isset($colorData['image']) && $colorData['image'] instanceof \Illuminate\Http\UploadedFile) {
@@ -710,6 +745,7 @@ class ProductController extends Controller
                             'quantity' => intval($valueData['quantity'] ?? 0),
                             'sku' => $valueData['sku'] ?? '',
                             'image' => $valueData['existing_image'] ?? null,
+                            'is_visible' => isset($valueData['is_visible']) ? filter_var($valueData['is_visible'], FILTER_VALIDATE_BOOLEAN) : true,
                         ];
 
                         // Handle new image upload for value
@@ -730,6 +766,26 @@ class ProductController extends Controller
                 $product->colors = json_encode($colorsData);
                 $product->save();
             }
+        }
+
+        // Handle color deletion: remove colors that were in DB but not in submitted data
+        $existingColors = json_decode($product->colors ?? '[]', true);
+        if (!empty($existingColors)) {
+            $existingColorIds = array_column($existingColors, 'color_id');
+            $colorsToDelete = array_diff($existingColorIds, $submittedColorIds);
+            if (!empty($colorsToDelete)) {
+                $colorsData = array_filter($existingColors, function($color) use ($colorsToDelete) {
+                    return !in_array($color['color_id'], $colorsToDelete);
+                });
+                $product->colors = json_encode(array_values($colorsData));
+                $product->save();
+            }
+        }
+
+        // If product_colors submitted but empty, clear all colors
+        if ($request->has('product_colors') && empty($request->product_colors)) {
+            $product->colors = json_encode([]);
+            $product->save();
         }
         
         // Debug: Log success

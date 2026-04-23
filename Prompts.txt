@@ -167,15 +167,9 @@ reference  page: http://127.0.0.1:8000/admin/attributes
 -----------------------------------------------------------
 
 in Admin > Products
-Brand
-Attribute
-Colors
-Product Reviews
-Product Q&A
-Wishlist Management
-Inventory Overview
-Stock Alerts
-Stock History
+
+Add New Product
+All Products
 
 
 
@@ -215,19 +209,24 @@ get reference from this page: http://127.0.0.1:8000/admin/attributes/2/edit
 if you do not understand my requirement, just ask me before start.
 ---------------------------------------------------------
 
-in this pages:
--> http://127.0.0.1:8000/admin/products/create
-in Product Attributes and Product Colors
+in Admin > Products > Attribute and Colors section
+in the table Products column
+in popup window table
+in Edit Column
+the Pending and Done functionality is not working properly.
 
-the drop down menu is not showing properly. i can see only 1 check box.
-
-
-pin point the problem and fix it carefully
+pin point the problem carefully
+and fix it carefully
 
 if you do not understand my requirement, just ask me before start.
+--------------------------------------------------
+let me clear the logic.
+if a products Product Attributes and Product Colors attributes any value's price become 0 then it will show Pending otherwise SHow Done.
 
+pin point the problem carefully.
+and fix it carefully.
 
-
+if you do not understand my requirement, just ask me before start.
 
 
 

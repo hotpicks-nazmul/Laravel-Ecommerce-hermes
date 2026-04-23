@@ -17,7 +17,7 @@ class AttributeController extends Controller
     {
         $query = Attribute::withCount(['values', 'values as active_values_count' => function ($q) {
             $q->where('is_active', true);
-        }, 'products']);
+        }]);
 
         // Search
         if ($request->search) {
@@ -441,6 +441,40 @@ class AttributeController extends Controller
 
         $value = AttributeValue::create($createData);
 
+        // Sync this new value to all products using this attribute
+        $products = $attribute->getProductsAttribute();
+        $attrId = (string) $attribute->id;
+        $newValueId = (string) $value->id;
+
+        foreach ($products as $product) {
+            $attrsData = json_decode($product->attributes, true);
+
+            if (!$attrsData) {
+                $attrsData = [];
+            }
+
+            // Initialize attribute if not exists
+            if (!isset($attrsData[$attrId])) {
+                $attrsData[$attrId] = ['name' => '', 'values' => []];
+            }
+
+            // Add new value if not exists
+            if (!isset($attrsData[$attrId]['values'][$newValueId])) {
+                $attrsData[$attrId]['values'][$newValueId] = [
+                    'value_id' => $newValueId,
+                    'value_name' => $value->value,
+                    'price' => (float) $product->price > 0 ? (float) $product->price : 1,
+                    'quantity' => (int) $product->quantity > 0 ? (int) $product->quantity : 0,
+                    'sku' => $product->sku ? $product->sku . '-' . Str::slug($value->value) : '',
+                    'image' => null,
+                    'is_visible' => true,
+                ];
+
+                $product->attributes = json_encode($attrsData);
+                $product->save();
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Attribute value added successfully.',
@@ -507,6 +541,67 @@ class AttributeController extends Controller
     {
         return response()->json([
             'values' => $attribute->values()->orderBy('display_order')->get(),
+        ]);
+    }
+
+/**
+     * Get products for this attribute.
+     */
+    public function getProducts(Attribute $attribute)
+    {
+        $products = $attribute->getProductsAttribute();
+        $attrId = (string) $attribute->id;
+
+        $productList = $products->map(function ($product) use ($attrId) {
+            $attrsData = json_decode($product->getOriginal('attributes'), true);
+            $colorsData = json_decode($product->colors, true);
+            $isComplete = true;
+            
+            // Check ALL attributes - if ANY value has price <= 0, mark Pending
+            if ($attrsData && is_array($attrsData)) {
+                foreach ($attrsData as $attrIdCheck => $attrData) {
+                    if (isset($attrData['values']) && is_array($attrData['values'])) {
+                        foreach ($attrData['values'] as $valueId => $valueData) {
+                            $price = $valueData['price'] ?? null;
+                            if ($price === null || $price <= 0) {
+                                $isComplete = false;
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Check ALL colors - if ANY value has price <= 0, mark Pending
+            if ($isComplete && $colorsData && is_array($colorsData)) {
+                foreach ($colorsData as $colorItem) {
+                    if (is_string($colorItem)) {
+                        $colorItem = json_decode($colorItem, true);
+                    }
+                    
+                    if ($colorItem && isset($colorItem['values']) && is_array($colorItem['values'])) {
+                        foreach ($colorItem['values'] as $valueId => $valueData) {
+                            if (($valueData['price'] ?? null) === null || $valueData['price'] <= 0) {
+                                $isComplete = false;
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'price' => $product->price,
+                'status' => $product->is_active ? 'Active' : 'Inactive',
+                'is_complete' => $isComplete,
+            ];
+        })->values()->all();
+
+        return response()->json([
+            'products' => $productList,
         ]);
     }
 }

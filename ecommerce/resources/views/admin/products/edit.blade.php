@@ -256,6 +256,7 @@
                                                 <label class="form-check-label w-100" for="color_{{ $color->id }}">
                                                     {{ $color->name }}
                                                     <span style="background: {{ $color->hex_code }}; width: 16px; height: 16px; display: inline-block; border-radius: 50%; border: 1px solid #ddd; vertical-align: middle; margin-left: 8px;"></span>
+                                                    <small class="text-muted">({{ $color->activeValues->count() }} values)</small>
                                                 </label>
                                             </div>
                                             @endforeach
@@ -665,6 +666,19 @@ const existingColors = @json($existingColors);
 
 let selectedAttributes = {};
 let selectedProductColors = {};
+let colorSkuCounters = {};
+let attrSkuCounters = {};
+
+function getNextSku(type, id) {
+    const counters = type === 'color' ? colorSkuCounters : attrSkuCounters;
+    if (!counters[id]) {
+        counters[id] = 0;
+    }
+    counters[id]++;
+    const timestamp = new Date().getTime();
+    const random = Math.floor(Math.random() * 1000);
+    return 'SKU-' + timestamp + '-' + random;
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     const existingAttrIds = Object.keys(existingAttributes).map(id => parseInt(id));
@@ -696,24 +710,28 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedProductColors[colorData.color_id] = { name: colorName, hex_code: hexCode, values: colorValues };
             const hasExistingValues = colorData.values && typeof colorData.values === 'object' && Object.keys(colorData.values).length > 0;
             
-            // Look up hex_code from colorsData (database) instead of relying on stored data
             let valuesArray;
             if (hasExistingValues) {
-                valuesArray = Object.values(colorData.values).map(v => {
-                    // Try to get hex_code from colorsData (fresh from database)
-                    const freshColor = colorsData.find(c => c.id == colorData.color_id);
-                    let hex_code = v.hex_code || hexCode;
-                    if (!hex_code || hex_code === hexCode) {
-                        // hex_code missing or same as parent - look up from fresh data
-                        if (freshColor && freshColor.values) {
-                            const freshValue = freshColor.values.find(fv => fv.id == v.value_id);
-                            if (freshValue && freshValue.hex_code) {
-                                hex_code = freshValue.hex_code;
-                            }
-                        }
-                    }
-                    return { id: v.value_id, value: v.value_name, hex_code: hex_code };
-                });
+                const savedValueIds = Object.keys(colorData.values).map(k => parseInt(colorData.values[k].value_id));
+                
+                // Always include all fresh values from database, not just saved ones
+                const freshColor = colorsData.find(c => c.id == colorData.color_id);
+                if (freshColor && freshColor.values && freshColor.values.length > 0) {
+                    valuesArray = freshColor.values.map(fv => {
+                        const savedValue = Object.values(colorData.values).find(sv => parseInt(sv.value_id) === fv.id);
+                        return {
+                            id: fv.id,
+                            value: fv.value,
+                            hex_code: fv.hex_code,
+                            existingData: savedValue || null
+                        };
+                    });
+                } else {
+                    // Fallback to saved values only
+                    valuesArray = Object.values(colorData.values).map(v => {
+                        return { id: v.value_id, value: v.value_name, hex_code: v.hex_code };
+                    });
+                }
             } else {
                 valuesArray = colorValues;
             }
@@ -870,11 +888,12 @@ function renderAttributeValues(attrId, attrData, existingValues = null) {
             <table class="table table-sm table-bordered mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 30%;">Value</th>
-                        <th style="width: 20%;">Price (৳)</th>
-                        <th style="width: 15%;">Quantity</th>
-                        <th style="width: 25%;">SKU</th>
-                        <th style="width: 10%;" class="text-center">Image</th>
+                        <th style="width: 25%;">Value</th>
+                        <th style="width: 15%;">Price (৳)</th>
+                        <th style="width: 12%;">Quantity</th>
+                        <th style="width: 18%;">SKU</th>
+                        <th style="width: 8%;" class="text-center">Image</th>
+                        <th style="width: 12%;" class="text-center">Visibility</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -882,7 +901,7 @@ function renderAttributeValues(attrId, attrData, existingValues = null) {
     
     if (attrData.values && attrData.values.length > 0) {
         attrData.values.forEach(value => {
-            let existingData = { price: 0, quantity: 0, sku: '', image: null };
+            let existingData = { price: 0, quantity: 0, sku: '', image: null, is_visible: true };
             if (existingValues) {
                 const valueId = String(value.id);
                 const found = existingValues[valueId] || Object.values(existingValues).find(ev => parseInt(ev.value_id) === parseInt(value.id));
@@ -893,6 +912,7 @@ function renderAttributeValues(attrId, attrData, existingValues = null) {
             
             const existingImage = existingData.image ? existingData.image : null;
             const uniqueId = attrId + '-' + value.id;
+            const isVisible = existingData.is_visible !== undefined ? existingData.is_visible : true;
             
             let imageHtml = '';
             if (existingImage) {
@@ -925,7 +945,7 @@ function renderAttributeValues(attrId, attrData, existingValues = null) {
                     <input type="number" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${value.id}][quantity]" value="${existingData.quantity || 0}" min="0" placeholder="0">
                 </td>
                 <td>
-                    <input type="text" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${value.id}][sku]" value="${existingData.sku || ''}" readonly>
+                    <input type="text" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${value.id}][sku]" value="${existingData && existingData.sku ? existingData.sku : getNextSku('attr', attrId)}" readonly>
                 </td>
                 <td class="text-center">
                     ${imageHtml}
@@ -935,13 +955,19 @@ function renderAttributeValues(attrId, attrData, existingValues = null) {
                     </label>
                     <div id="preview-attr-${uniqueId}" class="mt-1"></div>
                 </td>
+                <td class="text-center">
+                    <div class="form-check form-switch d-flex justify-content-center">
+                        <input type="hidden" name="product_attributes[${attrId}][values][${value.id}][is_visible]" value="${isVisible ? '1' : '0'}">
+                        <input type="checkbox" class="form-check-input" id="attr-vis-${uniqueId}" ${isVisible ? 'checked' : ''} onchange="this.previousElementSibling.value = this.checked ? '1' : '0';">
+                    </div>
+                </td>
             </tr>
             `;
         });
     } else {
         html += `
             <tr>
-                <td colspan="5" class="text-center text-muted">No values available for this attribute</td>
+                <td colspan="6" class="text-center text-muted">No values available for this attribute</td>
             </tr>
         `;
     }
@@ -1031,8 +1057,10 @@ function renderProductColor(colorId, colorName, hexCode, values = [], existingDa
     if (existingData) {
         existingPrice = existingData.price_adjustment || existingData.price || 0;
         existingQuantity = existingData.quantity || 0;
-        existingSku = existingData.sku || '';
+        existingSku = existingData.sku ? existingData.sku : getNextSku('color', colorId);
         existingImage = existingData.image || null;
+    } else {
+        existingSku = getNextSku('color', colorId);
     }
 
     let imageHtml = '';
@@ -1067,11 +1095,12 @@ function renderProductColor(colorId, colorName, hexCode, values = [], existingDa
             <table class="table table-sm table-bordered mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 30%;">Value</th>
-                        <th style="width: 20%;">Price (৳)</th>
-                        <th style="width: 15%;">Quantity</th>
-                        <th style="width: 25%;">SKU</th>
-                        <th style="width: 10%;" class="text-center">Image</th>
+                        <th style="width: 25%;">Value</th>
+                        <th style="width: 15%;">Price (৳)</th>
+                        <th style="width: 12%;">Quantity</th>
+                        <th style="width: 18%;">SKU</th>
+                        <th style="width: 8%;" class="text-center">Image</th>
+                        <th style="width: 12%;" class="text-center">Visibility</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1082,11 +1111,12 @@ function renderProductColor(colorId, colorName, hexCode, values = [], existingDa
             const valueHex = value.hex_code || hexCode;
             const valueId = value.id || value.value_id;
             const valueName = value.value || value.value_name || value.name;
-            const valueObj = existingData && existingData.values && existingData.values[valueId] ? existingData.values[valueId] : null;
+            const valueObj = value.existingData || null;
             const valuePrice = valueObj ? (valueObj.price || 0) : 0;
             const valueQty = valueObj ? (valueObj.quantity || 0) : 0;
-            const valueSku = valueObj ? (valueObj.sku || '') : '';
+            const valueSku = valueObj && valueObj.sku ? valueObj.sku : getNextSku('color', colorId);
             const valueImg = valueObj ? (valueObj.image || '') : '';
+            const valueVisible = valueObj ? (valueObj.is_visible !== undefined ? valueObj.is_visible : true) : true;
 
             let valueImageHtml = '';
             if (valueImg) {
@@ -1131,13 +1161,19 @@ function renderProductColor(colorId, colorName, hexCode, values = [], existingDa
                     </label>
                     <div id="preview-color-${colorId}-${valueId}" class="mt-1"></div>
                 </td>
+                <td class="text-center">
+                    <div class="form-check form-switch d-flex justify-content-center">
+                        <input type="hidden" name="product_colors[${colorId}][values][${valueId}][is_visible]" value="${valueVisible ? '1' : '0'}">
+                        <input type="checkbox" class="form-check-input" id="color-vis-${colorId}-${valueId}" ${valueVisible ? 'checked' : ''} onchange="this.previousElementSibling.value = this.checked ? '1' : '0';">
+                    </div>
+                </td>
             </tr>
             `;
         });
     } else {
         html += `
             <tr>
-                <td colspan="5" class="text-center text-muted">No values available for this color</td>
+                <td colspan="6" class="text-center text-muted">No values available for this color</td>
             </tr>
         `;
     }
