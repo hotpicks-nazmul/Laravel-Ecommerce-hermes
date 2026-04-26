@@ -70,7 +70,7 @@ class DigitalProductController extends Controller
             $query->latest();
         }
 
-        $perPage = $request->per_page ?? 25;
+        $perPage = $request->per_page ?? 10;
 
         $products = $query->paginate($perPage)->appends($request->query());
         $categories = DigitalCategory::where('status', 'active')->get();

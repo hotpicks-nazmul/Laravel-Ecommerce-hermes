@@ -232,9 +232,6 @@
             <div>
                 {{ $products->appends(request()->query())->links() }}
             </div>
-            <div class="text-muted small">
-                Showing {{ $products->firstItem() }} - {{ $products->lastItem() }} of {{ $products->total() }} products
-            </div>
         </div>
         @endif
     </div>

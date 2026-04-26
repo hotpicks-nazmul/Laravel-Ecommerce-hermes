@@ -217,7 +217,7 @@
 
 @push('scripts')
 <script>
-    const addresses = @json($addresses->map(fn($a) => ['id' => $a->id, 'name' => $a->name, 'phone' => $a->phone, 'address' => $a->address, 'city' => $a->city, 'state' => $a->state, 'postcode' => $a->postcode, 'country' => $a->country, 'is_default' => $a->is_default]));
+    const addresses = {!! json_encode($addresses->map(function($a) { return ['id' => $a->id, 'name' => $a->name, 'phone' => $a->phone, 'address' => $a->address, 'city' => $a->city, 'state' => $a->state, 'postcode' => $a->postcode, 'country' => $a->country, 'is_default' => $a->is_default]; })) !!};
     
     function openAddressModal() {
         document.getElementById('modalTitle').textContent = 'Add New Address';

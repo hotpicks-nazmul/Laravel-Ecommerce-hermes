@@ -86,9 +86,26 @@ class ProductController extends Controller
         $relatedProducts = Product::active()
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
-            ->inStock()
             ->take(4)
             ->get();
+
+        // If less than 4, get from parent categories
+        if ($relatedProducts->count() < 4 && $product->category) {
+            $categoryIds = collect([$product->category_id]);
+            if ($product->category->parent) {
+                $categoryIds->push($product->category->parent_id);
+                if ($product->category->parent->parent) {
+                    $categoryIds->push($product->category->parent->parent_id);
+                }
+            }
+            $categoryProducts = Product::active()
+                ->whereIn('category_id', $categoryIds)
+                ->where('id', '!=', $product->id)
+                ->whereNotIn('id', $relatedProducts->pluck('id'))
+                ->take(4 - $relatedProducts->count())
+                ->get();
+            $relatedProducts = $relatedProducts->merge($categoryProducts);
+        }
 
         // Get approved reviews
         $reviews = $product->approvedReviews()->latest()->paginate(5);

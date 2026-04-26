@@ -990,7 +990,7 @@ class ReportController extends Controller
             default => $products->orderBy('quantity', 'asc'),
         };
         
-        $perPage = $request->per_page ?? 20;
+        $perPage = $request->per_page ?? 25;
         $products = $products->paginate($perPage);
         
         // Calculate summary statistics

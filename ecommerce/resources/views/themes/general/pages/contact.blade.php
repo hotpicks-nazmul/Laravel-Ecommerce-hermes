@@ -6,10 +6,14 @@
 <style>
 /* Hero Section */
 .contact-hero {
-    background: linear-gradient(135deg, #1a472a 0%, #2D5A27 30%, #4A7C43 70%, #5a8c53 100%);
+    background: linear-gradient(135deg, var(--hardcoded-green) 0%, var(--hardcoded-green-light) 30%, var(--hardcoded-green-light) 70%, var(--hardcoded-green-light) 100%);
     padding: 120px 0 140px;
     position: relative;
     overflow: hidden;
+    width: 100%;
+}
+.contact-hero .container {
+    max-width: 1320px;
 }
 .contact-hero::before {
     content: '';
@@ -68,6 +72,9 @@
 .hero-content {
     position: relative;
     z-index: 2;
+    text-align: center;
+    max-width: 1320px;
+    margin: 0 auto;
 }
 .hero-icon-wrapper {
     width: 100px;
@@ -129,6 +136,15 @@
     padding-bottom: 80px;
 }
 
+/* Ensure Bootstrap container is properly centered */
+.contact-section > .container,
+.hours-section > .container,
+.newsletter-section > .container {
+    max-width: 1320px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
 /* Info Cards */
 .info-cards-wrapper {
     margin-bottom: 50px;
@@ -152,7 +168,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #2D5A27, #4A7C43);
+    background: linear-gradient(90deg, var(--hardcoded-green), var(--hardcoded-green-light));
     transform: scaleX(0);
     transition: transform 0.4s ease;
 }
@@ -200,22 +216,37 @@
 }
 .info-card p {
     color: #6b7280;
-    margin-bottom: 8px;
-    line-height: 1.6;
+    margin-bottom: 4px;
+    line-height: 1.5;
+}
+.info-card .info-subtitle {
+    color: #9ca3af;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.info-card .info-subtitle i {
+    font-size: 0.8rem;
 }
 .info-card .action-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    padding: 10px 24px;
+    padding: 12px 28px;
     border-radius: 50px;
     font-weight: 600;
     font-size: 0.9rem;
-    margin-top: 16px;
+    margin-top: 8px;
     transition: all 0.3s ease;
+    width: auto;
+    min-width: 160px;
 }
 .info-card .action-btn:hover {
-    transform: scale(1.05);
+    transform: translateY(-2px);
 }
 
 /* Main Content Area */
@@ -223,6 +254,8 @@
     display: grid;
     grid-template-columns: 1fr 1.4fr;
     gap: 30px;
+    max-width: 1320px;
+    margin: 0 auto;
 }
 @media (max-width: 991px) {
     .main-content-wrapper {
@@ -247,7 +280,7 @@
     left: 0;
     right: 0;
     height: 6px;
-    background: linear-gradient(90deg, #2D5A27, #4A7C43, #6b9c64);
+    background: linear-gradient(90deg, var(--hardcoded-green), var(--hardcoded-green-light));
 }
 .form-header {
     margin-bottom: 32px;
@@ -274,7 +307,7 @@
     background: #fafafa;
 }
 .form-floating > .form-control:focus {
-    border-color: #2D5A27;
+    border-color: var(--hardcoded-green);
     box-shadow: 0 0 0 4px rgba(45, 90, 39, 0.08);
     background: #fff;
 }
@@ -284,10 +317,10 @@
     font-weight: 500;
 }
 .form-floating > .form-control:focus ~ label {
-    color: #2D5A27;
+    color: var(--hardcoded-green);
 }
 .btn-submit {
-    background: linear-gradient(135deg, #2D5A27 0%, #4A7C43 100%);
+    background: linear-gradient(135deg, var(--hardcoded-green) 0%, var(--hardcoded-green-light) 100%);
     border: none;
     border-radius: 14px;
     padding: 18px 40px;
@@ -297,6 +330,7 @@
     position: relative;
     overflow: hidden;
     letter-spacing: 0.5px;
+    color: #fff;
 }
 .btn-submit::before {
     content: '';
@@ -396,7 +430,7 @@
 }
 .map-header {
     padding: 24px 28px;
-    background: linear-gradient(135deg, rgba(45, 90, 39, 0.03) 0%, rgba(74, 124, 67, 0.03) 100%);
+    background: rgba(45, 90, 39, 0.03);
     border-bottom: 1px solid #e5e7eb;
 }
 .map-header h5 {
@@ -408,7 +442,7 @@
     gap: 10px;
 }
 .map-header h5 i {
-    color: #2D5A27;
+    color: var(--hardcoded-green);
 }
 .map-header p {
     color: #6b7280;
@@ -451,20 +485,20 @@
     font-size: 1.1rem;
 }
 .quick-action-btn.call {
-    background: #2D5A27;
+    background: var(--hardcoded-green);
     color: #fff;
 }
 .quick-action-btn.call:hover {
-    background: #1a472a;
+    background: var(--hardcoded-green);
     transform: scale(1.02);
 }
 .quick-action-btn.directions {
     background: #fff;
-    color: #2D5A27;
-    border: 2px solid #2D5A27;
+    color: var(--hardcoded-green);
+    border: 2px solid var(--hardcoded-green);
 }
 .quick-action-btn.directions:hover {
-    background: #2D5A27;
+    background: var(--hardcoded-green);
     color: #fff;
 }
 
@@ -473,7 +507,7 @@
     margin-top: 50px;
 }
 .hours-card {
-    background: linear-gradient(135deg, rgba(45, 90, 39, 0.04) 0%, rgba(74, 124, 67, 0.04) 100%);
+    background: rgba(45, 90, 39, 0.04);
     border-radius: 24px;
     padding: 36px;
     border: 1px solid rgba(45, 90, 39, 0.1);
@@ -507,7 +541,7 @@
 }
 .hours-icon i {
     font-size: 1.8rem;
-    color: #2D5A27;
+    color: var(--hardcoded-green);
 }
 .hours-header h5 {
     font-weight: 700;
@@ -582,14 +616,14 @@
 }
 .hours-item .time {
     font-weight: 500;
-    color: #2D5A27;
+    color: var(--hardcoded-green);
 }
 .hours-item .time.closed {
     color: #dc2626;
     font-weight: 600;
 }
 .hours-item.today {
-    background: linear-gradient(135deg, #2D5A27 0%, #4A7C43 100%);
+    background: linear-gradient(135deg, var(--hardcoded-green) 0%, var(--hardcoded-green-light) 100%);
 }
 .hours-item.today .day,
 .hours-item.today .time {
@@ -599,64 +633,12 @@
     color: rgba(255,255,255,0.7);
 }
 
-/* FAQ Section */
-.faq-section {
-    margin-top: 50px;
-}
-.faq-card {
-    background: #fff;
-    border-radius: 24px;
-    padding: 36px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.06);
-}
-.faq-header {
-    text-align: center;
-    margin-bottom: 28px;
-}
-.faq-header h5 {
-    font-weight: 700;
-    color: #1a1a2e;
-    margin-bottom: 8px;
-}
-.faq-header p {
-    color: #6b7280;
-    margin: 0;
-}
-.faq-item {
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    margin-bottom: 12px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-.faq-item:hover {
-    border-color: #2D5A27;
-}
-.faq-item .accordion-button {
-    padding: 18px 20px;
-    font-weight: 600;
-    color: #374151;
-    background: #fafafa;
-}
-.faq-item .accordion-button:not(.collapsed) {
-    background: linear-gradient(135deg, rgba(45, 90, 39, 0.05) 0%, rgba(74, 124, 67, 0.05) 100%);
-    color: #2D5A27;
-}
-.faq-item .accordion-button:focus {
-    box-shadow: none;
-}
-.faq-item .accordion-body {
-    padding: 20px;
-    color: #6b7280;
-    line-height: 1.7;
-}
-
 /* Newsletter Section */
 .newsletter-section {
     margin-top: 50px;
 }
 .newsletter-card {
-    background: linear-gradient(135deg, #1a472a 0%, #2D5A27 50%, #4A7C43 100%);
+    background: linear-gradient(135deg, var(--hardcoded-green) 0%, var(--hardcoded-green-light) 50%, var(--hardcoded-green-light) 100%);
     border-radius: 24px;
     padding: 48px;
     position: relative;
@@ -706,7 +688,7 @@
 .newsletter-form button {
     padding: 16px 28px;
     background: #fff;
-    color: #2D5A27;
+    color: var(--hardcoded-green);
     border: none;
     border-radius: 12px;
     font-weight: 600;
@@ -793,8 +775,8 @@
                             <i class="bi bi-geo-alt-fill"></i>
                         </div>
                         <h5>Visit Our Store</h5>
-                        <p>{{ $settings['contact_address'] ?? '123 Green Market Road, Dhaka-1205, Bangladesh' }}</p>
-                        <small class="text-muted">Open 7 days a week</small>
+                        <p class="fw-medium text-dark">{{ $settings['contact_address'] ?? '123 Green Market Road, Dhaka-1205, Bangladesh' }}</p>
+                        <span class="info-subtitle"><i class="bi bi-clock"></i>Open 7 days a week</span>
                         <a href="https://maps.google.com" target="_blank" class="action-btn btn btn-outline-success">
                             <i class="bi bi-map"></i>Get Directions
                         </a>
@@ -806,8 +788,8 @@
                             <i class="bi bi-telephone-fill"></i>
                         </div>
                         <h5>Call Us Directly</h5>
-                        <p>{{ $settings['contact_phone'] ?? '+880 1700-000000' }}</p>
-                        <small class="text-muted">Sat - Thu: 8AM - 10PM</small>
+                        <p class="fw-semibold">{{ $settings['contact_phone'] ?? '+880 1700-000000' }}</p>
+                        <span class="info-subtitle"><i class="bi bi-clock"></i>Sat - Thu: 8AM - 10PM</span>
                         <a href="tel:{{ $settings['contact_phone'] ?? '+8801700000000' }}" class="action-btn btn btn-outline-primary">
                             <i class="bi bi-telephone"></i>Call Now
                         </a>
@@ -819,8 +801,8 @@
                             <i class="bi bi-envelope-fill"></i>
                         </div>
                         <h5>Email Support</h5>
-                        <p>{{ $settings['contact_email'] ?? 'info@halalfoodstore.com' }}</p>
-                        <small class="text-muted">We reply within 24 hours</small>
+                        <p class="fw-medium">{{ $settings['contact_email'] ?? 'info@halalfoodstore.com' }}</p>
+                        <span class="info-subtitle"><i class="bi bi-clock"></i>We reply within 24 hours</span>
                         <a href="mailto:{{ $settings['contact_email'] ?? 'info@halalfoodstore.com' }}" class="action-btn btn btn-outline-warning">
                             <i class="bi bi-envelope"></i>Send Email
                         </a>
@@ -984,72 +966,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- FAQ Section -->
-        <div class="faq-section">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="faq-card">
-                        <div class="faq-header">
-                            <h5><i class="bi bi-question-circle text-success me-2"></i>Frequently Asked Questions</h5>
-                            <p>Quick answers to common questions</p>
-                        </div>
-                        <div class="accordion" id="faqAccordion">
-                            <div class="faq-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                                        <i class="bi bi-box-seam me-2 text-success"></i>What are your delivery options?
-                                    </button>
-                                </h2>
-                                <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                    <div class="accordion-body">
-                                        We offer same-day delivery within Dhaka city for orders placed before 2 PM. We also provide next-day delivery for surrounding areas. Free delivery is available for orders above ৳500.
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="faq-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                                        <i class="bi bi-patch-check me-2 text-success"></i>How do you ensure meat is halal?
-                                    </button>
-                                </h2>
-                                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                    <div class="accordion-body">
-                                        All our meat products are sourced from certified halal suppliers. We maintain strict quality control and our butchers follow Islamic guidelines for slaughter. Certificates are available upon request.
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="faq-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-                                        <i class="bi bi-arrow-repeat me-2 text-success"></i>What is your return policy?
-                                    </button>
-                                </h2>
-                                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                    <div class="accordion-body">
-                                        We accept returns within 24 hours for perishable items if there's any quality issue. For non-perishable items, returns are accepted within 7 days with original packaging. Contact our support team for assistance.
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="faq-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
-                                        <i class="bi bi-credit-card me-2 text-success"></i>What payment methods do you accept?
-                                    </button>
-                                </h2>
-                                <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                    <div class="accordion-body">
-                                        We accept cash on delivery (COD), bKash, Nagad, Rocket, and all major credit/debit cards. Online payments are processed securely through our encrypted payment gateway.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+</div>
         </div>
         
         <!-- Newsletter Section -->

@@ -126,11 +126,10 @@
                 <div class="col-lg-1 col-md-2 col-sm-6">
                     <label class="form-label small text-muted">Per Page</label>
                     <select name="per_page" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit()">
-                        <option value="10" {{ request('per_page', 20) == 10 ? 'selected' : '' }}>10</option>
-                        <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20</option>
-                        <option value="25" {{ request('per_page', 20) == 25 ? 'selected' : '' }}>25</option>
-                        <option value="50" {{ request('per_page', 20) == 50 ? 'selected' : '' }}>50</option>
-                        <option value="100" {{ request('per_page', 20) == 100 ? 'selected' : '' }}>100</option>
+                        <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ request('per_page') == 25 || !request('per_page') ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
                     </select>
                 </div>
                 
@@ -240,28 +239,21 @@
             </table>
         </div>
         
-        @if($products->hasPages())
+        <!-- Pagination & Per Page -->
+        @if(isset($products) && method_exists($products, 'hasPages') && $products->hasPages())
         <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div class="text-muted small">
-                Showing {{ $products->firstItem() }} - {{ $products->lastItem() }} of {{ $products->total() }} products
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">Show:</span>
+                <select class="form-select form-select-sm" style="width: auto;" onchange="changePerPage(this.value)">
+                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                    <option value="25" {{ request('per_page') == 25 || !request('per_page') ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                </select>
+                <span class="text-muted small">per page</span>
             </div>
-            <div style="flex-shrink: 0;">
-                <style>
-                    #inventoryPagination .page-link {
-                        padding: 0.125rem 0.375rem !important;
-                        font-size: 0.75rem !important;
-                        min-width: 1.5rem !important;
-                        height: 1.5rem !important;
-                        line-height: 1.2 !important;
-                    }
-                    #inventoryPagination .page-link i,
-                    #inventoryPagination .page-link i::before {
-                        font-size: 0.625rem !important;
-                    }
-                </style>
-                <div id="inventoryPagination">
-                    {{ $products->appends(request()->query())->links('vendor.pagination.simple-default') }}
-                </div>
+            <div>
+                {{ $products->appends(request()->query())->links() }}
             </div>
         </div>
         @endif
@@ -270,6 +262,14 @@
 
 @push('scripts')
 <script>
+    // Change per page
+    function changePerPage(value) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('per_page', value);
+        url.searchParams.delete('page');
+        window.location.href = url.toString();
+    }
+
     // Live search functionality
     let searchTimeout;
     const searchInput = document.getElementById('liveSearch');

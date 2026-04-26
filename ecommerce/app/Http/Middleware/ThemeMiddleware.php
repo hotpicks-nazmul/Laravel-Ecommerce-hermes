@@ -42,8 +42,20 @@ class ThemeMiddleware
         view()->share('activeTheme', $activeTheme);
         view()->share('themeSettings', $this->themeService->getThemeSettings());
         
-        // Share categories with all views for header navigation
-        $categories = Category::withCount('products')->orderBy('name')->get();
+        // Share categories with all views for header navigation (unlimited depth)
+        $allCategories = Category::where('status', 'active')
+            ->withCount('products')
+            ->orderBy('name')
+            ->get();
+        $grouped = $allCategories->groupBy('parent_id');
+        $buildTree = function($parentId) use ($grouped, &$buildTree) {
+            $children = $grouped->get($parentId, collect());
+            return $children->map(function($cat) use ($buildTree) {
+                $cat->setRelation('children', $buildTree($cat->id));
+                return $cat;
+            });
+        };
+        $categories = $buildTree(null);
         view()->share('categories', $categories);
 
         // Share SEO settings with all views

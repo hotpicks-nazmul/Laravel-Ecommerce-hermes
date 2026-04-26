@@ -250,6 +250,11 @@ class ProductController extends Controller
             'low_stock_threshold' => 'nullable|integer|min:0',
             'description' => 'required|string',
             'short_description' => 'nullable|string|max:500',
+            'weight' => 'nullable|numeric|min:0',
+            'dimensions' => 'nullable|string|max:100',
+            'specs' => 'nullable|array',
+            'specs.*.key' => 'nullable|string|max:255',
+            'specs.*.value' => 'nullable|string|max:255',
             'image' => 'nullable|image|max:5120',
             'images.*' => 'nullable|image|max:5120',
             'is_active' => 'boolean',
@@ -301,6 +306,8 @@ class ProductController extends Controller
         $data['product_source'] = 'in_house';
         $data['low_stock_threshold'] = $request->low_stock_threshold ?? 10;
         $data['stock_update_date'] = now();
+        $data['weight'] = $request->weight ?: null;
+        $data['dimensions'] = $request->dimensions ?: null;
 
         // Process featured image with WebP conversion, resize & thumbnail
         if ($request->hasFile('image')) {
@@ -559,6 +566,11 @@ class ProductController extends Controller
             'low_stock_threshold' => 'nullable|integer|min:0',
             'description' => 'required|string',
             'short_description' => 'nullable|string|max:500',
+            'weight' => 'nullable|numeric|min:0',
+            'dimensions' => 'nullable|string|max:100',
+            'specs' => 'nullable|array',
+            'specs.*.key' => 'nullable|string|max:255',
+            'specs.*.value' => 'nullable|string|max:255',
             'image' => 'nullable|image|max:5120',
             'images.*' => 'nullable|image|max:5120',
             'is_active' => 'boolean',
@@ -587,6 +599,8 @@ class ProductController extends Controller
         $data['long_description'] = $request->description;
         $data['quantity'] = $request->stock;
         $data['low_stock_threshold'] = $request->low_stock_threshold ?? $product->low_stock_threshold ?? 10;
+        $data['weight'] = $request->weight ?: null;
+        $data['dimensions'] = $request->dimensions ?: null;
         
         // Track stock updates
         if ($request->stock != $product->quantity) {

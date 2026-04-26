@@ -136,9 +136,10 @@ class CategoryController extends Controller
             }
         } else {
             // Flat view - all categories paginated
+            $perPage = $request->per_page ?? 10;
             $categories = $query->withCount('products')
                 ->ordered()
-                ->paginate(25)
+                ->paginate($perPage)
                 ->appends($request->query());
         }
         

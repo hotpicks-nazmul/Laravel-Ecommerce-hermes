@@ -253,11 +253,18 @@
             </table>
         </div>
         
-        <!-- Pagination for flat view -->
+        <!-- Pagination & Per Page -->
         @if($viewMode !== 'tree' && isset($categories) && method_exists($categories, 'hasPages') && $categories->hasPages())
-        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2" id="paginationContainer">
-            <div class="text-muted small">
-                Showing {{ $categories->firstItem() }} - {{ $categories->lastItem() }} of {{ $categories->total() }} categories
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">Show:</span>
+                <select class="form-select form-select-sm" style="width: auto;" onchange="changePerPage(this.value)">
+                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                    <option value="25" {{ request('per_page') == 25 || !request('per_page') ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                </select>
+                <span class="text-muted small">per page</span>
             </div>
             <div>
                 {{ $categories->appends(request()->query())->links() }}
@@ -332,6 +339,14 @@
 @push('scripts')
 <script>
 let selectedCategories = new Set();
+
+// Change per page
+function changePerPage(value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('per_page', value);
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+}
 
 // Toggle select all
 function toggleSelectAll(checkbox) {

@@ -28,7 +28,8 @@ class CartController extends Controller
             'product_id' => 'required|exists:products,id',
             'variant_id' => 'nullable|exists:products,id',
             'quantity' => 'integer|min:1|max:10',
-            'color_id' => 'nullable|exists:colors,id',
+            'color_id' => 'nullable',
+            'price' => 'nullable|numeric|min:0',
             'attributes' => 'nullable|array',
         ]);
 
@@ -96,6 +97,11 @@ class CartController extends Controller
                     $variantData['image'] = $colorPivot->pivot->image;
                 }
             }
+        }
+
+        // Add custom price from frontend (already calculated with adjustments)
+        if ($request->price) {
+            $variantData['custom_price'] = $request->price;
         }
         
         // Add attribute info

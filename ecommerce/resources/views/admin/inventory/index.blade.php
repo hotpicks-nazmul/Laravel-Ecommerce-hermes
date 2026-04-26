@@ -144,13 +144,20 @@
             </table>
         </div>
         
-        @if($products->hasPages())
-        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 py-2">
-            <div class="text-muted small d-flex align-items-center">
-                Showing {{ $products->firstItem() ?? 0 }} - {{ $products->lastItem() ?? 0 }} of {{ $products->total() }} entries
+        @if(isset($products) && method_exists($products, 'hasPages') && $products->hasPages())
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">Show:</span>
+                <select class="form-select form-select-sm" style="width: auto;" onchange="changePerPage(this.value)">
+                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                    <option value="25" {{ request('per_page') == 25 || !request('per_page') ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                </select>
+                <span class="text-muted small">per page</span>
             </div>
             <div>
-                {{ $products->links('pagination::simple-bootstrap-5') }}
+                {{ $products->appends(request()->query())->links() }}
             </div>
         </div>
         @endif
@@ -605,6 +612,15 @@
             alert('Failed to update threshold');
         });
     });
+    }
+
+    // Change per page
+    function changePerPage(value) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('per_page', value);
+        url.searchParams.delete('page');
+        window.location.href = url.toString();
+    }
 </script>
 @endpush
 @endsection

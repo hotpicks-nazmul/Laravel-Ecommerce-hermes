@@ -106,15 +106,30 @@
         
         <!-- Categories -->
         <div class="mt-6">
-            <h4 class="font-medium text-gray-800 mb-3 px-4">Categories</h4>
-            <div class="space-y-1">
-                @foreach($categories ?? [] as $category)
-                <a href="{{ route('products.index', ['category' => $category->slug]) }}" class="flex items-center justify-between px-4 py-2 text-gray-600 hover:text-halal-green hover:bg-gray-50 rounded-lg">
-                    <span>{{ $category->name }}</span>
-                    <span class="text-xs text-gray-400">({{ $category->products_count ?? 0 }})</span>
+            <div class="flex items-center justify-between px-4 mb-3">
+                <h4 class="font-medium text-gray-800">Categories</h4>
+                <a href="{{ route('categories.index') }}" class="text-halal-green text-sm font-medium">View All</a>
+            </div>
+            <div class="grid grid-cols-2 gap-2 px-4">
+                @foreach(($categories ?? [])->take(6) as $category)
+                <a href="{{ route('products.index', ['category' => $category->slug]) }}" class="flex flex-col items-center p-3 rounded-xl bg-gray-50 hover:bg-halal-green/10 transition-colors">
+                    <div class="w-12 h-12 rounded-full bg-halal-green/10 flex items-center justify-center mb-2">
+                        @if($category->image)
+                            <img src="{{ asset($category->image) }}" alt="{{ $category->name }}" class="w-10 h-10 rounded-full object-cover">
+                        @else
+                            <i class="{{ $category->icon ?? 'bi bi-folder-fill' }} text-xl text-halal-green"></i>
+                        @endif
+                    </div>
+                    <span class="text-sm font-medium text-gray-700 text-center">{{ $category->name }}</span>
+                    <span class="text-xs text-gray-400">{{ $category->products_count ?? 0 }}</span>
                 </a>
                 @endforeach
             </div>
+            @if(($categories->count() ?? 0) > 6)
+            <a href="{{ route('categories.index') }}" class="flex items-center justify-center mx-4 mt-3 py-2 bg-halal-green/10 text-halal-green rounded-lg text-sm font-medium">
+                View All Categories <i class="bi bi-arrow-right ml-2"></i>
+            </a>
+            @endif
         </div>
         
         <!-- Contact Info -->

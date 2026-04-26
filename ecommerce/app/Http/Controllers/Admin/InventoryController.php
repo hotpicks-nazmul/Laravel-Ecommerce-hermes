@@ -74,7 +74,7 @@ class InventoryController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('admin.inventory.partials.table-rows', compact('products'))->render(),
-                'pagination' => $products->links('pagination::bootstrap-5')->toHtml(),
+                'pagination' => $products->appends(request()->query())->links()->toHtml(),
             ]);
         }
 

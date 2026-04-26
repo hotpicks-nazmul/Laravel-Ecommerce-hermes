@@ -8,14 +8,23 @@ use App\Models\Category;
 class CategoryController extends Controller
 {
     /**
-     * Display all categories.
+     * Display all categories (unlimited depth).
      */
     public function index()
     {
-        $categories = Category::where('status', 'active')
-            ->whereNull('parent_id')
-            ->with('children')
+        $allCategories = Category::where('status', 'active')
+            ->withCount('products')
+            ->orderBy('name')
             ->get();
+        $grouped = $allCategories->groupBy('parent_id');
+        $buildTree = function($parentId) use ($grouped, &$buildTree) {
+            $children = $grouped->get($parentId, collect());
+            return $children->map(function($cat) use ($buildTree) {
+                $cat->setRelation('children', $buildTree($cat->id));
+                return $cat;
+            });
+        };
+        $categories = $buildTree(null);
 
         return view('themes.general.categories.index', compact('categories'));
     }

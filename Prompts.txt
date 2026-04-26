@@ -220,10 +220,10 @@ and fix it carefully
 
 if you do not understand my requirement, just ask me before start.
 --------------------------------------------------
-let me clear the logic.
-if a products Product Attributes and Product Colors attributes any value's price become 0 then it will show Pending otherwise SHow Done.
+in this page http://127.0.0.1:8000/admin/categories
+in Pegination 
+apply pagination style from Preference.md > 26. **Pagination Styling**
 
-pin point the problem carefully.
 and fix it carefully.
 
 if you do not understand my requirement, just ask me before start.

@@ -156,6 +156,73 @@
                             </div>
                             
                             <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="weight" class="form-label">Weight (kg)</label>
+                                        <input type="number" step="0.01" min="0" class="form-control @error('weight') is-invalid @enderror" id="weight" name="weight" value="{{ old('weight', $product->weight) }}" placeholder="0.00">
+                                        @error('weight')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                        <div class="form-text">Product weight in kilograms</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="dimensions" class="form-label">Dimensions</label>
+                                        <input type="text" class="form-control @error('dimensions') is-invalid @enderror" id="dimensions" name="dimensions" value="{{ old('dimensions', $product->dimensions) }}" placeholder="e.g., 30 x 20 x 15 cm">
+                                        @error('dimensions')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                        <div class="form-text">Length x Width x Height</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Custom Specifications Section -->
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <h6 class="mb-2"><i class="bi bi-list-check me-2"></i>Custom Specifications</h6>
+                                    <div id="specsContainer">
+                                        @php $specs = is_array($product->specs) ? $product->specs : []; @endphp
+                                        @if(empty($specs))
+                                        <div class="row mb-2 spec-row">
+                                            <div class="col-md-5">
+                                                <input type="text" class="form-control" name="specs[0][key]" placeholder="Specification Name (e.g., Material)">
+                                            </div>
+                                            <div class="col-md-5">
+                                                <input type="text" class="form-control" name="specs[0][value]" placeholder="Value (e.g., Stainless Steel)">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="button" class="btn btn-outline-danger" onclick="removeSpecRow(this)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        @else
+                                        @foreach($specs as $index => $spec)
+                                        <div class="row mb-2 spec-row">
+                                            <div class="col-md-5">
+                                                <input type="text" class="form-control" name="specs[{{ $index }}][key]" value="{{ $spec['key'] ?? '' }}" placeholder="Specification Name (e.g., Material)">
+                                            </div>
+                                            <div class="col-md-5">
+                                                <input type="text" class="form-control" name="specs[{{ $index }}][value]" value="{{ $spec['value'] ?? '' }}" placeholder="Value (e.g., Stainless Steel)">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="button" class="btn btn-outline-danger" onclick="removeSpecRow(this)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                        @endif
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addSpecRow()">
+                                        <i class="bi bi-plus-lg me-1"></i> Add Specification
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <div class="form-check">
@@ -1368,6 +1435,22 @@ function removeColorValueImage(colorId, valueId) {
         console.error('Error:', error);
         alert('An error occurred while deleting the image');
     });
+}
+
+let specCount = {{ is_array($product->specs) ? count($product->specs) : 1 }};
+function addSpecRow() {
+    const container = document.getElementById('specsContainer');
+    const row = document.createElement('div');
+    row.className = 'row mb-2 spec-row';
+    row.innerHTML = '<div class="col-md-5"><input type="text" class="form-control" name="specs[' + specCount + '][key]" placeholder="Specification Name (e.g., Material)"></div><div class="col-md-5"><input type="text" class="form-control" name="specs[' + specCount + '][value]" placeholder="Value (e.g., Stainless Steel)"></div><div class="col-md-2"><button type="button" class="btn btn-outline-danger" onclick="removeSpecRow(this)"><i class="bi bi-trash"></i></button></div>';
+    container.appendChild(row);
+    specCount++;
+}
+function removeSpecRow(btn) {
+    const container = document.getElementById('specsContainer');
+    if (container.children.length > 1) {
+        btn.closest('.spec-row').remove();
+    }
 }
 </script>
 @endpush

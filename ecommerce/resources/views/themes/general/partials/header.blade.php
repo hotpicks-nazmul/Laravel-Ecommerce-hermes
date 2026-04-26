@@ -182,21 +182,66 @@ $menuFontWeight = $menuSettings['menu_font_weight'] ?? '400';
     <nav class="bg-halal-green text-white">
         <div class="container mx-auto px-4">
             <div class="flex items-center">
-                <!-- Categories Dropdown -->
+                <!-- Categories Mega Menu -->
                 <div class="relative group">
                     <button class="flex items-center space-x-2 bg-halal-dark px-4 py-2 hover:bg-halal-light transition-colors">
                         <i class="bi bi-grid-3x3-gap-fill"></i>
                         <span class="font-medium">All Categories</span>
-                        <i class="bi bi-chevron-down"></i>
+                        <i class="bi bi-chevron-down group-hover:rotate-180 transition-transform duration-200"></i>
                     </button>
-                    <div class="absolute left-0 mt-0 w-64 bg-white text-gray-700 rounded-b-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                        @foreach($categories ?? [] as $category)
-                        <a href="{{ route('products.index', ['category' => $category->slug]) }}" class="flex items-center px-3 py-2 hover:bg-green-50 hover:text-halal-green border-b border-gray-100">
-                            <i class="bi bi-dot text-halal-green mr-2"></i>
-                            {{ $category->name }}
-                            <span class="ml-auto text-xs text-gray-400">({{ $category->products_count ?? 0 }})</span>
+                    <!-- Mega Menu Panel -->
+                    <div class="absolute left-0 top-full mt-0 w-[700px] bg-white text-gray-700 rounded-b-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[60] border border-gray-100" style="margin-left:-1px;">
+                        <div class="grid grid-cols-3 gap-0">
+                            @foreach($categories ?? [] as $category)
+                            <div class="p-4 @if(!$loop->last) border-r border-gray-100 @endif">
+                                <a href="{{ route('products.index', ['category' => $category->slug]) }}" class="flex items-center space-x-2 mb-3 group/cat">
+                                    <div class="w-8 h-8 rounded-lg bg-halal-green/10 flex items-center justify-center flex-shrink-0 group-hover/cat:bg-halal-green/20 transition-colors">
+                                        @if($category->image)
+                                            <img src="{{ asset($category->image) }}" alt="" class="w-full h-full object-cover rounded-lg">
+                                        @else
+                                            <i class="{{ $category->icon ?? 'bi bi-folder-fill' }} text-halal-green text-sm"></i>
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <span class="font-semibold text-gray-800 text-sm group-hover/cat:text-halal-green transition-colors">{{ $category->name }}</span>
+                                        <span class="text-xs text-gray-400 ml-1">({{ $category->products_count ?? 0 }})</span>
+                                    </div>
+                                </a>
+                                @if($category->children->count() > 0)
+                                <ul class="space-y-0.5">
+                                    @foreach($category->children as $child)
+                                    <li>
+                                        <a href="{{ route('products.index', ['category' => $child->slug]) }}" class="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-green-50 hover:text-halal-green transition-colors text-sm text-gray-600">
+                                            <span>{{ $child->name }}</span>
+                                            <span class="text-xs text-gray-400">{{ $child->products_count ?? 0 }}</span>
+                                        </a>
+                                        @if($child->children->count() > 0)
+                                        <ul class="ml-3 space-y-0.5 mt-0.5 mb-1">
+                                            @foreach($child->children->take(4) as $grandchild)
+                                            <li>
+                                                <a href="{{ route('products.index', ['category' => $grandchild->slug]) }}" class="flex items-center px-2 py-1 rounded-md hover:bg-green-50 hover:text-halal-green transition-colors text-xs text-gray-500">
+                                                    {{ $grandchild->name }}
+                                                </a>
+                                            </li>
+                                            @endforeach
+                                            @if($child->children->count() > 4)
+                                            <li class="px-2 text-xs text-halal-green font-medium">+{{ $child->children->count() - 4 }} more</li>
+                                            @endif
+                                        </ul>
+                                        @endif
+                                    </li>
+                                    @endforeach
+                                </ul>
+                                @endif
+                                <a href="{{ route('products.index', ['category' => $category->slug]) }}" class="block mt-2 text-xs text-halal-green font-medium hover:text-halal-dark transition-colors px-2">
+                                    View All <i class="bi bi-arrow-right ml-0.5"></i>
+                                </a>
+                            </div>
+                            @endforeach
+                        </div>
+                        <a href="{{ route('categories.index') }}" class="block px-4 py-3 text-center bg-gradient-to-r from-halal-green/5 to-green-50 text-halal-green hover:bg-halal-green hover:text-white font-medium transition-all rounded-b-xl border-t border-gray-100">
+                            <i class="bi bi-grid-3x3-gap-fill mr-2"></i> Browse All Categories
                         </a>
-                        @endforeach
                     </div>
                 </div>
                 

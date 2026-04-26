@@ -31,7 +31,7 @@ This document contains UI/UX preferences and guidelines for consistent styling a
 23. **Delete Image Functionality** - Delete button style for existing images with AJAX
 24. **Auto-generate Slug from Name** - Real-time slug generation on name input
 25. **Admin Toast Notification** - Slide-in toast from right with white background for success/error messages
-26. **Pagination Styling** - Fix for default pagination using Tailwind instead of Bootstrap
+26. **Pagination Styling** - Pagination footer with per-page selector for admin listing pages
 
 ---
 
@@ -2790,97 +2790,93 @@ window.addEventListener('DOMContentLoaded', function() {
 
 ## Pagination Styling
 
-### Problem
+### Overview
 
-Admin pages were rendering pagination with Tailwind CSS styles instead of Bootstrap 5 styles. This happened because Laravel's default pagination view is `pagination::tailwind`, but the admin panel uses Bootstrap 5.
+Admin > Products > All Products page uses a clean pagination footer with per-page selector and Laravel's default bootstrap-5 pagination view.
 
-**Symptoms:**
-- Pagination buttons appeared with Tailwind styling (gray borders, rounded-md, etc.)
-- Not matching the Bootstrap-based admin panel design
-- Pagination was inconsistent with other admin UI elements
+### Implementation
 
-### Root Cause
-
-Laravel's `Illuminate\Pagination\AbstractPaginator` has a static property `$defaultView` set to `'pagination::tailwind'`. The config file `config/pagination.php` exists but was not being read by the paginator at runtime.
-
-### Solution
-
-Create a service provider to explicitly set the default pagination view:
-
-#### 1. Create `app/Providers/PaginationServiceProvider.php`
-
-```php
-<?php
-
-namespace App\Providers;
-
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\ServiceProvider;
-
-class PaginationServiceProvider extends ServiceProvider
-{
-    public function register(): void
-    {
-        //
-    }
-
-    public function boot(): void
-    {
-        Paginator::defaultView('pagination::bootstrap-5');
-        Paginator::defaultSimpleView('pagination::simple-bootstrap-5');
-    }
-}
-```
-
-#### 2. Register in `bootstrap/providers.php`
-
-```php
-return [
-    App\Providers\AppServiceProvider::class,
-    App\Providers\CurrencyServiceProvider::class,
-    App\Providers\PaginationServiceProvider::class,  // Add this
-];
-```
-
-#### 3. Use the correct pagination view in views
-
-In admin listing pages, use the simple version to avoid duplicate "Showing X to Y of Z" text:
+#### HTML Structure
 
 ```blade
-{{ $products->links('pagination::simple-bootstrap-5') }}
-```
-
-### Pagination Footer Structure
-
-For proper alignment in card-footer, use this structure:
-
-```blade
-@if($products->hasPages())
-<div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 py-2">
-    <div class="text-muted small d-flex align-items-center">
-        Showing {{ $products->firstItem() ?? 0 }} - {{ $products->lastItem() ?? 0 }} of {{ $products->total() }} entries
+<!-- Pagination & Per Page -->
+@if(isset($products) && method_exists($products, 'hasPages') && $products->hasPages())
+<div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+        <span class="text-muted small">Show:</span>
+        <select class="form-select form-select-sm" style="width: auto;" onchange="changePerPage(this.value)">
+            <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+            <option value="25" {{ request('per_page') == 25 || !request('per_page') ? 'selected' : '' }}>25</option>
+            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+        </select>
+        <span class="text-muted small">per page</span>
     </div>
     <div>
-        {{ $products->links('pagination::simple-bootstrap-5') }}
+        {{ $products->appends(request()->query())->links() }}
     </div>
 </div>
 @endif
 ```
 
-### Key Points
+#### JavaScript Function
 
-| Item | Value |
-|------|-------|
-| **Default pagination view** | `pagination::bootstrap-5` |
-| **Simple pagination view** | `pagination::simple-bootstrap-5` |
-| **Why simple version** | Bootstrap-5 has its own "Showing X to Y" text which conflicts with custom text |
-| **Use in card-footer** | `py-2` for vertical padding, `d-flex align-items-center` for alignment |
+```javascript
+// Change per page
+function changePerPage(value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('per_page', value);
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+}
+```
 
-### Files Created/Modified
+### Key Features
 
-- **Created:** `app/Providers/PaginationServiceProvider.php`
-- **Modified:** `bootstrap/providers.php` - Added PaginationServiceProvider
-- **Modified:** `admin/inventory/index.blade.php` - Updated pagination structure
+- **Per-page selector**: Dropdown to change number of items per page (10, 25, 50, 100)
+- **Show/Per page text**: Labeled dropdown for better UX
+- **Responsive**: Uses flex-wrap for mobile compatibility
+- **Query preservation**: Uses `appends(request()->query())` to preserve filters/search/sort
+
+### Bootstrap-5 Pagination View
+
+The Laravel bootstrap-5 pagination view includes "Showing X to Y of Z results" text automatically. To modify the styling:
+
+**File**: `resources/views/vendor/pagination/bootstrap-5.blade.php`
+
+```blade
+<div class="d-none flex-sm-fill d-sm-flex align-items-sm-center justify-content-sm-between">
+    <div class="text-center text-sm-start pe-3">
+        <p class="small text-muted mb-0">
+            {!! __('Showing') !!}
+            <span class="fw-semibold">{{ $paginator->firstItem() }}</span>
+            {!! __('to') !!}
+            <span class="fw-semibold">{{ $paginator->lastItem() }}</span>
+            {!! __('of') !!}
+            <span class="fw-semibold">{{ $paginator->total() }}</span>
+            {!! __('results') !!}
+        </p>
+    </div>
+    <div>
+        {{-- Pagination links --}}
+    </div>
+</div>
+```
+
+### Key Classes
+
+| Class | Purpose |
+|------|---------|
+| `card-footer bg-white` | White footer matching Bootstrap card styling |
+| `d-flex justify-content-between` | Spread items to opposite ends |
+| `align-items-center` | Vertical alignment |
+| `flex-wrap gap-2` | Wrap on mobile with gap |
+| `form-select form-select-sm` | Compact dropdown |
+| `text-muted small` | Muted label text |
+
+### Where Implemented
+
+- `/admin/products` - All Products listing page
 
 ---
 

@@ -151,10 +151,11 @@ class Cart extends Model
         }
 
         if (!$found) {
+            $price = isset($variantData['custom_price']) ? $variantData['custom_price'] : $product->final_price;
             $newItem = [
                 'product_id' => $product->id,
                 'name' => $product->name,
-                'price' => $product->final_price,
+                'price' => $price,
                 'quantity' => $quantity,
                 'image' => $product->featured_image ?? $product->image,
                 'variant_data' => $variantData,
@@ -247,8 +248,8 @@ class Cart extends Model
         $items = $this->items ?? [];
         return array_sum(array_map(function ($item) {
             $price = $item['price'];
-            // Add price adjustment if exists
-            if (isset($item['price_adjustment'])) {
+            // Add price adjustment if exists (only when not using custom_price)
+            if (isset($item['price_adjustment']) && !isset($item['variant_data']['custom_price'])) {
                 $price += $item['price_adjustment'];
             }
             return $price * $item['quantity'];

@@ -110,37 +110,41 @@ class ProductController extends Controller
             }
         }
 
-        // Also build attribute options from attribute values with price and image from pivot table
+        // Build attribute options from JSON column
         $attributeOptions = [];
-        if ($product->visibleAttributeValues()->count() > 0) {
-            foreach ($product->visibleAttributeValues as $value) {
-                if ($value->attribute) {
-                    $attrName = $value->attribute->name;
-                    if (!isset($attributeOptions[$attrName])) {
-                        $attributeOptions[$attrName] = [];
-                    }
-                    
-                    // Check if value already exists with same name
-                    $exists = false;
-                    foreach ($attributeOptions[$attrName] as $existing) {
-                        if ($existing['value'] === $value->value) {
-                            $exists = true;
-                            break;
+        $productAttrsRaw = $product->attributes;
+        // Handle both string (JSON) and array
+        $productAttrs = is_string($productAttrsRaw) ? json_decode($productAttrsRaw, true) : ($productAttrsRaw ?? []);
+        
+        if (!empty($productAttrs) && is_array($productAttrs)) {
+            // Get all attributes for reference
+            $allAttributes = \App\Models\Attribute::all()->keyBy('id');
+            
+            foreach ($productAttrs as $attrId => $attrData) {
+                // Use saved name, or fallback to attribute name from DB
+                $attrName = $attrData['name'] ?? '';
+                if (empty($attrName) && isset($allAttributes[$attrId])) {
+                    $attrName = $allAttributes[$attrId]->name;
+                }
+                if (empty($attrName)) {
+                    $attrName = 'Option ' . $attrId;
+                }
+                
+                if (isset($attrData['values']) && is_array($attrData['values'])) {
+                    foreach ($attrData['values'] as $valueId => $value) {
+                        if (!isset($attributeOptions[$attrName])) {
+                            $attributeOptions[$attrName] = [];
                         }
-                    }
-                    
-                    if (!$exists) {
-                        // Get price from pivot table (product_attribute_values)
-                        $pivotPrice = $value->pivot->price ?? 0;
-                        $attributeOptions[$attrName][] = [
-                            'id' => $value->id,
-                            'value' => $value->value,
-                            'price' => $pivotPrice,
-                            'color_code' => $value->color_code,
-                            'image' => $value->pivot->image ?? null,
-                            'quantity' => $value->pivot->quantity ?? 0,
-                            'sku' => $value->pivot->sku ?? null,
-                        ];
+                        $exists = in_array($value['value_name'] ?? '', array_column($attributeOptions[$attrName], 'value'));
+                        if (!$exists && !empty($value['value_name'])) {
+                            $attributeOptions[$attrName][] = [
+                                'id' => $valueId,
+                                'value' => $value['value_name'] ?? '',
+                                'price' => $value['price'] ?? 0,
+                                'color_code' => $value['color_code'] ?? null,
+                                'image' => isset($value['image']) ? preg_replace('/^\/storage\//', '', $value['image']) : null,
+                            ];
+                        }
                     }
                 }
             }
@@ -167,31 +171,49 @@ class ProductController extends Controller
         // Get approved reviews with pagination
         $reviews = $product->approvedReviews()->latest()->paginate(5);
 
-        // Get product attributes grouped by attribute name
+        // Get product attributes grouped by attribute name (from JSON column - fallback)
         $attributes = [];
-        if ($product->visibleAttributeValues()->count() > 0) {
-            foreach ($product->visibleAttributeValues as $value) {
-                if ($value->attribute) {
-                    $attributes[$value->attribute->name][] = $value;
+
+        // Get colors from JSON column (admin saves here, not in pivot)
+        $colors = collect([]);
+        $colorOptions = [];
+        $productColorsRaw = $product->colors;
+        $productColors = is_string($productColorsRaw) ? json_decode($productColorsRaw, true) : ($productColorsRaw ?? []);
+        
+        if (!empty($productColors) && is_array($productColors)) {
+            foreach ($productColors as $colorItem) {
+                // Handle nested 'values' structure from admin panel
+                if (isset($colorItem['values']) && is_array($colorItem['values'])) {
+                    foreach ($colorItem['values'] as $valueId => $valueData) {
+                        $colorOptions[] = [
+                            'id' => $valueId,
+                            'name' => $valueData['value_name'] ?? '',
+                            'hex_code' => $valueData['hex_code'] ?? '#000000',
+                            'image' => isset($valueData['image']) ? preg_replace('/^\/storage\//', '', $valueData['image']) : null,
+                            'price' => $valueData['price'] ?? 0,
+                            'quantity' => $valueData['quantity'] ?? 0,
+                            'sku' => $valueData['sku'] ?? null,
+                        ];
+                    }
+                }
+                // Handle flat structure (direct color_id)
+                elseif (isset($colorItem['color_id'])) {
+                    $colorId = $colorItem['color_id'];
+                    $colorModel = \App\Models\Color::find($colorId);
+                    if ($colorModel) {
+                        $colors->push($colorModel);
+                        $colorOptions[] = [
+                            'id' => $colorModel->id,
+                            'name' => $colorModel->name,
+                            'hex_code' => $colorModel->hex_code,
+                            'image' => $colorItem['image'] ?? null,
+                            'price' => $colorItem['price'] ?? 0,
+                            'quantity' => $colorItem['quantity'] ?? 0,
+                            'sku' => $colorItem['sku'] ?? null,
+                        ];
+                    }
                 }
             }
-        }
-
-        // Get visible product colors with price, quantity, sku from pivot
-        $colors = $product->visibleColors()->where('is_active', true)->orderBy('display_order')->get();
-        
-        // Build color options with price from pivot
-        $colorOptions = [];
-        foreach ($colors as $color) {
-            $colorOptions[] = [
-                'id' => $color->id,
-                'name' => $color->name,
-                'hex_code' => $color->hex_code,
-                'image' => $color->pivot->image ?? null,
-                'price' => $color->pivot->price_adjustment ?? 0,
-                'quantity' => $color->pivot->quantity ?? 0,
-                'sku' => $color->pivot->sku ?? null,
-            ];
         }
 
         return view('themes.general.products.show', compact('product', 'relatedProducts', 'reviews', 'attributes', 'colors', 'colorOptions', 'variants', 'variantOptions', 'attributeOptions', 'variantImages'));
