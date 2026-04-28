@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use App\Models\Product;
 use App\Models\Cart;
 use App\Models\Setting;
@@ -69,7 +70,7 @@ class CartController extends Controller
 
         // Prepare variant data
         $variantData = [];
-        
+
         // Add variant info if selected
         if ($variant) {
             $variantData['variant_id'] = $variant->id;
@@ -80,14 +81,16 @@ class CartController extends Controller
         
         // Add color info
         if ($request->color_id) {
-            $color = \App\Models\Color::find($request->color_id);
+            $colorId = $request->input('color_id');
+            $color = \App\Models\Color::find($colorId);
+            
             if ($color) {
                 $variantData['color_id'] = $color->id;
                 $variantData['color_name'] = $color->name;
                 $variantData['color_hex'] = $color->hex_code;
                 
                 // Check for color-specific price adjustment
-                $colorPivot = $product->colors()->where('color_id', $request->color_id)->first();
+                $colorPivot = $product->colors()->where('color_id', $colorId)->first();
                 if ($colorPivot && $colorPivot->pivot->price_adjustment) {
                     $variantData['price_adjustment'] = $colorPivot->pivot->price_adjustment;
                 }
@@ -95,6 +98,43 @@ class CartController extends Controller
                 // Check for color-specific image
                 if ($colorPivot && $colorPivot->pivot->image) {
                     $variantData['image'] = $colorPivot->pivot->image;
+                }
+            } else {
+                // Color ID might be from nested values structure (array index)
+                // Try to find color data directly from product's colors JSON
+                $productColorsRaw = $product->colors;
+                $productColors = is_string($productColorsRaw) ? json_decode($productColorsRaw, true) : ($productColorsRaw ?? []);
+                
+                if (!empty($productColors) && is_array($productColors)) {
+                    foreach ($productColors as $colorItem) {
+                        // Handle nested 'values' structure
+                        if (isset($colorItem['values']) && is_array($colorItem['values'])) {
+                            foreach ($colorItem['values'] as $valueId => $valueData) {
+                                if ((string)$valueId === (string)$colorId || (int)$valueId === (int)$colorId) {
+                                    $variantData['color_id'] = $colorId;
+                                    $variantData['color_name'] = $valueData['value_name'] ?? 'Color';
+                                    $variantData['color_hex'] = $valueData['hex_code'] ?? '#000000';
+                                    if (isset($valueData['price']) && $valueData['price'] > 0) {
+                                        $variantData['price_adjustment'] = $valueData['price'];
+                                    }
+                                    if (isset($valueData['image'])) {
+                                        $variantData['image'] = $valueData['image'];
+                                    }
+                                    break 2;
+                                }
+                            }
+                        }
+                        // Handle flat structure with color_id
+                        elseif (isset($colorItem['color_id']) && (string)$colorItem['color_id'] === (string)$colorId) {
+                            $variantData['color_id'] = $colorId;
+                            $variantData['color_name'] = $colorItem['name'] ?? $colorItem['value_name'] ?? 'Color';
+                            $variantData['color_hex'] = $colorItem['hex_code'] ?? '#000000';
+                            if (isset($colorItem['price']) && $colorItem['price'] > 0) {
+                                $variantData['price_adjustment'] = $colorItem['price'];
+                            }
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -105,9 +145,14 @@ class CartController extends Controller
         }
         
         // Add attribute info
-        if ($request->attributes && is_array($request->attributes)) {
+        if ($request->has('attributes') && is_array($request->input('attributes'))) {
             $variantData['attributes'] = [];
-            foreach ($request->attributes as $key => $valueId) {
+            
+            // Get product's attributes JSON for fallback lookup
+            $productAttrsRaw = $product->attributes;
+            $productAttrs = is_string($productAttrsRaw) ? json_decode($productAttrsRaw, true) : ($productAttrsRaw ?? []);
+            
+            foreach ($request->input('attributes') as $key => $valueId) {
                 $attributeValue = \App\Models\AttributeValue::with('attribute')->find($valueId);
                 if ($attributeValue) {
                     $variantData['attributes'][] = [
@@ -116,6 +161,26 @@ class CartController extends Controller
                         'value_id' => $attributeValue->id,
                         'value' => $attributeValue->value,
                     ];
+                } else {
+                    // Fallback: find attribute from product's JSON attributes
+                    if (!empty($productAttrs) && is_array($productAttrs)) {
+                        foreach ($productAttrs as $attrId => $attrData) {
+                            $attrName = $attrData['name'] ?? '';
+                            if (isset($attrData['values']) && is_array($attrData['values'])) {
+                                foreach ($attrData['values'] as $vid => $valueData) {
+                                    if ((string)$vid === (string)$valueId || (int)$vid === (int)$valueId) {
+                                        $variantData['attributes'][] = [
+                                            'attribute_id' => $attrId,
+                                            'attribute_name' => $attrName,
+                                            'value_id' => $vid,
+                                            'value' => $valueData['value_name'] ?? $valueData['value'] ?? '',
+                                        ];
+                                        break 2;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -156,18 +221,56 @@ class CartController extends Controller
                         }
                     }
                     
-                    // Build variant description
-                    $variantDesc = [];
-                    if (isset($item['color_name'])) {
-                        $variantDesc[] = 'Color: ' . $item['color_name'];
+                    $colorName = $item['color_name'] ?? null;
+                    $colorHex = $item['color_hex'] ?? null;
+                    if (!$colorName && isset($item['variant_data']['color_name'])) {
+                        $colorName = $item['variant_data']['color_name'];
+                        $colorHex = $item['variant_data']['color_hex'] ?? null;
                     }
-                    if (isset($item['attributes']) && is_array($item['attributes'])) {
-                        foreach ($item['attributes'] as $attr) {
-                            $variantDesc[] = $attr['attribute_name'] . ': ' . $attr['value'];
+                    
+                    $attributes = $item['attributes'] ?? [];
+                    if (empty($attributes) && isset($item['variant_data']['attributes'])) {
+                        $attributes = $item['variant_data']['attributes'];
+                    }
+                    
+                    $variantBadges = [];
+                    if ($colorName) {
+                        $variantBadges[] = [
+                            'type' => 'color',
+                            'label' => 'Color',
+                            'value' => $colorName,
+                            'hex' => $colorHex,
+                        ];
+                    }
+                    if (isset($attributes) && is_array($attributes)) {
+                        foreach ($attributes as $attr) {
+                            if (!empty($attr['value'])) {
+                                $variantBadges[] = [
+                                    'type' => 'attribute',
+                                    'label' => $attr['attribute_name'] ?? '',
+                                    'value' => $attr['value'],
+                                ];
+                            }
                         }
                     }
                     
+                    $variantDesc = [];
+                    $variantInfo = [];
+                    if ($colorName) {
+                        $variantDesc[] = 'Color: ' . $colorName;
+                        $variantInfo[] = $colorName;
+                    }
+                    if (isset($attributes) && is_array($attributes)) {
+                        foreach ($attributes as $attr) {
+                            $variantDesc[] = ($attr['attribute_name'] ?? '') . ': ' . ($attr['value'] ?? '');
+                            if (!empty($attr['value'])) {
+                                $variantInfo[] = $attr['value'];
+                            }
+                        }
+                    }
+
                     $items[] = [
+                        'cart_item_id' => $item['cart_item_id'] ?? $index,
                         'id' => $index,
                         'product_id' => $productId,
                         'name' => $item['name'] ?? $productItem->name,
@@ -175,6 +278,11 @@ class CartController extends Controller
                         'image' => $imageUrl,
                         'quantity' => $item['quantity'] ?? 1,
                         'variant' => implode(', ', $variantDesc),
+                        'variant_info' => implode(' / ', array_filter($variantInfo)),
+                        'variant_badges' => $variantBadges,
+                        'color_name' => $colorName,
+                        'color_hex' => $colorHex,
+                        'attributes' => $attributes,
                         'variant_data' => $item['variant_data'] ?? null,
                     ];
                 }
@@ -196,12 +304,12 @@ class CartController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'product_id' => 'required|exists:products,id',
+            'cart_item_id' => 'required|string',
             'quantity' => 'required|integer|min:1|max:10',
         ]);
 
         $cart = $this->getCart();
-        $cart->updateItem($request->product_id, $request->quantity);
+        $cart->updateItem($request->cart_item_id, $request->quantity);
 
         return response()->json([
             'success' => true,
@@ -216,11 +324,11 @@ class CartController extends Controller
     public function remove(Request $request)
     {
         $request->validate([
-            'product_id' => 'required|exists:products,id',
+            'cart_item_id' => 'required|string',
         ]);
 
         $cart = $this->getCart();
-        $cart->removeItem($request->product_id);
+        $cart->removeItem($request->cart_item_id);
 
         return response()->json([
             'success' => true,
@@ -282,7 +390,47 @@ class CartController extends Controller
                         }
                     }
                     
+                    $variantInfo = [];
+                    $variantBadges = [];
+                    
+                    $colorName = $item['color_name'] ?? null;
+                    $colorHex = $item['color_hex'] ?? null;
+                    
+                    if (!$colorName && isset($item['variant_data']['color_name'])) {
+                        $colorName = $item['variant_data']['color_name'];
+                        $colorHex = $item['variant_data']['color_hex'] ?? null;
+                    }
+                    
+                    if ($colorName) {
+                        $variantInfo[] = $colorName;
+                        $variantBadges[] = [
+                            'type' => 'color',
+                            'label' => 'Color',
+                            'value' => $colorName,
+                            'hex' => $colorHex,
+                        ];
+                    }
+                    
+                    $attributes = $item['attributes'] ?? [];
+                    if (empty($attributes) && isset($item['variant_data']['attributes'])) {
+                        $attributes = $item['variant_data']['attributes'];
+                    }
+                    
+                    if (isset($attributes) && is_array($attributes)) {
+                        foreach ($attributes as $attr) {
+                            if (!empty($attr['value'])) {
+                                $variantInfo[] = $attr['value'];
+                                $variantBadges[] = [
+                                    'type' => 'attribute',
+                                    'label' => $attr['attribute_name'] ?? '',
+                                    'value' => $attr['value'],
+                                ];
+                            }
+                        }
+                    }
+
                     $items[] = [
+                        'cart_item_id' => $item['cart_item_id'] ?? $index,
                         'id' => $index,
                         'product_id' => $productId,
                         'name' => $item['name'] ?? $product->name,
@@ -290,6 +438,11 @@ class CartController extends Controller
                         'image' => $imageUrl,
                         'quantity' => $item['quantity'] ?? 1,
                         'subtotal' => $price * ($item['quantity'] ?? 1),
+                        'variant_info' => implode(' / ', array_filter($variantInfo)),
+                        'variant_badges' => $variantBadges,
+                        'color_name' => $item['color_name'] ?? null,
+                        'color_hex' => $item['color_hex'] ?? null,
+                        'attributes' => $item['attributes'] ?? [],
                     ];
                     $subtotal += $price * ($item['quantity'] ?? 1);
                 }
@@ -322,7 +475,7 @@ class CartController extends Controller
         ]);
     }
 
-    /**
+/**
      * Get or create cart instance.
      */
     private function getCart()
@@ -330,24 +483,24 @@ class CartController extends Controller
         if (auth()->check()) {
             return Cart::firstOrCreate(['user_id' => auth()->id()]);
         }
-        
-        // For non-authenticated users, try to get cart from session
-        $cartId = session()->get('cart_id');
-        
-        if ($cartId) {
-            $cart = Cart::find($cartId);
-            if ($cart) {
-                return $cart;
-            }
+
+        // Use actual session ID from Laravel
+        $sessionId = session()->getId();
+
+        $cart = Cart::where('session_id', $sessionId)->whereNull('user_id')->first();
+        if ($cart) {
+            return $cart;
         }
-        
-        // Create new cart and store in session
+
+        // Create new cart for this session
         $cart = Cart::create([
+            'session_id' => $sessionId,
+            'user_id' => null,
             'items' => []
         ]);
-        
+
         session()->put('cart_id', $cart->id);
-        
+
         return $cart;
     }
 }

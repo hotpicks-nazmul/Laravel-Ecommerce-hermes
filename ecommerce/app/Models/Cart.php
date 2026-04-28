@@ -135,87 +135,101 @@ class Cart extends Model
     public function addItem($product, $quantity = 1, $variantData = [])
     {
         $items = $this->items ?? [];
+
+        $price = isset($variantData['custom_price']) ? $variantData['custom_price'] : $product->final_price;
         
-        // Create a unique key for this product variant
+        // Generate unique variant key to check for existing item
         $variantKey = $this->generateVariantKey($product->id, $variantData);
         
-        $found = false;
+        // Check if item with same variant already exists
         foreach ($items as &$item) {
-            // Check if same product with same variant exists
-            $itemVariantKey = $this->generateVariantKey($item['product_id'], $item['variant_data'] ?? []);
-            if ($itemVariantKey === $variantKey) {
-                $item['quantity'] += $quantity;
-                $found = true;
-                break;
+            if (isset($item['product_id']) && $item['product_id'] == $product->id) {
+                $existingKey = $this->generateVariantKey($product->id, [
+                    'color_id' => $item['color_id'] ?? null,
+                    'attributes' => $item['attributes'] ?? [],
+                ]);
+                
+                if ($existingKey === $variantKey) {
+                    // Same variant found - increment quantity
+                    $item['quantity'] = ($item['quantity'] ?? 1) + $quantity;
+                    $this->items = $items;
+                    $this->save();
+                    return;
+                }
             }
         }
-
-        if (!$found) {
-            $price = isset($variantData['custom_price']) ? $variantData['custom_price'] : $product->final_price;
-            $newItem = [
-                'product_id' => $product->id,
-                'name' => $product->name,
-                'price' => $price,
-                'quantity' => $quantity,
-                'image' => $product->featured_image ?? $product->image,
-                'variant_data' => $variantData,
-            ];
-            
-            // Add color info to item root for easy access
-            if (isset($variantData['color_id'])) {
-                $newItem['color_id'] = $variantData['color_id'];
-                $newItem['color_name'] = $variantData['color_name'] ?? '';
-                $newItem['color_hex'] = $variantData['color_hex'] ?? '';
-            }
-            
-            // Add price adjustment if exists
-            if (isset($variantData['price_adjustment'])) {
-                $newItem['price_adjustment'] = $variantData['price_adjustment'];
-            }
-            
-            // Add color-specific image if exists
-            if (isset($variantData['image'])) {
-                $newItem['image'] = $variantData['image'];
-            }
-            
-            // Add attributes info
-            if (isset($variantData['attributes'])) {
-                $newItem['attributes'] = $variantData['attributes'];
-            }
-            
-            $items[] = $newItem;
+        
+        // No existing item found - create new item
+        $newItem = [
+            'cart_item_id' => uniqid('cart_', true),
+            'product_id' => $product->id,
+            'name' => $product->name,
+            'price' => $price,
+            'quantity' => $quantity,
+            'image' => $product->featured_image ?? $product->image,
+            'variant_data' => $variantData,
+        ];
+        
+        if (isset($variantData['color_id'])) {
+            $newItem['color_id'] = $variantData['color_id'];
+            $newItem['color_name'] = $variantData['color_name'] ?? '';
+            $newItem['color_hex'] = $variantData['color_hex'] ?? '';
         }
+        
+        if (isset($variantData['price_adjustment'])) {
+            $newItem['price_adjustment'] = $variantData['price_adjustment'];
+        }
+        
+        if (isset($variantData['image'])) {
+            $newItem['image'] = $variantData['image'];
+        }
+        
+        if (isset($variantData['attributes'])) {
+            $newItem['attributes'] = $variantData['attributes'];
+        }
+        
+        $items[] = $newItem;
 
         $this->items = $items;
         $this->save();
     }
     
     /**
-     * Generate a unique key for a product variant.
+     * Generate a unique key for a product variant using value_ids.
      */
-    protected function generateVariantKey($productId, $variantData)
+    public function generateVariantKey($productId, $variantData)
     {
         $key = 'product_' . $productId;
-        
-        if (isset($variantData['color_id'])) {
+
+        // Use color_id for uniqueness
+        if (isset($variantData['color_id']) && !empty($variantData['color_id'])) {
             $key .= '_color_' . $variantData['color_id'];
         }
-        
+
+        // Use attribute value_ids for uniqueness (sorted for consistency)
         if (isset($variantData['attributes']) && is_array($variantData['attributes'])) {
-            $attrIds = array_column($variantData['attributes'], 'value_id');
+            $attrIds = [];
+            foreach ($variantData['attributes'] as $attr) {
+                // Use value_id for uniqueness
+                if (isset($attr['value_id'])) {
+                    $attrIds[] = 'attr_' . $attr['value_id'];
+                }
+            }
             sort($attrIds);
-            $key .= '_attrs_' . implode('_', $attrIds);
+            if (!empty($attrIds)) {
+                $key .= '_attrs_' . implode('_', $attrIds);
+            }
         }
-        
+
         return $key;
     }
 
-    public function updateItem($productId, $quantity)
+    public function updateItem($cartItemId, $quantity)
     {
         $items = $this->items ?? [];
         
         foreach ($items as &$item) {
-            if ($item['product_id'] == $productId) {
+            if ($item['cart_item_id'] === $cartItemId) {
                 $item['quantity'] = $quantity;
                 break;
             }
@@ -225,12 +239,12 @@ class Cart extends Model
         $this->save();
     }
 
-    public function removeItem($productId)
+    public function removeItem($cartItemId)
     {
         $items = $this->items ?? [];
         
-        $items = array_filter($items, function ($item) use ($productId) {
-            return $item['product_id'] != $productId;
+        $items = array_filter($items, function ($item) use ($cartItemId) {
+            return $item['cart_item_id'] !== $cartItemId;
         });
 
         $this->items = array_values($items);

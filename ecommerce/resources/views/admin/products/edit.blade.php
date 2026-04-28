@@ -253,7 +253,7 @@
                             <h6 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Product Attributes</h6>
                         </div>
                         <div class="card-body">
-                            <p class="text-muted small mb-3">Select attributes to add price, quantity, image and SKU for each value</p>
+                            <p class="text-muted small mb-3">Select attributes to add price, quantity and SKU for each value</p>
 
                              <div class="mb-3">
                                  <label class="form-label">Select Attributes</label>
@@ -298,7 +298,7 @@
                             <h6 class="mb-0"><i class="bi bi-palette me-2"></i>Product Colors</h6>
                         </div>
                         <div class="card-body">
-                            <p class="text-muted small mb-3">Select colors to add price, quantity, image and SKU for each</p>
+                            <p class="text-muted small mb-3">Select colors to add price, quantity and SKU for each</p>
 
                             <div class="mb-3">
                                 <label class="form-label">Select Colors</label>
@@ -441,14 +441,27 @@
                                 <div class="form-text">Additional images. Multiple allowed.</div>
                                 <div id="galleryPreview" class="mt-2 d-flex flex-wrap gap-2"></div>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Related Products Quick Access -->
-                    <div class="card border-0 shadow-sm mb-3">
-                        <div class="card-header bg-white">
-                            <h6 class="mb-0"><i class="bi bi-link-45deg me-2"></i>Related Products</h6>
-                        </div>
+</div>
+                     </div>
+                     
+                     <!-- Variant Images (Combination Images) -->
+                     <div class="card border-0 shadow-sm mb-3">
+                         <div class="card-header bg-white">
+                             <h6 class="mb-0"><i class="bi bi-image me-2"></i>Variant Images</h6>
+                         </div>
+                         <div class="card-body">
+                             <p class="text-muted small mb-3">Upload images for specific attribute combinations.</p>
+                             <div id="variantImagesContainer">
+                                 <p class="text-muted small">Select colors and/or attributes below to enable variant images.</p>
+                             </div>
+                         </div>
+                     </div>
+                     
+                     <!-- Related Products Quick Access -->
+                     <div class="card border-0 shadow-sm mb-3">
+                         <div class="card-header bg-white">
+                             <h6 class="mb-0"><i class="bi bi-link-45deg me-2"></i>Related Products</h6>
+                         </div>
                         <div class="card-body py-2">
                             @php
                                 $relatedProducts = $product->relatedProducts()->limit(5)->get();
@@ -955,12 +968,11 @@ function renderAttributeValues(attrId, attrData, existingValues = null) {
             <table class="table table-sm table-bordered mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 25%;">Value</th>
-                        <th style="width: 15%;">Price (৳)</th>
-                        <th style="width: 12%;">Quantity</th>
-                        <th style="width: 18%;">SKU</th>
-                        <th style="width: 8%;" class="text-center">Image</th>
-                        <th style="width: 12%;" class="text-center">Visibility</th>
+                        <th style="width: 30%;">Value</th>
+                        <th style="width: 20%;">Price (৳)</th>
+                        <th style="width: 15%;">Quantity</th>
+                        <th style="width: 25%;">SKU</th>
+                        <th style="width: 10%;" class="text-center">Visibility</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -981,23 +993,6 @@ function renderAttributeValues(attrId, attrData, existingValues = null) {
             const uniqueId = attrId + '-' + value.id;
             const isVisible = existingData.is_visible !== undefined ? existingData.is_visible : true;
             
-            let imageHtml = '';
-            if (existingImage) {
-                imageHtml = `
-                    <div class="position-relative d-inline-block" style="display: inline-block;">
-                        <div style="width: 50px; height: 50px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-                            <img src="${existingImage}" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <button type="button" class="badge bg-danger rounded-circle border-0 position-absolute top-0 start-100 translate-middle p-0"
-                            style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer;"
-                            onclick="removeAttrImage('${attrId}', '${value.id}')">
-                            <i class="bi bi-x" style="font-size: 12px;"></i>
-                        </button>
-                    </div>
-                    <input type="hidden" name="product_attributes[${attrId}][values][${value.id}][existing_image]" value="${existingImage}">
-                `;
-            }
-            
             html += `
             <tr>
                 <td>
@@ -1015,14 +1010,6 @@ function renderAttributeValues(attrId, attrData, existingValues = null) {
                     <input type="text" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${value.id}][sku]" value="${existingData && existingData.sku ? existingData.sku : getNextSku('attr', attrId)}" readonly>
                 </td>
                 <td class="text-center">
-                    ${imageHtml}
-                    <input type="file" class="d-none" id="attr-img-${uniqueId}" name="product_attributes[${attrId}][values][${value.id}][image]" accept="image/*" onchange="previewAttrImage(this, '${uniqueId}')">
-                    <label for="attr-img-${uniqueId}" class="btn btn-sm btn-outline-secondary mb-0">
-                        <i class="bi bi-image"></i>
-                    </label>
-                    <div id="preview-attr-${uniqueId}" class="mt-1"></div>
-                </td>
-                <td class="text-center">
                     <div class="form-check form-switch d-flex justify-content-center">
                         <input type="hidden" name="product_attributes[${attrId}][values][${value.id}][is_visible]" value="${isVisible ? '1' : '0'}">
                         <input type="checkbox" class="form-check-input" id="attr-vis-${uniqueId}" ${isVisible ? 'checked' : ''} onchange="this.previousElementSibling.value = this.checked ? '1' : '0';">
@@ -1034,7 +1021,7 @@ function renderAttributeValues(attrId, attrData, existingValues = null) {
     } else {
         html += `
             <tr>
-                <td colspan="6" class="text-center text-muted">No values available for this attribute</td>
+                <td colspan="5" class="text-center text-muted">No values available for this attribute</td>
             </tr>
         `;
     }
@@ -1162,12 +1149,11 @@ function renderProductColor(colorId, colorName, hexCode, values = [], existingDa
             <table class="table table-sm table-bordered mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 25%;">Value</th>
-                        <th style="width: 15%;">Price (৳)</th>
-                        <th style="width: 12%;">Quantity</th>
-                        <th style="width: 18%;">SKU</th>
-                        <th style="width: 8%;" class="text-center">Image</th>
-                        <th style="width: 12%;" class="text-center">Visibility</th>
+                        <th style="width: 30%;">Value</th>
+                        <th style="width: 20%;">Price (৳)</th>
+                        <th style="width: 15%;">Quantity</th>
+                        <th style="width: 25%;">SKU</th>
+                        <th style="width: 10%;" class="text-center">Visibility</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1183,25 +1169,8 @@ function renderProductColor(colorId, colorName, hexCode, values = [], existingDa
             const valueQty = valueObj ? (valueObj.quantity || 0) : 0;
             const valueSku = valueObj && valueObj.sku ? valueObj.sku : getNextSku('color', colorId);
             const valueImg = valueObj ? (valueObj.image || '') : '';
-            const valueVisible = valueObj ? (valueObj.is_visible !== undefined ? valueObj.is_visible : true) : true;
-
-            let valueImageHtml = '';
-            if (valueImg) {
-                valueImageHtml = `
-                    <div class="position-relative d-inline-block" style="display: inline-block;">
-                        <div style="width: 50px; height: 50px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-                            <img src="${valueImg}" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <button type="button" class="badge bg-danger rounded-circle border-0 position-absolute top-0 start-100 translate-middle p-0"
-                            style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer;"
-                            onclick="removeColorValueImage('${colorId}', '${valueId}')">
-                            <i class="bi bi-x" style="font-size: 12px;"></i>
-                        </button>
-                    </div>
-                    <input type="hidden" name="product_colors[${colorId}][values][${valueId}][existing_image]" value="${valueImg}">
-                `;
-            }
-
+const valueVisible = valueObj ? (valueObj.is_visible !== undefined ? valueObj.is_visible : true) : true;
+            
             html += `
             <tr>
                 <td>
@@ -1221,14 +1190,6 @@ function renderProductColor(colorId, colorName, hexCode, values = [], existingDa
                     <input type="text" class="form-control form-control-sm" name="product_colors[${colorId}][values][${valueId}][sku]" value="${valueSku}" readonly>
                 </td>
                 <td class="text-center">
-                    ${valueImageHtml}
-                    <input type="file" class="d-none" id="color-img-${colorId}-${valueId}" name="product_colors[${colorId}][values][${valueId}][image]" accept="image/*" onchange="previewColorImage(this, '${colorId}-${valueId}')">
-                    <label for="color-img-${colorId}-${valueId}" class="btn btn-sm btn-outline-secondary mb-0">
-                        <i class="bi bi-image"></i>
-                    </label>
-                    <div id="preview-color-${colorId}-${valueId}" class="mt-1"></div>
-                </td>
-                <td class="text-center">
                     <div class="form-check form-switch d-flex justify-content-center">
                         <input type="hidden" name="product_colors[${colorId}][values][${valueId}][is_visible]" value="${valueVisible ? '1' : '0'}">
                         <input type="checkbox" class="form-check-input" id="color-vis-${colorId}-${valueId}" ${valueVisible ? 'checked' : ''} onchange="this.previousElementSibling.value = this.checked ? '1' : '0';">
@@ -1240,7 +1201,7 @@ function renderProductColor(colorId, colorName, hexCode, values = [], existingDa
     } else {
         html += `
             <tr>
-                <td colspan="6" class="text-center text-muted">No values available for this color</td>
+                <td colspan="5" class="text-center text-muted">No values available for this color</td>
             </tr>
         `;
     }
@@ -1452,5 +1413,183 @@ function removeSpecRow(btn) {
         btn.closest('.spec-row').remove();
     }
 }
+
+// ==================== VARIANT IMAGES (COMBINATION IMAGES) ====================
+// Pre-populate with existing variant images from database
+let variantImages = {};
+
+// Load existing images from PHP data
+@if(isset($variantImagesData) && is_array($variantImagesData))
+Object.keys(variantImagesData).forEach(key => {
+    variantImages[key] = variantImagesData[key];
+});
+@endif
+
+function generateCombinationKey(attributes) {
+    const parts = [];
+    Object.keys(attributes).forEach(attr => {
+        if (attributes[attr]) {
+            parts.push(attr + '_' + attributes[attr]);
+        }
+    });
+    parts.sort();
+    return parts.join('_');
+}
+
+function getAllAttributeCombinations() {
+    const attributeTypes = {};
+    
+    // Collect selected attributes with their values
+    document.querySelectorAll('.attribute-checkbox:checked').forEach(cb => {
+        const attrId = cb.value;
+        const attrName = cb.dataset.name;
+        const values = JSON.parse(cb.dataset.values || '[]');
+        if (values.length > 0) {
+            attributeTypes[attrName] = values.map(v => v.id);
+        }
+    });
+    
+    // Also add colors - get color VALUES (not just color IDs)
+    Object.keys(selectedProductColors).forEach(colorId => {
+        const colorData = selectedProductColors[colorId];
+        if (colorData && colorData.values && colorData.values.length > 0) {
+            if (!attributeTypes['color']) {
+                attributeTypes['color'] = [];
+            }
+            colorData.values.forEach(val => {
+                attributeTypes['color'].push(val.id);
+            });
+        }
+    });
+    
+    // Generate combinations using recursive approach
+    const combinations = [];
+    const attrNames = Object.keys(attributeTypes);
+    
+    if (attrNames.length === 0) {
+        return combinations;
+    }
+    
+    function combine(index, current) {
+        if (index === attrNames.length) {
+            const key = generateCombinationKey(current);
+            if (key) combinations.push({ key, attrs: { ...current } });
+            return;
+        }
+        
+        const attrName = attrNames[index];
+        const values = attributeTypes[attrName];
+        
+        values.forEach(valId => {
+            current[attrName] = valId;
+            combine(index + 1, current);
+        });
+        
+        delete current[attrName];
+    }
+    
+    combine(0, {});
+    return combinations;
+}
+
+function renderVariantImagesSection() {
+    const container = document.getElementById('variantImagesContainer');
+    const combinations = getAllAttributeCombinations();
+    
+    if (combinations.length === 0) {
+        container.innerHTML = '<p class="text-muted small">Select colors and/or attributes above to enable variant images.</p>';
+        return;
+    }
+    
+    let html = '<table class="table table-sm table-bordered"><thead class="table-light"><tr><th style="width: 35%;">Combination</th><th style="width: 40%;">Image</th><th style="width: 25%;">Preview</th></tr></thead><tbody>';
+    
+    combinations.forEach(combo => {
+        const key = combo.key;
+        const existingData = variantImages[key] || {};
+        const comboId = 'variant_' + key.replace(/[^a-zA-Z0-9]/g, '_');
+        
+        html += '<tr id="variant-img-row-' + comboId + '">';
+        html += '<td><small class="text-muted">' + formatCombinationLabel(combo.attrs) + '</small></td>';
+        html += '<td>';
+        html += '<input type="file" class="form-control form-control-sm" id="variant-img-' + comboId + '" name="variant_images[' + key + ']" accept="image/*" onchange="previewVariantImage(this, \'' + comboId + '\')">';
+        if (existingData.image) {
+            html += '<input type="hidden" name="existing_variant_images[' + key + ']" value="' + existingData.image + '">';
+        }
+        html += '</td>';
+        html += '<td>';
+        html += '<img id="variant-img-preview-' + comboId + '" src="' + (existingData.image || 'https://placehold.co/60') + '" class="rounded" style="width: 60px; height: 60px; object-fit: cover;">';
+        html += '<button type="button" class="btn btn-sm btn-link text-danger ms-2" onclick="removeVariantImage(\'' + comboId + '\', \'' + key + '\')"><i class="bi bi-trash"></i></button>';
+        html += '</td>';
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+function formatCombinationLabel(attrs) {
+    const parts = [];
+    Object.keys(attrs).forEach(attrName => {
+        const valueId = attrs[attrName];
+        if (attrName === 'color') {
+            // Find color VALUE name from selectedProductColors
+            let valueName = valueId;
+            Object.keys(selectedProductColors).forEach(colorId => {
+                const colorData = selectedProductColors[colorId];
+                if (colorData && colorData.values) {
+                    const val = colorData.values.find(v => v.id == valueId);
+                    if (val) valueName = val.value_name || val.value || val.name;
+                }
+            });
+            parts.push('Color: ' + valueName);
+        } else {
+            const attrCb = document.querySelector('.attribute-checkbox[data-name="' + attrName + '"]');
+            if (attrCb) {
+                const values = JSON.parse(attrCb.dataset.values || '[]');
+                const valueData = values.find(v => v.id == valueId);
+                parts.push((valueData ? valueData.value : valueId));
+            } else {
+                parts.push(valueId);
+            }
+        }
+    });
+    return parts.join(' + ');
+}
+
+function previewVariantImage(input, comboId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('variant-img-preview-' + comboId).src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function removeVariantImage(comboId, key) {
+    document.getElementById('variant-img-' + comboId).value = '';
+    document.getElementById('variant-img-preview-' + comboId).src = 'https://placehold.co/60';
+    delete variantImages[key];
+}
+
+// Listen for attribute and color changes
+document.addEventListener('DOMContentLoaded', function() {
+    // Watch for attribute checkbox changes
+    document.querySelectorAll('.attribute-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            setTimeout(renderVariantImagesSection, 100);
+        });
+    });
+    
+    // Watch for color selection changes
+    const originalUpdate = window.updateProductColorsSection;
+    window.updateProductColorsSection = function() {
+        if (originalUpdate) originalUpdate();
+        setTimeout(renderVariantImagesSection, 100);
+    };
+    
+    // Initial render
+    renderVariantImagesSection();
+});
 </script>
 @endpush

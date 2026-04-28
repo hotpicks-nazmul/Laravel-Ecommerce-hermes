@@ -227,6 +227,29 @@ apply pagination style from Preference.md > 26. **Pagination Styling**
 and fix it carefully.
 
 if you do not understand my requirement, just ask me before start.
+--------------------------------------------------------------------
+http://127.0.0.1:8000/products/full-body-rice-cooker-double-pot-ssalu-pot-18-ltr-hr15-07-signal-yellow
+in this product view page i want:
+Requirements:
+1. Separate Cart Items for Different Attributes
+When adding the same product with different attributes (colors, sizes), each variant should create a separate cart item instead of combining quantities.
+Example:
+- Add product with Size: Small → Cart item 1 (Small, Qty: 1)
+- Add same product with Size: Medium → Cart item 2 (Medium, Qty: 1) 
+- Add same product with Color: Red → Cart item 3 (Red, Qty: 1)
+2. Display All Attributes in Cart
+The cart should show a bubble/badge displaying all selected attributes (Color, Size, etc.) for each cart item.
+Example display:
+[Size: Small] [Color: Red] - ৳3,200
+3. Technical Requirements
+- Use attribute value IDs (not names) to distinguish variants
+- Generate unique variant keys using product_id + color_id + sorted attributes
+- Persist variant data (color_name, color_hex, attributes array) in cart
+- Return variant_info in API responses for frontend display
+
+and fix it carefully.
+
+if you do not understand my requirement, just ask me before start.
 
 
 

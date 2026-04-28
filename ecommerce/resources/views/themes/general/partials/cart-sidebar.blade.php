@@ -137,27 +137,65 @@ function updateCartUI() {
         cartFooter.classList.remove('hidden');
         
         // Render items
-        itemsContainer.innerHTML = cart.map(item => `
+        itemsContainer.innerHTML = cart.map(item => {
+            let badgesHtml = '';
+            
+            // Build badges from variant_badges if available
+            if (item.variant_badges && item.variant_badges.length > 0) {
+                badgesHtml = `<div class="flex flex-wrap items-center justify-start gap-1">`;
+                badgesHtml += item.variant_badges.map(badge => {
+                    if (badge.type === 'color') {
+                        const label = badge.label || 'Color';
+                        if (badge.hex && badge.hex.match(/^#[0-9A-Fa-f]{6}$/)) {
+                            return `<span class="inline-flex items-center bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full"><span class="w-2 h-2 rounded-full border border-gray-400 flex-shrink-0" style="background-color:${badge.hex}"></span><span class="ms-1">${escapeHtml(label)}: ${escapeHtml(badge.value)}</span></span>`;
+                        }
+                        return `<span class="inline-flex items-center bg-halal-green/10 text-halal-green text-xs px-2 py-0.5 rounded-full">${escapeHtml(label)}: ${escapeHtml(badge.value)}</span>`;
+                    }
+                    return `<span class="inline-flex items-center bg-halal-green/10 text-halal-green text-xs px-2 py-0.5 rounded-full">${escapeHtml(badge.label)}: ${escapeHtml(badge.value)}</span>`;
+                }).join('');
+                badgesHtml += `</div>`;
+            } else {
+                // Fallback: build badges from color_name and attributes directly
+                let colorBadge = '';
+                if (item.color_name) {
+                    if (item.color_hex && item.color_hex.match(/^#[0-9A-Fa-f]{6}$/)) {
+                        colorBadge = `<span class="inline-flex items-center bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full"><span class="w-2 h-2 rounded-full border border-gray-400 flex-shrink-0" style="background-color:${item.color_hex}"></span><span class="ms-1">Color: ${escapeHtml(item.color_name)}</span></span>`;
+                    } else {
+                        colorBadge = `<span class="inline-flex items-center bg-halal-green/10 text-halal-green text-xs px-2 py-0.5 rounded-full">Color: ${escapeHtml(item.color_name)}</span>`;
+                    }
+                }
+                
+                let attrBadges = '';
+                if (item.attributes && item.attributes.length > 0) {
+                    attrBadges = item.attributes.map(attr => {
+                        return `<span class="inline-flex items-center bg-halal-green/10 text-halal-green text-xs px-2 py-0.5 rounded-full">${escapeHtml(attr.attribute_name || '')}: ${escapeHtml(attr.value || '')}</span>`;
+                    }).join('');
+                }
+                
+                badgesHtml = `<div class="flex flex-wrap items-center justify-center gap-1">` + colorBadge + attrBadges + `</div>`;
+            }
+            return `
             <div class="flex items-center space-x-3 bg-white p-3 rounded-lg shadow-sm">
                 <img src="${escapeHtml(item.image || 'https://placehold.co/80')}" alt="${escapeHtml(item.name)}" class="w-16 h-16 object-cover rounded-lg">
                 <div class="flex-1">
                     <h4 class="font-medium text-gray-800 text-sm">${escapeHtml(item.name)}</h4>
+                    ${badgesHtml}
                     <p class="text-halal-green font-medium">৳${parseFloat(item.price).toLocaleString()}</p>
                     <div class="flex items-center space-x-2 mt-1">
-                        <button onclick="updateCartItem(${item.product_id}, ${item.quantity - 1})" class="w-6 h-6 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
+                        <button onclick="updateCartItem('${escapeHtml(item.cart_item_id)}', ${item.quantity - 1})" class="w-6 h-6 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
                             <i class="bi bi-dash text-xs"></i>
                         </button>
                         <span class="text-sm font-medium">${item.quantity}</span>
-                        <button onclick="updateCartItem(${item.product_id}, ${item.quantity + 1})" class="w-6 h-6 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
+                        <button onclick="updateCartItem('${escapeHtml(item.cart_item_id)}', ${item.quantity + 1})" class="w-6 h-6 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
                             <i class="bi bi-plus text-xs"></i>
                         </button>
                     </div>
                 </div>
-                <button onclick="removeCartItem(${item.product_id})" class="text-red-500 hover:text-red-700">
+                <button onclick="removeCartItem('${escapeHtml(item.cart_item_id)}')" class="text-red-500 hover:text-red-700">
                     <i class="bi bi-trash"></i>
                 </button>
             </div>
-        `).join('');
+        `}).join('');
     }
     
     // Free delivery notice
@@ -206,9 +244,9 @@ async function addToCart(productId, quantity = 1) {
     }
 }
 
-async function updateCartItem(productId, quantity) {
+async function updateCartItem(cartItemId, quantity) {
     if (quantity < 1) {
-        removeCartItem(productId);
+        removeCartItem(cartItemId);
         return;
     }
 
@@ -220,7 +258,7 @@ async function updateCartItem(productId, quantity) {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             },
             credentials: 'same-origin',
-            body: JSON.stringify({ product_id: productId, quantity: quantity })
+            body: JSON.stringify({ cart_item_id: cartItemId, quantity: quantity })
         });
 
         const data = await response.json();
@@ -233,7 +271,7 @@ async function updateCartItem(productId, quantity) {
     }
 }
 
-async function removeCartItem(productId) {
+async function removeCartItem(cartItemId) {
     try {
         const response = await fetch('/cart/remove', {
             method: 'POST',
@@ -242,7 +280,7 @@ async function removeCartItem(productId) {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             },
             credentials: 'same-origin',
-            body: JSON.stringify({ product_id: productId })
+            body: JSON.stringify({ cart_item_id: cartItemId })
         });
 
         const data = await response.json();

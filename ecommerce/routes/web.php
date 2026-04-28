@@ -81,6 +81,9 @@ Route::prefix('products')->name('products.')->group(function () {
     Route::get('/category/{slug}', [ProductController::class, 'byCategory'])->name('category');
 });
 
+// Variant Image Route (must be before products routes to prevent slug conflict)
+Route::get('/api/product/{product}/variant-image', [ProductController::class, 'getVariantImage'])->name('product.variant-image');
+
 // Category Routes
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/categories/{slug}', [CategoryController::class, 'show'])->name('categories.show');

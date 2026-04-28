@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-gray-800 mb-8">Shopping Cart</h1>
+    <h1 class="text-3xl font-bold text-gray-800 mb-8">Shopping Cart <span id="cartItemCount" class="text-lg font-normal text-gray-500">(0 items)</span></h1>
     
     <div id="cartPageContent">
         <!-- Cart items will be loaded here -->
@@ -12,6 +12,11 @@
 </div>
 
 <script>
+function escapeHtml(text) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
 // Cart page specific functions
 let cartPageItems = [];
 const checkoutUrl = "{{ route('checkout.index') }}";
@@ -25,6 +30,14 @@ async function loadCartPageData() {
         const data = await response.json();
         
         cartPageItems = data.items || [];
+        
+        // Update cart item count in heading
+        const totalItems = cartPageItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        const countEl = document.getElementById('cartItemCount');
+        if (countEl) {
+            countEl.textContent = `(${totalItems} item${totalItems !== 1 ? 's' : ''})`;
+        }
+        
         renderCartPage();
     } catch (error) {
         console.error('Error loading cart:', error);
@@ -54,25 +67,61 @@ function renderCartPage() {
     let itemsHtml = cartPageItems.map(item => {
         subtotal += item.price * item.quantity;
         const imageUrl = item.image || 'https://placehold.co/80';
+        let badgesHtml = '';
+        
+        if (item.variant_badges && item.variant_badges.length > 0) {
+            badgesHtml = `<div class="flex flex-wrap items-center justify-start gap-1">`;
+            badgesHtml += item.variant_badges.map(badge => {
+                if (badge.type === 'color') {
+                    const label = badge.label || 'Color';
+                    if (badge.hex && badge.hex.match(/^#[0-9A-Fa-f]{6}$/)) {
+                        return `<span class="inline-flex items-center bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full"><span class="w-2 h-2 rounded-full border border-gray-400 flex-shrink-0" style="background-color:${badge.hex}"></span><span class="ms-1">${escapeHtml(label)}: ${escapeHtml(badge.value)}</span></span>`;
+                    }
+                    return `<span class="inline-flex items-center bg-halal-green/10 text-halal-green text-xs px-2 py-0.5 rounded-full">${escapeHtml(label)}: ${escapeHtml(badge.value)}</span>`;
+                }
+                return `<span class="inline-flex items-center bg-halal-green/10 text-halal-green text-xs px-2 py-0.5 rounded-full">${escapeHtml(badge.label)}: ${escapeHtml(badge.value)}</span>`;
+            }).join('');
+            badgesHtml += `</div>`;
+        } else {
+            // Fallback: build badges from color_name and attributes directly
+            let colorBadge = '';
+            if (item.color_name) {
+                if (item.color_hex && item.color_hex.match(/^#[0-9A-Fa-f]{6}$/)) {
+                    colorBadge = `<span class="inline-flex items-center bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full"><span class="w-2 h-2 rounded-full border border-gray-400 flex-shrink-0" style="background-color:${item.color_hex}"></span><span class="ms-1">Color: ${escapeHtml(item.color_name)}</span></span>`;
+                } else {
+                    colorBadge = `<span class="inline-flex items-center bg-halal-green/10 text-halal-green text-xs px-2 py-0.5 rounded-full">Color: ${escapeHtml(item.color_name)}</span>`;
+                }
+            }
+            
+            let attrBadges = '';
+            if (item.attributes && item.attributes.length > 0) {
+                attrBadges = item.attributes.map(attr => {
+                    return `<span class="inline-flex items-center bg-halal-green/10 text-halal-green text-xs px-2 py-0.5 rounded-full">${escapeHtml(attr.attribute_name || '')}: ${escapeHtml(attr.value || '')}</span>`;
+                }).join('');
+            }
+            
+            badgesHtml = `<div class="flex flex-wrap items-center justify-start gap-1">` + colorBadge + attrBadges + `</div>`;
+        }
         return `
-            <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm mb-4" id="cart-item-${item.product_id}">
+            <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm mb-4" id="cart-item-${item.cart_item_id}">
                 <img src="${imageUrl}" alt="${item.name}" class="w-20 h-20 object-cover rounded-lg">
                 <div class="flex-1">
                     <h4 class="font-medium text-gray-800">${item.name}</h4>
+                    ${badgesHtml}
                     <p class="text-halal-green font-bold">৳${parseFloat(item.price).toLocaleString()}</p>
                     <div class="flex items-center space-x-2 mt-2">
-                        <button onclick="updateCartPageItem(${item.product_id}, ${item.quantity - 1})" class="w-8 h-8 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
+                        <button onclick="updateCartPageItem('${item.cart_item_id}', ${item.quantity - 1})" class="w-8 h-8 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
                             <i class="bi bi-dash"></i>
                         </button>
-                        <span class="font-medium" id="qty-${item.product_id}">${item.quantity}</span>
-                        <button onclick="updateCartPageItem(${item.product_id}, ${item.quantity + 1})" class="w-8 h-8 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
+                        <span class="font-medium" id="qty-${item.cart_item_id}">${item.quantity}</span>
+                        <button onclick="updateCartPageItem('${item.cart_item_id}', ${item.quantity + 1})" class="w-8 h-8 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
                             <i class="bi bi-plus"></i>
                         </button>
                     </div>
                 </div>
                 <div class="text-right">
                     <p class="font-bold text-gray-800">৳${(item.price * item.quantity).toLocaleString()}</p>
-                    <button onclick="removeCartPageItem(${item.product_id})" class="text-red-500 hover:text-red-700 mt-2">
+                    <button onclick="removeCartPageItem('${item.cart_item_id}')" class="text-red-500 hover:text-red-700 mt-2">
                         <i class="bi bi-trash"></i> Remove
                     </button>
                 </div>
@@ -117,9 +166,9 @@ function renderCartPage() {
     `;
 }
 
-async function updateCartPageItem(productId, quantity) {
+async function updateCartPageItem(cartItemId, quantity) {
     if (quantity < 1) {
-        removeCartPageItem(productId);
+        removeCartPageItem(cartItemId);
         return;
     }
     
@@ -131,14 +180,14 @@ async function updateCartPageItem(productId, quantity) {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             },
             credentials: 'same-origin',
-            body: JSON.stringify({ product_id: productId, quantity: quantity })
+            body: JSON.stringify({ cart_item_id: cartItemId, quantity: quantity })
         });
         
         const data = await response.json();
         
         if (data.success) {
             // Update local items array
-            const itemIndex = cartPageItems.findIndex(item => item.product_id == productId);
+            const itemIndex = cartPageItems.findIndex(item => item.cart_item_id == cartItemId);
             if (itemIndex !== -1) {
                 cartPageItems[itemIndex].quantity = quantity;
             }
@@ -158,7 +207,7 @@ async function updateCartPageItem(productId, quantity) {
     }
 }
 
-async function removeCartPageItem(productId) {
+async function removeCartPageItem(cartItemId) {
     try {
         const response = await fetch('/cart/remove', {
             method: 'POST',
@@ -167,14 +216,14 @@ async function removeCartPageItem(productId) {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             },
             credentials: 'same-origin',
-            body: JSON.stringify({ product_id: productId })
+            body: JSON.stringify({ cart_item_id: cartItemId })
         });
         
         const data = await response.json();
         
         if (data.success) {
             // Remove from local items array
-            cartPageItems = cartPageItems.filter(item => item.product_id != productId);
+            cartPageItems = cartPageItems.filter(item => item.cart_item_id != cartItemId);
             
             // Re-render the page
             renderCartPage();

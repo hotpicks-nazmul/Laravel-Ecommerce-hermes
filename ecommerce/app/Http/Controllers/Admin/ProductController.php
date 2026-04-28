@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\ProductVariantImage;
 use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Attribute;
@@ -432,7 +433,10 @@ class ProductController extends Controller
                 $product->save();
             }
         }
-
+        
+        // Handle variant images (combination images)
+        $this->saveVariantImages($product, $request);
+        
         $redirectRoute = $request->redirect_route ?? session('product_redirect_route', 'admin.products.index');
         
         return redirect()->route($redirectRoute)->with('success', 'Product created successfully.');
@@ -519,7 +523,16 @@ class ProductController extends Controller
             }
         }
         
-        return view('admin.products.edit', compact('product', 'categories', 'brands', 'attributes', 'attributesData', 'colors', 'colorsData', 'existingAttributes', 'existingColors'));
+        // Get existing variant images
+        $variantImagesData = [];
+        $existingVariantImages = ProductVariantImage::where('product_id', $product->id)->get();
+        foreach ($existingVariantImages as $vi) {
+            $variantImagesData[$vi->combination_key] = [
+                'image' => $vi->image,
+            ];
+        }
+        
+        return view('admin.products.edit', compact('product', 'categories', 'brands', 'attributes', 'attributesData', 'colors', 'colorsData', 'existingAttributes', 'existingColors', 'variantImagesData'));
     }
 
     /**
@@ -801,6 +814,9 @@ class ProductController extends Controller
             $product->colors = json_encode([]);
             $product->save();
         }
+        
+        // Handle variant images (combination images)
+        $this->saveVariantImages($product, $request);
         
         // Debug: Log success
         Log::info('Product updated successfully', ['product_id' => $product->id]);
@@ -2405,5 +2421,54 @@ class ProductController extends Controller
         }
         
         return $baseSku;
+    }
+    
+    /**
+     * Save variant images (combination images) for a product.
+     */
+    private function saveVariantImages(Product $product, Request $request)
+    {
+        // Get existing images to preserve
+        $existingImages = $request->input('existing_variant_images', []);
+        
+        // Handle new uploaded images
+        if ($request->hasFile('variant_images')) {
+            foreach ($request->file('variant_images') as $combinationKey => $file) {
+                if ($file && $file->isValid()) {
+                    // Delete existing image if any
+                    ProductVariantImage::where('product_id', $product->id)
+                        ->where('combination_key', $combinationKey)
+                        ->delete();
+                    
+                    // Process and save new image
+                    $imagePath = ImageHelper::processImage($file);
+                    
+                    if ($imagePath) {
+                        ProductVariantImage::create([
+                            'product_id' => $product->id,
+                            'combination_key' => $combinationKey,
+                            'image' => $imagePath,
+                            'sort_order' => 0,
+                        ]);
+                    }
+                }
+            }
+        }
+        
+        // Remove images that were deleted in the UI
+        $currentKeys = array_keys($request->input('variant_images', []));
+        $existingKeys = array_keys($existingImages);
+        $keysToDelete = array_diff($existingKeys, $currentKeys);
+        
+        foreach ($keysToDelete as $key) {
+            $variantImage = ProductVariantImage::where('product_id', $product->id)
+                ->where('combination_key', $key)
+                ->first();
+            
+            if ($variantImage) {
+                ImageHelper::deleteImage($variantImage->image);
+                $variantImage->delete();
+            }
+        }
     }
 }

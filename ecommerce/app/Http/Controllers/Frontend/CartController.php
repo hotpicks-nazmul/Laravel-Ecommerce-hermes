@@ -44,6 +44,9 @@ class CartController extends Controller
         $product = Product::active()->findOrFail($request->product_id);
         $quantity = $request->quantity ?? 1;
 
+        // Debug
+        \Log::info('ADD CART - variation received', ['variation' => $request->variation]);
+
         // Check stock
         if ($product->quantity < $quantity) {
             return response()->json([
@@ -53,6 +56,7 @@ class CartController extends Controller
         }
 
         $cart = $this->getCart();
+
         $cart->addItem($product, $quantity, $request->variation);
 
         return response()->json([
@@ -161,17 +165,17 @@ class CartController extends Controller
             return Cart::firstOrCreate(['user_id' => Auth::id()]);
         }
 
-        $cartId = session()->get('cart_id');
-        if ($cartId) {
-            $cart = Cart::where('id', $cartId)->whereNull('user_id')->first();
-            if ($cart) {
-                return $cart;
-            }
+        // Use actual session ID from Laravel
+        $sessionId = session()->getId();
+        
+        $cart = Cart::where('session_id', $sessionId)->whereNull('user_id')->first();
+        if ($cart) {
+            return $cart;
         }
 
-        // Create new cart for guest
+        // Create new cart for this session
         $cart = Cart::create([
-            'session_id' => Str::random(40),
+            'session_id' => $sessionId,
             'user_id' => null,
             'items' => []
         ]);

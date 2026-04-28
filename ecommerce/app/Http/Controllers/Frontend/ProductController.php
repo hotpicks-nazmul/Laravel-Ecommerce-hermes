@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ProductVariantImage;
 use App\Models\Category;
 use App\Services\ThemeService;
 use Illuminate\Http\Request;
@@ -160,5 +161,25 @@ class ProductController extends Controller
             ->get();
 
         return response()->json($products);
+    }
+    
+    /**
+     * Get variant image for a specific combination (API).
+     */
+    public function getVariantImage($productId, Request $request)
+    {
+        $combinationKey = $request->input('key');
+        
+        if (!$combinationKey) {
+            return response()->json(['image' => null]);
+        }
+        
+        $variantImage = ProductVariantImage::where('product_id', $productId)
+            ->where('combination_key', $combinationKey)
+            ->first();
+        
+        return response()->json([
+            'image' => $variantImage ? asset('storage/' . $variantImage->image) : null,
+        ]);
     }
 }

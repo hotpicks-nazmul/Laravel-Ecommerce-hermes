@@ -577,13 +577,33 @@ function addToCart(id) {
     const displayPriceEl = document.getElementById('displayPrice');
     const priceText = displayPriceEl ? displayPriceEl.textContent.replace(/[^\d]/g, '') : '0';
     const price = parseInt(priceText) || 0;
+
+    const colorId = document.getElementById('selColorId').value;
+
+    // Send attributes as array of value_ids for backend compatibility
+    const attributes = Object.keys(selectedAttrs)
+        .map(attr => selectedAttrs[attr]?.vid)
+        .filter(vid => vid);
+
+    console.log('addToCart - selectedAttrs:', selectedAttrs, 'attributes:', attributes);
+
+    const payload = {
+        product_id: id,
+        quantity: qty,
+        price: price,
+        color_id: colorId,
+        attributes: attributes
+    };
+
     fetch('/cart/add', {
         method: 'POST',
         headers: {'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content,'Accept':'application/json'},
-        body: JSON.stringify({product_id:id, quantity:qty, price: price})
-    }).then(r=>r.json()).then(d=>{
+        body: JSON.stringify(payload)
+}).then(r=>r.json()).then(d=>{
         if (d.success) { showToast('Added to cart!','success');
-            const cc = document.querySelector('.cart-count'); if(cc) cc.textContent = d.cart_count;
+            document.querySelectorAll('.cart-count').forEach(el => el.textContent = d.cart_count);
+            if (typeof loadCart === 'function') loadCart();
+            if (typeof updateCartUI === 'function') updateCartUI();
         } else showToast(d.message||'Error','error');
     }).catch(()=>showToast('Error adding to cart','error'));
 }
@@ -660,6 +680,56 @@ function updatePrice() {
     if (displayPriceEl) displayPriceEl.textContent = '৳' + newPrice.toLocaleString();
 }
 
+/* ════════════ Variant Image Loader ════════════ */
+const productId = {{ $product->id }};
+let currentVariantImage = null;
+
+async function loadVariantImage() {
+    const colorId = document.getElementById('selColorId')?.value;
+    const attrs = {};
+    
+    // Collect selected attributes
+    Object.keys(selectedAttrs).forEach(attr => {
+        if (selectedAttrs[attr]?.vid) {
+            attrs[attr] = selectedAttrs[attr].vid;
+        }
+    });
+    
+    // Add color if selected
+    if (colorId) {
+        attrs['color'] = colorId;
+    }
+    
+    // Generate combination key
+    const parts = [];
+    Object.keys(attrs).forEach(attr => {
+        if (attrs[attr]) {
+            parts.push(attr + '_' + attrs[attr]);
+        }
+    });
+    parts.sort();
+    const key = parts.join('_');
+    
+    if (!key) return;
+    
+    try {
+        const response = await fetch('/api/product/' + productId + '/variant-image?key=' + encodeURIComponent(key));
+        const data = await response.json();
+        
+        if (data.image) {
+            currentVariantImage = data.image;
+            // Update main image if different
+            const mainImg = document.getElementById('mainImg');
+            if (mainImg && mainImg.style.backgroundImage !== "url('" + data.image + "')") {
+                mainImg.style.backgroundImage = "url('" + data.image + "')";
+                currentZoomSrc = data.image;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading variant image:', error);
+    }
+}
+
 /* ════════════ Color Selection ════════════ */
 document.querySelectorAll('.color-btn').forEach(b=>{
     b.addEventListener('click', function(){
@@ -670,6 +740,7 @@ document.querySelectorAll('.color-btn').forEach(b=>{
         selectedColorAdj = parseFloat(this.dataset.adj) || 0;
         if (this.dataset.img) changeImage(this, this.dataset.img);
         updatePrice();
+        loadVariantImage();
     });
 });
 
@@ -683,13 +754,14 @@ document.querySelectorAll('.attr-btn').forEach(b=>{
         const attr = this.dataset.attr;
         document.querySelectorAll('.attr-btn[data-attr="'+attr+'"]').forEach(c=>{c.classList.remove('border-halal-green','bg-halal-green/10'); c.classList.add('border-gray-300');});
         this.classList.remove('border-gray-300'); this.classList.add('border-halal-green','bg-halal-green/10');
-        selectedAttrs[attr] = { val: this.dataset.val, price: parseFloat(this.dataset.price) || 0 };
+        selectedAttrs[attr] = { val: this.dataset.val, vid: this.dataset.vid, price: parseFloat(this.dataset.price) || 0 };
         const attrInput = document.getElementById('attrVal'+attr.charAt(0).toUpperCase()+attr.slice(1));
         if (attrInput) attrInput.value = this.dataset.vid;
         const sel = document.getElementById('attrSel'+attr.charAt(0).toUpperCase()+attr.slice(1));
         if (sel) sel.textContent = this.dataset.val;
         if (this.dataset.img) changeImage(this, this.dataset.img);
         updatePrice();
+        loadVariantImage();
     });
 });
 

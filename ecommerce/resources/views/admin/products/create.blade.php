@@ -190,7 +190,7 @@
                 <h6 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Product Attributes</h6>
             </div>
             <div class="card-body">
-                <p class="text-muted small mb-3">Select attributes to add price, quantity, image and SKU for each value</p>
+                <p class="text-muted small mb-3">Select attributes to add price, quantity and SKU for each value</p>
                 
                  <div class="mb-3">
                       <label class="form-label">Select Attributes</label>
@@ -366,22 +366,35 @@
                     </label>
                     <div class="form-text">Featured products appear prominently</div>
                 </div>
-            </div>
+</div>
         </div>
-        
-        <!-- Actions -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white">
-                <h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Actions</h6>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-lg me-1"></i> Cancel
-                    </a>
-                </div>
-            </div>
-        </div>
+         
+         <!-- Variant Images (Combination Images) -->
+         <div class="card border-0 shadow-sm mb-3">
+             <div class="card-header bg-white">
+                 <h6 class="mb-0"><i class="bi bi-image me-2"></i>Variant Images</h6>
+             </div>
+             <div class="card-body">
+                 <p class="text-muted small mb-3">Upload images for specific attribute combinations. Each combination shows the exact product with those attributes selected.</p>
+                 <div id="variantImagesContainer">
+                     <p class="text-muted small">Select colors and/or attributes above to enable variant images.</p>
+                 </div>
+             </div>
+         </div>
+         
+         <!-- Actions -->
+         <div class="card border-0 shadow-sm">
+             <div class="card-header bg-white">
+                 <h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Actions</h6>
+             </div>
+             <div class="card-body">
+                 <div class="d-grid gap-2">
+                     <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary">
+                         <i class="bi bi-x-lg me-1"></i> Cancel
+                     </a>
+                 </div>
+             </div>
+         </div>
 
         <!-- Custom Specifications Section -->
         <div class="card border-0 shadow-sm mb-3">
@@ -852,10 +865,10 @@ function renderAttributeValues(attrId, attrData) {
                 <thead class="table-light">
                     <tr>
                         <th style="width: 30%;">Value</th>
-                        <th style="width: 20%;">Price (৳)</th>
-                        <th style="width: 15%;">Quantity</th>
+                        <th style="width: 25%;">Price (৳)</th>
+                        <th style="width: 20%;">Quantity</th>
                         <th style="width: 25%;">SKU</th>
-                        <th style="width: 10%;" class="text-center">Image</th>
+                        <th style="width: 10%;" class="text-center">Visible</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -880,13 +893,6 @@ function renderAttributeValues(attrId, attrData) {
                     <input type="text" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${value.id}][sku]" value="${getNextSku('attr', attrId)}" readonly>
                 </td>
                 <td class="text-center">
-                    <input type="file" class="d-none" id="attr-img-${attrId}-${value.id}" name="product_attributes[${attrId}][values][${value.id}][image]" accept="image/*" onchange="previewAttrImage(this, '${attrId}-${value.id}')">
-                    <label for="attr-img-${attrId}-${value.id}" class="btn btn-sm btn-outline-secondary mb-0">
-                        <i class="bi bi-image"></i>
-                    </label>
-                    <div id="preview-attr-${attrId}-${value.id}" class="mt-1"></div>
-                </td>
-                <td class="text-center">
                     <div class="form-check form-switch d-flex justify-content-center">
                         <input type="hidden" name="product_attributes[${attrId}][values][${value.id}][is_visible]" value="1">
                         <input type="checkbox" class="form-check-input" checked onchange="this.previousElementSibling.value = this.checked ? '1' : '0';">
@@ -898,7 +904,7 @@ function renderAttributeValues(attrId, attrData) {
     } else {
         html += `
             <tr>
-                <td colspan="6" class="text-center text-muted">No values available for this attribute</td>
+                <td colspan="5" class="text-center text-muted">No values available for this attribute</td>
             </tr>
         `;
     }
@@ -1028,7 +1034,6 @@ function renderVariants() {
                     <th style="width: 120px;">SKU</th>
                     <th style="width: 100px;">Price</th>
                     <th style="width: 80px;">Stock</th>
-                    <th style="width: 50px;">Image</th>
                     <th style="width: 40px;"></th>
                 </tr>
             </thead>
@@ -1038,7 +1043,7 @@ function renderVariants() {
     if (generatedVariants.length === 0) {
         html += `
         <tr>
-            <td colspan="6" class="text-center text-muted py-3">
+            <td colspan="5" class="text-center text-muted py-3">
                 No variants generated. Select attribute values and click "Generate Variants"
             </td>
         </tr>
@@ -1062,9 +1067,6 @@ function renderVariants() {
                 <td>
                     <input type="number" class="form-control form-control-sm" name="variants[${idx}][stock]" 
                            value="${variant.stock}" min="0">
-                </td>
-                <td>
-                    <input type="file" class="form-control form-control-sm" name="variants[${idx}][image]" accept="image/*">
                 </td>
                 <td>
                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeVariant(${idx})">
@@ -1155,12 +1157,11 @@ function renderProductAttribute(attrId, attrName, values) {
             <table class="table table-sm table-bordered mb-0">
 <thead class="table-light">
                     <tr>
-                        <th style="width: 25%;">Value</th>
-                        <th style="width: 15%;">Price (৳)</th>
-                        <th style="width: 12%;">Quantity</th>
-                        <th style="width: 18%;">SKU</th>
-                        <th style="width: 8%;" class="text-center">Image</th>
-                        <th style="width: 12%;" class="text-center">Visibility</th>
+                        <th style="width: 30%;">Value</th>
+                        <th style="width: 20%;">Price (৳)</th>
+                        <th style="width: 15%;">Quantity</th>
+                        <th style="width: 25%;">SKU</th>
+                        <th style="width: 10%;" class="text-center">Visibility</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1182,13 +1183,6 @@ function renderProductAttribute(attrId, attrName, values) {
                 </td>
                 <td>
                     <input type="text" class="form-control form-control-sm" name="product_attributes[${attrId}][values][${val.id}][sku]" value="${getNextSku('attr', attrId)}" readonly>
-                </td>
-                <td>
-                    <input type="file" class="d-none" id="attr-${attrId}-${val.id}" name="product_attributes[${attrId}][values][${val.id}][image]" accept="image/*" onchange="previewAttrImage(this, '${attrId}-${val.id}')">
-                    <label for="attr-${attrId}-${val.id}" class="btn btn-sm btn-outline-secondary mb-0">
-                        <i class="bi bi-image"></i>
-                    </label>
-                    <div id="preview-attr-${attrId}-${val.id}" class="mt-1"></div>
                 </td>
                 <td class="text-center">
                     <div class="form-check form-switch d-flex justify-content-center">
@@ -1253,12 +1247,11 @@ function renderProductColor(colorId, colorName, hexCode, values = []) {
             <table class="table table-sm table-bordered mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 25%;">Value</th>
-                        <th style="width: 15%;">Price (৳)</th>
-                        <th style="width: 12%;">Quantity</th>
-                        <th style="width: 18%;">SKU</th>
-                        <th style="width: 8%;" class="text-center">Image</th>
-                        <th style="width: 12%;" class="text-center">Visibility</th>
+                        <th style="width: 30%;">Value</th>
+                        <th style="width: 20%;">Price (৳)</th>
+                        <th style="width: 15%;">Quantity</th>
+                        <th style="width: 25%;">SKU</th>
+                        <th style="width: 10%;" class="text-center">Visibility</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1285,13 +1278,6 @@ function renderProductColor(colorId, colorName, hexCode, values = []) {
                     <input type="text" class="form-control form-control-sm" name="product_colors[${colorId}][values][${value.id}][sku]" value="${getNextSku('color', colorId)}" readonly>
                 </td>
                 <td class="text-center">
-                    <input type="file" class="d-none" id="color-img-${colorId}-${value.id}" name="product_colors[${colorId}][values][${value.id}][image]" accept="image/*" onchange="previewColorImage(this, '${colorId}-${value.id}')">
-                    <label for="color-img-${colorId}-${value.id}" class="btn btn-sm btn-outline-secondary mb-0">
-                        <i class="bi bi-image"></i>
-                    </label>
-                    <div id="preview-color-${colorId}-${value.id}" class="mt-1"></div>
-                </td>
-                <td class="text-center">
                     <div class="form-check form-switch d-flex justify-content-center">
                         <input type="hidden" name="product_colors[${colorId}][values][${value.id}][is_visible]" value="1">
                         <input type="checkbox" class="form-check-input" checked onchange="this.previousElementSibling.value = this.checked ? '1' : '0';">
@@ -1303,7 +1289,7 @@ function renderProductColor(colorId, colorName, hexCode, values = []) {
     } else {
         html += `
             <tr>
-                <td colspan="6" class="text-center text-muted">No values available for this color</td>
+                <td colspan="5" class="text-center text-muted">No values available for this color</td>
             </tr>
         `;
     }
@@ -1380,5 +1366,177 @@ function removeSpecRow(btn) {
         btn.closest('.spec-row').remove();
     }
 }
+
+// ==================== VARIANT IMAGES (COMBINATION IMAGES) ====================
+let variantImages = {};
+
+function generateCombinationKey(attributes) {
+    const parts = [];
+    Object.keys(attributes).forEach(attr => {
+        if (attributes[attr]) {
+            parts.push(attr + '_' + attributes[attr]);
+        }
+    });
+    parts.sort();
+    return parts.join('_');
+}
+
+function getAllAttributeCombinations() {
+    const attributeTypes = {};
+    
+    // Collect selected attributes with their values
+    document.querySelectorAll('.attribute-checkbox:checked').forEach(cb => {
+        const attrId = cb.value;
+        const attrName = cb.dataset.name;
+        const values = JSON.parse(cb.dataset.values || '[]');
+        if (values.length > 0) {
+            attributeTypes[attrName] = values.map(v => v.id);
+        }
+    });
+    
+    // Also add colors - get color VALUES (not just color IDs)
+    Object.keys(selectedProductColors).forEach(colorId => {
+        const colorData = selectedProductColors[colorId];
+        if (colorData && colorData.values && colorData.values.length > 0) {
+            // Use color_{colorId}_value_{valueId} format for value-level uniqueness
+            colorData.values.forEach(val => {
+                if (!attributeTypes['color']) {
+                    attributeTypes['color'] = [];
+                }
+                attributeTypes['color'].push(val.id);
+            });
+        }
+    });
+    
+    // Generate combinations using recursive approach
+    const combinations = [];
+    const attrNames = Object.keys(attributeTypes);
+    
+    if (attrNames.length === 0) {
+        return combinations;
+    }
+    
+    function combine(index, current) {
+        if (index === attrNames.length) {
+            const key = generateCombinationKey(current);
+            if (key) combinations.push({ key, attrs: { ...current } });
+            return;
+        }
+        
+        const attrName = attrNames[index];
+        const values = attributeTypes[attrName];
+        
+        values.forEach(valId => {
+            current[attrName] = valId;
+            combine(index + 1, current);
+        });
+        
+        delete current[attrName];
+    }
+    
+    combine(0, {});
+    return combinations;
+}
+
+function renderVariantImagesSection() {
+    const container = document.getElementById('variantImagesContainer');
+    const combinations = getAllAttributeCombinations();
+    
+    if (combinations.length === 0) {
+        container.innerHTML = '<p class="text-muted small">Select colors and/or attributes above to enable variant images.</p>';
+        return;
+    }
+    
+    let html = '<table class="table table-sm table-bordered"><thead class="table-light"><tr><th style="width: 35%;">Combination</th><th style="width: 40%;">Image</th><th style="width: 25%;">Preview</th></tr></thead><tbody>';
+    
+    combinations.forEach(combo => {
+        const key = combo.key;
+        const existingData = variantImages[key] || {};
+        const comboId = 'variant_' + key.replace(/[^a-zA-Z0-9]/g, '_');
+        
+        html += '<tr id="variant-img-row-' + comboId + '">';
+        html += '<td><small class="text-muted">' + formatCombinationLabel(combo.attrs) + '</small></td>';
+        html += '<td>';
+        html += '<input type="file" class="form-control form-control-sm" id="variant-img-' + comboId + '" name="variant_images[' + key + ']" accept="image/*" onchange="previewVariantImage(this, \'' + comboId + '\')">';
+        html += '</td>';
+        html += '<td>';
+        html += '<img id="variant-img-preview-' + comboId + '" src="' + (existingData.preview || 'https://placehold.co/60') + '" class="rounded" style="width: 60px; height: 60px; object-fit: cover;">';
+        html += '<button type="button" class="btn btn-sm btn-link text-danger ms-2" onclick="removeVariantImage(\'' + comboId + '\', \'' + key + '\')"><i class="bi bi-trash"></i></button>';
+        html += '</td>';
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+function formatCombinationLabel(attrs) {
+    const parts = [];
+    Object.keys(attrs).forEach(attrName => {
+        const valueId = attrs[attrName];
+        if (attrName === 'color') {
+            // Find color VALUE name from selectedProductColors
+            let valueName = valueId;
+            Object.keys(selectedProductColors).forEach(colorId => {
+                const colorData = selectedProductColors[colorId];
+                if (colorData && colorData.values) {
+                    const val = colorData.values.find(v => v.id == valueId);
+                    if (val) valueName = val.value_name || val.value || val.name;
+                }
+            });
+            parts.push('Color: ' + valueName);
+        } else {
+            const attrCb = document.querySelector('.attribute-checkbox[data-name="' + attrName + '"]');
+            if (attrCb) {
+                const values = JSON.parse(attrCb.dataset.values || '[]');
+                const valueData = values.find(v => v.id == valueId);
+                parts.push((valueData ? valueData.value : valueId));
+            } else {
+                parts.push(valueId);
+            }
+        }
+    });
+    return parts.join(' + ');
+}
+
+function previewVariantImage(input, comboId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('variant-img-preview-' + comboId).src = e.target.result;
+            
+            // Store key for form submission
+            const key = comboId.replace(/_/g, '_').substring(8); // Remove 'variant_' prefix
+            variantImages['variant_' + key] = { file: input.files[0] };
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function removeVariantImage(comboId, key) {
+    document.getElementById('variant-img-' + comboId).value = '';
+    document.getElementById('variant-img-preview-' + comboId).src = 'https://placehold.co/60';
+    delete variantImages[key];
+}
+
+// Listen for attribute and color changes
+document.addEventListener('DOMContentLoaded', function() {
+    // Watch for attribute checkbox changes
+    document.querySelectorAll('.attribute-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            setTimeout(renderVariantImagesSection, 100);
+        });
+    });
+    
+    // Watch for color selection changes
+    const originalUpdate = window.updateProductColorsSection;
+    window.updateProductColorsSection = function() {
+        if (originalUpdate) originalUpdate();
+        setTimeout(renderVariantImagesSection, 100);
+    };
+    
+    // Initial render
+    renderVariantImagesSection();
+});
 </script>
 @endpush
