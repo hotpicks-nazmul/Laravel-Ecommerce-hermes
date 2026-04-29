@@ -10,7 +10,19 @@
 }
 .gallery-thumbs {
     display: flex; flex-direction: column; gap: 10px;
-    width: 80px; flex-shrink: 0;
+    width: 90px; flex-shrink: 0;
+    position: relative;
+    padding: 4px 2px;
+}
+.gallery-thumb-nav {
+    width: 100%; height: 24px; display: flex; align-items: center; justify-content: center;
+    background: #f0f0f0; cursor: pointer; transition: all .2s; border-radius: 4px; flex-shrink: 0;
+    position: relative; z-index: 1;
+}
+.gallery-thumb-nav:hover { background: #2D5A27; color: white; }
+.gallery-thumb-nav i { font-size: 12px; }
+#galleryThumbsContainer {
+    max-height: 360px; overflow-y: auto; position: relative; scroll-behavior: smooth;
 }
 .gallery-thumb {
     width: 80px; height: 80px; border-radius: 10px; object-fit: cover; cursor: pointer;
@@ -19,8 +31,8 @@
 }
 .gallery-thumb:hover { opacity: 1; }
 .gallery-thumb.active { 
-    border-color: #2D5A27; opacity: 1; 
-    box-shadow: 0 0 0 2px #2D5A27;
+    opacity: 1; 
+    border-color: #2D5A27;
 }
 .gallery-main {
     position: relative; overflow: hidden; border-radius: 12px; background: #f9fafb;
@@ -68,9 +80,12 @@
     .gallery-container { flex-direction: column-reverse; }
     .gallery-thumbs { 
         flex-direction: row; width: 100%; overflow-x: auto; padding-bottom: 4px;
-        gap: 8px;
+        gap: 8px; max-height: none; scrollbar-height: thin;
     }
     .gallery-thumb { width: 60px; height: 60px; }
+    .gallery-thumb-nav { display: none; }
+    #galleryThumbsContainer { max-height: none; overflow-x: auto; overflow-y: hidden; display: flex; gap: 8px; }
+    .gallery-thumbs { flex-direction: row; width: 100%; }
 }
 @media (max-width: 640px) {
     .gallery-main { height: 280px; }
@@ -153,6 +168,8 @@ $schema = [
                     <!-- Thumbnails (vertical on desktop) -->
                     @if(!empty($gallery) || $img)
                     <div class="gallery-thumbs">
+                        <div class="gallery-thumb-nav" onclick="scrollGallery('up')"><i class="bi bi-chevron-up"></i></div>
+                        <div id="galleryThumbsContainer">
                         @if($img)
                         <img src="{{ $imgUrl }}" alt="" class="gallery-thumb active"
                              onclick="changeImage(this,'{{ $imgUrl }}')">
@@ -168,6 +185,21 @@ $schema = [
                         <img src="{{ $gUrl }}" alt="" class="gallery-thumb"
                              onclick="changeImage(this,'{{ $gUrl }}')">
                         @endforeach
+                        <!-- Variant Images from database -->
+                        @if(isset($allVariantImages) && $allVariantImages->count() > 0)
+                        @foreach($allVariantImages as $vImg)
+                        @php
+                            $vImgUrl = $vImg->image;
+                            if (!str_starts_with($vImgUrl,'http') && !str_starts_with($vImgUrl,'/storage/'))
+                                $vImgUrl = asset('storage/'.$vImgUrl);
+                        @endphp
+                        <img src="{{ $vImgUrl }}" alt="" class="gallery-thumb variant-thumb"
+                             data-key="{{ $vImg->combination_key }}"
+                             onclick="changeImage(this,'{{ $vImgUrl }}')">
+                        @endforeach
+                        @endif
+                        </div>
+                        <div class="gallery-thumb-nav" onclick="scrollGallery('down')"><i class="bi bi-chevron-down"></i></div>
                     </div>
                     @endif
 
@@ -233,7 +265,7 @@ $schema = [
                             <span class="inline-flex items-center gap-1 text-sm font-medium text-green-700 bg-green-50 px-3 py-1 rounded-full">
                                 <i class="bi bi-check-circle-fill"></i> In Stock
                             </span>
-                            <span class="text-sm text-gray-500">({{ $product->quantity }} available)</span>
+                            <span class="text-sm text-gray-500" id="stockCount">({{ $product->quantity }} available)</span>
                         </div>
                         @if($product->quantity <= 10)
                         <div class="flex items-center gap-2 text-sm text-orange-600">
@@ -254,10 +286,10 @@ $schema = [
                 <!-- Color -->
                 @php
                 $showColors = null;
-                if (isset($colors) && $colors->count() > 0) {
-                    $showColors = $colors;
-                } elseif (isset($colorOptions) && !empty($colorOptions)) {
+                if (isset($colorOptions) && !empty($colorOptions)) {
                     $showColors = collect($colorOptions);
+                } elseif (isset($colors) && $colors->count() > 0) {
+                    $showColors = $colors;
                 }
                 @endphp
                 @if($showColors)
@@ -265,15 +297,21 @@ $schema = [
                     <h3 class="text-sm font-semibold text-gray-800 mb-2">Color: <span id="selColorName" class="text-halal-green font-normal">Select</span></h3>
                     <div class="flex flex-wrap gap-2.5">
                         @foreach($showColors as $index => $color)
-                        @php $colorImage = $color['image'] ?? null; @endphp
+                        @php 
+                        $colorImage = is_array($color) ? ($color['image'] ?? null) : ($color->image ?? null);
+                        $colorHex = is_array($color) ? ($color['hex_code'] ?? '#000000') : ($color->hex_code ?? '#000000');
+                        $colorId = is_array($color) ? ($color['id'] ?? '') : ($color->id ?? '');
+                        $colorName = is_array($color) ? ($color['name'] ?? '') : ($color->name ?? '');
+                        $colorQty = is_array($color) ? ($color['quantity'] ?? '') : ($color->quantity ?? '');
+                        $colorPrice = is_array($color) ? ($color['price'] ?? 0) : ($color->price ?? 0);
+                        @endphp
         <button type="button"
                 class="color-btn w-10 h-10 rounded-full border-2 transition-all hover:scale-110 {{ $index === 0 ? 'ring-2 ring-halal-green ring-offset-2' : 'border-gray-300' }}"
-                style="background:{{ $color['hex_code'] ?? '#000000' }}"
-                data-id="{{ $color['id'] }}" data-name="{{ $color['name'] }}" data-hex="{{ $color['hex_code'] ?? '#000000' }}"
+                style="background:{{ $colorHex }}"
+                data-id="{{ $colorId }}" data-name="{{ $colorName }}" data-hex="{{ $colorHex }}" data-adj="{{ $colorPrice }}"
                 @if($colorImage) data-img="{{ asset('storage/' . $colorImage) }}" @endif
-                @if(!empty($color['quantity'])) data-stock="{{ $color['quantity'] }}" @endif
-                @if(($color['price'] ?? 0) != 0) data-adj="{{ $color['price'] }}" @endif
-                title="{{ $color['name'] }}">
+                @if(!empty($colorQty)) data-stock="{{ $colorQty }}" @endif
+                title="{{ $colorName }}">
         </button>
         @endforeach
     </div>
@@ -291,16 +329,16 @@ $schema = [
             @foreach($options as $option)
             <button type="button"
                     class="attr-btn border-2 rounded-lg px-3 py-2 text-sm transition-all hover:border-halal-green border-gray-300 flex items-center gap-2"
-                    data-attr="{{ Str::slug($attrName) }}" data-val="{{ $option['value'] }}" data-vid="{{ $option['id'] }}"
-                    @if(($option['price'] ?? 0) > 0) data-price="{{ $option['price'] }}" @endif
+                    data-attr="{{ Str::slug($attrName) }}" data-attr-name="{{ $attrName }}" data-val="{{ $option['value'] }}" data-vid="{{ $option['id'] }}"
+                    data-price="{{ $option['price'] ?? 0 }}"
                     @if(!empty($option['image'])) data-img="{{ asset('storage/' . $option['image']) }}" @endif
                     @if(!empty($option['color_code'])) style="border-left:4px solid {{ $option['color_code'] }}" @endif>
                 @if(!empty($option['image']))
                 <img src="{{ asset('storage/' . $option['image']) }}" class="w-6 h-6 object-cover rounded">
                 @endif
                 <span>{{ $option['value'] }}</span>
-                @if(($option['price'] ?? 0) > 0)
-                <span class="text-xs font-semibold text-halal-green">+৳{{ number_format($option['price']) }}</span>
+                @if(($option['price'] ?? 0) != 0)
+                <span class="text-xs font-semibold text-halal-green">{{ ($option['price'] ?? 0) > 0 ? '+' : '' }}৳{{ number_format($option['price']) }}</span>
                 @endif
             </button>
             @endforeach
@@ -544,6 +582,17 @@ function changeImage(el, src) {
     el.classList.add('active');
 }
 
+function scrollGallery(direction) {
+    const container = document.getElementById('galleryThumbsContainer');
+    if (!container) return;
+    const scrollAmount = 90;
+    if (direction === 'up') {
+        container.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
+    } else {
+        container.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+    }
+}
+
 function zoomIn() {
     document.getElementById('mainImageContainer').classList.add('zoomed');
     isZoomed = true;
@@ -573,7 +622,15 @@ function qtyChange(d) {
 
 /* ════════════ Add to Cart ════════════ */
 function addToCart(id) {
-    const qty = document.getElementById('qty').value;
+    const qtyInput = document.getElementById('qty');
+    let qty = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
+    
+    // Limit quantity to max 99
+    if (qty > 99) qty = 99;
+    if (qty < 1) qty = 1;
+    
+    console.log('addToCart - quantity:', qty);
+    
     const displayPriceEl = document.getElementById('displayPrice');
     const priceText = displayPriceEl ? displayPriceEl.textContent.replace(/[^\d]/g, '') : '0';
     const price = parseInt(priceText) || 0;
@@ -592,7 +649,8 @@ function addToCart(id) {
         quantity: qty,
         price: price,
         color_id: colorId,
-        attributes: attributes
+        attributes: attributes,
+        variant_image: currentVariantImage || null
     };
 
     fetch('/cart/add', {
@@ -674,10 +732,102 @@ const basePrice = {{ $basePrice }};
 /* ════════════ Price Calculation ════════════ */
 function updatePrice() {
     let totalAdj = selectedColorAdj || 0;
-    Object.values(selectedAttrs).forEach(a => { totalAdj += a.price || 0; });
+    Object.values(selectedAttrs).forEach(a => { 
+        totalAdj += parseFloat(a.price) || 0; 
+    });
     const newPrice = basePrice + totalAdj;
+    console.log('updatePrice - basePrice:', basePrice, 'totalAdj:', totalAdj, 'newPrice:', newPrice);
     const displayPriceEl = document.getElementById('displayPrice');
     if (displayPriceEl) displayPriceEl.textContent = '৳' + newPrice.toLocaleString();
+}
+
+/* ════════════ Stock & SKU Update ════════════ */
+const productData = {
+    stock: @json($product->quantity),
+    sku: @json($product->sku ?? ''),
+    productCode: @json($product->product_code ?? ''),
+    attrValues: @json($attributeOptions ?? []),
+    colorValues: @json($colorOptions ?? []),
+};
+
+function updateStockSku() {
+    // Try to find matching stock/sku from selected attributes and color
+    let stock = productData.stock;
+    let sku = productData.sku;
+
+    // Check color stock/sku first
+    const colorId = document.getElementById('selColorId')?.value;
+    if (colorId) {
+        const colorVal = productData.colorValues.find(c => String(c.id) === String(colorId));
+        if (colorVal) {
+            if (colorVal.quantity !== undefined && colorVal.quantity !== null) {
+                stock = parseInt(colorVal.quantity) || 0;
+            }
+            if (colorVal.sku) {
+                sku = colorVal.sku;
+            }
+        }
+    }
+
+    // Check attribute stock/sku (attribute values override color)
+    Object.keys(selectedAttrs).forEach(attr => {
+        const attrVal = selectedAttrs[attr];
+        if (attrVal && attrVal.vid) {
+            // Search through all attribute options for this value
+            Object.keys(productData.attrValues).forEach(attrName => {
+                const options = productData.attrValues[attrName];
+                if (options) {
+                    const option = options.find(o => String(o.id) === String(attrVal.vid));
+                    if (option) {
+                        if (option.quantity !== undefined && option.quantity !== null) {
+                            stock = parseInt(option.quantity) || 0;
+                        }
+                        if (option.sku) {
+                            sku = option.sku;
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    // Update stock display
+    const stockEl = document.getElementById('stockCount');
+    if (stockEl) {
+        stockEl.textContent = '(' + stock + ' available)';
+    }
+
+    // Update SKU display
+    const skuEl = document.querySelector('.text-gray-400');
+    if (skuEl && sku) {
+        const codeEl = skuEl.querySelector('span');
+        if (codeEl) codeEl.textContent = sku;
+    }
+
+    // Update add to cart button
+    const addBtn = document.querySelector('button[onclick*="addToCart"]');
+    if (addBtn) {
+        if (stock > 0) {
+            addBtn.disabled = false;
+            addBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+            addBtn.classList.add('bg-halal-green', 'text-white');
+            addBtn.innerHTML = '<i class="bi bi-cart-plus text-lg"></i> Add to Cart';
+        } else {
+            addBtn.disabled = true;
+            addBtn.classList.remove('bg-halal-green', 'text-white');
+            addBtn.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+            addBtn.innerHTML = '<i class="bi bi-x-circle"></i> Out of Stock';
+        }
+    }
+
+    // Update qty max
+    const qtyInput = document.getElementById('qty');
+    if (qtyInput) {
+        qtyInput.max = stock;
+        if (parseInt(qtyInput.value) > stock) {
+            qtyInput.value = stock;
+        }
+    }
 }
 
 /* ════════════ Variant Image Loader ════════════ */
@@ -686,35 +836,39 @@ let currentVariantImage = null;
 
 async function loadVariantImage() {
     const colorId = document.getElementById('selColorId')?.value;
-    const attrs = {};
-    
-    // Collect selected attributes
-    Object.keys(selectedAttrs).forEach(attr => {
-        if (selectedAttrs[attr]?.vid) {
-            attrs[attr] = selectedAttrs[attr].vid;
-        }
-    });
-    
-    // Add color if selected
-    if (colorId) {
-        attrs['color'] = colorId;
-    }
-    
-    // Generate combination key
     const parts = [];
-    Object.keys(attrs).forEach(attr => {
-        if (attrs[attr]) {
-            parts.push(attr + '_' + attrs[attr]);
+
+    // Collect selected attributes using actual attribute name (not slug)
+    Object.keys(selectedAttrs).forEach(slug => {
+        const attrData = selectedAttrs[slug];
+        if (attrData?.vid) {
+            const attrName = attrData.attrName || slug;
+            parts.push(attrName + '_' + attrData.vid);
         }
     });
+
+    // Add color if selected (use 'color' as type to match DB keys)
+    if (colorId) {
+        parts.push('color_' + colorId);
+    }
+
+    // Generate combination key (sort alphabetically to match DB)
     parts.sort();
     const key = parts.join('_');
     
-    if (!key) return;
+    if (!key) {
+        console.log('loadVariantImage: no key');
+        return;
+    }
+
+    console.log('loadVariantImage: key=' + key + ' colorId=' + colorId + ' selectedAttrs:', selectedAttrs);
     
     try {
+        console.log('loadVariantImage: fetching /api/product/' + productId + '/variant-image?key=' + encodeURIComponent(key));
         const response = await fetch('/api/product/' + productId + '/variant-image?key=' + encodeURIComponent(key));
         const data = await response.json();
+        console.log('loadVariantImage: response data:', JSON.stringify(data));
+        console.log('loadVariantImage: mainImg style:', document.getElementById('mainImg')?.style?.backgroundImage);
         
         if (data.image) {
             currentVariantImage = data.image;
@@ -723,6 +877,34 @@ async function loadVariantImage() {
             if (mainImg && mainImg.style.backgroundImage !== "url('" + data.image + "')") {
                 mainImg.style.backgroundImage = "url('" + data.image + "')";
                 currentZoomSrc = data.image;
+            }
+            // Highlight matching variant thumbnail (case-insensitive comparison)
+            document.querySelectorAll('.variant-thumb').forEach(thumb => {
+                thumb.classList.remove('active');
+                if (thumb.dataset.key && thumb.dataset.key.toLowerCase() === key.toLowerCase()) {
+                    thumb.classList.add('active');
+                    // Remove active from non-variant thumbnails
+                    document.querySelectorAll('.gallery-thumb:not(.variant-thumb)').forEach(t => t.classList.remove('active'));
+                    // Auto-scroll the selected thumbnail into view
+                    setTimeout(() => {
+                        thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 50);
+                }
+            });
+        } else {
+            // No variant image found - reset to default
+            currentVariantImage = null;
+            // Remove active from variant thumbnails
+            document.querySelectorAll('.variant-thumb').forEach(thumb => thumb.classList.remove('active'));
+            // Set first non-variant thumbnail as active
+            const firstThumb = document.querySelector('.gallery-thumb:not(.variant-thumb)');
+            if (firstThumb) {
+                document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+                firstThumb.classList.add('active');
+                // Auto-scroll to first thumbnail
+                setTimeout(() => {
+                    firstThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 50);
             }
         }
     } catch (error) {
@@ -740,6 +922,7 @@ document.querySelectorAll('.color-btn').forEach(b=>{
         selectedColorAdj = parseFloat(this.dataset.adj) || 0;
         if (this.dataset.img) changeImage(this, this.dataset.img);
         updatePrice();
+        updateStockSku();
         loadVariantImage();
     });
 });
@@ -754,11 +937,14 @@ document.querySelectorAll('.attr-btn').forEach(b=>{
         const attr = this.dataset.attr;
         document.querySelectorAll('.attr-btn[data-attr="'+attr+'"]').forEach(c=>{c.classList.remove('border-halal-green','bg-halal-green/10'); c.classList.add('border-gray-300');});
         this.classList.remove('border-gray-300'); this.classList.add('border-halal-green','bg-halal-green/10');
-        selectedAttrs[attr] = { val: this.dataset.val, vid: this.dataset.vid, price: parseFloat(this.dataset.price) || 0 };
-        const attrInput = document.getElementById('attrVal'+attr.charAt(0).toUpperCase()+attr.slice(1));
+        const priceVal = parseFloat(this.dataset.price) || 0;
+        console.log('Attr click - data-price:', this.dataset.price, 'parsed:', priceVal);
+        selectedAttrs[attr] = { val: this.dataset.val, vid: this.dataset.vid, price: priceVal, attrName: this.dataset.attrName || attr };
+        const attrInput = document.getElementById('attrVal'+attr);
         if (attrInput) attrInput.value = this.dataset.vid;
-        const sel = document.getElementById('attrSel'+attr.charAt(0).toUpperCase()+attr.slice(1));
+        const sel = document.getElementById('attrSel'+attr);
         if (sel) sel.textContent = this.dataset.val;
+        updateStockSku();
         if (this.dataset.img) changeImage(this, this.dataset.img);
         updatePrice();
         loadVariantImage();
@@ -773,6 +959,7 @@ document.querySelectorAll('.attr-btn').forEach(b => {
     }
 });
 updatePrice();
+loadVariantImage();
 
 /* ════════════ Variant Selection ════════════ */
 let selVariants = {};
@@ -782,8 +969,8 @@ document.querySelectorAll('.var-btn').forEach(b=>{
         selVariants[attr] = val;
         document.querySelectorAll('.var-btn[data-attr="'+attr+'"]').forEach(c=>{c.classList.remove('border-halal-green','bg-halal-green/10'); c.classList.add('border-gray-300');});
         this.classList.remove('border-gray-300'); this.classList.add('border-halal-green','bg-halal-green/10');
-        document.getElementById('varVal'+attr.charAt(0).toUpperCase()+attr.slice(1)).value = val;
-        const sel = document.getElementById('varSel'+attr.charAt(0).toUpperCase()+attr.slice(1));
+        document.getElementById('varVal'+attr).value = val;
+        const sel = document.getElementById('varSel'+attr);
         if (sel) sel.textContent = val;
     });
 });

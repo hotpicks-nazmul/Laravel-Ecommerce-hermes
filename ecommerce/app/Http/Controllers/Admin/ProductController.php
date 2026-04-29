@@ -2428,21 +2428,28 @@ class ProductController extends Controller
      */
     private function saveVariantImages(Product $product, Request $request)
     {
-        // Get existing images to preserve
+        // Get images that existed before this update (to detect deletions)
         $existingImages = $request->input('existing_variant_images', []);
-        
+
+        // Capture current DB keys BEFORE saving new images
+        $oldDbKeys = ProductVariantImage::where('product_id', $product->id)
+            ->pluck('combination_key')
+            ->toArray();
+
         // Handle new uploaded images
         if ($request->hasFile('variant_images')) {
             foreach ($request->file('variant_images') as $combinationKey => $file) {
+                $combinationKey = (string) $combinationKey;
                 if ($file && $file->isValid()) {
                     // Delete existing image if any
                     ProductVariantImage::where('product_id', $product->id)
                         ->where('combination_key', $combinationKey)
                         ->delete();
-                    
+
                     // Process and save new image
-                    $imagePath = ImageHelper::processImage($file);
-                    
+                    $imageResult = ImageHelper::processImage($file);
+                    $imagePath = $imageResult['path'] ?? null;
+
                     if ($imagePath) {
                         ProductVariantImage::create([
                             'product_id' => $product->id,
@@ -2454,17 +2461,18 @@ class ProductController extends Controller
                 }
             }
         }
-        
-        // Remove images that were deleted in the UI
-        $currentKeys = array_keys($request->input('variant_images', []));
-        $existingKeys = array_keys($existingImages);
-        $keysToDelete = array_diff($existingKeys, $currentKeys);
-        
+
+        // Remove images that were deleted via the UI (trash button)
+        // Compare OLD DB keys (before new saves) with existing_variant_images keys
+        $keptKeys = is_array($existingImages) ? array_keys($existingImages) : [];
+        $keysToDelete = array_diff($oldDbKeys, $keptKeys);
+
         foreach ($keysToDelete as $key) {
+            $key = (string) $key;
             $variantImage = ProductVariantImage::where('product_id', $product->id)
                 ->where('combination_key', $key)
                 ->first();
-            
+
             if ($variantImage) {
                 ImageHelper::deleteImage($variantImage->image);
                 $variantImage->delete();

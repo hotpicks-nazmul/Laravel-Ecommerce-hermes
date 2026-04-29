@@ -297,7 +297,7 @@
         // Cart functionality
         function updateCartCount() {
             $.get('{{ route("cart.count") }}', function(data) {
-                $('.cart-count').text(data.count);
+                $('.cart-count').text(Number(data.count) || 0);
             });
         }
         

@@ -109,7 +109,7 @@ function escapeHtml(text) {
 }
 
 function updateCartUI() {
-    const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const itemCount = Number(cart.reduce((sum, item) => sum + item.quantity, 0)) || 0;
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
     // Update header count
@@ -249,19 +249,37 @@ async function updateCartItem(cartItemId, quantity) {
         removeCartItem(cartItemId);
         return;
     }
+    
+    if (quantity > 99) {
+        showToast('Maximum quantity is 99', 'error');
+        return;
+    }
 
     try {
+        console.log('updateCartItem called:', cartItemId, quantity);
+        console.log('CSRF token:', document.querySelector('meta[name="csrf-token"]').content);
         const response = await fetch('/cart/update', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
             },
             credentials: 'same-origin',
             body: JSON.stringify({ cart_item_id: cartItemId, quantity: quantity })
         });
 
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers.get('content-type'));
+        
+        if (!response.ok) {
+            const text = await response.text();
+            console.log('Error response:', text);
+            throw new Error('HTTP error ' + response.status);
+        }
+        
         const data = await response.json();
+        console.log('updateCartItem response:', data);
 
         if (data.success) {
             await loadCart();

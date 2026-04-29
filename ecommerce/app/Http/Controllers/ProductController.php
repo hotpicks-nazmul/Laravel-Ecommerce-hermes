@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\ProductVariantImage;
 
 class ProductController extends Controller
 {
@@ -143,6 +144,8 @@ class ProductController extends Controller
                                 'price' => $value['price'] ?? 0,
                                 'color_code' => $value['color_code'] ?? null,
                                 'image' => isset($value['image']) ? preg_replace('/^\/storage\//', '', $value['image']) : null,
+                                'quantity' => $value['quantity'] ?? 0,
+                                'sku' => $value['sku'] ?? null,
                             ];
                         }
                     }
@@ -216,7 +219,12 @@ class ProductController extends Controller
             }
         }
 
-        return view('themes.general.products.show', compact('product', 'relatedProducts', 'reviews', 'attributes', 'colors', 'colorOptions', 'variants', 'variantOptions', 'attributeOptions', 'variantImages'));
+        // Get all variant images for gallery
+        $allVariantImages = \App\Models\ProductVariantImage::where('product_id', $product->id)
+            ->orderBy('sort_order')
+            ->get();
+
+        return view('themes.general.products.show', compact('product', 'relatedProducts', 'reviews', 'attributes', 'colors', 'colorOptions', 'variants', 'variantOptions', 'attributeOptions', 'variantImages', 'allVariantImages'));
     }
 
     /**
@@ -241,5 +249,27 @@ class ProductController extends Controller
         $product = Product::with('category')->findOrFail($id);
         
         return view('themes.general.components.product-card', compact('product'));
+    }
+
+    /**
+     * Get variant image for a combination key.
+     */
+    public function getVariantImage(Request $request, $productId)
+    {
+        $key = $request->query('key', '');
+        
+        if (empty($key)) {
+            return response()->json(['image' => null]);
+        }
+        
+        $variantImage = ProductVariantImage::where('product_id', $productId)
+            ->where('combination_key', $key)
+            ->first();
+        
+        if ($variantImage && $variantImage->image) {
+            return response()->json(['image' => asset($variantImage->image)]);
+        }
+        
+        return response()->json(['image' => null]);
     }
 }

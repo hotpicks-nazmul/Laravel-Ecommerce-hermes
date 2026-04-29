@@ -917,6 +917,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     updateAttributesLabel();
     updateColorsLabel();
+
+    // Render variant images section after attributes and colors are loaded
+    if (typeof renderVariantImagesSection === 'function') {
+        setTimeout(renderVariantImagesSection, 100);
+    }
 });
 
 function updateAttributesLabel() {
@@ -1419,11 +1424,10 @@ function removeSpecRow(btn) {
 let variantImages = {};
 
 // Load existing images from PHP data
-@if(isset($variantImagesData) && is_array($variantImagesData))
+var variantImagesData = @json($variantImagesData ?? []);
 Object.keys(variantImagesData).forEach(key => {
     variantImages[key] = variantImagesData[key];
 });
-@endif
 
 function generateCombinationKey(attributes) {
     const parts = [];
@@ -1438,7 +1442,7 @@ function generateCombinationKey(attributes) {
 
 function getAllAttributeCombinations() {
     const attributeTypes = {};
-    
+
     // Collect selected attributes with their values
     document.querySelectorAll('.attribute-checkbox:checked').forEach(cb => {
         const attrId = cb.value;
@@ -1448,7 +1452,7 @@ function getAllAttributeCombinations() {
             attributeTypes[attrName] = values.map(v => v.id);
         }
     });
-    
+
     // Also add colors - get color VALUES (not just color IDs)
     Object.keys(selectedProductColors).forEach(colorId => {
         const colorData = selectedProductColors[colorId];
@@ -1461,33 +1465,33 @@ function getAllAttributeCombinations() {
             });
         }
     });
-    
+
     // Generate combinations using recursive approach
     const combinations = [];
     const attrNames = Object.keys(attributeTypes);
-    
+
     if (attrNames.length === 0) {
         return combinations;
     }
-    
+
     function combine(index, current) {
         if (index === attrNames.length) {
             const key = generateCombinationKey(current);
             if (key) combinations.push({ key, attrs: { ...current } });
             return;
         }
-        
+
         const attrName = attrNames[index];
         const values = attributeTypes[attrName];
-        
+
         values.forEach(valId => {
             current[attrName] = valId;
             combine(index + 1, current);
         });
-        
+
         delete current[attrName];
     }
-    
+
     combine(0, {});
     return combinations;
 }
@@ -1495,19 +1499,19 @@ function getAllAttributeCombinations() {
 function renderVariantImagesSection() {
     const container = document.getElementById('variantImagesContainer');
     const combinations = getAllAttributeCombinations();
-    
+
     if (combinations.length === 0) {
         container.innerHTML = '<p class="text-muted small">Select colors and/or attributes above to enable variant images.</p>';
         return;
     }
-    
+
     let html = '<table class="table table-sm table-bordered"><thead class="table-light"><tr><th style="width: 35%;">Combination</th><th style="width: 40%;">Image</th><th style="width: 25%;">Preview</th></tr></thead><tbody>';
-    
+
     combinations.forEach(combo => {
         const key = combo.key;
         const existingData = variantImages[key] || {};
         const comboId = 'variant_' + key.replace(/[^a-zA-Z0-9]/g, '_');
-        
+
         html += '<tr id="variant-img-row-' + comboId + '">';
         html += '<td><small class="text-muted">' + formatCombinationLabel(combo.attrs) + '</small></td>';
         html += '<td>';
@@ -1522,7 +1526,7 @@ function renderVariantImagesSection() {
         html += '</td>';
         html += '</tr>';
     });
-    
+
     html += '</tbody></table>';
     container.innerHTML = html;
 }
@@ -1560,7 +1564,8 @@ function previewVariantImage(input, comboId) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            document.getElementById('variant-img-preview-' + comboId).src = e.target.result;
+            const img = document.getElementById('variant-img-preview-' + comboId);
+            img.src = e.target.result;
         };
         reader.readAsDataURL(input.files[0]);
     }
@@ -1572,7 +1577,7 @@ function removeVariantImage(comboId, key) {
     delete variantImages[key];
 }
 
-// Listen for attribute and color changes
+// Listen for attribute and color changes (for dynamic updates after page load)
 document.addEventListener('DOMContentLoaded', function() {
     // Watch for attribute checkbox changes
     document.querySelectorAll('.attribute-checkbox').forEach(cb => {
@@ -1580,16 +1585,13 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(renderVariantImagesSection, 100);
         });
     });
-    
+
     // Watch for color selection changes
     const originalUpdate = window.updateProductColorsSection;
     window.updateProductColorsSection = function() {
         if (originalUpdate) originalUpdate();
         setTimeout(renderVariantImagesSection, 100);
     };
-    
-    // Initial render
-    renderVariantImagesSection();
 });
 </script>
 @endpush

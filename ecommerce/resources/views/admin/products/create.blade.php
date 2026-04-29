@@ -1504,10 +1504,11 @@ function previewVariantImage(input, comboId) {
         const reader = new FileReader();
         reader.onload = function(e) {
             document.getElementById('variant-img-preview-' + comboId).src = e.target.result;
-            
-            // Store key for form submission
-            const key = comboId.replace(/_/g, '_').substring(8); // Remove 'variant_' prefix
-            variantImages['variant_' + key] = { file: input.files[0] };
+
+            // Store preview for form submission and re-render
+            const key = comboId.substring(8); // Remove 'variant_' prefix
+            const originalKey = comboId.replace('variant_', '');
+            variantImages[originalKey] = { preview: e.target.result, file: input.files[0] };
         };
         reader.readAsDataURL(input.files[0]);
     }

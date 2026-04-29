@@ -166,7 +166,7 @@ class Cart extends Model
             'name' => $product->name,
             'price' => $price,
             'quantity' => $quantity,
-            'image' => $product->featured_image ?? $product->image,
+            'image' => $variantData['image'] ?? $product->featured_image ?? $product->image,
             'variant_data' => $variantData,
         ];
         
@@ -254,7 +254,7 @@ class Cart extends Model
     public function getItemCount()
     {
         $items = $this->items ?? [];
-        return array_sum(array_column($items, 'quantity'));
+        return (int) array_sum(array_column($items, 'quantity'));
     }
 
     public function getSubtotal()

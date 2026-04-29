@@ -28,7 +28,7 @@ class CartController extends Controller
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'variant_id' => 'nullable|exists:products,id',
-            'quantity' => 'integer|min:1|max:10',
+            'quantity' => 'integer|min:1',
             'color_id' => 'nullable',
             'price' => 'nullable|numeric|min:0',
             'attributes' => 'nullable|array',
@@ -142,6 +142,11 @@ class CartController extends Controller
         // Add custom price from frontend (already calculated with adjustments)
         if ($request->price) {
             $variantData['custom_price'] = $request->price;
+        }
+        
+        // Add variant image from frontend if provided
+        if ($request->variant_image) {
+            $variantData['image'] = $request->variant_image;
         }
         
         // Add attribute info
@@ -305,7 +310,7 @@ class CartController extends Controller
     {
         $request->validate([
             'cart_item_id' => 'required|string',
-            'quantity' => 'required|integer|min:1|max:10',
+            'quantity' => 'required|integer|min:1',
         ]);
 
         $cart = $this->getCart();
@@ -356,7 +361,7 @@ class CartController extends Controller
     public function count()
     {
         $cart = $this->getCart();
-        return response()->json(['count' => $cart->getItemCount()]);
+        return response()->json(['count' => (int) $cart->getItemCount()]);
     }
 
     /**
