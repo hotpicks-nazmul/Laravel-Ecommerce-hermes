@@ -400,9 +400,25 @@ class ProductController extends Controller
                 $valuesData = [];
                 if (isset($colorData['values']) && is_array($colorData['values'])) {
                     foreach ($colorData['values'] as $valueId => $valueData) {
+                        // Get hex_code from ColorValue model
+                        $hexCode = $valueData['hex_code'] ?? null;
+                        if (!$hexCode) {
+                            $colorValue = \App\Models\ColorValue::find($valueId);
+                            if ($colorValue) {
+                                $hexCode = $colorValue->hex_code;
+                            }
+                        }
+                        // Fallback to color's hex_code
+                        if (!$hexCode) {
+                            $color = \App\Models\Color::find($colorId);
+                            if ($color) {
+                                $hexCode = $color->hex_code;
+                            }
+                        }
                         $valueItem = [
                             'value_id' => $valueData['value_id'] ?? $valueId,
                             'value_name' => $valueData['value_name'] ?? '',
+                            'hex_code' => $hexCode ?? '#000000',
                             'price' => floatval($valueData['price'] ?? 0),
                             'quantity' => intval($valueData['quantity'] ?? 0),
                             'sku' => $valueData['sku'] ?? '',
@@ -840,7 +856,7 @@ class ProductController extends Controller
             ImageHelper::deleteImage($image);
         }
         
-        $product->delete();
+        $product->forceDelete();
         return back()->with('success', 'Product deleted successfully.');
     }
 
@@ -872,7 +888,7 @@ class ProductController extends Controller
                         ImageHelper::deleteImage($image);
                     }
                 }
-                Product::whereIn('id', $ids)->delete();
+                Product::whereIn('id', $ids)->forceDelete();
                 $message = "{$count} product(s) deleted successfully.";
                 break;
 

@@ -32,7 +32,7 @@ async function loadCartPageData() {
         cartPageItems = data.items || [];
         
         // Update cart item count in heading
-        const totalItems = cartPageItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        const totalItems = cartPageItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
         const countEl = document.getElementById('cartItemCount');
         if (countEl) {
             countEl.textContent = `(${totalItems} item${totalItems !== 1 ? 's' : ''})`;
@@ -102,7 +102,13 @@ function renderCartPage() {
             
             badgesHtml = `<div class="flex flex-wrap items-center justify-start gap-1">` + colorBadge + attrBadges + `</div>`;
         }
-        return `
+        // Pre-compute quantity values to avoid scope issues
+            const qty = Number(item.quantity) || 0;
+            const qtyMinus = qty - 1;
+            const qtyPlus = qty + 1;
+            const itemTotal = (Number(item.price) || 0) * qty;
+            
+            return `
             <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm mb-4" id="cart-item-${item.cart_item_id}">
                 <img src="${imageUrl}" alt="${item.name}" class="w-20 h-20 object-cover rounded-lg">
                 <div class="flex-1">
@@ -110,17 +116,17 @@ function renderCartPage() {
                     ${badgesHtml}
                     <p class="text-halal-green font-bold">৳${parseFloat(item.price).toLocaleString()}</p>
                     <div class="flex items-center space-x-2 mt-2">
-                        <button onclick="updateCartPageItem('${item.cart_item_id}', ${item.quantity - 1})" class="w-8 h-8 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
+                        <button onclick="updateCartPageItem('${item.cart_item_id}', ${qtyMinus})" class="w-8 h-8 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
                             <i class="bi bi-dash"></i>
                         </button>
-                        <span class="font-medium" id="qty-${item.cart_item_id}">${item.quantity}</span>
-                        <button onclick="updateCartPageItem('${item.cart_item_id}', ${item.quantity + 1})" class="w-8 h-8 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
+                        <span class="font-medium" id="qty-${item.cart_item_id}">${qty}</span>
+                        <button onclick="updateCartPageItem('${item.cart_item_id}', ${qtyPlus})" class="w-8 h-8 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
                             <i class="bi bi-plus"></i>
                         </button>
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="font-bold text-gray-800">৳${(item.price * item.quantity).toLocaleString()}</p>
+                    <p class="font-bold text-gray-800">৳${itemTotal.toLocaleString()}</p>
                     <button onclick="removeCartPageItem('${item.cart_item_id}')" class="text-red-500 hover:text-red-700 mt-2">
                         <i class="bi bi-trash"></i> Remove
                     </button>

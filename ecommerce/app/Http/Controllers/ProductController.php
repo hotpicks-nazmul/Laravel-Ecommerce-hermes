@@ -183,15 +183,34 @@ class ProductController extends Controller
         $productColorsRaw = $product->colors;
         $productColors = is_string($productColorsRaw) ? json_decode($productColorsRaw, true) : ($productColorsRaw ?? []);
         
+        $defaultHexCodes = [
+            'red' => '#FF0000', 'green' => '#00FF00', 'blue' => '#0000FF',
+            'yellow' => '#FFFF00', 'orange' => '#FFA500', 'purple' => '#800080',
+            'pink' => '#FFC0CB', 'brown' => '#A52A2A', 'black' => '#000000',
+            'white' => '#FFFFFF', 'gray' => '#808080', 'grey' => '#808080',
+            'navy' => '#000080', 'teal' => '#008080', 'olive' => '#808000',
+            'maroon' => '#800000', 'aqua' => '#00FFFF', 'silver' => '#C0C0C0',
+            'beige' => '#F5F5DC', 'cream' => '#FFFDD0', 'gold' => '#FFD700',
+            'cyan' => '#00FFFF', 'magenta' => '#FF00FF', 'lime' => '#00FF00',
+            'coral' => '#FF7F50', 'salmon' => '#FA8072', 'khaki' => '#F0E68C',
+            'indigo' => '#4B0082', 'violet' => '#EE82EE', 'orange-red' => '#FF4500',
+            'pink' => '#FF69B4', 'pinki' => '#FF69B4', 'yellowish' => '#FFD700',
+        ];
+        
         if (!empty($productColors) && is_array($productColors)) {
             foreach ($productColors as $colorItem) {
                 // Handle nested 'values' structure from admin panel
                 if (isset($colorItem['values']) && is_array($colorItem['values'])) {
                     foreach ($colorItem['values'] as $valueId => $valueData) {
+                        $hexCode = $valueData['hex_code'] ?? null;
+                        if (!$hexCode || $hexCode === '#000000') {
+                            $colorName = strtolower($valueData['value_name'] ?? '');
+                            $hexCode = $defaultHexCodes[$colorName] ?? $this->generateHexFromName($valueData['value_name'] ?? '');
+                        }
                         $colorOptions[] = [
                             'id' => $valueId,
                             'name' => $valueData['value_name'] ?? '',
-                            'hex_code' => $valueData['hex_code'] ?? '#000000',
+                            'hex_code' => $hexCode,
                             'image' => isset($valueData['image']) ? preg_replace('/^\/storage\//', '', $valueData['image']) : null,
                             'price' => $valueData['price'] ?? 0,
                             'quantity' => $valueData['quantity'] ?? 0,
@@ -225,6 +244,13 @@ class ProductController extends Controller
             ->get();
 
         return view('themes.general.products.show', compact('product', 'relatedProducts', 'reviews', 'attributes', 'colors', 'colorOptions', 'variants', 'variantOptions', 'attributeOptions', 'variantImages', 'allVariantImages'));
+    }
+    
+    private function generateHexFromName($name)
+    {
+        if (empty($name)) return '#000000';
+        $hash = md5(strtolower($name));
+        return '#' . substr($hash, 0, 6);
     }
 
     /**

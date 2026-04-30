@@ -146,43 +146,67 @@
                     </div>
                 </div>
                 
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="low_stock_threshold" class="form-label">Low Stock Alert</label>
-                            <input type="number" min="0" class="form-control @error('low_stock_threshold') is-invalid @enderror" id="low_stock_threshold" name="low_stock_threshold" value="{{ old('low_stock_threshold', 10) }}" placeholder="10"
-                                   data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('low_stock_threshold') }}">
-                            @error('low_stock_threshold')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <div class="form-text">Alert when stock falls below this</div>
+<div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="low_stock_threshold" class="form-label">Low Stock Alert</label>
+                                        <input type="number" min="0" class="form-control @error('low_stock_threshold') is-invalid @enderror" id="low_stock_threshold" name="low_stock_threshold" value="{{ old('low_stock_threshold', 10) }}" placeholder="10"
+                                               data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('low_stock_threshold') }}">
+                                        @error('low_stock_threshold')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                        <div class="form-text">Alert when stock falls below this</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="weight" class="form-label">Weight (kg)</label>
+                                        <input type="number" step="0.01" min="0" class="form-control @error('weight') is-invalid @enderror" id="weight" name="weight" value="{{ old('weight') }}" placeholder="0.00"
+                                               data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('weight') }}">
+                                        @error('weight')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                        <div class="form-text">Product weight in kilograms</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="dimensions" class="form-label">Dimensions</label>
+                                        <input type="text" class="form-control @error('dimensions') is-invalid @enderror" id="dimensions" name="dimensions" value="{{ old('dimensions') }}" placeholder="e.g., 30 x 20 x 15 cm"
+                                               data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('dimensions') }}">
+                                        @error('dimensions')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                        <div class="form-text">Length x Width x Height</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <h6 class="mb-2"><i class="bi bi-list-check me-2"></i>Custom Specifications</h6>
+                                    <div id="specsContainer">
+                                        <div class="row mb-2 spec-row">
+                                            <div class="col-md-5">
+                                                <input type="text" class="form-control" name="specs[0][key]" placeholder="Specification Name (e.g., Material)">
+                                            </div>
+                                            <div class="col-md-5">
+                                                <input type="text" class="form-control" name="specs[0][value]" placeholder="Value (e.g., Stainless Steel)">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="button" class="btn btn-outline-danger" onclick="removeSpecRow(this)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addSpecRow()">
+                                        <i class="bi bi-plus-lg me-1"></i> Add Specification
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="weight" class="form-label">Weight (kg)</label>
-                            <input type="number" step="0.01" min="0" class="form-control @error('weight') is-invalid @enderror" id="weight" name="weight" value="{{ old('weight') }}" placeholder="0.00"
-                                   data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('weight') }}">
-                            @error('weight')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <div class="form-text">Product weight in kilograms</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="dimensions" class="form-label">Dimensions</label>
-                            <input type="text" class="form-control @error('dimensions') is-invalid @enderror" id="dimensions" name="dimensions" value="{{ old('dimensions') }}" placeholder="e.g., 30 x 20 x 15 cm"
-                                   data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $errors->first('dimensions') }}">
-                            @error('dimensions')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <div class="form-text">Length x Width x Height</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
         
         <!-- Product Attributes Section -->
         <div class="card border-0 shadow-sm mb-3" style="overflow: visible !important;">
@@ -396,33 +420,7 @@
              </div>
          </div>
 
-        <!-- Custom Specifications Section -->
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-header bg-white">
-                <h6 class="mb-0"><i class="bi bi-list-check me-2"></i>Custom Specifications</h6>
-            </div>
-            <div class="card-body">
-                <div id="specsContainer">
-                    <div class="row mb-2 spec-row">
-                        <div class="col-md-5">
-                            <input type="text" class="form-control" name="specs[0][key]" placeholder="Specification Name (e.g., Material)">
-                        </div>
-                        <div class="col-md-5">
-                            <input type="text" class="form-control" name="specs[0][value]" placeholder="Value (e.g., Stainless Steel)">
-                        </div>
-                        <div class="col-md-2">
-                            <button type="button" class="btn btn-outline-danger" onclick="removeSpecRow(this)">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <button type="button" class="btn btn-outline-primary btn-sm" onclick="addSpecRow()">
-                    <i class="bi bi-plus-lg me-1"></i> Add Specification
-                </button>
-            </div>
         </div>
-    </div>
 </div>
 
 <!-- Floating Save Button -->

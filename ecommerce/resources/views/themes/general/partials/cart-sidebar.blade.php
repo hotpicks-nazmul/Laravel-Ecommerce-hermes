@@ -109,8 +109,8 @@ function escapeHtml(text) {
 }
 
 function updateCartUI() {
-    const itemCount = Number(cart.reduce((sum, item) => sum + item.quantity, 0)) || 0;
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const itemCount = cart.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+    const subtotal = cart.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 0)), 0);
     
     // Update header count
     document.querySelectorAll('.cart-count').forEach(el => {
@@ -174,6 +174,12 @@ function updateCartUI() {
                 
                 badgesHtml = `<div class="flex flex-wrap items-center justify-center gap-1">` + colorBadge + attrBadges + `</div>`;
             }
+            
+            // Pre-compute quantity values to avoid scope issues in onclick
+            const qty = Number(item.quantity) || 0;
+            const qtyMinus = qty - 1;
+            const qtyPlus = qty + 1;
+            
             return `
             <div class="flex items-center space-x-3 bg-white p-3 rounded-lg shadow-sm">
                 <img src="${escapeHtml(item.image || 'https://placehold.co/80')}" alt="${escapeHtml(item.name)}" class="w-16 h-16 object-cover rounded-lg">
@@ -182,11 +188,11 @@ function updateCartUI() {
                     ${badgesHtml}
                     <p class="text-halal-green font-medium">৳${parseFloat(item.price).toLocaleString()}</p>
                     <div class="flex items-center space-x-2 mt-1">
-                        <button onclick="updateCartItem('${escapeHtml(item.cart_item_id)}', ${item.quantity - 1})" class="w-6 h-6 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
+                        <button onclick="updateCartItem('${escapeHtml(item.cart_item_id)}', ${qtyMinus})" class="w-6 h-6 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
                             <i class="bi bi-dash text-xs"></i>
                         </button>
-                        <span class="text-sm font-medium">${item.quantity}</span>
-                        <button onclick="updateCartItem('${escapeHtml(item.cart_item_id)}', ${item.quantity + 1})" class="w-6 h-6 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
+                        <span class="text-sm font-medium">${qty}</span>
+                        <button onclick="updateCartItem('${escapeHtml(item.cart_item_id)}', ${qtyPlus})" class="w-6 h-6 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
                             <i class="bi bi-plus text-xs"></i>
                         </button>
                     </div>

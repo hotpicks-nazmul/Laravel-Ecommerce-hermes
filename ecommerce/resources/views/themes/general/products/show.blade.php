@@ -395,7 +395,7 @@ $schema = [
                     <div class="flex flex-wrap items-center gap-3">
                         <div class="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
                             <button onclick="qtyChange(-1)" class="px-3 py-2.5 hover:bg-gray-100 transition-colors text-gray-600"><i class="bi bi-dash"></i></button>
-                            <input type="number" id="qty" value="1" min="1" max="{{ $product->quantity }}"
+                            <input type="number" id="qty-detail" value="1" min="1" max="{{ $product->quantity }}"
                                    class="w-14 text-center border-x border-gray-200 py-2.5 text-sm font-semibold [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
                             <button onclick="qtyChange(1)" class="px-3 py-2.5 hover:bg-gray-100 transition-colors text-gray-600"><i class="bi bi-plus"></i></button>
                         </div>
@@ -430,32 +430,6 @@ $schema = [
                                 <button onclick="copyLink()"
                                         class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"><i class="bi bi-link-45deg"></i></button>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Desktop Sticky Add to Cart (visible on scroll) -->
-                <div id="stickyAddToCart" class="hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-2xl z-40 p-3 lg:px-6" style="display:none;">
-                    <div class="container mx-auto flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <img src="{{ $imgUrl }}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0">
-                            <div class="min-w-0">
-                                <p class="font-semibold text-gray-800 text-sm truncate">{{ $product->name }}</p>
-                                <span class="text-sm font-bold text-halal-green">৳{{ number_format($product->isOnSale() ? $product->sale_price : $product->price) }}</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3 flex-shrink-0">
-                            <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                                <button onclick="const i=document.getElementById('qty'); if(parseInt(i.value)>1)i.value=parseInt(i.value)-1;" class="px-2.5 py-1.5 hover:bg-gray-100 text-sm">&minus;</button>
-                                <input type="text" value="1" class="w-10 text-center text-sm font-semibold border-x border-gray-200 py-1.5 [appearance:textfield]" readonly>
-                                <button onclick="const i=document.getElementById('qty'); if(parseInt(i.value)<{{ $product->quantity }})i.value=parseInt(i.value)+1;" class="px-2.5 py-1.5 hover:bg-gray-100 text-sm">+</button>
-                            </div>
-                            @if($product->quantity > 0)
-                            <button onclick="addToCart({{ $product->id }})"
-                                    class="bg-halal-green text-white font-semibold py-2 px-5 rounded-lg hover:bg-halal-dark transition-all text-sm flex items-center gap-2">
-                                <i class="bi bi-cart-plus"></i> Add to Cart
-                            </button>
-                            @endif
                         </div>
                     </div>
                 </div>
@@ -613,17 +587,46 @@ function zoomMove(e) {
 
 /* ════════════ Qty ════════════ */
 function qtyChange(d) {
-    const i = document.getElementById('qty');
-    let v = parseInt(i.value) + d;
-    const max = parseInt(i.max);
-    if (v < 1) v = 1; if (v > max) v = max;
-    i.value = v;
+    const i = document.getElementById('qty-detail');
+    console.log('qtyChange called, input:', i);
+    if (i) {
+        console.log('Current value before:', i.value);
+        let v = parseInt(i.value) + d;
+        const max = parseInt(i.max) || 99;
+        if (v < 1) v = 1; if (v > max) v = max;
+        i.value = v;
+        console.log('Value after:', i.value);
+    }
+}
+
+/* ════════════ Quantity Controls ════════════ */
+function decreaseQty() {
+    const qtyInput = document.getElementById('qty');
+    if (qtyInput) {
+        let val = parseInt(qtyInput.value) || 1;
+        if (val > 1) {
+            qtyInput.value = val - 1;
+        }
+    }
+}
+
+function increaseQty() {
+    const qtyInput = document.getElementById('qty');
+    if (qtyInput) {
+        let val = parseInt(qtyInput.value) || 1;
+        if (val < 99) {
+            qtyInput.value = val + 1;
+        }
+    }
 }
 
 /* ════════════ Add to Cart ════════════ */
 function addToCart(id) {
-    const qtyInput = document.getElementById('qty');
-    let qty = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
+    const qtyInput = document.getElementById('qty-detail');
+    let qty = 1;
+    if (qtyInput && qtyInput.value) {
+        qty = parseInt(qtyInput.value) || 1;
+    }
     
     // Limit quantity to max 99
     if (qty > 99) qty = 99;
@@ -635,7 +638,8 @@ function addToCart(id) {
     const priceText = displayPriceEl ? displayPriceEl.textContent.replace(/[^\d]/g, '') : '0';
     const price = parseInt(priceText) || 0;
 
-    const colorId = document.getElementById('selColorId').value;
+    const colorIdEl = document.getElementById('selColorId');
+    const colorId = colorIdEl ? colorIdEl.value : null;
 
     // Send attributes as array of value_ids for backend compatibility
     const attributes = Object.keys(selectedAttrs)

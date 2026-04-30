@@ -251,7 +251,21 @@ and fix it carefully.
 
 if you do not understand my requirement, just ask me before start.
 
+------------------------------------------------
+http://127.0.0.1:8000/admin/products/63/edit
+in this edit page Variant Images section, 
+images are not showing in image column.
 
+pin point the problem and fix it carefully.
+if you do not understand my requirement, just ask me before start.
+--------------------------------------------
+http://127.0.0.1:8000/admin/products/create
+in this product creation page.
+Custom Specifications position will be just like edit page.
+reference page: http://127.0.0.1:8000/admin/products/65/edit
+
+fix it carefully.
+if you do not understand my requirement, just ask me before start.
 
 
 
