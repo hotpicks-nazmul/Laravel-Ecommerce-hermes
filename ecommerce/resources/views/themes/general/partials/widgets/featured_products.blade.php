@@ -37,11 +37,14 @@
                         @endif
                     </div>
                     <div class="product-info p-2">
-                        <h6 class="product-name mb-1">
+                        <h6 class="product-name mb-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                             <a href="{{ route('product', $product->slug) }}" class="text-decoration-none text-dark">
-                                {{ Str::limit($product->name, 40) }}
+                                {{ $product->name }}
                             </a>
                         </h6>
+                        @if($product->product_code)
+                        <span class="d-inline-block mt-1 badge bg-light text-muted border small" style="font-size: 0.7rem;">{{ $product->product_code }}</span>
+                        @endif
                         <div class="product-price">
                             @if($product->has_discount)
                             <span class="text-decoration-line-through text-muted small">{{ format_price($product->unit_price) }}</span>

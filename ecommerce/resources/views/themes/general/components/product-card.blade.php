@@ -81,6 +81,11 @@
             </a>
         </h3>
         
+        <!-- Product Code -->
+        @if($product->product_code)
+        <span class="inline-block mt-1 text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{{ $product->product_code }}</span>
+        @endif
+        
         <!-- Rating -->
         @php $reviewCount = $product->approved_reviews_count ?? 0; @endphp
         @if($reviewCount > 0)

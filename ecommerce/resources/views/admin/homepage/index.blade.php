@@ -324,35 +324,7 @@
                             </div>
                         </div>
                         
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Featured Cols</label>
-                                @php $featuredCols = $homeSettings['homepage_featured_columns']->value ?? 6; @endphp
-                                <select name="homepage_featured_columns" class="form-select">
-                                    @for($i = 2; $i <= 6; $i++)
-                                        <option value="{{ $i }}" {{ $featuredCols == $i ? 'selected' : '' }}>{{ $i }} Cols</option>
-                                    @endfor
-                                </select>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">New Arrivals Cols</label>
-                                @php $newArrivalsCols = $homeSettings['homepage_new_arrivals_columns']->value ?? 6; @endphp
-                                <select name="homepage_new_arrivals_columns" class="form-select">
-                                    @for($i = 2; $i <= 6; $i++)
-                                        <option value="{{ $i }}" {{ $newArrivalsCols == $i ? 'selected' : '' }}>{{ $i }} Cols</option>
-                                    @endfor
-                                </select>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Sale Cols</label>
-                                @php $saleCols = $homeSettings['homepage_sale_columns']->value ?? 6; @endphp
-                                <select name="homepage_sale_columns" class="form-select">
-                                    @for($i = 2; $i <= 6; $i++)
-                                        <option value="{{ $i }}" {{ $saleCols == $i ? 'selected' : '' }}>{{ $i }} Cols</option>
-                                    @endfor
-                                </select>
-                            </div>
-                         </div>
+                        
                      </div>
                  </div>
              </div>

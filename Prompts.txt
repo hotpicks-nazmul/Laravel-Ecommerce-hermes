@@ -266,6 +266,18 @@ reference page: http://127.0.0.1:8000/admin/products/65/edit
 
 fix it carefully.
 if you do not understand my requirement, just ask me before start.
+----------------------------------------------------------------------
 
+http://127.0.0.1:8000/
+in frontend 
+in Shop by Category section
+in the category card i want mouse hover color change of category name nad shop now button
+make it sites golden color on mouse hover
+
+Featured Cols
+
+New Arrivals Cols
+
+Sale Cols
 
 

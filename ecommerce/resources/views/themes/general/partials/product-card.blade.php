@@ -80,9 +80,14 @@
         @endif
         
         <!-- Name -->
-        <h3 class="font-poppins font-semibold text-gray-800 mt-1 hover:text-halal-green transition-colors">
-            <a href="{{ route('products.show', $product->slug) }}">{{ Str::limit($product->name, 40) }}</a>
+        <h3 class="font-poppins font-semibold text-gray-800 mt-1 hover:text-halal-green transition-colors line-clamp-2">
+            <a href="{{ route('products.show', $product->slug) }}">{{ $product->name }}</a>
         </h3>
+        
+        <!-- Product Code -->
+        @if($product->product_code)
+        <span class="inline-block mt-1.5 text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{{ $product->product_code }}</span>
+        @endif
         
         <!-- Rating -->
         <div class="flex items-center mt-2">

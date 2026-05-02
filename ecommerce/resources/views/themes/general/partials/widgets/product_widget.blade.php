@@ -42,11 +42,14 @@
                         </div>
                     </div>
                     <div class="product-info">
-                        <h6 class="product-name mb-1" style="font-size: 0.9rem;">
+                        <h6 class="product-name mb-1" style="font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                             <a href="{{ route('product', $product->slug) }}" class="text-decoration-none text-dark">
-                                {{ Str::limit($product->name ?? $product->name, 50) }}
+                                {{ $product->name ?? $product->name }}
                             </a>
                         </h6>
+                        @if($product->product_code)
+                        <span class="d-inline-block mt-1 badge bg-light text-muted border small" style="font-size: 0.7rem;">{{ $product->product_code }}</span>
+                        @endif
                         <div class="product-price mb-1">
                             @if($product->has_discount || $product->discount > 0)
                             <span class="text-decoration-line-through text-muted small me-2">{{ format_price($product->unit_price ?? $product->price) }}</span>

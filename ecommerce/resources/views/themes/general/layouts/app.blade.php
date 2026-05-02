@@ -75,6 +75,8 @@
     
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
@@ -269,9 +271,17 @@
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold">Quick View</h3>
-                    <button onclick="$('#quick-view-modal').addClass('hidden');$('#quick-view-modal').removeClass('flex');" class="text-gray-500 hover:text-gray-700">
+                    <button onclick="$('#quick-view-modal').addClass('hidden');$('#quick-view-modal').removeClass('flex');$('#quick-view-loading').removeClass('hidden');$('#quick-view-content').html('');$('#quick-view-error').addClass('hidden');" class="text-gray-500 hover:text-gray-700">
                         <i class="bi bi-x-lg text-2xl"></i>
                     </button>
+                </div>
+                <div id="quick-view-loading" class="text-center py-12">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-primary"></div>
+                    <p class="text-gray-500 mt-3">Loading product...</p>
+                </div>
+                <div id="quick-view-error" class="hidden text-center py-12">
+                    <i class="bi bi-exclamation-triangle text-4xl text-red-400"></i>
+                    <p class="text-gray-600 mt-3">Failed to load product. Please try again.</p>
                 </div>
                 <div id="quick-view-content">
                     <!-- Content loaded via AJAX -->
@@ -303,16 +313,24 @@
         
         // Quick View function
         function quickView(productId) {
+            $('#quick-view-loading').removeClass('hidden');
+            $('#quick-view-content').html('');
+            $('#quick-view-error').addClass('hidden');
+            $('#quick-view-modal').removeClass('hidden');
+            $('#quick-view-modal').addClass('flex');
             $.ajax({
                 url: '/api/products/quick-view/' + productId,
                 method: 'GET',
                 success: function(response) {
+                    $('#quick-view-loading').addClass('hidden');
                     $('#quick-view-content').html(response);
-                    $('#quick-view-modal').removeClass('hidden');
-                    $('#quick-view-modal').addClass('flex');
                 },
                 error: function() {
-                    showToast('Failed to load product', 'error');
+                    $('#quick-view-loading').addClass('hidden');
+                    $('#quick-view-error').removeClass('hidden');
+                    if (typeof showToast === 'function') {
+                        showToast('Failed to load product', 'error');
+                    }
                 }
             });
         }

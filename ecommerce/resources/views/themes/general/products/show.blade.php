@@ -243,13 +243,30 @@ $schema = [
                     @endif
                 </div>
 
-                <!-- Price -->
-                <div class="mt-4 flex items-baseline gap-3">
-                    @php $basePrice = $product->isOnSale() ? $product->sale_price : $product->price; @endphp
-                    <span class="price-current" id="displayPrice">৳{{ number_format($basePrice) }}</span>
+                @php $basePrice = $product->isOnSale() ? $product->sale_price : $product->price; @endphp
+
+                <!-- Price Calculation -->
+                <div class="mt-4">
+                    <div class="flex items-baseline gap-2 text-sm">
+                        <span class="text-gray-600">Base Price:</span>
+                        <span class="font-semibold text-gray-800" id="basePriceDisplay">৳{{ number_format($basePrice) }}</span>
+                    </div>
+                    <div class="mt-1 text-sm" id="attrPriceRow">
+                        <div id="selectedAttrsList"></div>
+                        <div id="selectedColorRow" class="flex items-baseline gap-2" style="display:none;">
+                            <span class="text-gray-600">Color:</span>
+                            <span class="font-semibold text-halal-green" id="selectedColorDisplay"></span>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2 text-lg mt-1 border-t border-gray-200 pt-1">
+                        <span class="font-semibold text-gray-800">Total:</span>
+                        <span class="price-current" id="displayPrice">৳{{ number_format($basePrice) }}</span>
+                    </div>
                     @if($product->isOnSale())
-                        <span class="price-old" id="originalPrice">৳{{ number_format($product->price) }}</span>
-                        <span class="text-xs font-semibold text-white bg-red-500 px-2 py-0.5 rounded-full" id="saveBadge">Save ৳{{ number_format($product->price - $product->sale_price) }}</span>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-xs font-semibold text-white bg-red-500 px-2 py-0.5 rounded-full" id="saveBadge">Save ৳{{ number_format($product->price - $product->sale_price) }}</span>
+                            <span class="price-old" id="originalPrice">৳{{ number_format($product->price) }}</span>
+                        </div>
                     @endif
                 </div>
 
@@ -740,9 +757,48 @@ function updatePrice() {
         totalAdj += parseFloat(a.price) || 0; 
     });
     const newPrice = basePrice + totalAdj;
-    console.log('updatePrice - basePrice:', basePrice, 'totalAdj:', totalAdj, 'newPrice:', newPrice);
     const displayPriceEl = document.getElementById('displayPrice');
     if (displayPriceEl) displayPriceEl.textContent = '৳' + newPrice.toLocaleString();
+    
+    // Update base price display
+    const basePriceDisplay = document.getElementById('basePriceDisplay');
+    if (basePriceDisplay) basePriceDisplay.textContent = '৳' + basePrice.toLocaleString();
+    
+    // Update selected attributes list
+    const attrsListEl = document.getElementById('selectedAttrsList');
+    const colorRowEl = document.getElementById('selectedColorRow');
+    const colorDisplayEl = document.getElementById('selectedColorDisplay');
+    let attrsHtml = '';
+    
+    // Add color if selected
+    const colorId = document.getElementById('selColorId')?.value;
+    const colorNameEl = document.getElementById('selColorName');
+    if (colorId && colorNameEl) {
+        const colorName = colorNameEl.textContent;
+        if (colorName && colorName !== 'Select') {
+            colorRowEl.style.display = 'flex';
+            const colorAdj = selectedColorAdj || 0;
+            const priceStr = colorAdj !== 0 ? (colorAdj > 0 ? ' (+৳' + colorAdj.toLocaleString() + ')' : ' (৳' + colorAdj.toLocaleString() + ')') : '';
+            colorDisplayEl.innerHTML = colorName + '<span class="text-halal-green text-xs">' + priceStr + '</span>';
+        } else {
+            colorRowEl.style.display = 'none';
+        }
+    } else {
+        colorRowEl.style.display = 'none';
+    }
+    
+    // Add attributes
+    Object.values(selectedAttrs).forEach(a => {
+        if (a && a.val) {
+            const price = parseFloat(a.price) || 0;
+            attrsHtml += '<div class="flex items-baseline gap-2">';
+            attrsHtml += '<span class="text-gray-600">' + (a.attrName || a.attr) + ':</span>';
+            attrsHtml += '<span class="font-semibold text-halal-green">' + a.val + (price !== 0 ? ' <span class="text-xs">(' + (price > 0 ? '+' : '') + '৳' + price.toLocaleString() + ')</span>' : '') + '</span>';
+            attrsHtml += '</div>';
+        }
+    });
+    
+    if (attrsListEl) attrsListEl.innerHTML = attrsHtml;
 }
 
 /* ════════════ Stock & SKU Update ════════════ */
@@ -933,7 +989,10 @@ document.querySelectorAll('.color-btn').forEach(b=>{
 
 // Auto-select first color on load
 const firstColor = document.querySelector('.color-btn');
-if (firstColor) firstColor.click();
+if (firstColor) {
+    firstColor.click();
+    updatePrice();
+}
 
 /* ════════════ Attribute Selection ════════════ */
 document.querySelectorAll('.attr-btn').forEach(b=>{

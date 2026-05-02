@@ -141,6 +141,70 @@
 </div>
 @endif
 
+<!-- Features Bar Settings (works for both hero types) -->
+<form action="{{ route('admin.hero.update') }}" method="POST" enctype="multipart/form-data" id="features-form">
+    @csrf
+    @method('PUT')
+    
+    <!-- Features Bar -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white">
+            <h6 class="mb-0"><i class="bi bi-check2-circle me-2"></i>Features Bar</h6>
+            <small class="text-muted">These features appear on the homepage for both Standard and Image Slider hero types</small>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                @for ($i = 1; $i <= 4; $i++)
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 border bg-light">
+                        <div class="card-body p-3">
+                            <h6 class="card-title small text-muted mb-3">Feature {{ $i }}</h6>
+                            <div class="mb-2">
+                                <label for="hero_feature{{ $i }}_icon" class="form-label small">Icon</label>
+                                <input type="text" id="hero_feature{{ $i }}_icon" name="hero_feature{{ $i }}_icon" 
+                                    value="{{ $heroSettings["hero_feature{$i}_icon"]->value ?? '' }}"
+                                    class="form-control form-control-sm @error("hero_feature{$i}_icon") is-invalid @enderror" placeholder="bi bi-truck">
+                                @error("hero_feature{$i}_icon")
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-2">
+                                <label for="hero_feature{{ $i }}_title" class="form-label small">Title</label>
+                                <input type="text" id="hero_feature{{ $i }}_title" name="hero_feature{{ $i }}_title" 
+                                    value="{{ $heroSettings["hero_feature{$i}_title"]->value ?? '' }}"
+                                    class="form-control form-control-sm @error("hero_feature{$i}_title") is-invalid @enderror" placeholder="Free Delivery">
+                                @error("hero_feature{$i}_title")
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="hero_feature{{ $i }}_subtitle" class="form-label small">Subtitle</label>
+                                <input type="text" id="hero_feature{{ $i }}_subtitle" name="hero_feature{{ $i }}_subtitle" 
+                                    value="{{ $heroSettings["hero_feature{$i}_subtitle"]->value ?? '' }}"
+                                    class="form-control form-control-sm @error("hero_feature{$i}_subtitle") is-invalid @enderror" placeholder="Orders over Tk500">
+                                @error("hero_feature{$i}_subtitle")
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endfor
+            </div>
+        </div>
+    </div>
+    
+    <!-- Floating Save Button -->
+    <div class="floating-save-container">
+        <a href="{{ route('admin.hero.index') }}" class="btn btn-secondary floating-reset-btn">
+            <i class="bi bi-x-lg me-1"></i> Cancel
+        </a>
+        <button type="submit" form="features-form" class="btn btn-primary floating-save-btn">
+            <i class="bi bi-check-lg me-1"></i> Save Features Bar
+        </button>
+    </div>
+</form>
+
 <!-- Standard Hero Settings (shown when standard type is selected) -->
 @if(($heroSettings['hero_type']->value ?? 'standard') === 'standard')
 <form action="{{ route('admin.hero.update') }}" method="POST" enctype="multipart/form-data" id="hero-form">

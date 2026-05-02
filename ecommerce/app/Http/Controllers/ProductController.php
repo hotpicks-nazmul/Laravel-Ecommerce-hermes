@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Brand;
 use App\Models\ProductVariantImage;
 
 class ProductController extends Controller
@@ -16,6 +17,16 @@ class ProductController extends Controller
     {
         $query = Product::where('is_active', true);
 
+        // Filter by search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('short_description', 'like', "%{$search}%")
+                    ->orWhere('sku', 'like', "%{$search}%");
+            });
+        }
+
         // Filter by category
         if ($request->has('category')) {
             $query->whereHas('category', function ($q) use ($request) {
@@ -23,12 +34,52 @@ class ProductController extends Controller
             });
         }
 
+        // Filter by brand
+        if ($request->has('brand')) {
+            $brands = $request->brand;
+            if (is_array($brands) && count($brands) > 0) {
+                $query->whereIn('brand_id', $brands);
+            }
+        }
+
         // Filter by price range
-        if ($request->has('min_price')) {
+        if ($request->filled('min_price')) {
             $query->where('price', '>=', $request->min_price);
         }
-        if ($request->has('max_price')) {
+        if ($request->filled('max_price')) {
             $query->where('price', '<=', $request->max_price);
+        }
+
+        // Filter by featured
+        if ($request->boolean('featured')) {
+            $query->where('is_featured', true);
+        }
+
+        // Filter by on sale
+        if ($request->boolean('on_sale')) {
+            $query->whereNotNull('sale_price')
+                ->whereColumn('sale_price', '<', 'price')
+                ->where(function ($q) {
+                    $q->whereNull('discount_ends_at')
+                        ->orWhere('discount_ends_at', '>=', now());
+                });
+        }
+
+        // Filter by in stock
+        if ($request->boolean('in_stock')) {
+            $query->where('quantity', '>', 0);
+        }
+
+        // Filter by minimum rating
+        if ($request->has('rating')) {
+            $rating = (int) $request->rating;
+            $query->whereIn('id', function ($q) use ($rating) {
+                $q->select('product_id')
+                    ->from('reviews')
+                    ->where('status', 'approved')
+                    ->groupBy('product_id')
+                    ->havingRaw('AVG(rating) >= ?', [$rating]);
+            });
         }
 
         // Sort products
@@ -43,14 +94,31 @@ class ProductController extends Controller
             case 'name':
                 $query->orderBy('name', 'asc');
                 break;
+            case 'on_sale':
+                $query->orderByRaw('CASE WHEN sale_price IS NOT NULL AND sale_price < price AND (discount_ends_at IS NULL OR discount_ends_at >= NOW()) THEN (price - sale_price) ELSE -1 END desc');
+                break;
+            case 'rating':
+                $query->withAvg('approvedReviews', 'rating')
+                    ->orderBy('approved_reviews_avg_rating', 'desc');
+                break;
+            case 'oldest':
+                $query->oldest();
+                break;
             default:
                 $query->latest();
         }
 
-        $products = $query->paginate(12);
+        $products = $query->paginate(12)->withQueryString();
         $categories = Category::where('status', 'active')->get();
+        $brands = Brand::where('is_active', true)->orderBy('name')->get();
 
-        return view('themes.general.products.index', compact('products', 'categories'));
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('themes.general.products._grid', compact('products', 'categories', 'brands'))->render(),
+            ]);
+        }
+
+        return view('themes.general.products.index', compact('products', 'categories', 'brands'));
     }
 
     /**
@@ -272,9 +340,14 @@ class ProductController extends Controller
      */
     public function quickView($id)
     {
-        $product = Product::with('category')->findOrFail($id);
+        $product = Product::with([
+            'category',
+            'approvedReviews' => function ($q) {
+                $q->select('id', 'product_id', 'rating');
+            },
+        ])->withCount('approvedReviews')->findOrFail($id);
         
-        return view('themes.general.components.product-card', compact('product'));
+        return view('themes.general.partials.quick-view-content', compact('product'));
     }
 
     /**

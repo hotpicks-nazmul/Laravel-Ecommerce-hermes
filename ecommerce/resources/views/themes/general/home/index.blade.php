@@ -272,8 +272,6 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                         <p class="text-xs text-gray-300">{{ $hero('hero_feature4_subtitle', 'Always Here') }}</p>
                     </div>
                 </div>
-            </div>
-        </div>
     </div>
 </section>
 @endif
@@ -289,6 +287,7 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
             $categoryTitle = $home('homepage_categories_title', 'Shop by Category');
             $categorySubtitle = $home('homepage_categories_subtitle', 'Browse our wide range of premium halal products, carefully sourced and quality assured');
         @endphp
+        @if($categories->count() > 0)
         
         <!-- Categories Section - {{ $categoryStyle == 'grid' ? 'Grid' : 'Card' }} Style -->
         <section class="py-16 bg-gradient-to-b from-white via-gray-50 to-white relative overflow-hidden" data-section="categories">
@@ -445,7 +444,7 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                 <!-- View All Categories Button -->
                 <div class="text-center mt-10">
                     <a href="{{ route('products.index') }}" 
-                       class="inline-flex items-center bg-halal-dark text-white px-8 py-3 rounded-full font-medium hover:bg-halal-green transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                       class="inline-flex items-center bg-halal-dark text-white px-8 py-3 rounded-full font-medium hover:bg-halal-green hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                         <i class="bi bi-grid-fill mr-2"></i>
                         View All Categories
                         <i class="bi bi-arrow-right ml-2"></i>
@@ -453,16 +452,23 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                 </div>
             </div>
         </section>
+        @else
+        <section class="py-16 bg-gradient-to-b from-white via-gray-50 to-white relative overflow-hidden" data-section="categories">
+            <div class="container mx-auto px-4 text-center py-8">
+                <p class="text-gray-500">No categories available yet.</p>
+            </div>
+        </section>
+        @endif
         @endif
 
     @elseif($section === 'featured')
         <!-- Featured Products -->
-        @if($home('homepage_show_featured_section', '1') == '1')
+        @if($featuredProducts->count() > 0 && $home('homepage_show_featured_section', '1') == '1')
         <section class="py-12" data-section="featured">
             <div class="container mx-auto px-4">
                 <div class="flex items-center justify-between mb-8">
                     <div>
-                        <h2 class="font-poppins text-3xl font-bold text-gray-800">{{ $home('homepage_featured_title', 'Featured Products') }}</h2>
+                        <h2 class="font-poppins text-3xl font-bold text-gray-800"><i class="bi bi-star-fill text-halal-gold mr-2"></i>{{ $home('homepage_featured_title', 'Featured Products') }}</h2>
                         <p class="text-gray-600 mt-1">{{ $home('homepage_featured_subtitle', 'Handpicked premium quality products for you') }}</p>
                     </div>
                     <a href="{{ route('products.index') }}" class="text-halal-green hover:text-halal-dark font-medium flex items-center">
@@ -480,12 +486,12 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                                 </div>
                             @endforeach
                         </div>
+                        <!-- Navigation Buttons -->
+                        <div class="swiper-button-next featured-slider-next"></div>
+                        <div class="swiper-button-prev featured-slider-prev"></div>
+                        <!-- Pagination -->
+                        <div class="swiper-pagination featured-slider-pagination"></div>
                     </div>
-                    <!-- Navigation Buttons -->
-                    <div class="swiper-button-prev featured-slider-prev"></div>
-                    <div class="swiper-button-next featured-slider-next"></div>
-                    <!-- Pagination -->
-                    <div class="swiper-pagination featured-slider-pagination"></div>
                 </div>
             </div>
         </section>
@@ -556,7 +562,7 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
 
     @elseif($section === 'new_arrivals')
         <!-- New Arrivals -->
-        @if($home('homepage_show_new_arrivals_section', '1') == '1')
+        @if($latestProducts->count() > 0 && $home('homepage_show_new_arrivals_section', '1') == '1')
         <section class="py-12 bg-gray-50" data-section="new_arrivals">
             <div class="container mx-auto px-4">
                 <div class="flex items-center justify-between mb-8">
@@ -579,12 +585,12 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                                 </div>
                             @endforeach
                         </div>
+                        <!-- Navigation Buttons -->
+                        <div class="swiper-button-next new-arrivals-slider-next"></div>
+                        <div class="swiper-button-prev new-arrivals-slider-prev"></div>
+                        <!-- Pagination -->
+                        <div class="swiper-pagination new-arrivals-slider-pagination"></div>
                     </div>
-                    <!-- Navigation Buttons -->
-                    <div class="swiper-button-prev new-arrivals-slider-prev"></div>
-                    <div class="swiper-button-next new-arrivals-slider-next"></div>
-                    <!-- Pagination -->
-                    <div class="swiper-pagination new-arrivals-slider-pagination"></div>
                 </div>
             </div>
         </section>
@@ -649,12 +655,12 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                                 </div>
                             @endforeach
                         </div>
+                        <!-- Navigation Buttons -->
+                        <div class="swiper-button-next sale-slider-next"></div>
+                        <div class="swiper-button-prev sale-slider-prev"></div>
+                        <!-- Pagination -->
+                        <div class="swiper-pagination sale-slider-pagination"></div>
                     </div>
-                    <!-- Navigation Buttons -->
-                    <div class="swiper-button-prev sale-slider-prev"></div>
-                    <div class="swiper-button-next sale-slider-next"></div>
-                    <!-- Pagination -->
-                    <div class="swiper-pagination sale-slider-pagination"></div>
                 </div>
             </div>
         </section>
@@ -1095,7 +1101,8 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
-        z-index: 10;
+        z-index: 20;
+        cursor: pointer;
     }
     
     .swiper-button-prev:hover,
@@ -1110,11 +1117,11 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
     }
     
     .swiper-button-prev {
-        left: -5px;
+        left: 5px;
     }
     
     .swiper-button-next {
-        right: -5px;
+        right: 5px;
     }
     
     /* Swiper Pagination */
@@ -1141,6 +1148,14 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
         .swiper-button-next {
             width: 30px;
             height: 30px;
+        }
+        
+        .swiper-button-prev {
+            left: 10px;
+        }
+        
+        .swiper-button-next {
+            right: 10px;
         }
         
         .swiper-button-prev::after,
@@ -1259,7 +1274,6 @@ $sectionOrder = $sectionOrder ?? ['categories', 'featured', 'banner', 'new_arriv
                 slidesPerView: 2,
                 spaceBetween: 16,
                 loop: true,
-                loopAdditionalSlides: 2,
                 autoplay: {
                     delay: 4000,
                     disableOnInteraction: false,
