@@ -1901,6 +1901,43 @@
             </div>
             @endif
             
+            <!-- LOCATIONS -->
+            @if(Auth::user()->hasPermission('locations'))
+            <div class="menu-category">
+                <a class="menu-category-header {{ request()->routeIs('admin.locations.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuLocations" role="button" aria-expanded="{{ request()->routeIs('admin.locations.*') ? 'true' : 'false' }}">
+                    <div>
+                        <i class="bi bi-geo-alt menu-icon"></i>
+                        <span class="menu-category-title">Locations</span>
+                    </div>
+                    <i class="bi bi-chevron-down arrow"></i>
+                </a>
+                <div class="collapse {{ request()->routeIs('admin.locations.*') ? 'show' : '' }}" id="menuLocations">
+                    <ul class="nav flex-column submenu">
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.locations.states*') ? 'active' : '' }}" href="{{ route('admin.locations.states.index') }}">
+                                <i class="bi bi-map"></i> States
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.locations.cities*') ? 'active' : '' }}" href="{{ route('admin.locations.cities.index') }}">
+                                <i class="bi bi-building"></i> Cities
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.locations.areas*') ? 'active' : '' }}" href="{{ route('admin.locations.areas.index') }}">
+                                <i class="bi bi-geo"></i> Areas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.locations.country-settings*') ? 'active' : '' }}" href="{{ route('admin.locations.country-settings') }}">
+                                <i class="bi bi-globe"></i> Country Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            @endif
+
             <!-- WAREHOUSE -->
             @if(Auth::user()->hasPermission('warehouse'))
             <div class="menu-category">

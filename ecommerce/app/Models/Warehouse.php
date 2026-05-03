@@ -52,6 +52,21 @@ class Warehouse extends Model
         return $query->where('is_primary', true);
     }
 
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort_order')->orderBy('name');
+    }
+
+    public function cities()
+    {
+        return $this->belongsToMany(City::class, 'warehouse_city');
+    }
+
+    public function areas()
+    {
+        return $this->belongsToMany(Area::class, 'warehouse_area');
+    }
+
     /**
      * Get formatted address attribute.
      */

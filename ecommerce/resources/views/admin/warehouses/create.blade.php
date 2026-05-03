@@ -189,6 +189,33 @@
                 <div class="form-text">Lower numbers appear first</div>
             </div>
         </div>
+
+        <!-- Service Areas -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Service Areas</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Cities Served</label>
+                    <select name="city_ids[]" form="warehouseForm" class="form-select" multiple style="min-height: 120px;">
+                        @foreach(\App\Models\City::active()->ordered()->get() as $city)
+                            <option value="{{ $city->id }}">{{ $city->name }} ({{ $city->countryRelation->name ?? $city->country }})</option>
+                        @endforeach
+                    </select>
+                    <div class="form-text">Hold Ctrl/Cmd to select multiple cities</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Areas Served</label>
+                    <select name="area_ids[]" form="warehouseForm" class="form-select" multiple style="min-height: 120px;">
+                        @foreach(\App\Models\Area::active()->ordered()->get() as $area)
+                            <option value="{{ $area->id }}">{{ $area->name }} ({{ $area->city->name ?? 'N/A' }})</option>
+                        @endforeach
+                    </select>
+                    <div class="form-text">Hold Ctrl/Cmd to select multiple areas</div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

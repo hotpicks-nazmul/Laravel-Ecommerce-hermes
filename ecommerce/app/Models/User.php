@@ -510,6 +510,7 @@ class User extends Authenticatable
             'affiliate' => 'admin.affiliate.index',
             'pos' => 'admin.pos.index',
             'settings' => 'admin.settings.index',
+            'locations' => 'admin.locations.cities.index',
             'warehouse' => 'admin.warehouses.index',
             'staffs' => 'admin.staffs.index',
             'system' => 'admin.system.update',

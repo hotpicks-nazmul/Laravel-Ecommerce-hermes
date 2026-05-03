@@ -909,6 +909,48 @@ Route::prefix('settings')->name('settings.')->group(function () {
     Route::get('/api/notification-settings', [SettingController::class, 'getNotificationSettingsApi'])->name('api.notification-settings');
 });
 
+// Location Management (States, Cities & Areas)
+Route::prefix('locations')->middleware('permission:locations')->name('locations.')->group(function () {
+    // States
+    Route::prefix('states')->name('states.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\StateController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\StateController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\StateController::class, 'store'])->name('store');
+        Route::get('/{state}/edit', [\App\Http\Controllers\Admin\StateController::class, 'edit'])->name('edit');
+        Route::put('/{state}', [\App\Http\Controllers\Admin\StateController::class, 'update'])->name('update');
+        Route::delete('/{state}', [\App\Http\Controllers\Admin\StateController::class, 'destroy'])->name('destroy');
+        Route::post('/{state}/toggle-status', [\App\Http\Controllers\Admin\StateController::class, 'toggleStatus'])->name('toggle-status');
+    });
+    // Cities
+    Route::prefix('cities')->name('cities.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\CityController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\CityController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\CityController::class, 'store'])->name('store');
+        Route::get('/{city}/edit', [\App\Http\Controllers\Admin\CityController::class, 'edit'])->name('edit');
+        Route::put('/{city}', [\App\Http\Controllers\Admin\CityController::class, 'update'])->name('update');
+        Route::delete('/{city}', [\App\Http\Controllers\Admin\CityController::class, 'destroy'])->name('destroy');
+        Route::post('/{city}/toggle-status', [\App\Http\Controllers\Admin\CityController::class, 'toggleStatus'])->name('toggle-status');
+    });
+    // API: get cities for AJAX
+    Route::get('/get-cities', [\App\Http\Controllers\Admin\CityController::class, 'getCities'])->name('get-cities');
+    // Areas
+    Route::prefix('areas')->name('areas.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\AreaController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\AreaController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\AreaController::class, 'store'])->name('store');
+        Route::get('/{area}/edit', [\App\Http\Controllers\Admin\AreaController::class, 'edit'])->name('edit');
+        Route::put('/{area}', [\App\Http\Controllers\Admin\AreaController::class, 'update'])->name('update');
+        Route::delete('/{area}', [\App\Http\Controllers\Admin\AreaController::class, 'destroy'])->name('destroy');
+        Route::post('/{area}/toggle-status', [\App\Http\Controllers\Admin\AreaController::class, 'toggleStatus'])->name('toggle-status');
+    });
+    // API: get areas for AJAX
+    Route::get('/get-areas', [\App\Http\Controllers\Admin\AreaController::class, 'getAreas'])->name('get-areas');
+
+    // Country Settings
+    Route::get('/country-settings', [\App\Http\Controllers\Admin\CityController::class, 'countrySettings'])->name('country-settings');
+    Route::post('/country-settings', [\App\Http\Controllers\Admin\CityController::class, 'updateCountrySettings'])->name('country-settings.update');
+});
+
 // Warehouse Management
 Route::prefix('warehouses')->middleware('permission:warehouse')->name('warehouses.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\WarehouseController::class, 'index'])->name('index');

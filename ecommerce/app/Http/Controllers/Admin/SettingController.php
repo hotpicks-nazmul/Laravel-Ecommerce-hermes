@@ -1203,6 +1203,10 @@ class SettingController extends Controller
             // Digital Product Settings
             'digital_product_auto_deliver' => $request->has('digital_product_auto_deliver') ? '1' : '0',
             'digital_product_validity_days' => $request->digital_product_validity_days ?? 30,
+
+            // Checkout Localization
+            'checkout_mode' => $request->checkout_mode ?? 'local',
+            'default_country' => $request->default_country ?? 'Bangladesh',
         ];
 
         foreach ($settings as $key => $value) {

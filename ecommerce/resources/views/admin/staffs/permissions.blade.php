@@ -267,6 +267,15 @@
                                                 </div>
                                                 <div class="col-md-6 mb-3">
                                                     <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="locations" id="perm_locations_{{ $member->id }}"
+                                                            {{ in_array('locations', $member->getPermissionsArray()) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="perm_locations_{{ $member->id }}">
+                                                            <i class="bi bi-geo-alt me-1"></i> Location Management
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="form-check">
                                                         <input class="form-check-input" type="checkbox" name="permissions[]" value="warehouse" id="perm_warehouse_{{ $member->id }}"
                                                             {{ in_array('warehouse', $member->getPermissionsArray()) ? 'checked' : '' }}>
                                                         <label class="form-check-label" for="perm_warehouse_{{ $member->id }}">

@@ -337,6 +337,48 @@
             </div>
         </div>
         
+        <!-- Warehouse Info -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0"><i class="bi bi-building me-2"></i>Warehouse</h5>
+            </div>
+            <div class="card-body">
+                @if($order->warehouse)
+                    <div class="d-flex align-items-center">
+                        <div class="bg-info bg-opacity-10 rounded-circle p-3 me-3">
+                            <i class="bi bi-building text-info"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{ $order->warehouse->name }}</h6>
+                            <small class="text-muted">{{ $order->warehouse->city }}, {{ $order->warehouse->state }}</small>
+                        </div>
+                    </div>
+                @else
+                    <p class="text-muted mb-0 small">No warehouse assigned</p>
+                @endif
+                @if($order->billingArea)
+                    <hr>
+                    <div class="small">
+                        <span class="text-muted">Area:</span>
+                        <span class="fw-medium">{{ $order->billingArea->name }}</span>
+                    </div>
+                @endif
+                @if($order->tracking_number)
+                    <hr>
+                    <div class="small">
+                        <span class="text-muted">Tracking:</span>
+                        <span class="fw-medium">{{ $order->tracking_number }}</span>
+                    </div>
+                    @if($order->shipping_company)
+                    <div class="small">
+                        <span class="text-muted">Courier:</span>
+                        <span class="fw-medium">{{ $order->shipping_company }}</span>
+                    </div>
+                    @endif
+                @endif
+            </div>
+        </div>
+
         <!-- Order Timeline -->
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3">

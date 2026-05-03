@@ -101,14 +101,24 @@ class WarehouseController extends Controller
             'is_active' => 'boolean',
             'is_primary' => 'boolean',
             'sort_order' => 'integer|min:0',
+            'city_ids' => 'nullable|array',
+            'city_ids.*' => 'exists:cities,id',
+            'area_ids' => 'nullable|array',
+            'area_ids.*' => 'exists:areas,id',
         ]);
 
-        // If this is set as primary, unset other primary warehouses
         if ($request->is_primary) {
             Warehouse::where('is_primary', true)->update(['is_primary' => false]);
         }
 
-        Warehouse::create($request->all());
+        $warehouse = Warehouse::create($request->all());
+
+        if ($request->city_ids) {
+            $warehouse->cities()->sync($request->city_ids);
+        }
+        if ($request->area_ids) {
+            $warehouse->areas()->sync($request->area_ids);
+        }
 
         return redirect()->route('admin.warehouses.index')
             ->with('success', 'Warehouse created successfully.');
@@ -127,6 +137,7 @@ class WarehouseController extends Controller
      */
     public function edit(Warehouse $warehouse)
     {
+        $warehouse->load('cities', 'areas');
         return view('admin.warehouses.edit', compact('warehouse'));
     }
 
@@ -152,14 +163,28 @@ class WarehouseController extends Controller
             'is_active' => 'boolean',
             'is_primary' => 'boolean',
             'sort_order' => 'integer|min:0',
+            'city_ids' => 'nullable|array',
+            'city_ids.*' => 'exists:cities,id',
+            'area_ids' => 'nullable|array',
+            'area_ids.*' => 'exists:areas,id',
         ]);
 
-        // If this is set as primary, unset other primary warehouses
         if ($request->is_primary && !$warehouse->is_primary) {
             Warehouse::where('is_primary', true)->update(['is_primary' => false]);
         }
 
         $warehouse->update($request->all());
+
+        if ($request->city_ids) {
+            $warehouse->cities()->sync($request->city_ids);
+        } else {
+            $warehouse->cities()->sync([]);
+        }
+        if ($request->area_ids) {
+            $warehouse->areas()->sync($request->area_ids);
+        } else {
+            $warehouse->areas()->sync([]);
+        }
 
         return redirect()->route('admin.warehouses.index')
             ->with('success', 'Warehouse updated successfully.');

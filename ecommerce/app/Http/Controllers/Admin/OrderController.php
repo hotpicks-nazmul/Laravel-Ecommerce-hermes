@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\Warehouse;
 use Illuminate\Support\Str;
 
 class OrderController extends Controller
@@ -68,7 +69,18 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Order::with('user');
+        $query = Order::with('user', 'warehouse');
+
+        // Auto-scope to warehouse if logged-in user has warehouse_id
+        $authUser = auth()->user();
+        if ($authUser && $authUser->warehouse_id) {
+            $query->where('warehouse_id', $authUser->warehouse_id);
+        }
+
+        // Filter by warehouse (admin/super_admin can filter)
+        if ($request->warehouse_id && (!$authUser || !$authUser->warehouse_id)) {
+            $query->where('warehouse_id', $request->warehouse_id);
+        }
 
         // Search by order number, customer name, email, phone
         if ($request->search) {
@@ -116,12 +128,10 @@ class OrderController extends Controller
         $perPage = $request->per_page ?? 25;
         $orders = $query->paginate($perPage);
 
-        // Get filtered stats (for AJAX) or all stats (for page load)
-        if ($request->ajax()) {
-            $stats = $this->getFilteredStats($query);
-        } else {
-            $stats = $this->getStats();
-        }
+        // Get filtered stats
+        $stats = $this->getFilteredStats(clone $query);
+
+        $warehouses = Warehouse::active()->ordered()->get(['id', 'name']);
 
         // AJAX response
         if ($request->ajax()) {
@@ -132,7 +142,7 @@ class OrderController extends Controller
             ]);
         }
 
-        return view('admin.orders.index', compact('orders', 'stats'));
+        return view('admin.orders.index', compact('orders', 'stats', 'warehouses'));
     }
 
     /**
@@ -191,7 +201,16 @@ class OrderController extends Controller
      */
     public function inHouse(Request $request)
     {
-        $query = Order::inhouse()->with('user');
+        $query = Order::inhouse()->with('user', 'warehouse');
+
+        $authUser = auth()->user();
+        if ($authUser && $authUser->warehouse_id) {
+            $query->where('warehouse_id', $authUser->warehouse_id);
+        }
+
+        if ($request->warehouse_id && (!$authUser || !$authUser->warehouse_id)) {
+            $query->where('warehouse_id', $request->warehouse_id);
+        }
 
         // Search by order number, customer name, email, phone
         if ($request->search) {
@@ -456,7 +475,7 @@ class OrderController extends Controller
      */
     public function inHouseShow(Order $order)
     {
-        $order->load('user', 'items.product');
+        $order->load('user', 'items.product', 'warehouse', 'billingArea.city');
         return view('admin.orders.inhouse.show', compact('order'));
     }
 
@@ -465,7 +484,7 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        $order->load('user', 'items.product');
+        $order->load('user', 'items.product', 'warehouse', 'billingArea.city');
         return view('admin.orders.show', compact('order'));
     }
 

@@ -79,6 +79,19 @@
                     </select>
                 </div>
                 
+                <!-- Warehouse Filter -->
+                @if(!auth()->user()->warehouse_id)
+                <div class="col-lg-2 col-md-3 col-sm-6">
+                    <label class="form-label small text-muted">Warehouse</label>
+                    <select name="warehouse_id" id="filterWarehouse" class="form-select form-select-sm">
+                        <option value="">All Warehouses</option>
+                        @foreach($warehouses as $wh)
+                            <option value="{{ $wh->id }}" {{ request('warehouse_id') == $wh->id ? 'selected' : '' }}>{{ $wh->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
                 <!-- Payment Status -->
                 <div class="col-lg-2 col-md-3 col-sm-6">
                     <label class="form-label small text-muted">Payment Status</label>
@@ -213,7 +226,7 @@ if (searchInput) {
 }
 
 // Filter dropdowns trigger search on change
-const filterSelects = ['filterStatus', 'filterPaymentStatus', 'filterDateFrom', 'filterDateTo'];
+const filterSelects = ['filterStatus', 'filterPaymentStatus', 'filterWarehouse', 'filterDateFrom', 'filterDateTo'];
 filterSelects.forEach(id => {
     const select = document.getElementById(id);
     if (select) {
@@ -235,6 +248,9 @@ function performLiveSearch(searchTerm) {
     
     const paymentStatus = document.getElementById('filterPaymentStatus').value;
     if (paymentStatus) params.set('payment_status', paymentStatus);
+
+    const warehouse = document.getElementById('filterWarehouse')?.value;
+    if (warehouse) params.set('warehouse_id', warehouse);
     
     const dateFrom = document.getElementById('filterDateFrom').value;
     if (dateFrom) params.set('date_from', dateFrom);

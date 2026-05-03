@@ -176,8 +176,10 @@ Route::prefix('wishlist')->name('wishlist.')->middleware('auth')->group(function
 });
 
 // Checkout Routes
-// Public route for shipping options
+// Public routes for AJAX
 Route::get('/checkout/shipping-options', [CheckoutController::class, 'getShippingOptions'])->name('checkout.shipping-options');
+Route::get('/checkout/get-cities', [CheckoutController::class, 'getCities'])->name('checkout.get-cities');
+Route::get('/checkout/get-areas', [CheckoutController::class, 'getAreas'])->name('checkout.get-areas');
 
 Route::prefix('checkout')->name('checkout.')->group(function () {
     Route::get('/', [CheckoutController::class, 'index'])->name('index');

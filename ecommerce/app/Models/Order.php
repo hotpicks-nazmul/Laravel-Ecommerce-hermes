@@ -24,18 +24,22 @@ class Order extends Model
         'billing_phone',
         'billing_address',
         'billing_city',
+        'billing_city_id',
         'billing_state',
         'billing_postcode',
         'billing_country',
+        'billing_area_id',
         'shipping_first_name',
         'shipping_last_name',
         'shipping_email',
         'shipping_phone',
         'shipping_address',
         'shipping_city',
+        'shipping_city_id',
         'shipping_state',
         'shipping_postcode',
         'shipping_country',
+        'shipping_area_id',
         'subtotal',
         'shipping_cost',
         'shipping_method',
@@ -49,6 +53,7 @@ class Order extends Model
         'status',
         'tracking_number',
         'shipping_company',
+        'warehouse_id',
         'notes',
         'coupon_code',
     ];
@@ -75,6 +80,9 @@ class Order extends Model
         static::creating(function ($order) {
             if (empty($order->order_number)) {
                 $order->order_number = self::generateOrderNumber();
+            }
+            if (empty($order->tracking_number)) {
+                $order->tracking_number = self::generateTrackingNumber();
             }
         });
     }
@@ -105,6 +113,31 @@ class Order extends Model
     public function pickupPointLocation()
     {
         return $this->belongsTo(PickupPoint::class, 'pickup_point_id');
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
+
+    public function billingCity()
+    {
+        return $this->belongsTo(City::class, 'billing_city_id');
+    }
+
+    public function shippingCity()
+    {
+        return $this->belongsTo(City::class, 'shipping_city_id');
+    }
+
+    public function billingArea()
+    {
+        return $this->belongsTo(Area::class, 'billing_area_id');
+    }
+
+    public function shippingArea()
+    {
+        return $this->belongsTo(Area::class, 'shipping_area_id');
     }
 
     /**
@@ -244,14 +277,12 @@ class Order extends Model
      */
     public static function generateOrderNumber(): string
     {
-        // Get order configuration settings
         $prefix = Setting::get('order_prefix', 'ORD');
         $suffix = Setting::get('order_suffix', '');
         $length = (int) Setting::get('order_number_length', 8);
         $format = Setting::get('order_number_format', 'random');
         
         if ($format === 'date') {
-            // Date-based format: PREFIX-DATE-SEQUENCE
             $date = now()->format('Ymd');
             $lastOrder = self::withTrashed()
                 ->whereDate('created_at', today())
@@ -263,7 +294,6 @@ class Order extends Model
             
             return "{$prefix}-{$date}-{$sequence}{$suffix}";
         } elseif ($format === 'sequential') {
-            // Sequential format: PREFIX-SEQUENCE
             $lastOrder = self::withTrashed()
                 ->orderBy('id', 'desc')
                 ->first();
@@ -273,7 +303,6 @@ class Order extends Model
             
             return "{$prefix}{$sequence}{$suffix}";
         } else {
-            // Random format: PREFIX-RANDOM
             $random = '';
             $characters = '0123456789';
             $charactersLength = strlen($characters);
@@ -284,5 +313,24 @@ class Order extends Model
             
             return "{$prefix}{$random}{$suffix}";
         }
+    }
+
+    public static function generateTrackingNumber(): string
+    {
+        $prefix = 'TRK';
+        $random = '';
+        $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        
+        for ($i = 0; $i < 8; $i++) {
+            $random .= $characters[rand(0, strlen($characters) - 1)];
+        }
+
+        $tracking = "{$prefix}-{$random}";
+
+        if (self::where('tracking_number', $tracking)->exists()) {
+            return self::generateTrackingNumber();
+        }
+
+        return $tracking;
     }
 }

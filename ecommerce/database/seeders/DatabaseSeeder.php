@@ -412,5 +412,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PaymentGatewaySeeder::class,
         ]);
+
+        // Seed countries, cities, and areas
+        $this->call([
+            CountriesSeeder::class,
+        ]);
     }
 }
