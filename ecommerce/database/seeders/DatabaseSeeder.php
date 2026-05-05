@@ -408,6 +408,11 @@ class DatabaseSeeder extends Seeder
             );
         }
 
+        // Seed permissions and role templates
+        $this->call([
+            PermissionSeeder::class,
+        ]);
+
         // Seed payment gateways
         $this->call([
             PaymentGatewaySeeder::class,

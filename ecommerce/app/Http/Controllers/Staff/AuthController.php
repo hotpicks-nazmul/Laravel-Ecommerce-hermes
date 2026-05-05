@@ -16,7 +16,7 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check() && Auth::user()->role === 'staff') {
-            return redirect()->route('staff.dashboard');
+            return redirect()->route('admin.warehouses.picking', Auth::user()->warehouse_id ?? 1);
         }
         
         return view('staff.auth.login');
@@ -61,7 +61,12 @@ class AuthController extends Controller
                 ['email' => $user->email, 'role' => $user->role, 'designation' => $user->designation]
             );
             
-            // Staff has no dashboard - redirect to admin dashboard
+            // Redirect to their warehouse picking dashboard
+            if ($user->warehouse_id) {
+                return redirect()->route('admin.warehouses.picking', $user->warehouse_id);
+            }
+            
+            // If no warehouse assigned, go to admin dashboard
             return redirect()->route('admin.dashboard');
         }
 

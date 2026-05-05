@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -53,7 +54,7 @@ class User extends Authenticatable
         'company_address',
         // Staff specific fields
         'designation',
-        'permissions',
+        'legacy_permissions',
         'warehouse_id',
         'is_super_admin',
         // Customer specific fields
@@ -81,7 +82,6 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'permissions' => 'array',
         'is_super_admin' => 'boolean',
     ];
 
@@ -94,9 +94,10 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has a specific role
+     * Check if user has a specific system role (column-based, NOT Spatie roles).
+     * Renamed to avoid conflict with Spatie's HasRoles::hasRole().
      */
-    public function hasRole(string $role): bool
+    public function hasSystemRole(string $role): bool
     {
         return $this->role === $role;
     }
@@ -116,10 +117,11 @@ class User extends Authenticatable
     {
         return in_array($this->role, ['super_admin', 'admin', 'staff']);
     }
+
     /**
-     * Check if user has any of the given roles
+     * Check if user has any of the given system roles (column-based).
      */
-    public function hasAnyRole(array $roles): bool
+    public function hasAnySystemRole(array $roles): bool
     {
         return in_array($this->role, $roles);
     }
@@ -419,117 +421,168 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has a specific permission
+     * Get the legacy permissions JSON column as an array.
+     */
+    public function getLegacyPermissionsAttribute(): array
+    {
+        $raw = $this->attributes['legacy_permissions'] ?? null;
+        if (empty($raw)) return [];
+        if (is_array($raw)) return $raw;
+        $decoded = json_decode($raw, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
+     * Set the legacy permissions column from an array.
+     */
+    public function setLegacyPermissionsAttribute($value): void
+    {
+        if (is_array($value)) {
+            $this->attributes['legacy_permissions'] = json_encode($value);
+        } else {
+            $this->attributes['legacy_permissions'] = $value;
+        }
+    }
+
+    /**
+     * Get the Spatie permissions as an accessor for the legacy column.
+     * Compatibility layer - reads Spatie permissions and returns them.
+     */
+    public function getPermissionsAttribute()
+    {
+        // Return Spatie permissions when accessed as property
+        return $this->getRelationValue('permissions');
+    }
+
+    /**
+     * Check if user has a specific permission (backward-compatible wrapper).
+     * Uses Spatie's permission system, with fallback to legacy JSON column.
      * 
-     * @param string $permission
+     * @param string $permission  Module key (e.g. 'products') or granular (e.g. 'products.view')
      * @return bool
      */
-    public function hasPermission($permission)
+    public function hasPermission(string $permission): bool
     {
         // Super admin has all permissions
-        if ($this->role === 'super_admin') {
+        if ($this->role === 'super_admin' || $this->is_super_admin) {
             return true;
         }
-        
-        // Log for debugging permission issues
-        
-        // Staff check their permissions
-        if ($this->role === 'staff') {
-            // If no permissions set, return false (no access)
-            if (empty($this->permissions)) {
-                return false;
-            }
-            
-            // Permissions is already cast to array, so we can use it directly
-            return in_array($permission, $this->permissions);
-        }
-        
-        // Admin role - has all permissions by default (can manage staff)
+
+        // Admin role - has all permissions by default
         if ($this->role === 'admin') {
             return true;
         }
-        
-        // For other roles (customers, vendors, etc.), no permissions
+
+        // Staff - check Spatie permissions first, then fall back to legacy column
+        if ($this->role === 'staff') {
+            // Handle submenu permissions
+            if (str_starts_with($permission, 'submenu:')) {
+                $routeName = substr($permission, 8); // remove 'submenu:' prefix
+                $disabledKey = 'submenu_disabled:' . $routeName;
+                $enabledKey = 'submenu:' . $routeName;
+                $legacyPerms = $this->getLegacyPermissionsAttribute();
+                // ON by default unless explicitly disabled
+                if (empty($legacyPerms)) {
+                    return true;
+                }
+                // Check if explicitly disabled
+                if (in_array($disabledKey, $legacyPerms)) {
+                    return false;
+                }
+                // Otherwise ON
+                return true;
+            }
+
+            // Handle submenu_disabled: permission check
+            if (str_starts_with($permission, 'submenu_disabled:')) {
+                return false;
+            }
+
+            // Try exact Spatie permission match
+            try {
+                if ($this->hasPermissionTo($permission)) {
+                    return true;
+                }
+            } catch (\Spatie\Permission\Exceptions\PermissionDoesNotExist $e) {
+                // Permission doesn't exist in Spatie tables, fall through
+            }
+
+            // If it's a module-level key (e.g. 'products'), also check if user
+            // has any granular permission under that module (e.g. 'products.view')
+            if (!str_contains($permission, '.')) {
+                try {
+                    $granularChecker = $permission . '.';
+                    foreach ($this->getAllPermissions() as $perm) {
+                        if (str_starts_with($perm->name, $granularChecker)) {
+                            return true;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // Ignore relation loading errors
+                }
+            }
+
+            // Fallback to legacy permissions column
+            $legacyPerms = $this->getLegacyPermissionsAttribute();
+            if (!empty($legacyPerms) && in_array($permission, $legacyPerms)) {
+                return true;
+            }
+
+            return false;
+        }
+
         return false;
     }
 
     /**
-     * Get user's permissions as array
+     * Get user's permissions as array (backward compatible).
+     * Returns legacy module keys that the user has.
      * 
      * @return array
      */
-    public function getPermissionsArray()
+    public function getPermissionsArray(): array
     {
-        if (empty($this->permissions)) {
-            return [];
+        $keys = \App\Helpers\PermissionHelper::legacyKeys();
+        $assigned = [];
+
+        foreach ($keys as $key) {
+            if ($this->hasPermission($key)) {
+                $assigned[] = $key;
+            }
         }
-        
-        // Permissions is already cast to array, so we can use it directly
-        return $this->permissions;
+
+        return $assigned;
     }
 
     /**
-     * Get the first allowed route based on user permissions
+     * Get the first allowed route based on user permissions.
      * 
      * @return string
      */
-    public function getFirstAllowedRoute()
+    public function getFirstAllowedRoute(): string
     {
-        // Super admin and admin with no restrictions get dashboard
         if ($this->role === 'super_admin' || $this->is_super_admin) {
             return 'admin.dashboard';
         }
-        
-        // If admin with no permissions set, they have full access
-        if ($this->role === 'admin' && empty($this->permissions)) {
+
+        if ($this->role === 'admin') {
             return 'admin.dashboard';
         }
-        
-        // Get user's permissions
-        $permissions = $this->getPermissionsArray();
-        
-        // If user has dashboard permission, go to dashboard
-        if (in_array('dashboard', $permissions)) {
+
+        $legacyKeys = \App\Helpers\PermissionHelper::legacyKeys();
+
+        if ($this->hasPermission('dashboard')) {
             return 'admin.dashboard';
         }
-        
-        // Map permissions to routes
-        $permissionToRoute = [
-            'dashboard' => 'admin.dashboard',
-            'analytics' => 'admin.analytics',
-            'products' => 'admin.products.in-house',
-            'orders' => 'admin.orders.index',
-            'delivery' => 'admin.delivery.index',
-            'customers' => 'admin.customers.index',
-            'marketing' => 'admin.marketing.flash-deals.index',
-            'reports' => 'admin.reports.index',
-            'refund' => 'admin.refunds.index',
-            'sellers' => 'admin.sellers.index',
-            'inventory' => 'admin.inventory.index',
-            'support' => 'admin.support.index',
-            'affiliate' => 'admin.affiliate.index',
-            'pos' => 'admin.pos.index',
-            'settings' => 'admin.settings.index',
-            'locations' => 'admin.locations.cities.index',
-            'warehouse' => 'admin.warehouses.index',
-            'staffs' => 'admin.staffs.index',
-            'system' => 'admin.system.update',
-            'otp' => 'admin.otp.configuration',
-            'appearance' => 'admin.appearance.index',
-            'content' => 'admin.blogs.index',
-            'media' => 'admin.media.index',
-            'multistore' => 'admin.multi-store.index',
-            'addon' => 'admin.addons.index',
-        ];
-        
-        // Find the first permission user has and return corresponding route
-        foreach ($permissions as $permission) {
-            if (isset($permissionToRoute[$permission])) {
-                return $permissionToRoute[$permission];
+
+        foreach ($legacyKeys as $key) {
+            if ($key === 'dashboard') continue;
+            if ($this->hasPermission($key)) {
+                $route = \App\Helpers\PermissionHelper::permissionToRoute($key);
+                if ($route) return $route;
             }
         }
-        
-        // Fallback - user has no valid permissions, redirect to dashboard (will show error)
+
         return 'admin.dashboard';
     }
 }

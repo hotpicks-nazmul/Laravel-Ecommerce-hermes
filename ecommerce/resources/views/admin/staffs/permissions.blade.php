@@ -16,16 +16,17 @@
     <div class="card-body">
         <div class="alert alert-info mb-0">
             <i class="bi bi-info-circle me-2"></i>
-            <strong>Note:</strong> Staff permissions allow you to control what each staff member can access in the admin panel. 
-            Super admins automatically have access to all features regardless of their permissions.
+            <strong>Enhanced Permission System:</strong> Assign <strong>role templates</strong> for quick setup or customize individual <strong>CRUD permissions</strong> per module. 
+            Super admins and admins automatically have full access.
         </div>
     </div>
 </div>
 
 <!-- Staff List with Permissions -->
 <div class="card border-0 shadow-sm">
-    <div class="card-header bg-white">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h6 class="mb-0"><i class="bi bi-shield-lock me-2"></i>Manage Staff Permissions</h6>
+        <span class="text-muted small">{{ $staff->total() }} staff member(s)</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -36,6 +37,7 @@
                         <th>Designation</th>
                         <th>Warehouse</th>
                         <th>Role</th>
+                        <th>Assigned Roles</th>
                         <th style="width: 120px;">Actions</th>
                     </tr>
                 </thead>
@@ -85,20 +87,34 @@
                                 @endif
                             </td>
                             <td>
+                                @if($member->role === 'staff')
+                                    @php $spatieRoles = $member->roles ?? collect(); @endphp
+                                    @if($spatieRoles->isNotEmpty())
+                                        @foreach($spatieRoles as $r)
+                                            <span class="badge bg-success me-1">{{ $r->name }}</span>
+                                        @endforeach
+                                    @else
+                                        <span class="text-muted small">Custom</span>
+                                    @endif
+                                @else
+                                    <span class="text-muted small">Full Access</span>
+                                @endif
+                            </td>
+                            <td>
                                 @if(!$member->is_super_admin)
-                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#permissionsModal{{ $member->id }}">
-                                <i class="bi bi-gear"></i> Manage
-                            </button>
-                        @else
-                            <span class="text-muted small">No action needed</span>
-                        @endif
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#permissionsModal{{ $member->id }}">
+                                        <i class="bi bi-gear"></i> Manage
+                                    </button>
+                                @else
+                                    <span class="text-muted small">No action needed</span>
+                                @endif
                             </td>
                         </tr>
 
                         <!-- Permissions Modal -->
                         @if(!$member->is_super_admin)
                         <div class="modal fade" id="permissionsModal{{ $member->id }}" tabindex="-1" aria-labelledby="permissionsModalLabel{{ $member->id }}" aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
+                            <div class="modal-dialog modal-xl">
                                 <form action="{{ route('admin.staffs.permissions.update') }}" method="POST" id="permissionsForm{{ $member->id }}">
                                     @csrf
                                     <div class="modal-content">
@@ -110,240 +126,131 @@
                                         </div>
                                         <div class="modal-body">
                                             <input type="hidden" name="staff_id" value="{{ $member->id }}">
-                                            
-                                            <div class="row">
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="dashboard" id="perm_dashboard_{{ $member->id }}"
-                                                            {{ in_array('dashboard', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_dashboard_{{ $member->id }}">
-                                                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
-                                                        </label>
+
+                                            <!-- Role Template Selection -->
+                                            <div class="card border mb-4">
+                                                <div class="card-body">
+                                                    <label class="form-label fw-bold">
+                                                        <i class="bi bi-person-badge me-1"></i> Role Template (Quick Setup)
+                                                    </label>
+                                                    <div class="row align-items-end">
+                                                        <div class="col-md-6">
+                                                            <select class="form-select role-template-select" data-staff-id="{{ $member->id }}" name="role_template">
+                                                                <option value="">-- Custom Permissions --</option>
+                                                                @foreach($roleTemplates as $template)
+                                                                    <option value="{{ $template->id }}"
+                                                                        data-permissions="{{ json_encode($template->permissions->pluck('name')) }}"
+                                                                        {{ $member->roles->contains($template->id) ? 'selected' : '' }}>
+                                                                        {{ ucwords(str_replace('-', ' ', $template->name)) }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <span class="text-muted small">
+                                                                Selecting a template will auto-fill permissions below. You can then customize further.
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="analytics" id="perm_analytics_{{ $member->id }}"
-                                                            {{ in_array('analytics', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_analytics_{{ $member->id }}">
-                                                            <i class="bi bi-graph-up me-1"></i> Analytics
-                                                        </label>
-                                                    </div>
+                                            </div>
+
+                                            <!-- Granular CRUD Permissions by Module -->
+                                            <div class="mb-2 d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0"><i class="bi bi-shield-check me-1"></i>Individual Permissions</h6>
+                                                <div>
+                                                    <button type="button" class="btn btn-sm btn-outline-success select-all-modules" data-staff-id="{{ $member->id }}">
+                                                        <i class="bi bi-check-all me-1"></i> Select All
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger deselect-all-modules ms-1" data-staff-id="{{ $member->id }}">
+                                                        <i class="bi bi-x-circle me-1"></i> Clear All
+                                                    </button>
                                                 </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="products" id="perm_products_{{ $member->id }}"
-                                                            {{ in_array('products', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_products_{{ $member->id }}">
-                                                            <i class="bi bi-box me-1"></i> Products Management
-                                                        </label>
+                                            </div>
+
+                                            <div class="accordion" id="permAccordion{{ $member->id }}">
+                                                @foreach($permissionModules as $moduleKey => $module)
+                                                    @php
+                                                        $modulePrefix = $module['key'];
+                                                        $hasView = $member->hasPermission($modulePrefix . '.view') || $member->hasPermission($modulePrefix);
+                                                        $hasCreate = $member->hasPermission($modulePrefix . '.create');
+                                                        $hasEdit = $member->hasPermission($modulePrefix . '.edit');
+                                                        $hasDelete = $member->hasPermission($modulePrefix . '.delete');
+                                                        $hasExport = $member->hasPermission($modulePrefix . '.export');
+                                                        $hasImport = $member->hasPermission($modulePrefix . '.import');
+                                                        // Check if legacy permission exists (full module access)
+                                                        $hasModule = $member->hasPermission($modulePrefix) && !$member->hasPermission($modulePrefix . '.view');
+                                                        $moduleGranted = $hasModule || $hasView;
+                                                    @endphp
+                                                    <div class="accordion-item">
+                                                        <h2 class="accordion-header">
+                                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                                                data-bs-target="#permCollapse{{ $member->id }}_{{ $moduleKey }}">
+                                                                <span class="me-2"><i class="{{ $module['icon'] }}"></i></span>
+                                                                <strong>{{ $module['label'] }}</strong>
+                                                                @if($moduleGranted)
+                                                                    <span class="badge bg-success ms-2 module-status-badge" id="badgeStatus{{ $member->id }}_{{ $moduleKey }}">
+                                                                        {{ $hasModule ? 'Full' : 'Partial' }}
+                                                                    </span>
+                                                                @else
+                                                                    <span class="badge bg-secondary ms-2 module-status-badge" id="badgeStatus{{ $member->id }}_{{ $moduleKey }}">None</span>
+                                                                @endif
+                                                            </button>
+                                                        </h2>
+                                                        <div id="permCollapse{{ $member->id }}_{{ $moduleKey }}" class="accordion-collapse collapse" data-bs-parent="#permAccordion{{ $member->id }}">
+                                                            <div class="accordion-body bg-light">
+                                                                <!-- Select all / none for this module -->
+                                                                <div class="mb-2">
+                                                                    <button type="button" class="btn btn-sm btn-outline-primary select-module-btn"
+                                                                        data-staff-id="{{ $member->id }}" data-module="{{ $modulePrefix }}">
+                                                                        <i class="bi bi-check-square me-1"></i> All {{ count($module['actions']) }} actions
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-outline-secondary deselect-module-btn ms-1"
+                                                                        data-staff-id="{{ $member->id }}" data-module="{{ $modulePrefix }}">
+                                                                        <i class="bi bi-square me-1"></i> None
+                                                                    </button>
+                                                                </div>
+
+                                                                <div class="row">
+                                                                    @foreach($module['actions'] as $action)
+                                                                        @php
+                                                                            $permName = $modulePrefix . '.' . $action;
+                                                                            $checked = $member->hasPermission($permName) ? 'checked' : '';
+                                                                            $actionLabel = ucfirst($action);
+                                                                            $actionIcons = [
+                                                                                'view'   => 'bi-eye',
+                                                                                'create' => 'bi-plus-circle',
+                                                                                'edit'   => 'bi-pencil',
+                                                                                'delete' => 'bi-trash',
+                                                                                'export' => 'bi-download',
+                                                                                'import' => 'bi-upload',
+                                                                            ];
+                                                                            $icon = $actionIcons[$action] ?? 'bi-check';
+                                                                        @endphp
+                                                                        <div class="col-md-4 col-lg-3 mb-2">
+                                                                            <div class="form-check">
+                                                                                <input class="form-check-input perm-checkbox perm-{{ $member->id }}-{{ $modulePrefix }}"
+                                                                                    type="checkbox" name="permissions[]" value="{{ $permName }}"
+                                                                                    id="perm_{{ $modulePrefix }}_{{ $action }}_{{ $member->id }}"
+                                                                                    {{ $checked }}>
+                                                                                <label class="form-check-label" for="perm_{{ $modulePrefix }}_{{ $action }}_{{ $member->id }}">
+                                                                                    <i class="{{ $icon }} me-1"></i> {{ $actionLabel }}
+                                                                                </label>
+                                                                            </div>
+                                                                        </div>
+                                                                    @endforeach
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="orders" id="perm_orders_{{ $member->id }}"
-                                                            {{ in_array('orders', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_orders_{{ $member->id }}">
-                                                            <i class="bi bi-cart me-1"></i> Orders Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="delivery" id="perm_delivery_{{ $member->id }}"
-                                                            {{ in_array('delivery', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_delivery_{{ $member->id }}">
-                                                            <i class="bi bi-truck me-1"></i> Delivery Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="refund" id="perm_refund_{{ $member->id }}"
-                                                            {{ in_array('refund', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_refund_{{ $member->id }}">
-                                                            <i class="bi bi-arrow-return-left me-1"></i> Refund Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="customers" id="perm_customers_{{ $member->id }}"
-                                                            {{ in_array('customers', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_customers_{{ $member->id }}">
-                                                            <i class="bi bi-people me-1"></i> Customers Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="sellers" id="perm_sellers_{{ $member->id }}"
-                                                            {{ in_array('sellers', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_sellers_{{ $member->id }}">
-                                                            <i class="bi bi-shop me-1"></i> Sellers Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="affiliate" id="perm_affiliate_{{ $member->id }}"
-                                                            {{ in_array('affiliate', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_affiliate_{{ $member->id }}">
-                                                            <i class="bi bi-link-45deg me-1"></i> Affiliate Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="reports" id="perm_reports_{{ $member->id }}"
-                                                            {{ in_array('reports', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_reports_{{ $member->id }}">
-                                                            <i class="bi bi-graph-up me-1"></i> Reports & Analytics
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="inventory" id="perm_inventory_{{ $member->id }}"
-                                                            {{ in_array('inventory', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_inventory_{{ $member->id }}">
-                                                            <i class="bi bi-boxes me-1"></i> Inventory Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="marketing" id="perm_marketing_{{ $member->id }}"
-                                                            {{ in_array('marketing', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_marketing_{{ $member->id }}">
-                                                            <i class="bi bi-megaphone me-1"></i> Marketing Tools
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="support" id="perm_support_{{ $member->id }}"
-                                                            {{ in_array('support', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_support_{{ $member->id }}">
-                                                            <i class="bi bi-headset me-1"></i> Support & Tickets
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="otp" id="perm_otp_{{ $member->id }}"
-                                                            {{ in_array('otp', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_otp_{{ $member->id }}">
-                                                            <i class="bi bi-phone me-1"></i> OTP Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="content" id="perm_content_{{ $member->id }}"
-                                                            {{ in_array('content', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_content_{{ $member->id }}">
-                                                            <i class="bi bi-file-text me-1"></i> Content Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="appearance" id="perm_appearance_{{ $member->id }}"
-                                                            {{ in_array('appearance', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_appearance_{{ $member->id }}">
-                                                            <i class="bi bi-palette me-1"></i> Theme & Design
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="settings" id="perm_settings_{{ $member->id }}"
-                                                            {{ in_array('settings', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_settings_{{ $member->id }}">
-                                                            <i class="bi bi-gear me-1"></i> System Settings
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="locations" id="perm_locations_{{ $member->id }}"
-                                                            {{ in_array('locations', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_locations_{{ $member->id }}">
-                                                            <i class="bi bi-geo-alt me-1"></i> Location Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="warehouse" id="perm_warehouse_{{ $member->id }}"
-                                                            {{ in_array('warehouse', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_warehouse_{{ $member->id }}">
-                                                            <i class="bi bi-building me-1"></i> Warehouse Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="staffs" id="perm_staffs_{{ $member->id }}"
-                                                            {{ in_array('staffs', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_staffs_{{ $member->id }}">
-                                                            <i class="bi bi-people me-1"></i> Staff Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="system" id="perm_system_{{ $member->id }}"
-                                                            {{ in_array('system', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_system_{{ $member->id }}">
-                                                            <i class="bi bi-display me-1"></i> System Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="pos" id="perm_pos_{{ $member->id }}"
-                                                            {{ in_array('pos', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_pos_{{ $member->id }}">
-                                                            <i class="bi bi-terminal me-1"></i> POS Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="multistore" id="perm_multistore_{{ $member->id }}"
-                                                            {{ in_array('multistore', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_multistore_{{ $member->id }}">
-                                                            <i class="bi bi-shop me-1"></i> Multi-Store Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="media" id="perm_media_{{ $member->id }}"
-                                                            {{ in_array('media', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_media_{{ $member->id }}">
-                                                            <i class="bi bi-images me-1"></i> Media Management
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="addon" id="perm_addon_{{ $member->id }}"
-                                                            {{ in_array('addon', $member->getPermissionsArray()) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="perm_addon_{{ $member->id }}">
-                                                            <i class="bi bi-puzzle me-1"></i> Addon Manager
-                                                        </label>
-                                                    </div>
-                                                </div>
+                                                @endforeach
                                             </div>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                                 <i class="bi bi-x-lg me-1"></i> Cancel
                                             </button>
-                                            <button type="submit" class="btn btn-primary">
+                                            <button type="button" class="btn btn-primary save-permissions-btn" data-form-id="permissionsForm{{ $member->id }}">
                                                 <i class="bi bi-check-lg me-1"></i> Save Changes
                                             </button>
                                         </div>
@@ -354,7 +261,7 @@
                         @endif
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center py-5">
+                            <td colspan="6" class="text-center py-5">
                                 <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
                                 <p class="text-muted mb-2 mt-2">No staff members found</p>
                                 <a href="{{ route('admin.staffs.create') }}" class="btn btn-sm btn-primary">
@@ -366,13 +273,17 @@
                 </tbody>
             </table>
         </div>
+        @if($staff->hasPages())
+            <div class="px-3 py-2 border-top">
+                {{ $staff->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection
 
 @push('styles')
 <style>
-    /* Force Bootstrap Icons to display - same as reference page */
     .bi::before,
     [class*="bi bi-"]::before {
         display: inline-block !important;
@@ -385,23 +296,143 @@
 
 @push('scripts')
 <script>
-    // Handle form submission with AJAX for better UX
     document.addEventListener('DOMContentLoaded', function() {
-        const permissionForms = document.querySelectorAll('[id^="permissionsForm"]');
-        
-        permissionForms.forEach(function(form) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(this);
-                const submitBtn = this.querySelector('button[type="submit"]');
+
+        // Handle role template selection - auto-check permissions
+        document.querySelectorAll('.role-template-select').forEach(function(select) {
+            select.addEventListener('change', function() {
+                const staffId = this.getAttribute('data-staff-id');
+                const selectedOption = this.options[this.selectedIndex];
+
+                if (this.value) {
+                    try {
+                        const permissions = JSON.parse(selectedOption.getAttribute('data-permissions') || '[]');
+                        // Uncheck all first
+                        document.querySelectorAll('#permissionsForm' + staffId + ' .perm-checkbox').forEach(cb => cb.checked = false);
+                        // Check matching permissions
+                        permissions.forEach(function(permName) {
+                            const cb = document.querySelector('#permissionsForm' + staffId + ' input[value="' + permName + '"]');
+                            if (cb) cb.checked = true;
+                        });
+                    } catch(e) {}
+                }
+                updateModuleBadges(staffId);
+            });
+        });
+
+        // Select all modules
+        document.querySelectorAll('.select-all-modules').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const staffId = this.getAttribute('data-staff-id');
+                document.querySelectorAll('#permissionsForm' + staffId + ' .perm-checkbox').forEach(cb => cb.checked = true);
+                updateModuleBadges(staffId);
+            });
+        });
+
+        // Deselect all modules
+        document.querySelectorAll('.deselect-all-modules').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const staffId = this.getAttribute('data-staff-id');
+                document.querySelectorAll('#permissionsForm' + staffId + ' .perm-checkbox').forEach(cb => cb.checked = false);
+                // Reset role template dropdown
+                const select = document.querySelector('#permissionsForm' + staffId + ' .role-template-select');
+                if (select) select.value = '';
+                updateModuleBadges(staffId);
+            });
+        });
+
+        // Select all actions within a module
+        document.querySelectorAll('.select-module-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const staffId = this.getAttribute('data-staff-id');
+                const modulePrefix = this.getAttribute('data-module');
+                document.querySelectorAll('.perm-' + staffId + '-' + modulePrefix).forEach(cb => cb.checked = true);
+                updateModuleBadges(staffId);
+            });
+        });
+
+        // Deselect all actions within a module
+        document.querySelectorAll('.deselect-module-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const staffId = this.getAttribute('data-staff-id');
+                const modulePrefix = this.getAttribute('data-module');
+                document.querySelectorAll('.perm-' + staffId + '-' + modulePrefix).forEach(cb => cb.checked = false);
+                updateModuleBadges(staffId);
+            });
+        });
+
+        // Update module status badges when individual checkboxes change
+        document.querySelectorAll('.perm-checkbox').forEach(function(cb) {
+            cb.addEventListener('change', function() {
+                const classes = this.className.split(' ');
+                const permClass = classes.find(c => c.startsWith('perm-'));
+                if (permClass) {
+                    const parts = permClass.replace('perm-', '').split('-');
+                    const staffId = parts[0];
+                    const modulePrefix = parts.slice(1).join('-');
+                    // Try to find staff ID from form
+                    const form = this.closest('form');
+                    if (form) {
+                        const match = form.id.match(/permissionsForm(\d+)/);
+                        if (match) updateModuleBadges(match[1]);
+                    }
+                }
+            });
+        });
+
+        function updateModuleBadges(staffId) {
+            const form = document.getElementById('permissionsForm' + staffId);
+            if (!form) return;
+
+            const checkboxes = form.querySelectorAll('.perm-checkbox');
+            const moduleMap = {};
+
+            // Group checkboxes by module
+            checkboxes.forEach(function(cb) {
+                const val = cb.value;
+                if (val.includes('.')) {
+                    const module = val.split('.')[0];
+                    if (!moduleMap[module]) moduleMap[module] = { total: 0, checked: 0 };
+                    moduleMap[module].total++;
+                    if (cb.checked) moduleMap[module].checked++;
+                }
+            });
+
+            Object.keys(moduleMap).forEach(function(module) {
+                const badge = document.getElementById('badgeStatus' + staffId + '_' + module);
+                if (badge) {
+                    const m = moduleMap[module];
+                    badge.className = 'badge ms-2 module-status-badge';
+                    if (m.checked === 0) {
+                        badge.classList.add('bg-secondary');
+                        badge.textContent = 'None';
+                    } else if (m.checked === m.total) {
+                        badge.classList.add('bg-success');
+                        badge.textContent = 'Full';
+                    } else {
+                        badge.classList.add('bg-info');
+                        badge.textContent = m.checked + '/' + m.total;
+                    }
+                }
+            });
+        }
+
+        // Save permissions via AJAX
+        document.querySelectorAll('.save-permissions-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const formId = this.getAttribute('data-form-id');
+                const form = document.getElementById(formId);
+                if (!form) return;
+
+                const formData = new FormData(form);
+                const submitBtn = this;
                 const originalText = submitBtn.innerHTML;
-                
-                // Disable button and show loading state
+                const modalEl = form.closest('.modal');
+
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
-                
-                fetch(this.action, {
+
+                fetch(form.action, {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -409,29 +440,30 @@
                         'Accept': 'application/json'
                     }
                 })
-                .then(res => res.json())
+                .then(response => {
+                    if (!response.ok) throw new Error('Request failed');
+                    return response.json();
+                })
                 .then(data => {
-                    // Close modal
-                    const modal = bootstrap.Modal.getInstance(form.closest('.modal'));
+                    const modal = bootstrap.Modal.getInstance(modalEl);
                     if (modal) modal.hide();
 
-                    // Show success toast (no page reload needed)
-                    if (typeof adminToast !== 'undefined') {
-                        adminToast('success', 'Success!', data.message || 'Permissions updated successfully.');
-                    } else if (typeof toastr !== 'undefined') {
-                        toastr.success(data.message || 'Permissions updated successfully.');
+                    if (typeof adminToast === 'function') {
+                        adminToast('success', 'Success!', 'Permissions updated successfully.');
+                    } else {
+                        alert('Permissions saved successfully!');
                     }
+
+                    setTimeout(() => location.reload(), 1500);
                 })
                 .catch(err => {
-                    // On error, submit form normally (fallback)
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalText;
-                    
-                    // Show error toast
-                    if (typeof adminToast !== 'undefined') {
-                        adminToast('error', 'Error!', 'Failed to update permissions. Please try again.');
-                    } else if (typeof toastr !== 'undefined') {
-                        toastr.error('Failed to update permissions.');
+
+                    if (typeof adminToast === 'function') {
+                        adminToast('error', 'Error!', 'Failed to save permissions.');
+                    } else {
+                        alert('Failed to save permissions.');
                     }
                 });
             });

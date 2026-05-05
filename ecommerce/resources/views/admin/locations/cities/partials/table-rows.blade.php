@@ -7,7 +7,7 @@
     <td><span class="badge bg-secondary">{{ $city->areas->count() }}</span></td>
     <td>
         <div class="form-check form-switch">
-            <input class="form-check-input toggle-status" type="checkbox" data-id="{{ $city->id }}" {{ $city->is_active ? 'checked' : '' }}>
+            <input class="form-check-input toggle-status" type="checkbox" data-url="{{ route('admin.locations.cities.toggle-status', $city->id) }}" {{ $city->is_active ? 'checked' : '' }}>
         </div>
     </td>
     <td>{{ $city->sort_order }}</td>
@@ -37,21 +37,3 @@
     </td>
 </tr>
 @endforelse
-
-@push('scripts')
-<script>
-document.querySelectorAll('.toggle-status').forEach(el => {
-    el.addEventListener('change', function() {
-        fetch(`/admin/locations/cities/${this.dataset.id}/toggle-status`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json'
-            }
-        }).then(r => r.json()).then(d => {
-            if (!d.success) this.checked = !this.checked;
-        });
-    });
-});
-</script>
-@endpush

@@ -371,7 +371,7 @@ function changePerPage(perPage) {
 
 // Toggle status
 function toggleStatus(id) {
-    fetch(`{{ route('admin.warehouses.toggle-status', ['warehouse' => 'ID']) }}`.replace('ID', id), {
+    fetch(`{{ route('admin.warehouses.toggle-status', ['id' => 'ID']) }}`.replace('ID', id), {
         method: 'PATCH',
         headers: {
             'X-CSRF-TOKEN': '{{ csrf_token() }}',

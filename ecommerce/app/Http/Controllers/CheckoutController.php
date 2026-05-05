@@ -13,6 +13,7 @@ use App\Models\Setting;
 use App\Models\City;
 use App\Models\Area;
 use App\Models\Country;
+use App\Models\State;
 use App\Models\Warehouse;
 use App\Services\PaymentService;
 
@@ -71,14 +72,14 @@ class CheckoutController extends Controller
         $request->validate([
             'billing_first_name' => 'required|string|max:255',
             'billing_last_name' => 'required|string|max:255',
-            'billing_email' => 'required|email|max:255',
-            'billing_phone' => 'required|string|max:20',
+            'billing_email' => 'nullable|email|max:255',
+            'billing_phone' => 'required|string|max:11',
             'billing_address' => 'required|string|max:500',
             'billing_city_id' => 'required|exists:cities,id',
             'billing_area_id' => 'required|exists:areas,id',
             'billing_city' => 'required|string|max:100',
             'billing_state' => 'required|string|max:100',
-            'billing_postcode' => 'required|string|max:20',
+            'billing_postcode' => 'nullable|string|max:20',
             'billing_country' => 'required|string|max:100',
             'payment_method' => 'required|string|in:cod,bkash,sslcommerz,nagad,rocket',
             'terms' => 'accepted',
@@ -238,9 +239,9 @@ class CheckoutController extends Controller
         return view('themes.general.checkout.cancel');
     }
 
-    public function getCities(Request $request)
+    public function getStates(Request $request)
     {
-        $query = City::active()->ordered();
+        $query = State::active()->ordered();
 
         $checkoutMode = Setting::get('checkout_mode', 'local');
         if ($checkoutMode === 'local') {
@@ -252,6 +253,32 @@ class CheckoutController extends Controller
             $country = Country::where('name', $request->country)->first();
             if ($country) {
                 $query->where('country_id', $country->id);
+            }
+        }
+
+        $states = $query->get(['id', 'name']);
+
+        return response()->json(['success' => true, 'states' => $states]);
+    }
+
+    public function getCities(Request $request)
+    {
+        $query = City::active()->ordered();
+
+        if ($request->state_id) {
+            $query->where('state_id', $request->state_id);
+        } else {
+            $checkoutMode = Setting::get('checkout_mode', 'local');
+            if ($checkoutMode === 'local') {
+                $defaultCountryId = Setting::get('default_country', '');
+                if ($defaultCountryId) {
+                    $query->where('country_id', $defaultCountryId);
+                }
+            } elseif ($request->country) {
+                $country = Country::where('name', $request->country)->first();
+                if ($country) {
+                    $query->where('country_id', $country->id);
+                }
             }
         }
 
@@ -282,6 +309,7 @@ class CheckoutController extends Controller
         $freeShippingEnabled = Setting::get('free_shipping_enabled', '0') === '1';
         $freeShippingMinAmount = (float) Setting::get('free_shipping_min_amount', 0);
         $defaultShippingCost = (float) Setting::get('default_shipping_cost', 0);
+        $localPickupEnabled = Setting::get('local_pickup_enabled', '0') === '1';
         $localPickupCost = (float) Setting::get('local_pickup_cost', 0);
 
         $options = [];
@@ -295,12 +323,14 @@ class CheckoutController extends Controller
             'estimated_days' => '3-5 business days',
         ];
 
-        $options[] = [
-            'id' => 'local_pickup',
-            'name' => 'Local Pickup',
-            'cost' => $localPickupCost,
-            'estimated_days' => 'Same day',
-        ];
+        if ($localPickupEnabled) {
+            $options[] = [
+                'id' => 'local_pickup',
+                'name' => 'Local Pickup',
+                'cost' => $localPickupCost,
+                'estimated_days' => 'Same day',
+            ];
+        }
 
         return response()->json(['success' => true, 'options' => $options]);
     }

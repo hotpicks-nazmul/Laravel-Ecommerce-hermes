@@ -29,7 +29,7 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted small">Warehouse Name</label>
-                        <div class="fw-semibold">{{ $warehouse->name }}</div>
+                        <div class="fw-semibold">{{ $warehouse->name ?? 'N/A' }}</div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted small">Warehouse Code</label>
@@ -47,7 +47,7 @@
             <div class="card-body">
                 <div class="mb-3">
                     <label class="form-label text-muted small">Address</label>
-                    <div class="fw-semibold">{{ $warehouse->address }}</div>
+                    <div class="fw-semibold">{{ $warehouse->address ?? 'N/A' }}</div>
                 </div>
                 <div class="row">
                     <div class="col-md-3 mb-3">
@@ -76,6 +76,17 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted small">Longitude</label>
                         <div class="fw-semibold">{{ $warehouse->longitude ?? 'N/A' }}</div>
+                    </div>
+                </div>
+                @else
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted small">Latitude</label>
+                        <div class="fw-semibold">N/A</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted small">Longitude</label>
+                        <div class="fw-semibold">N/A</div>
                     </div>
                 </div>
                 @endif
@@ -167,11 +178,11 @@
             <div class="card-body">
                 <div class="mb-3">
                     <label class="form-label text-muted small">Created At</label>
-                    <div class="fw-semibold">{{ $warehouse->created_at->format('M d, Y h:i A') }}</div>
+                    <div class="fw-semibold">{{ $warehouse->created_at ? $warehouse->created_at->format('M d, Y h:i A') : 'N/A' }}</div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label text-muted small">Updated At</label>
-                    <div class="fw-semibold">{{ $warehouse->updated_at->format('M d, Y h:i A') }}</div>
+                    <div class="fw-semibold">{{ $warehouse->updated_at ? $warehouse->updated_at->format('M d, Y h:i A') : 'N/A' }}</div>
                 </div>
             </div>
         </div>
@@ -182,10 +193,16 @@
                 <h6 class="mb-0">Actions</h6>
             </div>
             <div class="card-body">
-                <a href="{{ route('admin.warehouses.edit', $warehouse->id) }}" class="btn btn-primary w-100 mb-2">
+                <a href="{{ route('admin.warehouses.picking', $warehouse->id ?? 0) }}" class="btn btn-success w-100 mb-2">
+                    <i class="bi bi-box-seam me-1"></i> Picking Dashboard
+                </a>
+                <a href="{{ route('admin.warehouses.orders', $warehouse->id ?? 0) }}" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="bi bi-list-ul me-1"></i> View Orders
+                </a>
+                <a href="{{ route('admin.warehouses.edit', $warehouse->id ?? 0) }}" class="btn btn-primary w-100 mb-2">
                     <i class="bi bi-pencil me-1"></i> Edit Warehouse
                 </a>
-                <form action="{{ route('admin.warehouses.destroy', $warehouse->id) }}" method="POST" class="d-inline w-100">
+                <form action="{{ route('admin.warehouses.destroy', $warehouse->id ?? 0) }}" method="POST" class="d-inline w-100">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Are you sure you want to delete this warehouse?')">

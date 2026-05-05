@@ -129,6 +129,7 @@ Route::delete('/digital-categories/{digitalCategory}/delete-image', [\App\Http\C
 Route::resource('products', ProductController::class)->middleware('permission:products');
 
 // Categories Management
+Route::middleware('permission:products')->group(function () {
 Route::resource('categories', CategoryController::class);
 Route::post('/categories/bulk-action', [CategoryController::class, 'bulkAction'])->name('categories.bulk-action');
 Route::post('/categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
@@ -140,6 +141,7 @@ Route::post('/categories/{category}/toggle-homepage', [CategoryController::class
 Route::get('/categories/{category}/products', [CategoryController::class, 'getProducts'])->name('categories.products');
 Route::post('/categories/{category}/move-products', [CategoryController::class, 'moveProducts'])->name('categories.move-products');
 Route::get('/categories-select-options', [CategoryController::class, 'getSelectOptions'])->name('categories.select-options');
+}); // end permission:products group for categories
 
  // Inhouse Orders - MUST be before any wildcard routes
 Route::get('/orders/in-house', [OrderController::class, 'inHouse'])->name('orders.in-house');
@@ -245,15 +247,21 @@ Route::post('/customers/{customer}/toggle-status', [CustomerController::class, '
 Route::post('/customers/bulk-action', [CustomerController::class, 'bulkAction'])->name('customers.bulk-action');
 
 // Coupons Management
-Route::post('/coupons/{coupon}/toggle', [CouponController::class, 'toggle'])->name('coupons.toggle');
-Route::resource('coupons', CouponController::class);
+Route::middleware('permission:marketing')->group(function () {
+    Route::post('/coupons/{coupon}/toggle', [CouponController::class, 'toggle'])->name('coupons.toggle');
+    Route::resource('coupons', CouponController::class);
+});
 
 // Reviews Management
-Route::resource('reviews', ReviewController::class)->only(['index', 'update', 'destroy']);
-Route::post('/reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
-Route::post('/reviews/{review}/reject', [ReviewController::class, 'reject'])->name('reviews.reject');
+Route::middleware('permission:products')->group(function () {
+    Route::resource('reviews', ReviewController::class)->only(['index', 'update', 'destroy']);
+    Route::post('/reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
+    Route::post('/reviews/{review}/reject', [ReviewController::class, 'reject'])->name('reviews.reject');
+    Route::post('/reviews/bulk-action', [ReviewController::class, 'bulkAction'])->name('reviews.bulk-action');
+});
 
 // Wishlist Management
+Route::middleware('permission:products')->group(function () {
 Route::prefix('wishlists')->name('wishlists.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\WishlistController::class, 'index'])->name('index');
     Route::delete('/delete', [\App\Http\Controllers\Admin\WishlistController::class, 'destroy'])->name('destroy');
@@ -263,101 +271,114 @@ Route::prefix('wishlists')->name('wishlists.')->group(function () {
     Route::get('/product/{productId}', [\App\Http\Controllers\Admin\WishlistController::class, 'productWishlist'])->name('product');
     Route::get('/user/{userId}', [\App\Http\Controllers\Admin\WishlistController::class, 'userWishlist'])->name('user');
 });
-Route::post('/reviews/bulk-action', [ReviewController::class, 'bulkAction'])->name('reviews.bulk-action');
+}); // end permission:products group for wishlists
 
-// Pages Management - Custom routes first (before resource route to avoid 404 errors)
-Route::post('/pages/{page}/toggle', [PageController::class, 'toggle'])->name('pages.toggle');
+// Pages Management
+Route::middleware('permission:content')->group(function () {
+    Route::post('/pages/{page}/toggle', [PageController::class, 'toggle'])->name('pages.toggle');
+    Route::resource('pages', PageController::class);
+});
 
-// Resource routes after custom routes
-Route::resource('pages', PageController::class);
+// Sliders Management
+Route::middleware('permission:appearance')->group(function () {
+    Route::post('/sliders/reorder', [SliderController::class, 'reorder'])->name('sliders.reorder');
+    Route::resource('sliders', SliderController::class);
+});
 
-// Sliders Management - Custom routes first (before resource route to avoid 404 errors)
-Route::post('/sliders/reorder', [SliderController::class, 'reorder'])->name('sliders.reorder');
-
-// Resource route after custom routes
-Route::resource('sliders', SliderController::class);
-
-// Banners Management - Custom routes first (to avoid 404 errors)
-Route::post('/banners/{banner}/toggle', [BannerController::class, 'toggle'])->name('banners.toggle');
-Route::post('/banners/reorder', [BannerController::class, 'reorder'])->name('banners.reorder');
-Route::post('/banners/bulk-action', [BannerController::class, 'bulkAction'])->name('banners.bulkAction');
-
-// Resource route after custom routes
-Route::resource('banners', BannerController::class);
+// Banners Management
+Route::middleware('permission:appearance')->group(function () {
+    Route::post('/banners/{banner}/toggle', [BannerController::class, 'toggle'])->name('banners.toggle');
+    Route::post('/banners/reorder', [BannerController::class, 'reorder'])->name('banners.reorder');
+    Route::post('/banners/bulk-action', [BannerController::class, 'bulkAction'])->name('banners.bulkAction');
+    Route::resource('banners', BannerController::class);
+});
 
 // Hero Section Settings
-Route::prefix('hero')->name('hero.')->group(function () {
-    Route::get('/', [HeroController::class, 'index'])->name('index');
-    Route::put('/', [HeroController::class, 'update'])->name('update');
-    Route::post('/type', [HeroController::class, 'updateType'])->name('update-type');
-});
-
-// Home Page Settings
-Route::prefix('homepage')->name('homepage.')->group(function () {
-    Route::get('/', [HomePageController::class, 'index'])->name('index');
-    Route::put('/', [HomePageController::class, 'update'])->name('update');
-    Route::post('/section-order', [HomePageController::class, 'updateSectionOrder'])->name('section-order');
-});
-
-// Theme Management
-Route::prefix('themes')->name('themes.')->group(function () {
-    Route::get('/', [ThemeController::class, 'index'])->name('index');
-    Route::post('/activate', [ThemeController::class, 'activate'])->name('activate');
-    Route::get('/settings', [ThemeController::class, 'settings'])->name('settings');
-    Route::post('/settings', [ThemeController::class, 'updateSettings'])->name('settings.update');
-    Route::post('/reset', [ThemeController::class, 'reset'])->name('reset');
-});
-
-// Media Management
-Route::get('/media', [\App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media.index');
-Route::post('/media/upload', [\App\Http\Controllers\Admin\MediaController::class, 'upload'])->name('media.upload');
-Route::delete('/media', [\App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('media.destroy');
-Route::post('/media/bulk-delete', [\App\Http\Controllers\Admin\MediaController::class, 'bulkDelete'])->name('media.bulk-delete');
-Route::get('/media/show', [\App\Http\Controllers\Admin\MediaController::class, 'show'])->name('media.show');
-
-// Blog Management
-Route::post('/blogs/{blog}/toggle', [\App\Http\Controllers\Admin\BlogController::class, 'toggle'])->name('blogs.toggle');
-Route::resource('blogs', \App\Http\Controllers\Admin\BlogController::class);
-Route::prefix('blog-settings')->name('blog-settings.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\BlogController::class, 'settings'])->name('index');
-    Route::post('/', [\App\Http\Controllers\Admin\BlogController::class, 'updateSettings'])->name('update');
-});
-
-// Settings Management
-Route::prefix('settings')->name('settings.')->group(function () {
-    Route::get('/', [SettingController::class, 'general'])->name('index');
-    Route::get('/general', [SettingController::class, 'general'])->name('general');
-    Route::post('/general', [SettingController::class, 'updateGeneral'])->name('general.update');
-    Route::get('/store', [SettingController::class, 'store'])->name('store');
-    Route::post('/store', [SettingController::class, 'updateStore'])->name('store.update');
-    Route::get('/email', [SettingController::class, 'email'])->name('email');
-    Route::post('/email', [SettingController::class, 'updateEmail'])->name('email.update');
-    Route::post('/email/test', [SettingController::class, 'testEmail'])->name('email.test');
-    Route::get('/seo', [SettingController::class, 'seo'])->name('seo');
-    Route::post('/seo', [SettingController::class, 'updateSeo'])->name('seo.update');
-    Route::get('/social', [SettingController::class, 'social'])->name('social');
-    Route::post('/social', [SettingController::class, 'updateSocial'])->name('social.update');
-    Route::get('/social-login', [SettingController::class, 'socialLogin'])->name('social-login');
-    Route::put('/social-login', [SettingController::class, 'updateSocialLogin'])->name('social-login.update');
-    Route::get('/whatsapp', [SettingController::class, 'whatsapp'])->name('whatsapp');
-    Route::post('/whatsapp', [SettingController::class, 'updateWhatsapp'])->name('whatsapp.update');
-    Route::get('/footer', [SettingController::class, 'footer'])->name('footer');
-    Route::post('/footer', [SettingController::class, 'updateFooter'])->name('footer.update');
-    Route::get('/maintenance', [SettingController::class, 'maintenance'])->name('maintenance');
-    Route::post('/maintenance', [SettingController::class, 'updateMaintenance'])->name('maintenance.update');
-    
-    // Email Templates - Using custom controller
-    Route::prefix('email-templates')->name('email-templates.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'index'])->name('index');
-        Route::get('/{emailTemplate}/edit', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'edit'])->name('edit');
-        Route::put('/{emailTemplate}', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'update'])->name('update');
-        Route::patch('/{emailTemplate}/toggle-status', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'toggleStatus'])->name('toggle-status');
-        Route::post('/{emailTemplate}/preview', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'preview'])->name('preview');
+Route::middleware('permission:appearance')->group(function () {
+    Route::prefix('hero')->name('hero.')->group(function () {
+        Route::get('/', [HeroController::class, 'index'])->name('index');
+        Route::put('/', [HeroController::class, 'update'])->name('update');
+        Route::post('/type', [HeroController::class, 'updateType'])->name('update-type');
     });
 });
 
-// Payment Settings - SPECIFIC ROUTES BEFORE RESOURCE ROUTES (to avoid 404 errors)
-Route::prefix('payment')->name('payment.')->group(function () {
+// Home Page Settings
+Route::middleware('permission:appearance')->group(function () {
+    Route::prefix('homepage')->name('homepage.')->group(function () {
+        Route::get('/', [HomePageController::class, 'index'])->name('index');
+        Route::put('/', [HomePageController::class, 'update'])->name('update');
+        Route::post('/section-order', [HomePageController::class, 'updateSectionOrder'])->name('section-order');
+    });
+});
+
+// Theme Management
+Route::middleware('permission:appearance')->group(function () {
+    Route::prefix('themes')->name('themes.')->group(function () {
+        Route::get('/', [ThemeController::class, 'index'])->name('index');
+        Route::post('/activate', [ThemeController::class, 'activate'])->name('activate');
+        Route::get('/settings', [ThemeController::class, 'settings'])->name('settings');
+        Route::post('/settings', [ThemeController::class, 'updateSettings'])->name('settings.update');
+        Route::post('/reset', [ThemeController::class, 'reset'])->name('reset');
+    });
+});
+
+// Media Management
+Route::middleware('permission:media')->group(function () {
+    Route::get('/media', [\App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media.index');
+    Route::post('/media/upload', [\App\Http\Controllers\Admin\MediaController::class, 'upload'])->name('media.upload');
+    Route::delete('/media', [\App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('media.destroy');
+    Route::post('/media/bulk-delete', [\App\Http\Controllers\Admin\MediaController::class, 'bulkDelete'])->name('media.bulk-delete');
+    Route::get('/media/show', [\App\Http\Controllers\Admin\MediaController::class, 'show'])->name('media.show');
+});
+
+// Blog Management
+Route::middleware('permission:content')->group(function () {
+    Route::post('/blogs/{blog}/toggle', [\App\Http\Controllers\Admin\BlogController::class, 'toggle'])->name('blogs.toggle');
+    Route::resource('blogs', \App\Http\Controllers\Admin\BlogController::class);
+    Route::prefix('blog-settings')->name('blog-settings.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\BlogController::class, 'settings'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\BlogController::class, 'updateSettings'])->name('update');
+    });
+});
+
+// Settings Management
+Route::middleware('permission:settings')->group(function () {
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', [SettingController::class, 'general'])->name('index');
+        Route::get('/general', [SettingController::class, 'general'])->name('general');
+        Route::post('/general', [SettingController::class, 'updateGeneral'])->name('general.update');
+        Route::get('/store', [SettingController::class, 'store'])->name('store');
+        Route::post('/store', [SettingController::class, 'updateStore'])->name('store.update');
+        Route::get('/email', [SettingController::class, 'email'])->name('email');
+        Route::post('/email', [SettingController::class, 'updateEmail'])->name('email.update');
+        Route::post('/email/test', [SettingController::class, 'testEmail'])->name('email.test');
+        Route::get('/seo', [SettingController::class, 'seo'])->name('seo');
+        Route::post('/seo', [SettingController::class, 'updateSeo'])->name('seo.update');
+        Route::get('/social', [SettingController::class, 'social'])->name('social');
+        Route::post('/social', [SettingController::class, 'updateSocial'])->name('social.update');
+        Route::get('/social-login', [SettingController::class, 'socialLogin'])->name('social-login');
+        Route::put('/social-login', [SettingController::class, 'updateSocialLogin'])->name('social-login.update');
+        Route::get('/whatsapp', [SettingController::class, 'whatsapp'])->name('whatsapp');
+        Route::post('/whatsapp', [SettingController::class, 'updateWhatsapp'])->name('whatsapp.update');
+        Route::get('/footer', [SettingController::class, 'footer'])->name('footer');
+        Route::post('/footer', [SettingController::class, 'updateFooter'])->name('footer.update');
+        Route::get('/maintenance', [SettingController::class, 'maintenance'])->name('maintenance');
+        Route::post('/maintenance', [SettingController::class, 'updateMaintenance'])->name('maintenance.update');
+
+        // Email Templates
+        Route::prefix('email-templates')->name('email-templates.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'index'])->name('index');
+            Route::get('/{emailTemplate}/edit', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'edit'])->name('edit');
+            Route::put('/{emailTemplate}', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'update'])->name('update');
+            Route::patch('/{emailTemplate}/toggle-status', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'toggleStatus'])->name('toggle-status');
+            Route::post('/{emailTemplate}/preview', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'preview'])->name('preview');
+        });
+    });
+});
+
+// Payment Settings
+Route::middleware('permission:settings')->group(function () {
+    Route::prefix('payment')->name('payment.')->group(function () {
     // List all payment methods
     Route::get('/', [PaymentController::class, 'index'])->name('index');
     
@@ -382,22 +403,24 @@ Route::prefix('payment')->name('payment.')->group(function () {
     // Update order/sort
     Route::post('/order', [PaymentController::class, 'updateOrder'])->name('order');
 });
-
-// Payment Gateways alias (for menu compatibility)
-Route::get('/payment-gateways', [PaymentController::class, 'index'])->name('payment-gateways.index');
+    Route::get('/payment-gateways', [PaymentController::class, 'index'])->name('payment-gateways.index');
+}); // end permission:settings group for payment
 
 // SEO Management
-Route::prefix('seo')->name('seo.')->group(function () {
-    Route::get('/', [SeoController::class, 'index'])->name('index');
-    Route::post('/meta', [SeoController::class, 'updateMeta'])->name('meta.update');
-    Route::post('/sitemap/generate', [SeoController::class, 'generateSitemap'])->name('sitemap.generate');
-    Route::get('/redirects', [SeoController::class, 'redirects'])->name('redirects');
-    Route::post('/redirects', [SeoController::class, 'storeRedirect'])->name('redirects.store');
-    Route::delete('/redirects/{id}', [SeoController::class, 'deleteRedirect'])->name('redirects.destroy');
+Route::middleware('permission:settings')->group(function () {
+    Route::prefix('seo')->name('seo.')->group(function () {
+        Route::get('/', [SeoController::class, 'index'])->name('index');
+        Route::post('/meta', [SeoController::class, 'updateMeta'])->name('meta.update');
+        Route::post('/sitemap/generate', [SeoController::class, 'generateSitemap'])->name('sitemap.generate');
+        Route::get('/redirects', [SeoController::class, 'redirects'])->name('redirects');
+        Route::post('/redirects', [SeoController::class, 'storeRedirect'])->name('redirects.store');
+        Route::delete('/redirects/{id}', [SeoController::class, 'deleteRedirect'])->name('redirects.destroy');
+    });
 });
 
 // Chat Management
-Route::prefix('chat')->name('chat.')->group(function () {
+Route::middleware('permission:support')->group(function () {
+    Route::prefix('chat')->name('chat.')->group(function () {
     Route::get('/', [ChatController::class, 'index'])->name('index');
     
     // AJAX Routes - specific routes before parameterized routes to avoid 404
@@ -431,6 +454,7 @@ Route::prefix('chat')->name('chat.')->group(function () {
     Route::post('/predefined/toggle/{id}', [ChatController::class, 'togglePredefinedMessage'])->name('predefined.toggle');
     Route::post('/predefined/reorder', [ChatController::class, 'reorderPredefinedMessages'])->name('predefined.reorder');
 });
+}); // end permission:support group for chat
 
 // Reports
 Route::prefix('reports')->middleware('permission:reports')->name('reports.')->group(function () {
@@ -451,27 +475,24 @@ Route::prefix('reports')->middleware('permission:reports')->name('reports.')->gr
 });
 
 // Profile
-Route::get('/profile', [DashboardController::class, 'profile'])->name('profile');
-Route::post('/profile', [DashboardController::class, 'updateProfile'])->name('profile.update');
-Route::post('/password', [DashboardController::class, 'updatePassword'])->name('password.update');
+Route::middleware('permission:dashboard')->group(function () {
+    Route::get('/profile', [DashboardController::class, 'profile'])->name('profile');
+    Route::post('/profile', [DashboardController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/password', [DashboardController::class, 'updatePassword'])->name('password.update');
+});
 
 // Backup & Restore
-Route::get('/backup', [SettingController::class, 'backup'])->name('backup');
-Route::post('/backup/create', [SettingController::class, 'createBackup'])->name('backup.create');
-Route::get('/backup/download/{file}', [SettingController::class, 'downloadBackup'])->name('backup.download');
-Route::post('/backup/restore', [SettingController::class, 'restoreBackup'])->name('backup.restore');
-Route::post('/backup/delete', [SettingController::class, 'deleteBackup'])->name('backup.delete');
-
-/*
-|--------------------------------------------------------------------------
-| New Feature Routes (Placeholders)
-|--------------------------------------------------------------------------
-| These routes are placeholders for new features. Controllers will be created
-| when implementing each feature.
-*/
+Route::middleware('permission:settings')->group(function () {
+    Route::get('/backup', [SettingController::class, 'backup'])->name('backup');
+    Route::post('/backup/create', [SettingController::class, 'createBackup'])->name('backup.create');
+    Route::get('/backup/download/{file}', [SettingController::class, 'downloadBackup'])->name('backup.download');
+    Route::post('/backup/restore', [SettingController::class, 'restoreBackup'])->name('backup.restore');
+    Route::post('/backup/delete', [SettingController::class, 'deleteBackup'])->name('backup.delete');
+});
 
 // Attributes Management
-Route::resource('attributes', \App\Http\Controllers\Admin\AttributeController::class);
+Route::middleware('permission:products')->group(function () {
+    Route::resource('attributes', \App\Http\Controllers\Admin\AttributeController::class);
 Route::post('/attributes/{attribute}/toggle-status', [\App\Http\Controllers\Admin\AttributeController::class, 'toggleStatus'])->name('attributes.toggle-status');
 Route::post('/attributes/{attribute}/toggle-filterable', [\App\Http\Controllers\Admin\AttributeController::class, 'toggleFilterable'])->name('attributes.toggle-filterable');
 Route::post('/attributes/bulk-action', [\App\Http\Controllers\Admin\AttributeController::class, 'bulkAction'])->name('attributes.bulk-action');
@@ -482,46 +503,53 @@ Route::delete('/attributes/{attribute}/values/{value}', [\App\Http\Controllers\A
 Route::post('/attributes/{attribute}/values/{value}/toggle-status', [\App\Http\Controllers\Admin\AttributeController::class, 'toggleValueStatus'])->name('attributes.values.toggle-status');
 Route::get('/attributes/{attribute}/values', [\App\Http\Controllers\Admin\AttributeController::class, 'getValues'])->name('attributes.values.list');
 Route::get('/attributes/{attribute}/products', [\App\Http\Controllers\Admin\AttributeController::class, 'getProducts'])->name('attributes.products.list');
+}); // end permission:products group for attributes
 
 // Colors Management
-Route::resource('colors', \App\Http\Controllers\Admin\ColorController::class);
-Route::post('/colors/{color}/toggle-status', [\App\Http\Controllers\Admin\ColorController::class, 'toggleStatus'])->name('colors.toggle-status');
-Route::post('/colors/{color}/toggle-filterable', [\App\Http\Controllers\Admin\ColorController::class, 'toggleFilterable'])->name('colors.toggle-filterable');
-Route::post('/colors/bulk-action', [\App\Http\Controllers\Admin\ColorController::class, 'bulkAction'])->name('colors.bulk-action');
-Route::get('/colors-export', [\App\Http\Controllers\Admin\ColorController::class, 'export'])->name('colors.export');
-Route::get('/colors/api/list', [\App\Http\Controllers\Admin\ColorController::class, 'getColors'])->name('colors.api.list');
-Route::delete('/colors/{color}/image', [\App\Http\Controllers\Admin\ColorController::class, 'deleteImage'])->name('colors.image.delete');
-
-// Color Values Management
-Route::post('/colors/{color}/values', [\App\Http\Controllers\Admin\ColorController::class, 'storeValue'])->name('colors.values.store');
-Route::put('/colors/{color}/values/{value}', [\App\Http\Controllers\Admin\ColorController::class, 'updateValue'])->name('colors.values.update');
-Route::delete('/colors/{color}/values/{value}', [\App\Http\Controllers\Admin\ColorController::class, 'destroyValue'])->name('colors.values.destroy');
-Route::post('/colors/{color}/values/{value}/toggle-status', [\App\Http\Controllers\Admin\ColorController::class, 'toggleValueStatus'])->name('colors.values.toggle-status');
-Route::get('/colors/{color}/values', [\App\Http\Controllers\Admin\ColorController::class, 'getValues'])->name('colors.values.list');
-Route::get('/colors/{color}/products', [\App\Http\Controllers\Admin\ColorController::class, 'getProducts'])->name('colors.products.list');
+Route::middleware('permission:products')->group(function () {
+    Route::resource('colors', \App\Http\Controllers\Admin\ColorController::class);
+    Route::post('/colors/{color}/toggle-status', [\App\Http\Controllers\Admin\ColorController::class, 'toggleStatus'])->name('colors.toggle-status');
+    Route::post('/colors/{color}/toggle-filterable', [\App\Http\Controllers\Admin\ColorController::class, 'toggleFilterable'])->name('colors.toggle-filterable');
+    Route::post('/colors/bulk-action', [\App\Http\Controllers\Admin\ColorController::class, 'bulkAction'])->name('colors.bulk-action');
+    Route::get('/colors-export', [\App\Http\Controllers\Admin\ColorController::class, 'export'])->name('colors.export');
+    Route::get('/colors/api/list', [\App\Http\Controllers\Admin\ColorController::class, 'getColors'])->name('colors.api.list');
+    Route::delete('/colors/{color}/image', [\App\Http\Controllers\Admin\ColorController::class, 'deleteImage'])->name('colors.image.delete');
+    Route::post('/colors/{color}/values', [\App\Http\Controllers\Admin\ColorController::class, 'storeValue'])->name('colors.values.store');
+    Route::put('/colors/{color}/values/{value}', [\App\Http\Controllers\Admin\ColorController::class, 'updateValue'])->name('colors.values.update');
+    Route::delete('/colors/{color}/values/{value}', [\App\Http\Controllers\Admin\ColorController::class, 'destroyValue'])->name('colors.values.destroy');
+    Route::post('/colors/{color}/values/{value}/toggle-status', [\App\Http\Controllers\Admin\ColorController::class, 'toggleValueStatus'])->name('colors.values.toggle-status');
+    Route::get('/colors/{color}/values', [\App\Http\Controllers\Admin\ColorController::class, 'getValues'])->name('colors.values.list');
+    Route::get('/colors/{color}/products', [\App\Http\Controllers\Admin\ColorController::class, 'getProducts'])->name('colors.products.list');
+}); // end permission:products group for colors
 
 // Brands Management
-Route::resource('brands', \App\Http\Controllers\Admin\BrandController::class);
-Route::post('/brands/{brand}/toggle-status', [\App\Http\Controllers\Admin\BrandController::class, 'toggleStatus'])->name('brands.toggle-status');
-Route::post('/brands/{brand}/toggle-featured', [\App\Http\Controllers\Admin\BrandController::class, 'toggleFeatured'])->name('brands.toggle-featured');
-Route::post('/brands/bulk-action', [\App\Http\Controllers\Admin\BrandController::class, 'bulkAction'])->name('brands.bulk-action');
-Route::get('/brands-export', [\App\Http\Controllers\Admin\BrandController::class, 'export'])->name('brands.export');
-Route::get('/brands/api/list', [\App\Http\Controllers\Admin\BrandController::class, 'getBrands'])->name('brands.api.list');
+Route::middleware('permission:products')->group(function () {
+    Route::resource('brands', \App\Http\Controllers\Admin\BrandController::class);
+    Route::post('/brands/{brand}/toggle-status', [\App\Http\Controllers\Admin\BrandController::class, 'toggleStatus'])->name('brands.toggle-status');
+    Route::post('/brands/{brand}/toggle-featured', [\App\Http\Controllers\Admin\BrandController::class, 'toggleFeatured'])->name('brands.toggle-featured');
+    Route::post('/brands/bulk-action', [\App\Http\Controllers\Admin\BrandController::class, 'bulkAction'])->name('brands.bulk-action');
+    Route::get('/brands-export', [\App\Http\Controllers\Admin\BrandController::class, 'export'])->name('brands.export');
+    Route::get('/brands/api/list', [\App\Http\Controllers\Admin\BrandController::class, 'getBrands'])->name('brands.api.list');
+}); // end permission:products group for brands
 
 // Product Bundles
-Route::resource('product-bundles', \App\Http\Controllers\Admin\ProductBundleController::class);
-Route::post('/product-bundles/{productBundle}/toggle-status', [\App\Http\Controllers\Admin\ProductBundleController::class, 'toggleStatus'])->name('product-bundles.toggle-status');
-Route::post('/product-bundles/{productBundle}/toggle-featured', [\App\Http\Controllers\Admin\ProductBundleController::class, 'toggleFeatured'])->name('product-bundles.toggle-featured');
-Route::post('/product-bundles/bulk-action', [\App\Http\Controllers\Admin\ProductBundleController::class, 'bulkAction'])->name('product-bundles.bulk-action');
-Route::get('/product-bundles-export', [\App\Http\Controllers\Admin\ProductBundleController::class, 'export'])->name('product-bundles.export');
-Route::get('/product-bundles/api/products', [\App\Http\Controllers\Admin\ProductBundleController::class, 'getProducts'])->name('product-bundles.api.products');
+Route::middleware('permission:products')->group(function () {
+    Route::resource('product-bundles', \App\Http\Controllers\Admin\ProductBundleController::class);
+    Route::post('/product-bundles/{productBundle}/toggle-status', [\App\Http\Controllers\Admin\ProductBundleController::class, 'toggleStatus'])->name('product-bundles.toggle-status');
+    Route::post('/product-bundles/{productBundle}/toggle-featured', [\App\Http\Controllers\Admin\ProductBundleController::class, 'toggleFeatured'])->name('product-bundles.toggle-featured');
+    Route::post('/product-bundles/bulk-action', [\App\Http\Controllers\Admin\ProductBundleController::class, 'bulkAction'])->name('product-bundles.bulk-action');
+    Route::get('/product-bundles-export', [\App\Http\Controllers\Admin\ProductBundleController::class, 'export'])->name('product-bundles.export');
+    Route::get('/product-bundles/api/products', [\App\Http\Controllers\Admin\ProductBundleController::class, 'getProducts'])->name('product-bundles.api.products');
+}); // end permission:products group for product-bundles
 
 // Product Q&A
-Route::resource('product-qa', \App\Http\Controllers\Admin\ProductQAController::class);
-Route::post('/product-qa/bulk-action', [\App\Http\Controllers\Admin\ProductQAController::class, 'bulkAction'])->name('product-qa.bulk-action');
-Route::post('/product-qa/{product_qa}/toggle-featured', [\App\Http\Controllers\Admin\ProductQAController::class, 'toggleFeatured'])->name('product-qa.toggle-featured');
-Route::post('/product-qa/{product_qa}/quick-answer', [\App\Http\Controllers\Admin\ProductQAController::class, 'quickAnswer'])->name('product-qa.quick-answer');
-Route::post('/product-qa/{product_qa}/update-status', [\App\Http\Controllers\Admin\ProductQAController::class, 'updateStatus'])->name('product-qa.update-status');
+Route::middleware('permission:products')->group(function () {
+    Route::resource('product-qa', \App\Http\Controllers\Admin\ProductQAController::class);
+    Route::post('/product-qa/bulk-action', [\App\Http\Controllers\Admin\ProductQAController::class, 'bulkAction'])->name('product-qa.bulk-action');
+    Route::post('/product-qa/{product_qa}/toggle-featured', [\App\Http\Controllers\Admin\ProductQAController::class, 'toggleFeatured'])->name('product-qa.toggle-featured');
+    Route::post('/product-qa/{product_qa}/quick-answer', [\App\Http\Controllers\Admin\ProductQAController::class, 'quickAnswer'])->name('product-qa.quick-answer');
+    Route::post('/product-qa/{product_qa}/update-status', [\App\Http\Controllers\Admin\ProductQAController::class, 'updateStatus'])->name('product-qa.update-status');
+}); // end permission:products group for product-qa
 
 // Inventory Management
 Route::prefix('inventory')->middleware('permission:inventory')->name('inventory.')->group(function () {
@@ -963,6 +991,11 @@ Route::prefix('warehouses')->middleware('permission:warehouse')->name('warehouse
     Route::delete('/{id}', [\App\Http\Controllers\Admin\WarehouseController::class, 'destroy'])->name('destroy');
     Route::post('/bulk-action', [\App\Http\Controllers\Admin\WarehouseController::class, 'bulkAction'])->name('bulk-action');
     Route::patch('/{id}/toggle-status', [\App\Http\Controllers\Admin\WarehouseController::class, 'toggleStatus'])->name('toggle-status');
+    // Warehouse Picking/Orders
+    Route::get('/{id}/orders', [\App\Http\Controllers\Admin\WarehouseController::class, 'orders'])->name('orders');
+    Route::get('/{id}/picking', [\App\Http\Controllers\Admin\WarehouseController::class, 'picking'])->name('picking');
+    Route::patch('/{id}/orders/{orderId}/start-picking', [\App\Http\Controllers\Admin\WarehouseController::class, 'startPicking'])->name('orders.start-picking');
+    Route::patch('/{id}/orders/{orderId}/mark-packed', [\App\Http\Controllers\Admin\WarehouseController::class, 'markPacked'])->name('orders.mark-packed');
 });
 
 // Staff Management
@@ -977,6 +1010,27 @@ Route::prefix('staffs')->middleware('permission:staffs')->name('staffs.')->group
     Route::get('/warehouse', [\App\Http\Controllers\Admin\StaffController::class, 'warehouse'])->name('warehouse');
     Route::get('/permissions', [\App\Http\Controllers\Admin\StaffController::class, 'permissions'])->name('permissions');
     Route::post('/permissions', [\App\Http\Controllers\Admin\StaffController::class, 'updatePermissions'])->name('permissions.update');
+});
+
+// Permission Management (super_admin only - dynamic CRUD)
+Route::prefix('permissions')->middleware(['permission:staffs', 'auth'])->name('permissions.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\PermissionController::class, 'dashboard'])->name('index');
+    Route::post('/', [\App\Http\Controllers\Admin\PermissionController::class, 'store'])->name('store');
+    Route::delete('/{id}', [\App\Http\Controllers\Admin\PermissionController::class, 'destroy'])->name('destroy');
+    Route::post('/bulk-delete', [\App\Http\Controllers\Admin\PermissionController::class, 'bulkDelete'])->name('bulk-delete');
+    Route::post('/toggle-key', [\App\Http\Controllers\Admin\PermissionController::class, 'toggleKey'])->name('toggle-key');
+    Route::post('/toggle-visibility/{module}', [\App\Http\Controllers\Admin\PermissionController::class, 'toggleVisibility'])->name('toggle-visibility');
+    Route::post('/toggle-submenu/{submenuKey}', [\App\Http\Controllers\Admin\PermissionController::class, 'toggleSubmenuVisibility'])->name('toggle-submenu');
+});
+
+// Role Management (super_admin only - dynamic CRUD)
+Route::prefix('roles')->middleware(['permission:staffs', 'auth'])->name('roles.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\PermissionRoleController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\Admin\PermissionRoleController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Admin\PermissionRoleController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\PermissionRoleController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [\App\Http\Controllers\Admin\PermissionRoleController::class, 'update'])->name('update');
+    Route::delete('/{id}', [\App\Http\Controllers\Admin\PermissionRoleController::class, 'destroy'])->name('destroy');
 });
 
 // System Management
@@ -1156,72 +1210,67 @@ Route::prefix('affiliate')->middleware('permission:affiliate')->name('affiliate.
 });
 
 // Blog Categories
-Route::prefix('blog-categories')->name('blog-categories.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'index'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'create'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'store'])->name('store');
-    Route::get('/{blogCategory}/edit', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'edit'])->name('edit');
-    Route::put('/{blogCategory}', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'update'])->name('update');
-    Route::delete('/{blogCategory}', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'destroy'])->name('destroy');
-    Route::post('/{blogCategory}/toggle-status', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'toggleStatus'])->name('toggle-status');
-    Route::post('/bulk-action', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'bulkAction'])->name('bulk-action');
-});
+Route::middleware('permission:content')->group(function () {
+    Route::prefix('blog-categories')->name('blog-categories.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'store'])->name('store');
+        Route::get('/{blogCategory}/edit', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'edit'])->name('edit');
+        Route::put('/{blogCategory}', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'update'])->name('update');
+        Route::delete('/{blogCategory}', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'destroy'])->name('destroy');
+        Route::post('/{blogCategory}/toggle-status', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/bulk-action', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'bulkAction'])->name('bulk-action');
+    });
 
-// Blog Tags
-Route::prefix('blog-tags')->name('blog-tags.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\BlogTagController::class, 'index'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\BlogTagController::class, 'create'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\BlogTagController::class, 'store'])->name('store');
-    Route::get('/{blogTag}/edit', [\App\Http\Controllers\Admin\BlogTagController::class, 'edit'])->name('edit');
-    Route::put('/{blogTag}', [\App\Http\Controllers\Admin\BlogTagController::class, 'update'])->name('update');
-    Route::delete('/{blogTag}', [\App\Http\Controllers\Admin\BlogTagController::class, 'destroy'])->name('destroy');
-    Route::post('/{blogTag}/toggle-status', [\App\Http\Controllers\Admin\BlogTagController::class, 'toggleStatus'])->name('toggle-status');
-    Route::post('/bulk-action', [\App\Http\Controllers\Admin\BlogTagController::class, 'bulkAction'])->name('bulk-action');
-});
+    // Blog Tags
+    Route::prefix('blog-tags')->name('blog-tags.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\BlogTagController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\BlogTagController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\BlogTagController::class, 'store'])->name('store');
+        Route::get('/{blogTag}/edit', [\App\Http\Controllers\Admin\BlogTagController::class, 'edit'])->name('edit');
+        Route::put('/{blogTag}', [\App\Http\Controllers\Admin\BlogTagController::class, 'update'])->name('update');
+        Route::delete('/{blogTag}', [\App\Http\Controllers\Admin\BlogTagController::class, 'destroy'])->name('destroy');
+        Route::post('/{blogTag}/toggle-status', [\App\Http\Controllers\Admin\BlogTagController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/bulk-action', [\App\Http\Controllers\Admin\BlogTagController::class, 'bulkAction'])->name('bulk-action');
+    });
 
-// FAQs Management - Specific routes must come before wildcard routes to avoid 404 errors
-Route::get('/faqs', [\App\Http\Controllers\Admin\FaqController::class, 'index'])->name('faqs.index');
-Route::get('/faqs/create', [\App\Http\Controllers\Admin\FaqController::class, 'create'])->name('faqs.create');
-Route::post('/faqs', [\App\Http\Controllers\Admin\FaqController::class, 'store'])->name('faqs.store');
-Route::get('/faqs/{faq}/edit', [\App\Http\Controllers\Admin\FaqController::class, 'edit'])->name('faqs.edit');
-Route::put('/faqs/{faq}', [\App\Http\Controllers\Admin\FaqController::class, 'update'])->name('faqs.update');
-Route::delete('/faqs/{faq}', [\App\Http\Controllers\Admin\FaqController::class, 'destroy'])->name('faqs.destroy');
-Route::post('/faqs/toggle-status/{faq}', [\App\Http\Controllers\Admin\FaqController::class, 'toggleStatus'])->name('faqs.toggle-status');
-Route::post('/faqs/bulk-action', [\App\Http\Controllers\Admin\FaqController::class, 'bulkAction'])->name('faqs.bulk-action');
-Route::post('/faqs/reorder', [\App\Http\Controllers\Admin\FaqController::class, 'reorder'])->name('faqs.reorder');
+    // FAQs Management
+    Route::get('/faqs', [\App\Http\Controllers\Admin\FaqController::class, 'index'])->name('faqs.index');
+    Route::get('/faqs/create', [\App\Http\Controllers\Admin\FaqController::class, 'create'])->name('faqs.create');
+    Route::post('/faqs', [\App\Http\Controllers\Admin\FaqController::class, 'store'])->name('faqs.store');
+    Route::get('/faqs/{faq}/edit', [\App\Http\Controllers\Admin\FaqController::class, 'edit'])->name('faqs.edit');
+    Route::put('/faqs/{faq}', [\App\Http\Controllers\Admin\FaqController::class, 'update'])->name('faqs.update');
+    Route::delete('/faqs/{faq}', [\App\Http\Controllers\Admin\FaqController::class, 'destroy'])->name('faqs.destroy');
+    Route::post('/faqs/toggle-status/{faq}', [\App\Http\Controllers\Admin\FaqController::class, 'toggleStatus'])->name('faqs.toggle-status');
+    Route::post('/faqs/bulk-action', [\App\Http\Controllers\Admin\FaqController::class, 'bulkAction'])->name('faqs.bulk-action');
+    Route::post('/faqs/reorder', [\App\Http\Controllers\Admin\FaqController::class, 'reorder'])->name('faqs.reorder');
 
-// Form Builder - Specific routes must come before wildcard routes to avoid 404 errors
-Route::get('/form-builder', [FormBuilderController::class, 'index'])->name('form-builder.index');
-Route::get('/form-builder/create', [FormBuilderController::class, 'create'])->name('form-builder.create');
-Route::post('/form-builder', [FormBuilderController::class, 'store'])->name('form-builder.store');
-
-// Specific routes for form actions - must come before {id} route
-Route::get('/form-builder/{id}/duplicate', [FormBuilderController::class, 'duplicate'])->name('form-builder.duplicate');
-Route::post('/form-builder/{id}/toggle-status', [FormBuilderController::class, 'toggleStatus'])->name('form-builder.toggle-status');
-
-// Field management routes
-Route::post('/form-builder/{id}/fields', [FormBuilderController::class, 'storeField'])->name('form-builder.fields.store');
-Route::get('/form-builder/{id}/fields/{fieldId}', [FormBuilderController::class, 'getField'])->name('form-builder.fields.get');
-Route::put('/form-builder/{id}/fields/{fieldId}', [FormBuilderController::class, 'updateField'])->name('form-builder.fields.update');
-Route::delete('/form-builder/{id}/fields/{fieldId}', [FormBuilderController::class, 'destroyField'])->name('form-builder.fields.destroy');
-Route::post('/form-builder/{id}/fields/reorder', [FormBuilderController::class, 'reorderFields'])->name('form-builder.fields.reorder');
-
-// Submissions routes - must come before {id} route
-Route::get('/form-builder/{id}/submissions', [FormBuilderController::class, 'submissions'])->name('form-builder.submissions');
-Route::get('/form-builder/{id}/submissions/export', [FormBuilderController::class, 'exportSubmissions'])->name('form-builder.submissions.export');
-Route::get('/form-builder/{id}/submissions/{submissionId}', [FormBuilderController::class, 'showSubmission'])->name('form-builder.submissions.show');
-Route::post('/form-builder/{id}/submissions/{submissionId}/toggle-read', [FormBuilderController::class, 'toggleReadStatus'])->name('form-builder.submissions.toggle-read');
-Route::post('/form-builder/{id}/submissions/{submissionId}/note', [FormBuilderController::class, 'addNote'])->name('form-builder.submissions.note');
-Route::delete('/form-builder/{id}/submissions/{submissionId}', [FormBuilderController::class, 'destroySubmission'])->name('form-builder.submissions.destroy');
-
-// General form routes (show, edit, update, delete)
-Route::get('/form-builder/{id}', [FormBuilderController::class, 'show'])->name('form-builder.show');
-Route::get('/form-builder/{id}/edit', [FormBuilderController::class, 'edit'])->name('form-builder.edit');
-Route::put('/form-builder/{id}', [FormBuilderController::class, 'update'])->name('form-builder.update');
-Route::delete('/form-builder/{id}', [FormBuilderController::class, 'destroy'])->name('form-builder.destroy');
+    // Form Builder
+    Route::get('/form-builder', [FormBuilderController::class, 'index'])->name('form-builder.index');
+    Route::get('/form-builder/create', [FormBuilderController::class, 'create'])->name('form-builder.create');
+    Route::post('/form-builder', [FormBuilderController::class, 'store'])->name('form-builder.store');
+    Route::get('/form-builder/{id}/duplicate', [FormBuilderController::class, 'duplicate'])->name('form-builder.duplicate');
+    Route::post('/form-builder/{id}/toggle-status', [FormBuilderController::class, 'toggleStatus'])->name('form-builder.toggle-status');
+    Route::post('/form-builder/{id}/fields', [FormBuilderController::class, 'storeField'])->name('form-builder.fields.store');
+    Route::get('/form-builder/{id}/fields/{fieldId}', [FormBuilderController::class, 'getField'])->name('form-builder.fields.get');
+    Route::put('/form-builder/{id}/fields/{fieldId}', [FormBuilderController::class, 'updateField'])->name('form-builder.fields.update');
+    Route::delete('/form-builder/{id}/fields/{fieldId}', [FormBuilderController::class, 'destroyField'])->name('form-builder.fields.destroy');
+    Route::post('/form-builder/{id}/fields/reorder', [FormBuilderController::class, 'reorderFields'])->name('form-builder.fields.reorder');
+    Route::get('/form-builder/{id}/submissions', [FormBuilderController::class, 'submissions'])->name('form-builder.submissions');
+    Route::get('/form-builder/{id}/submissions/export', [FormBuilderController::class, 'exportSubmissions'])->name('form-builder.submissions.export');
+    Route::get('/form-builder/{id}/submissions/{submissionId}', [FormBuilderController::class, 'showSubmission'])->name('form-builder.submissions.show');
+    Route::post('/form-builder/{id}/submissions/{submissionId}/toggle-read', [FormBuilderController::class, 'toggleReadStatus'])->name('form-builder.submissions.toggle-read');
+    Route::post('/form-builder/{id}/submissions/{submissionId}/note', [FormBuilderController::class, 'addNote'])->name('form-builder.submissions.note');
+    Route::delete('/form-builder/{id}/submissions/{submissionId}', [FormBuilderController::class, 'destroySubmission'])->name('form-builder.submissions.destroy');
+    Route::get('/form-builder/{id}', [FormBuilderController::class, 'show'])->name('form-builder.show');
+    Route::get('/form-builder/{id}/edit', [FormBuilderController::class, 'edit'])->name('form-builder.edit');
+    Route::put('/form-builder/{id}', [FormBuilderController::class, 'update'])->name('form-builder.update');
+    Route::delete('/form-builder/{id}', [FormBuilderController::class, 'destroy'])->name('form-builder.destroy');
+}); // end permission:content group
 
 // Menu Builder
-Route::prefix('menus')->name('menus.')->group(function () {
+Route::middleware('permission:appearance')->group(function () {
+    Route::prefix('menus')->name('menus.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'index'])->name('index');
     Route::get('/create', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'create'])->name('create');
     Route::post('/', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'store'])->name('store');
@@ -1245,23 +1294,27 @@ Route::prefix('menus')->name('menus.')->group(function () {
     Route::put('/{id}', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'update'])->name('update');
     Route::delete('/{id}', [\App\Http\Controllers\Admin\MenuBuilderController::class, 'destroy'])->name('destroy');
 });
+}); // end permission:appearance group for menus
 
 // Widget Manager
-Route::prefix('content/widgets')->name('content.widgets.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Admin\WidgetController::class, 'index'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\Admin\WidgetController::class, 'create'])->name('create');
-    Route::post('/', [\App\Http\Controllers\Admin\WidgetController::class, 'store'])->name('store');
-    Route::get('/{id}/edit', [\App\Http\Controllers\Admin\WidgetController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'update'])->name('update');
-    Route::delete('/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'destroy'])->name('destroy');
-    Route::post('/reorder', [\App\Http\Controllers\Admin\WidgetController::class, 'reorder'])->name('reorder');
-    Route::post('/toggle-status/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'toggleStatus'])->name('toggle-status');
-    Route::post('/toggle-featured/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'toggleFeatured'])->name('toggle-featured');
-    Route::post('/bulk-action', [\App\Http\Controllers\Admin\WidgetController::class, 'bulkAction'])->name('bulk-action');
-});
+Route::middleware('permission:content')->group(function () {
+    Route::prefix('content/widgets')->name('content.widgets.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\WidgetController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\WidgetController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\WidgetController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\Admin\WidgetController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'destroy'])->name('destroy');
+        Route::post('/reorder', [\App\Http\Controllers\Admin\WidgetController::class, 'reorder'])->name('reorder');
+        Route::post('/toggle-status/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/toggle-featured/{id}', [\App\Http\Controllers\Admin\WidgetController::class, 'toggleFeatured'])->name('toggle-featured');
+        Route::post('/bulk-action', [\App\Http\Controllers\Admin\WidgetController::class, 'bulkAction'])->name('bulk-action');
+    });
+}); // end permission:content group for widgets
 
 // API Keys & Integrations
-Route::prefix('api-keys')->name('api-keys.')->group(function () {
+Route::middleware('permission:settings')->group(function () {
+    Route::prefix('api-keys')->name('api-keys.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\ApiKeyController::class, 'index'])->name('index');
     Route::post('/', [\App\Http\Controllers\Admin\ApiKeyController::class, 'store'])->name('store');
     Route::put('/{id}', [\App\Http\Controllers\Admin\ApiKeyController::class, 'update'])->name('update');
@@ -1278,6 +1331,7 @@ Route::prefix('api-keys')->name('api-keys.')->group(function () {
     Route::post('/webhooks/{id}/test', [\App\Http\Controllers\Admin\ApiKeyController::class, 'testWebhook'])->name('webhooks.test');
     Route::post('/webhooks/{id}/toggle', [\App\Http\Controllers\Admin\ApiKeyController::class, 'toggleWebhook'])->name('webhooks.toggle');
 });
+}); // end permission:settings group for api-keys
 
 // Notifications - API Routes for AJAX (must be before wildcard routes)
 Route::prefix('notifications')->name('notifications.')->group(function () {

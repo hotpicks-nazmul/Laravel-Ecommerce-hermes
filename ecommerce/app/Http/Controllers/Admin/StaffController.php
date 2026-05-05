@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Helpers\ImageHelper;
+use App\Helpers\PermissionHelper;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class StaffController extends Controller
 {
@@ -17,10 +20,8 @@ class StaffController extends Controller
      */
     public function index(Request $request)
     {
-        // Get statistics
         $stats = $this->getStats();
 
-        // Build query - show all admin panel users for super_admin, only staff for others
         $currentUser = auth()->user();
         if ($currentUser->role === 'super_admin') {
             $query = User::adminPanel()->with('warehouse');
@@ -28,7 +29,6 @@ class StaffController extends Controller
             $query = User::staff()->with('warehouse');
         }
 
-        // Search
         if ($request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -39,29 +39,23 @@ class StaffController extends Controller
             });
         }
 
-        // Filter by status
         if ($request->status) {
             $query->where('status', $request->status);
         }
 
-        // Filter by warehouse
         if ($request->warehouse_id) {
             $query->where('warehouse_id', $request->warehouse_id);
         }
 
-        // Sort
         $sortBy = $request->sort_by ?? 'created_at';
         $sortOrder = $request->sort_order ?? 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
-        // Paginate
         $perPage = $request->per_page ?? 10;
         $staffs = $query->paginate($perPage);
 
-        // Get warehouses for filter
         $warehouses = Warehouse::where('is_active', 1)->orderBy('name')->get();
 
-        // If AJAX request, return JSON
         if ($request->ajax()) {
             $showingText = '';
             if ($staffs->hasPages()) {
@@ -84,8 +78,7 @@ class StaffController extends Controller
     protected function getStats()
     {
         $currentUser = auth()->user();
-        
-        // Show all admin panel users for super_admin, only staff for others
+
         if ($currentUser->role === 'super_admin') {
             $users = User::adminPanel();
         } else {
@@ -106,8 +99,7 @@ class StaffController extends Controller
     public function create()
     {
         $user = auth()->user();
-        
-        // Determine available roles based on current user's role
+
         $allowedRoles = [];
         if ($user->role === 'super_admin') {
             $allowedRoles = ['admin', 'staff'];
@@ -116,10 +108,12 @@ class StaffController extends Controller
         } else {
             $allowedRoles = ['staff'];
         }
-        
+
         $warehouses = Warehouse::where('is_active', 1)->orderBy('name')->get();
-        
-        return view('admin.staffs.create', compact('warehouses', 'allowedRoles'));
+        $roleTemplates = Role::where('guard_name', 'web')->orderBy('name')->get();
+        $permissionModules = PermissionHelper::modules();
+
+        return view('admin.staffs.create', compact('warehouses', 'allowedRoles', 'roleTemplates', 'permissionModules'));
     }
 
     /**
@@ -128,13 +122,11 @@ class StaffController extends Controller
     public function store(Request $request)
     {
         $user = auth()->user();
-        
-        // Staff cannot create staff members
+
         if ($user->role === 'staff') {
             abort(403, 'Unauthorized access. Staff members cannot create other staff.');
         }
-        
-        // Determine available roles based on current user's role
+
         $allowedRoles = [];
         if ($user->role === 'super_admin') {
             $allowedRoles = ['admin', 'staff'];
@@ -143,7 +135,7 @@ class StaffController extends Controller
         } else {
             $allowedRoles = ['staff'];
         }
-        
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
@@ -154,7 +146,14 @@ class StaffController extends Controller
             'role' => 'required|in:' . implode(',', $allowedRoles),
             'is_super_admin' => 'boolean',
             'status' => 'required|in:active,inactive,banned',
+            'role_template' => 'nullable|exists:roles,id',
+            'custom_permissions' => 'nullable|array',
+            'custom_permissions.*' => 'exists:permissions,name',
         ]);
+
+        if ($request->is_super_admin && $user->role !== 'super_admin') {
+            abort(403, 'Only super administrators can grant super admin privileges.');
+        }
 
         $staff = new User();
         $staff->name = $request->name;
@@ -167,7 +166,6 @@ class StaffController extends Controller
         $staff->is_super_admin = $request->is_super_admin ?? false;
         $staff->status = $request->status;
 
-        // Handle avatar upload
         if ($request->hasFile('avatar')) {
             if (ImageHelper::isValidImage($request->file('avatar'))) {
                 $imageResult = ImageHelper::processImage(
@@ -183,6 +181,27 @@ class StaffController extends Controller
 
         $staff->save();
 
+        // Assign Spatie role template if selected
+        if ($request->role_template && $staff->role === 'staff') {
+            $roleTemplate = Role::findById($request->role_template);
+            if ($roleTemplate) {
+                $staff->assignRole($roleTemplate);
+            }
+        }
+
+        // Assign custom granular permissions if provided
+        if ($request->custom_permissions && $staff->role === 'staff') {
+            $permIds = \Spatie\Permission\Models\Permission::whereIn('name', $request->custom_permissions)
+                ->where('guard_name', 'web')
+                ->pluck('id')->toArray();
+            $staff->permissions()->sync($permIds);
+
+            // Also save legacy module-level permissions for backward compat
+            $moduleKeys = $this->extractModuleKeys($request->custom_permissions);
+            $staff->legacy_permissions = $moduleKeys;
+            $staff->save();
+        }
+
         $roleLabel = ucfirst($request->role);
         return redirect()->route('admin.staffs.index')
             ->with('success', $roleLabel . ' created successfully.');
@@ -194,8 +213,7 @@ class StaffController extends Controller
     public function edit($id)
     {
         $currentUser = auth()->user();
-        
-        // Use adminPanel scope for super_admin, staff scope for others
+
         if ($currentUser->role === 'super_admin') {
             $staff = User::adminPanel()->findOrFail($id);
             $allowedRoles = ['admin', 'staff'];
@@ -203,10 +221,14 @@ class StaffController extends Controller
             $staff = User::staff()->findOrFail($id);
             $allowedRoles = ['staff'];
         }
-        
-        $warehouses = Warehouse::where('is_active', 1)->orderBy('name')->get();
 
-        return view('admin.staffs.edit', compact('staff', 'warehouses', 'allowedRoles'));
+        $staff->load('roles', 'permissions');
+
+        $warehouses = Warehouse::where('is_active', 1)->orderBy('name')->get();
+        $roleTemplates = Role::where('guard_name', 'web')->orderBy('name')->get();
+        $permissionModules = PermissionHelper::modules();
+
+        return view('admin.staffs.edit', compact('staff', 'warehouses', 'allowedRoles', 'roleTemplates', 'permissionModules'));
     }
 
     /**
@@ -215,8 +237,7 @@ class StaffController extends Controller
     public function update(Request $request, $id)
     {
         $currentUser = auth()->user();
-        
-        // Use adminPanel scope for super_admin, staff scope for others
+
         if ($currentUser->role === 'super_admin') {
             $staff = User::adminPanel()->findOrFail($id);
             $allowedRoles = ['admin', 'staff'];
@@ -241,29 +262,34 @@ class StaffController extends Controller
             'role' => 'sometimes|in:' . implode(',', $allowedRoles),
             'is_super_admin' => 'boolean',
             'status' => 'required|in:active,inactive,banned',
+            'role_template' => 'nullable|exists:roles,id',
+            'custom_permissions' => 'nullable|array',
+            'custom_permissions.*' => 'exists:permissions,name',
         ]);
+
+        if ($request->is_super_admin && $currentUser->role !== 'super_admin') {
+            abort(403, 'Only super administrators can grant super admin privileges.');
+        }
 
         $staff->name = $request->name;
         $staff->email = $request->email;
         $staff->phone = $request->phone;
         $staff->designation = $request->designation;
         $staff->warehouse_id = $request->warehouse_id;
-        $staff->is_super_admin = $request->is_super_admin ?? false;
+        if ($request->has('is_super_admin')) {
+            $staff->is_super_admin = $request->is_super_admin ?? false;
+        }
         $staff->status = $request->status;
 
-        // Update role if provided and allowed
         if ($request->has('role') && in_array($request->role, $allowedRoles)) {
             $staff->role = $request->role;
         }
 
-        // Update password if provided
         if ($request->password) {
             $staff->password = Hash::make($request->password);
         }
 
-        // Handle avatar upload
         if ($request->hasFile('avatar')) {
-            // Delete old avatar
             if ($staff->avatar) {
                 ImageHelper::deleteImage($staff->avatar);
             }
@@ -281,6 +307,30 @@ class StaffController extends Controller
 
         $staff->save();
 
+        // Manage Spatie role assignment
+        if ($staff->role === 'staff') {
+            if ($request->has('role_template')) {
+                if ($request->role_template) {
+                    $roleTemplate = Role::findById($request->role_template);
+                    if ($roleTemplate) {
+                        $staff->syncRoles([$roleTemplate]);
+                    }
+                } else {
+                    $staff->syncRoles([]);
+                }
+            }
+            if ($request->has('custom_permissions')) {
+                $permIds = \Spatie\Permission\Models\Permission::whereIn('name', $request->custom_permissions)
+                    ->where('guard_name', 'web')
+                    ->pluck('id')->toArray();
+                $staff->permissions()->sync($permIds);
+
+                $moduleKeys = $this->extractModuleKeys($request->custom_permissions);
+                $staff->legacy_permissions = $moduleKeys;
+                $staff->save();
+            }
+        }
+
         return redirect()->route('admin.staffs.index')
             ->with('success', 'Staff member updated successfully.');
     }
@@ -291,19 +341,30 @@ class StaffController extends Controller
     public function destroy($id)
     {
         $currentUser = auth()->user();
-        
-        // Use adminPanel scope for super_admin, staff scope for others
+
         if ($currentUser->role === 'super_admin') {
             $staff = User::adminPanel()->findOrFail($id);
         } else {
             $staff = User::staff()->findOrFail($id);
         }
 
-        // Delete avatar
+        if ($staff->id === $currentUser->id) {
+            abort(403, 'You cannot delete your own account.');
+        }
+
+        if ($staff->role === 'super_admin') {
+            $superAdminCount = User::where('role', 'super_admin')->count();
+            if ($superAdminCount <= 1) {
+                abort(403, 'Cannot delete the last super administrator.');
+            }
+        }
+
         if ($staff->avatar) {
             ImageHelper::deleteImage($staff->avatar);
         }
 
+        $staff->permissions()->detach();
+        $staff->roles()->detach();
         $staff->delete();
 
         return redirect()->route('admin.staffs.index')
@@ -316,20 +377,17 @@ class StaffController extends Controller
     public function warehouse(Request $request)
     {
         $currentUser = auth()->user();
-        
-        // Staff cannot access warehouse staff page
+
         if ($currentUser->role === 'staff') {
             abort(403, 'Unauthorized access. Staff members cannot access warehouse staff page.');
         }
-        
-        // Get staff assigned to warehouses - use adminPanel for super_admin/admin
+
         if ($currentUser->role === 'super_admin' || $currentUser->role === 'admin') {
             $query = User::adminPanel()->whereNotNull('warehouse_id')->with('warehouse');
         } else {
             $query = User::staff()->whereNotNull('warehouse_id')->with('warehouse');
         }
 
-        // Search
         if ($request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -339,12 +397,10 @@ class StaffController extends Controller
             });
         }
 
-        // Filter by warehouse
         if ($request->warehouse_id) {
             $query->where('warehouse_id', $request->warehouse_id);
         }
 
-        // Filter by status
         if ($request->status) {
             $query->where('status', $request->status);
         }
@@ -358,7 +414,6 @@ class StaffController extends Controller
 
         $warehouses = Warehouse::where('is_active', 1)->orderBy('name')->get();
 
-        // If AJAX request, return JSON
         if ($request->ajax()) {
             $showingText = '';
             if ($staffs->hasPages()) {
@@ -386,19 +441,16 @@ class StaffController extends Controller
     {
         $currentUser = auth()->user();
 
-        // Staff cannot access permissions page
         if ($currentUser->role === 'staff') {
             abort(403, 'Unauthorized access. Staff members cannot manage permissions.');
         }
 
-        // Use adminPanel for super_admin/admin, staff scope for others
         if ($currentUser->role === 'super_admin' || $currentUser->role === 'admin') {
             $query = User::adminPanel()->with('warehouse');
         } else {
             $query = User::staff()->with('warehouse');
         }
 
-        // Search
         if ($request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -407,7 +459,6 @@ class StaffController extends Controller
             });
         }
 
-        // Filter by warehouse
         if ($request->warehouse_id) {
             $query->where('warehouse_id', $request->warehouse_id);
         }
@@ -416,8 +467,10 @@ class StaffController extends Controller
         $staff = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
         $warehouses = Warehouse::where('is_active', 1)->orderBy('name')->get();
+        $permissionModules = PermissionHelper::modules();
+        $roleTemplates = Role::where('guard_name', 'web')->orderBy('name')->get();
 
-        return view('admin.staffs.permissions', compact('staff', 'warehouses'));
+        return view('admin.staffs.permissions', compact('staff', 'warehouses', 'permissionModules', 'roleTemplates'));
     }
 
     /**
@@ -426,28 +479,74 @@ class StaffController extends Controller
     public function updatePermissions(Request $request)
     {
         $currentUser = auth()->user();
-        
-        // Staff cannot update permissions
+
         if ($currentUser->role === 'staff') {
             if ($request->ajax()) {
                 return response()->json(['message' => 'Unauthorized access.'], 403);
             }
             abort(403, 'Unauthorized access. Staff members cannot manage permissions.');
         }
-        
+
         $request->validate([
             'staff_id' => 'required|exists:users,id',
             'permissions' => 'nullable|array',
+            'permissions.*' => 'string',
+            'role_template' => 'nullable|exists:roles,id',
         ]);
 
-        // Use adminPanel for super_admin/admin
         if ($currentUser->role === 'super_admin' || $currentUser->role === 'admin') {
             $staff = User::adminPanel()->findOrFail($request->staff_id);
         } else {
             $staff = User::staff()->findOrFail($request->staff_id);
         }
-        
-        $staff->permissions = $request->permissions ?? [];
+
+        // Separate submenu permissions from regular permissions
+        $allPerms = $request->permissions ?? [];
+        $submenuEnabled = array_filter($allPerms, fn($p) => str_starts_with($p, 'submenu:'));
+        $submenuDisabled = array_filter($allPerms, fn($p) => str_starts_with($p, 'submenu_disabled:'));
+        $regularPerms = array_filter($allPerms, fn($p) => !str_starts_with($p, 'submenu:') && !str_starts_with($p, 'submenu_disabled:'));
+
+        // Handle Spatie granular permissions (regular permissions only)
+        if (!empty($regularPerms)) {
+            $permNames = array_values($regularPerms);
+            $permIds = \Spatie\Permission\Models\Permission::whereIn('name', $permNames)
+                ->where('guard_name', 'web')
+                ->pluck('id')
+                ->toArray();
+            $staff->permissions()->sync($permIds);
+
+            // Also save module-level keys in legacy column for backward compat
+            $moduleKeys = $this->extractModuleKeys($regularPerms);
+            $staff->legacy_permissions = $moduleKeys;
+        } else {
+            $staff->permissions()->detach();
+            $staff->legacy_permissions = null;
+        }
+
+        // Handle submenu permissions (stored in legacy_permissions)
+        // ON by default unless explicitly disabled
+        $submenuPerms = array_values($submenuEnabled);
+        $submenuDisabledPerms = array_values($submenuDisabled);
+        $existingLegacy = $staff->legacy_permissions ?? [];
+        if (!is_array($existingLegacy)) {
+            $existingLegacy = json_decode($existingLegacy ?? '[]', true) ?? [];
+        }
+        // Keep non-submenu legacy permissions
+        $nonSubmenuLegacy = array_filter($existingLegacy, fn($p) => !str_starts_with($p, 'submenu:') && !str_starts_with($p, 'submenu_disabled:'));
+        $staff->legacy_permissions = array_merge($nonSubmenuLegacy, $submenuPerms, $submenuDisabledPerms);
+
+        // Handle role template assignment
+        if ($request->has('role_template')) {
+            if ($request->role_template) {
+                $roleTemplate = Role::findById($request->role_template);
+                if ($roleTemplate) {
+                    $staff->syncRoles([$roleTemplate]);
+                }
+            } else {
+                $staff->syncRoles([]);
+            }
+        }
+
         $staff->save();
 
         if ($request->ajax()) {
@@ -467,12 +566,11 @@ class StaffController extends Controller
     public function bulkAction(Request $request)
     {
         $currentUser = auth()->user();
-        
-        // Staff cannot perform bulk actions
+
         if ($currentUser->role === 'staff') {
             abort(403, 'Unauthorized access. Staff members cannot perform bulk actions.');
         }
-        
+
         $request->validate([
             'action' => 'required|in:activate,deactivate,delete',
             'staff_ids' => 'required|array',
@@ -505,5 +603,27 @@ class StaffController extends Controller
 
         return redirect()->route('admin.staffs.index')
             ->with('success', $message);
+    }
+
+    /**
+     * Extract module-level permission keys from granular permissions.
+     * E.g., ['products.view', 'products.edit'] -> ['products']
+     */
+    protected function extractModuleKeys(array $granularPermissions): array
+    {
+        $moduleKeys = [];
+        foreach ($granularPermissions as $perm) {
+            if (str_contains($perm, '.')) {
+                $module = explode('.', $perm)[0];
+                if (!in_array($module, $moduleKeys)) {
+                    $moduleKeys[] = $module;
+                }
+            } else {
+                if (!in_array($perm, $moduleKeys)) {
+                    $moduleKeys[] = $perm;
+                }
+            }
+        }
+        return $moduleKeys;
     }
 }

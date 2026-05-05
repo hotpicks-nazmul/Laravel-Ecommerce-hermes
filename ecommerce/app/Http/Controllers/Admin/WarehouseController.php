@@ -76,7 +76,13 @@ class WarehouseController extends Controller
      */
     public function create()
     {
-        return view('admin.warehouses.create');
+        $checkoutMode = \App\Models\Setting::get('checkout_mode', 'local');
+        $defaultCountryId = \App\Models\Setting::get('default_country', '');
+        $defaultCountry = $defaultCountryId ? \App\Models\Country::find($defaultCountryId)?->name : null;
+        $countries = \App\Models\Country::ordered()->get();
+        $autoCode = \App\Models\Warehouse::generateCode();
+
+        return view('admin.warehouses.create', compact('checkoutMode', 'defaultCountry', 'countries', 'autoCode'));
     }
 
     /**
@@ -92,6 +98,7 @@ class WarehouseController extends Controller
             'address' => 'required|string|max:500',
             'city' => 'nullable|string|max:100',
             'state' => 'nullable|string|max:100',
+            'area' => 'required|string|max:100',
             'postcode' => 'nullable|string|max:20',
             'country' => 'nullable|string|max:100',
             'latitude' => 'nullable|numeric|between:-90,90',
@@ -101,10 +108,6 @@ class WarehouseController extends Controller
             'is_active' => 'boolean',
             'is_primary' => 'boolean',
             'sort_order' => 'integer|min:0',
-            'city_ids' => 'nullable|array',
-            'city_ids.*' => 'exists:cities,id',
-            'area_ids' => 'nullable|array',
-            'area_ids.*' => 'exists:areas,id',
         ]);
 
         if ($request->is_primary) {
@@ -113,11 +116,16 @@ class WarehouseController extends Controller
 
         $warehouse = Warehouse::create($request->all());
 
-        if ($request->city_ids) {
-            $warehouse->cities()->sync($request->city_ids);
+        if (empty($warehouse->code)) {
+            $warehouse->update(['code' => Warehouse::generateCode()]);
         }
-        if ($request->area_ids) {
-            $warehouse->areas()->sync($request->area_ids);
+
+        // Ensure checkbox defaults
+        if (!$request->has('is_active')) {
+            $warehouse->update(['is_active' => false]);
+        }
+        if (!$request->has('is_primary')) {
+            $warehouse->update(['is_primary' => false]);
         }
 
         return redirect()->route('admin.warehouses.index')
@@ -127,25 +135,33 @@ class WarehouseController extends Controller
     /**
      * Display the specified warehouse.
      */
-    public function show(Warehouse $warehouse)
+    public function show($id)
     {
+        $warehouse = Warehouse::findOrFail($id);
         return view('admin.warehouses.show', compact('warehouse'));
     }
 
     /**
      * Show the form for editing the warehouse.
      */
-    public function edit(Warehouse $warehouse)
+    public function edit($id)
     {
-        $warehouse->load('cities', 'areas');
-        return view('admin.warehouses.edit', compact('warehouse'));
+        $warehouse = Warehouse::findOrFail($id);
+        $checkoutMode = \App\Models\Setting::get('checkout_mode', 'local');
+        $defaultCountryId = \App\Models\Setting::get('default_country', '');
+        $defaultCountry = $defaultCountryId ? \App\Models\Country::find($defaultCountryId)?->name : null;
+        $countries = \App\Models\Country::ordered()->get();
+
+        return view('admin.warehouses.edit', compact('warehouse', 'checkoutMode', 'defaultCountry', 'countries'));
     }
 
     /**
      * Update the specified warehouse.
      */
-    public function update(Request $request, Warehouse $warehouse)
+    public function update(Request $request, $id)
     {
+        $warehouse = Warehouse::findOrFail($id);
+        
         $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:50|unique:warehouses,code,' . $warehouse->id,
@@ -154,6 +170,7 @@ class WarehouseController extends Controller
             'address' => 'required|string|max:500',
             'city' => 'nullable|string|max:100',
             'state' => 'nullable|string|max:100',
+            'area' => 'required|string|max:100',
             'postcode' => 'nullable|string|max:20',
             'country' => 'nullable|string|max:100',
             'latitude' => 'nullable|numeric|between:-90,90',
@@ -163,10 +180,6 @@ class WarehouseController extends Controller
             'is_active' => 'boolean',
             'is_primary' => 'boolean',
             'sort_order' => 'integer|min:0',
-            'city_ids' => 'nullable|array',
-            'city_ids.*' => 'exists:cities,id',
-            'area_ids' => 'nullable|array',
-            'area_ids.*' => 'exists:areas,id',
         ]);
 
         if ($request->is_primary && !$warehouse->is_primary) {
@@ -175,15 +188,12 @@ class WarehouseController extends Controller
 
         $warehouse->update($request->all());
 
-        if ($request->city_ids) {
-            $warehouse->cities()->sync($request->city_ids);
-        } else {
-            $warehouse->cities()->sync([]);
+        // Ensure checkbox defaults
+        if (!$request->has('is_active')) {
+            $warehouse->update(['is_active' => false]);
         }
-        if ($request->area_ids) {
-            $warehouse->areas()->sync($request->area_ids);
-        } else {
-            $warehouse->areas()->sync([]);
+        if (!$request->has('is_primary')) {
+            $warehouse->update(['is_primary' => false]);
         }
 
         return redirect()->route('admin.warehouses.index')
@@ -193,8 +203,9 @@ class WarehouseController extends Controller
     /**
      * Remove the specified warehouse.
      */
-    public function destroy(Warehouse $warehouse)
+    public function destroy($id)
     {
+        $warehouse = Warehouse::findOrFail($id);
         $warehouse->delete();
 
         return redirect()->route('admin.warehouses.index')
@@ -204,8 +215,9 @@ class WarehouseController extends Controller
     /**
      * Toggle the active status.
      */
-    public function toggleStatus(Warehouse $warehouse)
+    public function toggleStatus($id)
     {
+        $warehouse = Warehouse::findOrFail($id);
         $warehouse->update(['is_active' => !$warehouse->is_active]);
 
         return response()->json([
@@ -276,5 +288,122 @@ class WarehouseController extends Controller
         }
 
         return back()->with('success', $message);
+    }
+
+    /**
+     * Display orders for a warehouse.
+     */
+    public function orders(Request $request, $id)
+    {
+        $warehouse = Warehouse::findOrFail($id);
+        
+        $query = \App\Models\Order::where('warehouse_id', $id)
+            ->with('user', 'items');
+
+        // Filter by status
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by payment status
+        if ($request->payment_status) {
+            $query->where('payment_status', $request->payment_status);
+        }
+
+        // Search
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhere('billing_first_name', 'like', "%{$search}%")
+                  ->orWhere('billing_last_name', 'like', "%{$search}%")
+                  ->orWhere('billing_phone', 'like', "%{$search}%");
+            });
+        }
+
+        $orders = $query->orderBy('created_at', 'desc')->paginate(25);
+
+        return view('admin.warehouses.orders', compact('warehouse', 'orders'));
+    }
+
+    /**
+     * Display picking page for warehouse.
+     */
+    public function picking(Request $request, $id)
+    {
+        $warehouse = Warehouse::findOrFail($id);
+        
+        $query = \App\Models\Order::where('warehouse_id', $id)
+            ->whereIn('status', ['processing', 'confirmed', 'ready_to_pick', 'picking', 'packed'])
+            ->where('payment_status', 'paid')
+            ->with('user', 'items');
+
+        // Filter by picking status
+        if ($request->filter === 'ready') {
+            $query->whereIn('status', ['processing', 'confirmed']);
+        } elseif ($request->filter === 'picking') {
+            $query->where('status', 'picking');
+        } elseif ($request->filter === 'packed') {
+            $query->where('status', 'packed');
+        }
+
+        // Search
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhere('billing_first_name', 'like', "%{$search}%")
+                  ->orWhere('billing_phone', 'like', "%{$search}%");
+            });
+        }
+
+        $orders = $query->orderByRaw("FIELD(status, 'processing', 'confirmed', 'ready_to_pick', 'picking', 'packed')")
+            ->orderBy('created_at', 'asc')
+            ->paginate(25);
+
+        return view('admin.warehouses.picking', compact('warehouse', 'orders'));
+    }
+
+    /**
+     * Start picking an order.
+     */
+    public function startPicking(Request $request, $warehouseId, $orderId)
+    {
+        $order = \App\Models\Order::where('warehouse_id', $warehouseId)->findOrFail($orderId);
+
+        if (!in_array($order->status, ['processing', 'confirmed', 'ready_to_pick'])) {
+            return back()->with('error', 'Order cannot be picked in current status.');
+        }
+
+        if ($order->payment_status !== 'paid') {
+            return back()->with('error', 'Order must be paid before picking.');
+        }
+
+        $order->update([
+            'status' => 'picking',
+            'picking_started_at' => now(),
+        ]);
+
+        return back()->with('success', 'Picking started for order ' . $order->order_number);
+    }
+
+    /**
+     * Mark an order as packed.
+     */
+    public function markPacked(Request $request, $warehouseId, $orderId)
+    {
+        $order = \App\Models\Order::where('warehouse_id', $warehouseId)->findOrFail($orderId);
+
+        if ($order->status !== 'picking') {
+            return back()->with('error', 'Order must be in picking status to mark as packed.');
+        }
+
+        $order->update([
+            'status' => 'packed',
+            'packed_at' => now(),
+            'packed_by' => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Order ' . $order->order_number . ' marked as packed.');
     }
 }

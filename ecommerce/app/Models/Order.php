@@ -56,10 +56,15 @@ class Order extends Model
         'warehouse_id',
         'notes',
         'coupon_code',
+        'packed_at',
+        'packed_by',
+        'picking_started_at',
     ];
 
     protected $dates = [
         'picked_up_at',
+        'packed_at',
+        'picking_started_at',
     ];
 
     protected $casts = [
@@ -209,6 +214,9 @@ class Order extends Model
         return match($this->status) {
             'pending' => 'bg-warning',
             'processing' => 'bg-info',
+            'ready_to_pick' => 'bg-info',
+            'picking' => 'bg-primary',
+            'packed' => 'bg-success',
             'confirmed' => 'bg-primary',
             'shipped' => 'bg-primary',
             'delivered' => 'bg-success',
@@ -224,6 +232,50 @@ class Order extends Model
     public function getStatusBadgeAttribute()
     {
         return $this->status_badge_class;
+    }
+
+    /**
+     * Check if order is ready for picking.
+     */
+    public function getIsReadyToPickAttribute()
+    {
+        return in_array($this->status, ['processing', 'confirmed']) && $this->payment_status === 'paid';
+    }
+
+    /**
+     * Check if order is currently being picked.
+     */
+    public function getIsPickingAttribute()
+    {
+        return $this->status === 'picking';
+    }
+
+    /**
+     * Check if order is packed and ready to ship.
+     */
+    public function getIsPackedAttribute()
+    {
+        return $this->status === 'packed';
+    }
+
+    /**
+     * Get status display name for picking workflow.
+     */
+    public function getStatusDisplayNameAttribute()
+    {
+        return match($this->status) {
+            'pending' => 'Pending Payment',
+            'processing' => 'Processing',
+            'ready_to_pick' => 'Ready to Pick',
+            'picking' => 'Picking in Progress',
+            'packed' => 'Packed',
+            'confirmed' => 'Confirmed',
+            'shipped' => 'Shipped',
+            'delivered' => 'Delivered',
+            'cancelled' => 'Cancelled',
+            'refunded' => 'Refunded',
+            default => ucfirst($this->status),
+        };
     }
 
     /**

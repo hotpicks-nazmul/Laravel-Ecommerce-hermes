@@ -159,7 +159,8 @@ function performLiveSearch(search) {
     if (urlParams.get('direction')) params.set('direction', urlParams.get('direction'));
     if (urlParams.get('per_page')) params.set('per_page', urlParams.get('per_page'));
 
-    fetch(`{{ route('admin.locations.states.index') }}?${params.toString()}`, {
+    const url = `{{ route('admin.locations.states.index') }}?${params.toString()}`;
+    fetch(url, {
         headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
     })
     .then(res => res.json())
@@ -168,7 +169,9 @@ function performLiveSearch(search) {
         if (data.html) {
             document.querySelector('#tableBody').innerHTML = data.html;
             if (data.pagination) document.getElementById('paginationLinks').innerHTML = data.pagination;
+            if (data.stats) updateStats(data.stats);
         }
+        window.history.pushState({}, '', url);
     })
     .catch(() => { window.location.search = params.toString(); });
 }
@@ -177,6 +180,7 @@ function changePerPage(val) {
     const params = new URLSearchParams(window.location.search);
     params.set('per_page', val);
     params.delete('page');
+    const url = `${window.location.pathname}?${params.toString()}`;
     fetch(`{{ route('admin.locations.states.index') }}?${params.toString()}`, {
         headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
     })
@@ -184,8 +188,45 @@ function changePerPage(val) {
     .then(data => {
         if (data.html) document.querySelector('#tableBody').innerHTML = data.html;
         if (data.pagination) document.getElementById('paginationLinks').innerHTML = data.pagination;
-        window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
+        if (data.stats) updateStats(data.stats);
+        window.history.pushState({}, '', url);
     });
 }
+
+function updateStats(stats) {
+    const cards = document.querySelectorAll('#statsCards .stat-card');
+    cards.forEach(card => {
+        const label = card.querySelector('.stat-card-label')?.textContent.trim();
+        const valueEl = card.querySelector('.stat-card-value');
+        if (!valueEl) return;
+        switch (label) {
+            case 'Total States': valueEl.textContent = Number(stats.total ?? 0).toLocaleString(); break;
+            case 'Active': valueEl.textContent = Number(stats.active ?? 0).toLocaleString(); break;
+            case 'Inactive': valueEl.textContent = Number(stats.inactive ?? 0).toLocaleString(); break;
+            case 'Countries': valueEl.textContent = Number(stats.countries ?? 0).toLocaleString(); break;
+        }
+    });
+}
+
+// Status toggle with event delegation
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('toggle-status')) {
+        const checkbox = e.target;
+        const url = checkbox.dataset.url;
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                checkbox.checked = !checkbox.checked;
+            }
+        });
+    }
+});
 </script>
 @endpush

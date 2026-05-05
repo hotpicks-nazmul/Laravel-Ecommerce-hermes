@@ -1046,7 +1046,7 @@
         
         <nav class="sidebar-menu">
             <!-- Dashboard -->
-            @if(Auth::user()->hasPermission('dashboard'))
+            @if(Auth::user()->hasPermission('dashboard') && \App\Helpers\PermissionHelper::isModuleVisible('dashboard'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
                     <div>
@@ -1058,7 +1058,7 @@
             @endif
             
             <!-- ANALYTICS -->
-            @if(Auth::user()->hasPermission('analytics'))
+            @if(Auth::user()->hasPermission('analytics') && \App\Helpers\PermissionHelper::isModuleVisible('analytics'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.analytics') ? 'active' : '' }}" href="{{ route('admin.analytics') }}">
                     <div>
@@ -1071,114 +1071,171 @@
             @endif
             
             <!-- PRODUCTS -->
-            @if(Auth::user()->hasPermission('products'))
+            @if(Auth::user()->hasPermission('products') && \App\Helpers\PermissionHelper::isModuleVisible('products'))
             <div class="menu-category">
-                <a class="menu-category-header {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlists.*') || request()->routeIs('admin.inventory.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuProducts" role="button" aria-expanded="{{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlists.*') || request()->routeIs('admin.inventory.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlists.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuProducts" role="button" aria-expanded="{{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlists.*') ? 'true' : 'false' }}">
                     <div>
-                        <i class="bi bi-box-seam menu-icon"></i>
+                        <i class="bi bi-box menu-icon"></i>
                         <span class="menu-category-title">Products</span>
                     </div>
                     <i class="bi bi-chevron-down arrow"></i>
                 </a>
-                <div class="collapse {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlists.*') || request()->routeIs('admin.inventory.*') ? 'show' : '' }}" id="menuProducts">
+                <div class="collapse {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') || request()->routeIs('admin.reviews.*') || request()->routeIs('admin.brands.*') || request()->routeIs('admin.attributes.*') || request()->routeIs('admin.colors.*') || request()->routeIs('admin.digital-categories.*') || request()->routeIs('admin.product-qa.*') || request()->routeIs('admin.wishlists.*') ? 'show' : '' }}" id="menuProducts">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('products'))
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.products.create'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.products.create') ? 'active' : '' }}" href="{{ route('admin.products.create') }}">
                                 <i class="bi bi-plus-circle"></i> Add New Product
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.products.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.products.index') && !request()->routeIs('admin.products.create') && !request()->routeIs('admin.products.digital.*') ? 'active' : '' }}" href="{{ route('admin.products.index') }}">
                                 <i class="bi bi-list-ul"></i> All Products
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.categories.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
                                 <i class="bi bi-folder"></i> Category
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.products.in-house'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.products.in-house') ? 'active' : '' }}" href="{{ route('admin.products.in-house') }}">
                                 <i class="bi bi-house-door"></i> In-House Products
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.products.digital.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.products.digital.*') ? 'active' : '' }}" href="{{ route('admin.products.digital.index') }}">
                                 <i class="bi bi-file-earmark-binary"></i> Digital Products
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.digital-categories.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.digital-categories.*') ? 'active' : '' }}" href="{{ route('admin.digital-categories.index') }}">
                                 <i class="bi bi-folder2-open"></i> Digital Categories
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.products.bulk-import'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.products.bulk-import*') ? 'active' : '' }}" href="{{ route('admin.products.bulk-import') }}">
                                 <i class="bi bi-upload"></i> Bulk Import
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.products.bulk-export'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.products.bulk-export') ? 'active' : '' }}" href="{{ route('admin.products.bulk-export') }}">
                                 <i class="bi bi-download"></i> Bulk Export
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.products.bulk-discount'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.products.bulk-discount*') ? 'active' : '' }}" href="{{ route('admin.products.bulk-discount') }}">
                                 <i class="bi bi-percent"></i> Bulk Discount
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.brands.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.brands.*') ? 'active' : '' }}" href="{{ route('admin.brands.index') }}">
                                 <i class="bi bi-award"></i> Brand
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.attributes.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.attributes.*') ? 'active' : '' }}" href="{{ route('admin.attributes.index') }}">
                                 <i class="bi bi-sliders"></i> Attribute
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.colors.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.colors.*') ? 'active' : '' }}" href="{{ route('admin.colors.index') }}">
                                 <i class="bi bi-palette"></i> Colors
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.reviews.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}" href="{{ route('admin.reviews.index') }}">
                                 <i class="bi bi-star"></i> Product Reviews
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.product-qa.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.product-qa.*') ? 'active' : '' }}" href="{{ route('admin.product-qa.index') }}">
                                 <i class="bi bi-question-circle"></i> Product Q&A
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.wishlists.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.wishlists.*') ? 'active' : '' }}" href="{{ route('admin.wishlists.index') }}">
                                 <i class="bi bi-heart"></i> Wishlist Management
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.inventory.index') ? 'active' : '' }}" href="{{ route('admin.inventory.index') }}">
-                                <i class="bi bi-boxes me-2"></i>Inventory Overview
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.inventory.stock-alerts') ? 'active' : '' }}" href="{{ route('admin.inventory.stock-alerts') }}">
-                                <i class="bi bi-exclamation-triangle me-2"></i>Stock Alerts
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.inventory.stock-history') ? 'active' : '' }}" href="{{ route('admin.inventory.stock-history') }}">
-                                <i class="bi bi-clock-history me-2"></i>Stock History
-                            </a>
-                        </li>
+                        @endif
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
-            
+
+            <!-- INVENTORY -->
+            @if(Auth::user()->hasPermission('inventory') && \App\Helpers\PermissionHelper::isModuleVisible('inventory'))
+            <div class="menu-category">
+                <a class="menu-category-header {{ request()->routeIs('admin.inventory.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuInventory" role="button" aria-expanded="{{ request()->routeIs('admin.inventory.*') ? 'true' : 'false' }}">
+                    <div>
+                        <i class="bi bi-boxes menu-icon"></i>
+                        <span class="menu-category-title">Inventory</span>
+                    </div>
+                    <i class="bi bi-chevron-down arrow"></i>
+                </a>
+                <div class="collapse {{ request()->routeIs('admin.inventory.*') ? 'show' : '' }}" id="menuInventory">
+                    <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('inventory'))
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.inventory.index'))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.inventory.index') ? 'active' : '' }}" href="{{ route('admin.inventory.index') }}">
+                                <i class="bi bi-boxes"></i> Inventory Overview
+                            </a>
+                        </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.inventory.stock-alerts'))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.inventory.stock-alerts') ? 'active' : '' }}" href="{{ route('admin.inventory.stock-alerts') }}">
+                                <i class="bi bi-exclamation-triangle"></i> Stock Alerts
+                            </a>
+                        </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.inventory.stock-history'))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.inventory.stock-history') ? 'active' : '' }}" href="{{ route('admin.inventory.stock-history') }}">
+                                <i class="bi bi-clock-history"></i> Stock History
+                            </a>
+                        </li>
+                        @endif
+                        @endif
+                    </ul>
+                </div>
+            </div>
+            @endif
+
             <!-- SALES -->
-            @if(Auth::user()->hasPermission('orders'))
+            @if(Auth::user()->hasPermission('orders') && \App\Helpers\PermissionHelper::isModuleVisible('orders'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.quotations.*') || request()->routeIs('admin.subscriptions.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuSales" role="button" aria-expanded="{{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.quotations.*') || request()->routeIs('admin.subscriptions.*') ? 'true' : 'false' }}">
                     <div>
@@ -1189,43 +1246,50 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.orders.*') || request()->routeIs('admin.quotations.*') || request()->routeIs('admin.subscriptions.*') ? 'show' : '' }}" id="menuSales">
                     <ul class="nav flex-column submenu">
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.orders.index') ? 'active' : '' }}" href="{{ route('admin.orders.index') }}">
-                                <i class="bi bi-list-ul"></i> All Orders
-                            </a>
-                        </li>
+                        @if(Auth::user()->hasPermission('orders'))
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.orders.in-house'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.orders.in-house*') ? 'active' : '' }}" href="{{ route('admin.orders.in-house') }}">
                                 <i class="bi bi-house-door"></i> Inhouse Orders
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.orders.seller'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.orders.seller*') ? 'active' : '' }}" href="{{ route('admin.orders.seller') }}">
                                 <i class="bi bi-people"></i> Seller Orders
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.orders.pickup-point'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.orders.pickup-point') ? 'active' : '' }}" href="{{ route('admin.orders.pickup-point') }}">
                                 <i class="bi bi-geo-alt"></i> Pick-up Point Order
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.quotations.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.quotations.*') ? 'active' : '' }}" href="{{ route('admin.quotations.index') }}">
                                 <i class="bi bi-file-earmark-text"></i> Quotations
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.subscriptions.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.subscriptions.*') ? 'active' : '' }}" href="{{ route('admin.subscriptions.index') }}">
                                 <i class="bi bi-arrow-repeat"></i> Subscriptions
                             </a>
                         </li>
+                        @endif
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- DELIVERY -->
-            @if(Auth::user()->hasPermission('delivery'))
+            @if(Auth::user()->hasPermission('delivery') && \App\Helpers\PermissionHelper::isModuleVisible('delivery'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.delivery.*') || request()->routeIs('admin.pickup-points*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuDelivery" role="button" aria-expanded="{{ request()->routeIs('admin.delivery.*') || request()->routeIs('admin.pickup-points*') ? 'true' : 'false' }}">
                     <div>
@@ -1236,63 +1300,85 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.delivery.*') || request()->routeIs('admin.pickup-points*') ? 'show' : '' }}" id="menuDelivery">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('delivery'))
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.delivery.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.delivery.index') ? 'active' : '' }}" href="{{ route('admin.delivery.index') }}">
                                 <i class="bi bi-speedometer2"></i> Delivery Dashboard
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.delivery.partners.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.delivery.partners.index') ? 'active' : '' }}" href="{{ route('admin.delivery.partners.index') }}">
                                 <i class="bi bi-building"></i> Delivery Partners
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.delivery.carriers.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.delivery.carriers.*') ? 'active' : '' }}" href="{{ route('admin.delivery.carriers.index') }}">
                                 <i class="bi bi-truck"></i> Carriers
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.delivery.tracking'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.delivery.tracking') ? 'active' : '' }}" href="{{ route('admin.delivery.tracking') }}">
                                 <i class="bi bi-geo-alt"></i> Shipment Tracking
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.delivery.zones.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.delivery.zones.index') ? 'active' : '' }}" href="{{ route('admin.delivery.zones.index') }}">
                                 <i class="bi bi-map"></i> Delivery Zones
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.delivery.courier-integration'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.delivery.courier-integration') ? 'active' : '' }}" href="{{ route('admin.delivery.courier-integration') }}">
                                 <i class="bi bi-plug"></i> Courier Integration
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.delivery.delivery-boys.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.delivery.delivery-boys.*') ? 'active' : '' }}" href="{{ route('admin.delivery.delivery-boys.index') }}">
                                 <i class="bi bi-person-badge"></i> Delivery Boys
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.pickup-points.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.pickup-points*') ? 'active' : '' }}" href="{{ route('admin.pickup-points.index') }}">
                                 <i class="bi bi-shop"></i> Pick-up Points
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.delivery.schedules.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.delivery.schedules*') ? 'active' : '' }}" href="{{ route('admin.delivery.schedules.index') }}">
                                 <i class="bi bi-calendar-week"></i> Delivery Schedules
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.delivery.reports'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.delivery.reports*') ? 'active' : '' }}" href="{{ route('admin.delivery.reports') }}">
                                 <i class="bi bi-bar-chart"></i> Delivery Reports
                             </a>
                         </li>
+                        @endif
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- REFUND -->
-            @if(Auth::user()->hasPermission('refund'))
+            @if(Auth::user()->hasPermission('refund') && \App\Helpers\PermissionHelper::isModuleVisible('refund'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.refunds.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuRefund" role="button" aria-expanded="{{ request()->routeIs('admin.refunds.*') ? 'true' : 'false' }}">
                     <div>
@@ -1303,38 +1389,50 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.refunds.*') ? 'show' : '' }}" id="menuRefund">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('refund'))
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.refunds.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.refunds.index') ? 'active' : '' }}" href="{{ route('admin.refunds.index') }}">
                                 <i class="bi bi-list-ul"></i> All Refunds
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.refunds.requests'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.refunds.requests') ? 'active' : '' }}" href="{{ route('admin.refunds.requests') }}">
                                 <i class="bi bi-inbox"></i> Refund Requests
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.refunds.approved'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.refunds.approved') ? 'active' : '' }}" href="{{ route('admin.refunds.approved') }}">
                                 <i class="bi bi-check-circle"></i> Approved Refunds
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.refunds.rejected'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.refunds.rejected') ? 'active' : '' }}" href="{{ route('admin.refunds.rejected') }}">
                                 <i class="bi bi-x-circle"></i> Rejected Refunds
                             </a>
                         </li>
+                        @endif
+                        @if(\App\Helpers\PermissionHelper::isSubmenuVisible('admin.refunds.configuration'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.refunds.configuration') ? 'active' : '' }}" href="{{ route('admin.refunds.configuration') }}">
                                 <i class="bi bi-gear"></i> Refund Configuration
                             </a>
                         </li>
+                        @endif
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- CUSTOMERS -->
-            @if(Auth::user()->hasPermission('customers'))
+            @if(Auth::user()->hasPermission('customers') && \App\Helpers\PermissionHelper::isModuleVisible('customers'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.customers.*') || request()->routeIs('admin.customers.groups.*') || request()->routeIs('admin.customers.segmentation.*') || request()->routeIs('admin.customers.loyalty.*') || request()->routeIs('admin.customers.membership.*') || request()->routeIs('admin.customers.wallet.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuCustomers" role="button" aria-expanded="{{ request()->routeIs('admin.customers.*') || request()->routeIs('admin.customers.groups.*') || request()->routeIs('admin.customers.segmentation.*') || request()->routeIs('admin.customers.loyalty.*') || request()->routeIs('admin.customers.membership.*') || request()->routeIs('admin.customers.wallet.*') ? 'true' : 'false' }}">
                     <div>
@@ -1345,6 +1443,7 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.customers.*') || request()->routeIs('admin.customers.groups.*') || request()->routeIs('admin.customers.segmentation.*') || request()->routeIs('admin.customers.loyalty.*') || request()->routeIs('admin.customers.membership.*') || request()->routeIs('admin.customers.wallet.*') ? 'show' : '' }}" id="menuCustomers">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('customers'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.customers.index') ? 'active' : '' }}" href="{{ route('admin.customers.index') }}">
                                 <i class="bi bi-list-ul"></i> All Customers
@@ -1375,13 +1474,14 @@
                                 <i class="bi bi-wallet2"></i> Customer Wallet
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- SELLERS (B2B) -->
-            @if(Auth::user()->hasPermission('sellers'))
+            @if(Auth::user()->hasPermission('sellers') && \App\Helpers\PermissionHelper::isModuleVisible('sellers'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.sellers.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuSellers" role="button" aria-expanded="{{ request()->routeIs('admin.sellers.*') ? 'true' : 'false' }}">
                     <div>
@@ -1392,6 +1492,7 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.sellers.*') ? 'show' : '' }}" id="menuSellers">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('sellers'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.sellers.index') ? 'active' : '' }}" href="{{ route('admin.sellers.index') }}">
                                 <i class="bi bi-list-ul"></i> All Sellers
@@ -1417,13 +1518,14 @@
                                 <i class="bi bi-patch-check"></i> Seller Verification
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- AFFILIATE -->
-            @if(Auth::user()->hasPermission('affiliate'))
+            @if(Auth::user()->hasPermission('affiliate') && \App\Helpers\PermissionHelper::isModuleVisible('affiliate'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.affiliate.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuAffiliate" role="button" aria-expanded="{{ request()->routeIs('admin.affiliate.*') ? 'true' : 'false' }}">
                     <div>
@@ -1434,6 +1536,7 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.affiliate.*') ? 'show' : '' }}" id="menuAffiliate">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('affiliate'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.affiliate.users.index') ? 'active' : '' }}" href="{{ route('admin.affiliate.users.index') }}">
                                 <i class="bi bi-people"></i> Affiliate Users
@@ -1479,18 +1582,14 @@
                                 <i class="bi bi-graph-up"></i> Affiliate Reports
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.affiliate.withdrawals.index') ? 'active' : '' }}" href="{{ route('admin.affiliate.withdrawals.index') }}">
-                                <i class="bi bi-wallet2"></i> Withdrawal Requests
-                            </a>
-                        </li>
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- MEDIA -->
-            @if(Auth::user()->hasPermission('media'))
+            @if(Auth::user()->hasPermission('media') && \App\Helpers\PermissionHelper::isModuleVisible('media'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.media.*') ? 'active' : '' }}" href="{{ route('admin.media.index') }}">
                     <div>
@@ -1503,7 +1602,7 @@
             @endif
             
             <!-- REPORTS -->
-            @if(Auth::user()->hasPermission('reports'))
+            @if(Auth::user()->hasPermission('reports') && \App\Helpers\PermissionHelper::isModuleVisible('reports'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.reports.*') || request()->routeIs('admin.jakat.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuReports" role="button" aria-expanded="{{ request()->routeIs('admin.reports.*') || request()->routeIs('admin.jakat.*') ? 'true' : 'false' }}">
                     <div>
@@ -1514,6 +1613,7 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.reports.*') || request()->routeIs('admin.jakat.*') ? 'show' : '' }}" id="menuReports">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('reports'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.reports.in-house-product-sale') ? 'active' : '' }}" href="{{ route('admin.reports.in-house-product-sale') }}">
                                 <i class="bi bi-house-door"></i> In-House Product Sale
@@ -1554,13 +1654,14 @@
                                 <i class="bi bi-calculator"></i> Jakat Calculator
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- MARKETING -->
-            @if(Auth::user()->hasPermission('marketing'))
+            @if(Auth::user()->hasPermission('marketing') && \App\Helpers\PermissionHelper::isModuleVisible('marketing'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.marketing.*') || request()->routeIs('admin.coupons.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuMarketing" role="button" aria-expanded="{{ request()->routeIs('admin.marketing.*') || request()->routeIs('admin.coupons.*') ? 'true' : 'false' }}">
                     <div>
@@ -1571,6 +1672,7 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.marketing.*') || request()->routeIs('admin.coupons.*') ? 'show' : '' }}" id="menuMarketing">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('marketing'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.marketing.flash-deals.*') ? 'active' : '' }}" href="{{ route('admin.marketing.flash-deals.index') }}">
                                 <i class="bi bi-lightning"></i> Flash Deals
@@ -1616,13 +1718,14 @@
                                 <i class="bi bi-percent"></i> Price Rules
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- SUPPORT -->
-            @if(Auth::user()->hasPermission('support'))
+            @if(Auth::user()->hasPermission('support') && \App\Helpers\PermissionHelper::isModuleVisible('support'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.support.*') || request()->routeIs('admin.chat.*') || request()->routeIs('admin.settings.whatsapp') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuSupport" role="button" aria-expanded="{{ request()->routeIs('admin.support.*') || request()->routeIs('admin.chat.*') || request()->routeIs('admin.settings.whatsapp') ? 'true' : 'false' }}">
                     <div>
@@ -1633,6 +1736,7 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.support.*') || request()->routeIs('admin.chat.*') || request()->routeIs('admin.settings.whatsapp') ? 'show' : '' }}" id="menuSupport">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('support'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.support.tickets*') ? 'active' : '' }}" href="{{ route('admin.support.tickets.index') }}">
                                 <i class="bi bi-ticket-detailed"></i> Ticket
@@ -1668,13 +1772,14 @@
                                 <i class="bi bi-question-circle"></i> Product Queries
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- OTP SYSTEM -->
-            @if(Auth::user()->hasPermission('otp'))
+            @if(Auth::user()->hasPermission('otp') && \App\Helpers\PermissionHelper::isModuleVisible('otp'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.otp.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuOtp" role="button" aria-expanded="{{ request()->routeIs('admin.otp.*') ? 'true' : 'false' }}">
                     <div>
@@ -1685,6 +1790,7 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.otp.*') ? 'show' : '' }}" id="menuOtp">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('otp'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.otp.configuration') ? 'active' : '' }}" href="{{ route('admin.otp.configuration') }}">
                                 <i class="bi bi-gear"></i> OTP Configurations
@@ -1700,13 +1806,14 @@
                                 <i class="bi bi-key"></i> Set OTP Credentials
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- CONTENT -->
-            @if(Auth::user()->hasPermission('content'))
+            @if(Auth::user()->hasPermission('content') && \App\Helpers\PermissionHelper::isModuleVisible('content'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-settings.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') || request()->routeIs('admin.content.widgets.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuContent" role="button" aria-expanded="{{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-settings.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') || request()->routeIs('admin.content.widgets.*') ? 'true' : 'false' }}">
                     <div>
@@ -1717,6 +1824,7 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.pages.*') || request()->routeIs('admin.blogs.*') || request()->routeIs('admin.blog-settings.*') || request()->routeIs('admin.blog-categories.*') || request()->routeIs('admin.blog-tags.*') || request()->routeIs('admin.form-builder.*') || request()->routeIs('admin.faqs.*') || request()->routeIs('admin.content.widgets.*') ? 'show' : '' }}" id="menuContent">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('content'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}" href="{{ route('admin.pages.index') }}">
                                 <i class="bi bi-file-text"></i> Pages
@@ -1752,13 +1860,14 @@
                                 <i class="bi bi-grid-3x3-gap"></i> Widget Manager
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- APPEARANCE -->
-            @if(Auth::user()->hasPermission('appearance'))
+            @if(Auth::user()->hasPermission('appearance') && \App\Helpers\PermissionHelper::isModuleVisible('appearance'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.themes.*') || request()->routeIs('admin.hero.*') || request()->routeIs('admin.homepage.*') || request()->routeIs('admin.sliders.*') || request()->routeIs('admin.banners.*') || request()->routeIs('admin.menus.*') || request()->routeIs('admin.widgets.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuAppearance" role="button" aria-expanded="{{ request()->routeIs('admin.themes.*') || request()->routeIs('admin.hero.*') || request()->routeIs('admin.homepage.*') || request()->routeIs('admin.sliders.*') || request()->routeIs('admin.banners.*') || request()->routeIs('admin.menus.*') || request()->routeIs('admin.widgets.*') ? 'true' : 'false' }}">
                     <div>
@@ -1769,6 +1878,7 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.themes.*') || request()->routeIs('admin.hero.*') || request()->routeIs('admin.homepage.*') || request()->routeIs('admin.sliders.*') || request()->routeIs('admin.banners.*') || request()->routeIs('admin.menus.*') || request()->routeIs('admin.widgets.*') ? 'show' : '' }}" id="menuAppearance">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('appearance'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.themes.*') ? 'active' : '' }}" href="{{ route('admin.themes.index') }}">
                                 <i class="bi bi-palette"></i> Themes
@@ -1799,13 +1909,14 @@
                                 <i class="bi bi-house-door"></i> Home Page Settings
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- SETTINGS -->
-            @if(Auth::user()->hasPermission('settings'))
+            @if(Auth::user()->hasPermission('settings') && \App\Helpers\PermissionHelper::isModuleVisible('settings'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.payment.*') || request()->routeIs('admin.payment-gateways.*') || request()->routeIs('admin.seo.*') || request()->routeIs('admin.api-keys*') || request()->routeIs('admin.backup*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuSettings" role="button" aria-expanded="{{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.payment.*') || request()->routeIs('admin.payment-gateways.*') || request()->routeIs('admin.seo.*') || request()->routeIs('admin.api-keys*') || request()->routeIs('admin.backup*') ? 'true' : 'false' }}">
                     <div>
@@ -1902,7 +2013,7 @@
             @endif
             
             <!-- LOCATIONS -->
-            @if(Auth::user()->hasPermission('locations'))
+            @if(Auth::user()->hasPermission('locations') && \App\Helpers\PermissionHelper::isModuleVisible('locations'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.locations.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuLocations" role="button" aria-expanded="{{ request()->routeIs('admin.locations.*') ? 'true' : 'false' }}">
                     <div>
@@ -1913,33 +2024,41 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.locations.*') ? 'show' : '' }}" id="menuLocations">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('locations.states'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.locations.states*') ? 'active' : '' }}" href="{{ route('admin.locations.states.index') }}">
                                 <i class="bi bi-map"></i> States
                             </a>
                         </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('locations.cities'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.locations.cities*') ? 'active' : '' }}" href="{{ route('admin.locations.cities.index') }}">
                                 <i class="bi bi-building"></i> Cities
                             </a>
                         </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('locations.areas'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.locations.areas*') ? 'active' : '' }}" href="{{ route('admin.locations.areas.index') }}">
                                 <i class="bi bi-geo"></i> Areas
                             </a>
                         </li>
+                        @endif
+                        @if(Auth::user()->hasPermission('locations.settings'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.locations.country-settings*') ? 'active' : '' }}" href="{{ route('admin.locations.country-settings') }}">
                                 <i class="bi bi-globe"></i> Country Settings
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
 
             <!-- WAREHOUSE -->
-            @if(Auth::user()->hasPermission('warehouse'))
+            @if(Auth::user()->hasPermission('warehouse') && \App\Helpers\PermissionHelper::isModuleVisible('warehouse'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuWarehouse" role="button" aria-expanded="{{ request()->routeIs('admin.warehouses.*') ? 'true' : 'false' }}">
                     <div>
@@ -1950,33 +2069,45 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.warehouses.*') ? 'show' : '' }}" id="menuWarehouse">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('warehouse'))
+                        @if(auth()->user()->warehouse_id)
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.warehouses.index') ? 'active' : '' }}" href="{{ route('admin.warehouses.index') }}">
+                            <a class="nav-link {{ request()->routeIs('admin.warehouses.picking') ? 'active' : '' }}" href="{{ route('admin.warehouses.picking', auth()->user()->warehouse_id) }}">
+                                <i class="bi bi-box-seam"></i> My Warehouse
+                            </a>
+                        </li>
+                        @endif
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.warehouses.index') && !request()->routeIs('admin.warehouses.create') ? 'active' : '' }}" href="{{ route('admin.warehouses.index') }}">
                                 <i class="bi bi-list-ul"></i> All Warehouses
                             </a>
                         </li>
+                        @if(Auth::user()->hasPermission('warehouse.create'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.warehouses.create') ? 'active' : '' }}" href="{{ route('admin.warehouses.create') }}">
                                 <i class="bi bi-plus-circle"></i> Add Warehouse
                             </a>
                         </li>
+                        @endif
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- STAFFS -->
-            @if(Auth::user()->hasPermission('staffs'))
+            @if(Auth::user()->hasPermission('staffs') && \App\Helpers\PermissionHelper::isModuleVisible('staffs'))
             <div class="menu-category">
-                <a class="menu-category-header {{ request()->routeIs('admin.staffs.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuStaffs" role="button" aria-expanded="{{ request()->routeIs('admin.staffs.*') ? 'true' : 'false' }}">
+                <a class="menu-category-header {{ request()->routeIs('admin.staffs.*') || request()->routeIs('admin.permissions.*') || request()->routeIs('admin.roles.*') ? 'active' : '' }}" data-bs-toggle="collapse" href="#menuStaffs" role="button" aria-expanded="{{ request()->routeIs('admin.staffs.*') || request()->routeIs('admin.permissions.*') || request()->routeIs('admin.roles.*') ? 'true' : 'false' }}">
                     <div>
                         <i class="bi bi-person-badge menu-icon"></i>
                         <span class="menu-category-title">Staffs</span>
                     </div>
                     <i class="bi bi-chevron-down arrow"></i>
                 </a>
-                <div class="collapse {{ request()->routeIs('admin.staffs.*') ? 'show' : '' }}" id="menuStaffs">
+                <div class="collapse {{ request()->routeIs('admin.staffs.*') || request()->routeIs('admin.permissions.*') || request()->routeIs('admin.roles.*') ? 'show' : '' }}" id="menuStaffs">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('staffs'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.staffs.index') ? 'active' : '' }}" href="{{ route('admin.staffs.index') }}">
                                 <i class="bi bi-people"></i> All Staffs
@@ -1988,17 +2119,18 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.staffs.permissions') ? 'active' : '' }}" href="{{ route('admin.staffs.permissions') }}">
-                                <i class="bi bi-shield-lock"></i> Staff Permission
+                            <a class="nav-link {{ request()->routeIs('admin.permissions.*') || request()->routeIs('admin.roles.*') || request()->routeIs('admin.staffs.permissions') ? 'active' : '' }}" href="{{ route('admin.permissions.index') }}">
+                                <i class="bi bi-shield-lock"></i> Permissions
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- SYSTEM -->
-            @if(Auth::user()->hasPermission('system'))
+            @if(Auth::user()->hasPermission('system') && \App\Helpers\PermissionHelper::isModuleVisible('system'))
             <div class="menu-category">
                 <a class="menu-category-header" data-bs-toggle="collapse" href="#menuSystem" role="button" aria-expanded="{{ request()->routeIs('admin.system.*') ? 'true' : 'false' }}">
                     <div>
@@ -2009,6 +2141,7 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.system.*') ? 'show' : '' }}" id="menuSystem">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('system'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.system.update') ? 'active' : '' }}" href="{{ route('admin.system.update') }}">
                                 <i class="bi bi-arrow-up-circle"></i> Update
@@ -2029,13 +2162,14 @@
                                 <i class="bi bi-database-down"></i> Data Export/Import
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- POS -->
-            @if(Auth::user()->hasPermission('pos'))
+            @if(Auth::user()->hasPermission('pos') && \App\Helpers\PermissionHelper::isModuleVisible('pos'))
             <div class="menu-category">
                 <a class="menu-category-header" data-bs-toggle="collapse" href="#menuPos" role="button" aria-expanded="{{ request()->routeIs('admin.pos.*') ? 'true' : 'false' }}">
                     <div>
@@ -2046,6 +2180,7 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.pos.*') ? 'show' : '' }}" id="menuPos">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('pos'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.pos.terminal') ? 'active' : '' }}" href="{{ route('admin.pos.terminal') }}">
                                 <i class="bi bi-terminal"></i> POS Terminal
@@ -2061,13 +2196,14 @@
                                 <i class="bi bi-graph-up"></i> POS Reports
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </div>
             </div>
             @endif
             
             <!-- ADDON MANAGER -->
-            @if(Auth::user()->hasPermission('addon'))
+            @if(Auth::user()->hasPermission('addon') && \App\Helpers\PermissionHelper::isModuleVisible('addon'))
             <div class="menu-category">
                 <a class="menu-category-header {{ request()->routeIs('admin.addons.*') ? 'active' : '' }}" href="{{ route('admin.addons.index') }}">
                     <div>
@@ -2079,7 +2215,7 @@
             @endif
             
             <!-- MULTI-STORE -->
-            @if(Auth::user()->hasPermission('multistore'))
+            @if(Auth::user()->hasPermission('multistore') && \App\Helpers\PermissionHelper::isModuleVisible('multistore'))
             <div class="menu-category">
                 <a class="menu-category-header" data-bs-toggle="collapse" href="#menuMultiStore" role="button" aria-expanded="{{ request()->routeIs('admin.multi-store.*') ? 'true' : 'false' }}">
                     <div>
@@ -2090,6 +2226,7 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('admin.multi-store.*') ? 'show' : '' }}" id="menuMultiStore">
                     <ul class="nav flex-column submenu">
+                        @if(Auth::user()->hasPermission('multistore'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.multi-store.index') ? 'active' : '' }}" href="{{ route('admin.multi-store.index') }}">
                                 <i class="bi bi-shop"></i> All Stores
@@ -2100,6 +2237,7 @@
                                 <i class="bi bi-plus-circle"></i> Add Store
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </div>
             </div>

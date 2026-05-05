@@ -132,6 +132,7 @@
                         @enderror
                     </div>
 
+                    @if(auth()->user()->role === 'super_admin')
                     <div class="form-check form-switch mb-3">
                         <input class="form-check-input" type="checkbox" id="is_super_admin" name="is_super_admin" value="1" {{ old('is_super_admin') ? 'checked' : '' }}>
                         <label class="form-check-label" for="is_super_admin">
@@ -139,6 +140,7 @@
                         </label>
                         <div class="form-text">Super admins have access to all features</div>
                     </div>
+                    @endif
                 </div>
             </div>
 
@@ -165,6 +167,77 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Permissions -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="bi bi-shield-lock me-2"></i>Permissions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold"><i class="bi bi-person-badge me-1"></i> Role Template</label>
+                        <select class="form-select create-role-template" name="role_template">
+                            <option value="">-- Custom Permissions --</option>
+                            @foreach($roleTemplates as $template)
+                                <option value="{{ $template->id }}"
+                                    data-permissions="{{ json_encode($template->permissions->pluck('name')) }}"
+                                    {{ old('role_template') == $template->id ? 'selected' : '' }}>
+                                    {{ ucwords(str_replace('-', ' ', $template->name)) }} ({{ $template->permissions->count() }} permissions)
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Assign a pre-configured role template for quick setup.</div>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label mb-0 fw-bold"><i class="bi bi-shield-check me-1"></i> Individual Permissions</label>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-success create-select-all">
+                                <i class="bi bi-check-all me-1"></i> Select All
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger create-clear-all ms-1">
+                                <i class="bi bi-x-circle me-1"></i> Clear All
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-bordered table-sm mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th style="width: 120px;">Module</th>
+                                    <th>Permissions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($permissionModules as $moduleKey => $module)
+                                    <tr>
+                                        <td class="align-middle">
+                                            <div class="d-flex align-items-center">
+                                                <i class="{{ $module['icon'] }} me-1 small"></i>
+                                                <small class="fw-medium">{{ $module['label'] }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                @foreach($module['actions'] as $action)
+                                                    @php $permName = $moduleKey . '.' . $action; @endphp
+                                                    <label class="badge rounded-pill create-perm-pill" style="cursor:pointer; padding: 0.35em 0.65em; font-size: 0.78em; background: #e9ecef; color: #6c757d; user-select: none; transition: all 0.15s;">
+                                                        <input type="checkbox" name="custom_permissions[]" value="{{ $permName }}" class="d-none create-perm-checkbox">
+                                                        {{ $action }}
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </form>
@@ -185,5 +258,78 @@
     .content-area {
         padding-bottom: 100px !important;
     }
+    .create-perm-pill input:checked ~ span,
+    .create-perm-pill:has(input:checked) {
+        background: #198754 !important;
+        color: #fff !important;
+    }
+    .create-perm-pill:hover {
+        transform: scale(1.06);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+    .sticky-top {
+        position: sticky;
+        top: 0;
+    }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const pillStyle = function(label) {
+        const cb = label.querySelector('.create-perm-checkbox');
+        if (cb && cb.checked) {
+            label.style.background = '#198754';
+            label.style.color = '#fff';
+        } else {
+            label.style.background = '#e9ecef';
+            label.style.color = '#6c757d';
+        }
+    };
+
+    document.querySelectorAll('.create-perm-pill').forEach(function(label) {
+        label.addEventListener('click', function(e) {
+            const cb = this.querySelector('.create-perm-checkbox');
+            if (cb) {
+                cb.checked = !cb.checked;
+                pillStyle(this);
+            }
+        });
+        pillStyle(label);
+    });
+
+    document.querySelector('.create-role-template')?.addEventListener('change', function() {
+        const selected = this.options[this.selectedIndex];
+        document.querySelectorAll('.create-perm-checkbox').forEach(function(cb) {
+            cb.checked = false;
+        });
+        if (this.value && selected.dataset.permissions) {
+            try {
+                JSON.parse(selected.dataset.permissions).forEach(function(name) {
+                    var cb = document.querySelector('.create-perm-checkbox[value="' + name + '"]');
+                    if (cb) cb.checked = true;
+                });
+            } catch(e) {}
+        }
+        document.querySelectorAll('.create-perm-pill').forEach(function(label) {
+            pillStyle(label);
+        });
+    });
+
+    document.querySelector('.create-select-all')?.addEventListener('click', function() {
+        document.querySelectorAll('.create-perm-checkbox').forEach(function(cb) { cb.checked = true; });
+        document.querySelectorAll('.create-perm-pill').forEach(function(label) { pillStyle(label); });
+        var select = document.querySelector('.create-role-template');
+        if (select) select.value = '';
+    });
+
+    document.querySelector('.create-clear-all')?.addEventListener('click', function() {
+        document.querySelectorAll('.create-perm-checkbox').forEach(function(cb) { cb.checked = false; });
+        document.querySelectorAll('.create-perm-pill').forEach(function(label) { pillStyle(label); });
+        var select = document.querySelector('.create-role-template');
+        if (select) select.value = '';
+    });
+});
+</script>
 @endpush

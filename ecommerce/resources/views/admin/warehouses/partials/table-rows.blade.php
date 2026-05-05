@@ -47,32 +47,20 @@
         </button>
     </td>
     <td>
-        <div class="dropdown">
-            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Actions
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                    <a class="dropdown-item" href="{{ route('admin.warehouses.show', $warehouse->id) }}">
-                        <i class="bi bi-eye me-2"></i> View
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="{{ route('admin.warehouses.edit', $warehouse->id) }}">
-                        <i class="bi bi-pencil me-2"></i> Edit
-                    </a>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <form action="{{ route('admin.warehouses.destroy', $warehouse->id) }}" method="POST" class="d-inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Are you sure you want to delete this warehouse?')">
-                            <i class="bi bi-trash me-2"></i> Delete
-                        </button>
-                    </form>
-                </li>
-            </ul>
+        <div class="btn-group">
+            <a href="{{ route('admin.warehouses.show', $warehouse->id) }}" class="btn btn-sm btn-outline-primary" title="View">
+                <i class="bi bi-eye"></i>
+            </a>
+            <a href="{{ route('admin.warehouses.edit', $warehouse->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                <i class="bi bi-pencil"></i>
+            </a>
+            <form action="{{ route('admin.warehouses.destroy', $warehouse->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this warehouse?')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
         </div>
     </td>
 </tr>

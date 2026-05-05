@@ -17,6 +17,7 @@ class Warehouse extends Model
         'address',
         'city',
         'state',
+        'area',
         'postcode',
         'country',
         'latitude',
@@ -65,6 +66,25 @@ class Warehouse extends Model
     public function areas()
     {
         return $this->belongsToMany(Area::class, 'warehouse_area');
+    }
+
+    /**
+     * Generate a unique warehouse code.
+     */
+    public static function generateCode(): string
+    {
+        $prefix = 'WH-';
+        $lastWarehouse = self::where('code', 'like', $prefix . '%')
+            ->orderByRaw('CAST(SUBSTRING(code, ' . (strlen($prefix) + 1) . ') AS UNSIGNED) DESC')
+            ->first();
+
+        if ($lastWarehouse && preg_match('/' . $prefix . '(\d+)$/', $lastWarehouse->code, $matches)) {
+            $nextNumber = (int) $matches[1] + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }
 
     /**

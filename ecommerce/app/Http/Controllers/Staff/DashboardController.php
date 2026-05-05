@@ -16,23 +16,23 @@ class DashboardController extends Controller
     public function index()
     {
         $user = auth()->user();
-        
-        // Get staff's permissions (use getPermissionsArray for consistency with User model cast)
+
+        // Get staff's permissions via Spatie + legacy fallback
         $permissions = $user->getPermissionsArray();
-        
+
         // Get stats based on permissions
         $stats = [];
-        
-        if (in_array('orders', $permissions) || $user->is_super_admin) {
+
+        if ($user->hasPermission('orders') || $user->hasPermission('orders.view')) {
             $stats['pending_orders'] = Order::where('delivery_status', 'pending')->count();
             $stats['total_orders'] = Order::count();
         }
-        
-        if (in_array('products', $permissions) || $user->is_super_admin) {
+
+        if ($user->hasPermission('products') || $user->hasPermission('products.view')) {
             $stats['total_products'] = Product::count();
             $stats['low_stock'] = Product::whereRaw('stock_quantity <= low_stock_quantity')->count();
         }
-        
+
         return view('staff.dashboard', compact('stats', 'permissions'));
     }
 }

@@ -11,6 +11,10 @@ class CheckPermission
 {
     /**
      * Handle an incoming request.
+     * Uses Spatie's permission system with Granular fallback.
+     *
+     * Permission format: 'products' (legacy module-level) or 'products.view' (granular CRUD).
+     * Staff must have either the exact permission OR the module-level permission.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
@@ -22,12 +26,12 @@ class CheckPermission
 
         $user = Auth::user();
 
-        // Super admin has all permissions - allow access
+        // Super admin has all permissions
         if ($user->role === 'super_admin' || $user->is_super_admin) {
             return $next($request);
         }
 
-        // Admin role - has full access regardless of permissions (legacy behavior)
+        // Admin role - has full access
         if ($user->role === 'admin') {
             return $next($request);
         }
@@ -40,7 +44,6 @@ class CheckPermission
             abort(403, 'You do not have permission to access this section.');
         }
 
-        // For any other role, deny access
         abort(403, 'Unauthorized access.');
     }
 }

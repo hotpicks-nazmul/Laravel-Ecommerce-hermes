@@ -19,25 +19,29 @@
         <div class="lg:col-span-2">
             @if($lastOrder && auth()->check())
             <div class="bg-white p-6 rounded-lg shadow-sm mb-6 border border-halal-green">
-                <h3 class="text-lg font-bold mb-3"><i class="bi bi-clock-history text-halal-green me-2"></i>Previously Used Address</h3>
-                <div class="bg-gray-50 p-4 rounded-lg mb-3">
-                    <p class="font-medium">{{ $lastOrder->billing_full_name }}</p>
-                    <p class="text-gray-600">{{ $lastOrder->billing_address }}, {{ $lastOrder->billing_city }}, {{ $lastOrder->billing_state }} - {{ $lastOrder->billing_postcode }}</p>
-                    <p class="text-gray-600">{{ $lastOrder->billing_country }}</p>
-                    <p class="text-gray-600">{{ $lastOrder->billing_phone }} | {{ $lastOrder->billing_email }}</p>
-                </div>
-                <div class="flex gap-3">
-                    <button onclick="usePreviousAddress()" class="bg-halal-green text-white px-4 py-2 rounded-lg text-sm hover:bg-halal-dark transition-colors">
-                        <i class="bi bi-check2 me-1"></i> Use This Address
-                    </button>
-                    <button onclick="showNewAddressForm()" class="border border-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-                        <i class="bi bi-pencil me-1"></i> Enter New Address
-                    </button>
+                <h3 class="text-lg font-bold mb-4"><i class="bi bi-geo-alt text-halal-green me-2"></i>Delivery Address</h3>
+                <div class="space-y-3">
+                    <label class="flex items-start p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors {{ $lastOrder && auth()->check() ? 'border-halal-green bg-green-50' : '' }}">
+                        <input type="radio" name="address_choice" value="previous" checked onchange="usePreviousAddress()" class="mt-1 mr-3">
+                        <div class="flex-1">
+                            <span class="font-medium text-sm">Saved Address</span>
+                            <div class="bg-gray-50 p-3 rounded-lg mt-2 text-sm text-gray-600">
+                                <p class="font-medium text-gray-800">{{ $lastOrder->billing_full_name }}</p>
+                                <p>{{ $lastOrder->billing_address }}, {{ $lastOrder->billing_city }}, {{ $lastOrder->billing_state }} - {{ $lastOrder->billing_postcode }}</p>
+                                <p>{{ $lastOrder->billing_country }}</p>
+                                <p>{{ $lastOrder->billing_phone }} | {{ $lastOrder->billing_email }}</p>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                        <input type="radio" name="address_choice" value="new" onchange="showNewAddressForm()" class="mr-3">
+                        <span class="font-medium text-sm">Enter a new address</span>
+                    </label>
                 </div>
             </div>
             @endif
 
-            <div id="addressFormSection" class="{{ $lastOrder && auth()->check() ? 'hidden' : '' }}" style="{{ $lastOrder && auth()->check() ? 'display: none;' : '' }}">
+            <div id="addressFormSection" style="{{ $lastOrder && auth()->check() ? 'display: none;' : '' }}">
                 <div class="bg-white p-6 rounded-lg shadow-sm mb-6 billing-card">
                     <h3 class="text-lg font-bold mb-4">Billing Details</h3>
                     <form id="checkoutForm">
@@ -52,22 +56,27 @@
                                 <input type="text" name="billing_last_name" id="billing_last_name" value="{{ $user->last_name ?? '' }}" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-                                <input type="email" name="billing_email" id="billing_email" value="{{ $user->email ?? '' }}" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <input type="email" name="billing_email" id="billing_email" value="{{ $user->email ?? '' }}" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
-                                <input type="tel" name="billing_phone" id="billing_phone" value="{{ $user->phone ?? '' }}" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
+                                <div class="flex">
+                                    <span class="inline-flex items-center px-3 border border-r-0 border-gray-300 rounded-l-lg bg-gray-100 text-gray-600 text-sm select-none">+880</span>
+                                    <input type="tel" name="billing_phone" id="billing_phone" value="{{ $user->phone ?? '' }}" required maxlength="11" oninput="this.value=this.value.replace(/\D/g,'')" class="w-full border border-gray-300 rounded-r-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
+                                </div>
+                                <span class="error-message" id="error-billing_phone"></span>
                             </div>
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Address *</label>
                                 <input type="text" name="billing_address" id="billing_address" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
+                                <span class="error-message" id="error-billing_address"></span>
                             </div>
 
                             @if($checkoutMode === 'international')
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Country *</label>
-                                <select name="billing_country" id="billing_country" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green" onchange="loadCities()">
+                                <select name="billing_country" id="billing_country" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green" onchange="onCountryChange()">
                                     <option value="">Select Country</option>
                                     @foreach($countries as $country)
                                         <option value="{{ $country->name }}">{{ $country->name }}</option>
@@ -79,20 +88,36 @@
                             @endif
 
                             <div class="searchable-select-wrapper">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">State *</label>
+                                <div class="searchable-select" data-select-id="billing_state">
+                                    <input type="text" class="searchable-select-input w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green" placeholder="Select State" readonly autocomplete="off">
+                                    <input type="hidden" name="billing_state" id="billing_state">
+                                    <select name="billing_state_id" id="billing_state_id" required class="hidden-select" onchange="onStateChange()">
+                                        <option value="">Select State</option>
+                                    </select>
+                                    <div class="searchable-select-dropdown hidden">
+                                        <input type="text" class="dropdown-search-input w-full px-3 py-2 border-b border-gray-200 focus:outline-none" placeholder="Search..." autocomplete="off">
+                                        <div class="dropdown-options max-h-48 overflow-y-auto">
+                                            <div class="searchable-select-option text-muted" style="cursor:default;color:#9ca3af;">No states available</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="error-message" id="error-billing_state_id"></span>
+                            </div>
+
+                            <div class="searchable-select-wrapper">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">City *</label>
                                 <div class="searchable-select" data-select-id="billing_city_id">
-                                    <input type="text" class="searchable-select-input w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green" placeholder="Search city..." autocomplete="off">
+                                    <input type="text" class="searchable-select-input w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green bg-gray-100" placeholder="Select a state first" autocomplete="off" disabled readonly>
                                     <input type="hidden" name="billing_city" id="billing_city">
                                     <select name="billing_city_id" id="billing_city_id" required class="hidden-select" onchange="onCityChange()">
                                         <option value="">Select City</option>
-                                        @foreach($cities as $city)
-                                            <option value="{{ $city->id }}">{{ $city->name }}</option>
-                                        @endforeach
                                     </select>
                                     <div class="searchable-select-dropdown hidden">
-                                        @foreach($cities as $city)
-                                            <div class="searchable-select-option" data-value="{{ $city->id }}">{{ $city->name }}</div>
-                                        @endforeach
+                                        <input type="text" class="dropdown-search-input w-full px-3 py-2 border-b border-gray-200 focus:outline-none" placeholder="Search..." autocomplete="off">
+                                        <div class="dropdown-options max-h-48 overflow-y-auto">
+                                            <div class="searchable-select-option text-muted" style="cursor:default;color:#9ca3af;">Select a state first</div>
+                                        </div>
                                     </div>
                                 </div>
                                 <span class="error-message" id="error-billing_city_id"></span>
@@ -101,25 +126,22 @@
                             <div class="searchable-select-wrapper">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Area *</label>
                                 <div class="searchable-select" data-select-id="billing_area_id">
-                                    <input type="text" class="searchable-select-input w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green bg-gray-100" placeholder="Select a city first" autocomplete="off" disabled>
+                                    <input type="text" class="searchable-select-input w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green bg-gray-100" placeholder="Select a city first" autocomplete="off" disabled readonly>
                                     <select name="billing_area_id" id="billing_area_id" class="hidden-select" onchange="onAreaChange()" required>
                                         <option value="">Select Area</option>
                                     </select>
                                     <div class="searchable-select-dropdown hidden">
-                                        <div class="searchable-select-option text-muted" style="cursor:default;color:#9ca3af;">Select a city first</div>
+                                        <input type="text" class="dropdown-search-input w-full px-3 py-2 border-b border-gray-200 focus:outline-none" placeholder="Search..." autocomplete="off">
+                                        <div class="dropdown-options max-h-48 overflow-y-auto">
+                                            <div class="searchable-select-option text-muted" style="cursor:default;color:#9ca3af;">Select a city first</div>
+                                        </div>
                                     </div>
                                 </div>
                                 <span class="error-message" id="error-billing_area_id"></span>
                             </div>
-
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">State *</label>
-                                <input type="text" name="billing_state" id="billing_state" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green" onchange="updateShippingOptions()">
-                                <span class="error-message" id="error-billing_state"></span>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Postcode *</label>
-                                <input type="text" name="billing_postcode" id="billing_postcode" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Postcode</label>
+                                <input type="text" name="billing_postcode" id="billing_postcode" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-halal-green">
                                 <span class="error-message" id="error-billing_postcode"></span>
                             </div>
                             <div class="md:col-span-2">
@@ -187,7 +209,7 @@
             <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
                 <h3 class="text-lg font-bold mb-4">Order Items</h3>
                 @foreach($cart->items as $item)
-                <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm mb-4" id="checkout-item-{{ $item['product_id'] }}">
+                <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm mb-4" id="checkout-item-{{ $item['cart_item_id'] }}">
                     @php
                         $imageUrl = isset($item['image'])
                             ? (str_starts_with($item['image'], 'http') ? $item['image']
@@ -201,18 +223,18 @@
                         <h4 class="font-medium text-gray-800">{{ $item['name'] }}</h4>
                         <p class="text-halal-green font-bold">৳{{ number_format($item['price'], 2) }}</p>
                         <div class="flex items-center space-x-2 mt-2">
-                            <button onclick="updateCheckoutItem({{ $item['product_id'] }}, {{ $item['quantity'] - 1 }})" class="w-7 h-7 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
+                            <button data-cart-item="{{ $item['cart_item_id'] }}" data-action="dec" class="qty-btn w-7 h-7 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
                                 <i class="bi bi-dash text-sm"></i>
                             </button>
-                            <span class="font-medium" id="qty-{{ $item['product_id'] }}">{{ $item['quantity'] }}</span>
-                            <button onclick="updateCheckoutItem({{ $item['product_id'] }}, {{ $item['quantity'] + 1 }})" class="w-7 h-7 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
+                            <span class="font-medium qty-display" id="qty-{{ $item['cart_item_id'] }}">{{ $item['quantity'] }}</span>
+                            <button data-cart-item="{{ $item['cart_item_id'] }}" data-action="inc" class="qty-btn w-7 h-7 bg-gray-100 rounded flex items-center justify-center hover:bg-gray-200">
                                 <i class="bi bi-plus text-sm"></i>
                             </button>
                         </div>
                     </div>
                     <div class="text-right">
                         <p class="font-bold text-gray-800">৳{{ number_format($item['price'] * $item['quantity'], 2) }}</p>
-                        <button onclick="removeCheckoutItem({{ $item['product_id'] }})" class="text-red-500 hover:text-red-700 text-sm mt-1">
+                        <button data-cart-item="{{ $item['cart_item_id'] }}" data-action="remove" class="qty-btn text-red-500 hover:text-red-700 text-sm mt-1">
                             <i class="bi bi-trash"></i>
                         </button>
                     </div>
@@ -260,9 +282,11 @@
 .searchable-select .hidden-select { position: absolute; left: -9999px; opacity: 0; height: 0; width: 0; pointer-events: none; }
 .searchable-select-dropdown {
     position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;
-    max-height: 220px; overflow-y: auto;
     background: #fff; border: 1px solid #d1d5db; border-radius: 0 0 8px 8px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.15); margin-top: 2px;
+}
+.searchable-select-dropdown .dropdown-options {
+    max-height: 220px; overflow-y: auto;
 }
 .searchable-select-dropdown.hidden { display: none; }
 .searchable-select-option {
@@ -294,20 +318,22 @@ const defaultCountry = '{{ $defaultCountryName }}';
 function initSearchableSelect(container) {
     const input = container.querySelector('.searchable-select-input');
     const dropdown = container.querySelector('.searchable-select-dropdown');
+    const searchInput = dropdown.querySelector('.dropdown-search-input');
+    const optionsContainer = dropdown.querySelector('.dropdown-options');
     const select = container.querySelector('select');
     const hiddenInput = container.querySelector('input[type="hidden"]');
 
     function filterOptions(query) {
-        const options = dropdown.querySelectorAll('.searchable-select-option');
+        const options = optionsContainer.querySelectorAll('.searchable-select-option');
         const q = query.toLowerCase().trim();
         options.forEach(opt => {
             opt.style.display = !q || opt.textContent.toLowerCase().includes(q) ? 'block' : 'none';
         });
     }
 
-    function setSelectOptions(opts) {
+    function setSelectOptions(opts, emptyMsg, searchPlaceholder) {
         select.innerHTML = '';
-        dropdown.innerHTML = '';
+        optionsContainer.innerHTML = '';
         const placeholder = document.createElement('option');
         placeholder.value = '';
         placeholder.textContent = 'Select';
@@ -315,10 +341,10 @@ function initSearchableSelect(container) {
         if (opts.length === 0) {
             const msg = document.createElement('div');
             msg.className = 'searchable-select-option text-muted';
-            msg.textContent = 'No areas available. Select a city first.';
+            msg.textContent = emptyMsg || 'No options available';
             msg.style.cursor = 'default';
             msg.style.color = '#9ca3af';
-            dropdown.appendChild(msg);
+            optionsContainer.appendChild(msg);
         } else {
             opts.forEach(o => {
                 const opt = document.createElement('option');
@@ -330,12 +356,13 @@ function initSearchableSelect(container) {
                 div.dataset.value = o.value;
                 div.textContent = o.text;
                 div.addEventListener('click', () => selectOption(o.value, o.text));
-                dropdown.appendChild(div);
+                optionsContainer.appendChild(div);
             });
         }
         select.value = '';
         input.value = '';
-        input.placeholder = opts.length > 0 ? 'Search area...' : 'Select a city first';
+        input.placeholder = opts.length > 0 ? (searchPlaceholder || 'Search...') : (emptyMsg || 'No options available');
+        if (searchInput) searchInput.value = '';
     }
 
     function selectOption(value, text) {
@@ -346,7 +373,7 @@ function initSearchableSelect(container) {
     }
 
     function highlightNext() {
-        const visible = [...dropdown.querySelectorAll('.searchable-select-option')].filter(o => o.style.display !== 'none');
+        const visible = [...optionsContainer.querySelectorAll('.searchable-select-option')].filter(o => o.style.display !== 'none');
         const idx = visible.findIndex(o => o.classList.contains('highlighted'));
         visible.forEach(o => o.classList.remove('highlighted'));
         if (idx < visible.length - 1) visible[idx + 1]?.classList.add('highlighted');
@@ -354,7 +381,7 @@ function initSearchableSelect(container) {
     }
 
     function highlightPrev() {
-        const visible = [...dropdown.querySelectorAll('.searchable-select-option')].filter(o => o.style.display !== 'none');
+        const visible = [...optionsContainer.querySelectorAll('.searchable-select-option')].filter(o => o.style.display !== 'none');
         const idx = visible.findIndex(o => o.classList.contains('highlighted'));
         visible.forEach(o => o.classList.remove('highlighted'));
         if (idx > 0) visible[idx - 1]?.classList.add('highlighted');
@@ -362,13 +389,12 @@ function initSearchableSelect(container) {
     }
 
     function selectHighlighted() {
-        const hl = dropdown.querySelector('.searchable-select-option.highlighted');
+        const hl = optionsContainer.querySelector('.searchable-select-option.highlighted');
         if (hl) selectOption(hl.dataset.value, hl.textContent);
     }
 
-    // Clear all options and rebuild from select
     function rebuildOptions() {
-        dropdown.innerHTML = '';
+        optionsContainer.innerHTML = '';
         [...select.options].forEach(opt => {
             if (!opt.value) return;
             const div = document.createElement('div');
@@ -376,51 +402,50 @@ function initSearchableSelect(container) {
             div.dataset.value = opt.value;
             div.textContent = opt.text;
             div.addEventListener('click', () => selectOption(opt.value, opt.text));
-            dropdown.appendChild(div);
+            optionsContainer.appendChild(div);
         });
-        filterOptions(input.value);
+        filterOptions(searchInput ? searchInput.value : '');
     }
 
     function openDropdown() {
-        var hasOptions = dropdown.querySelectorAll('.searchable-select-option[data-value]').length > 0;
+        if (input.disabled) return;
+        var hasOptions = optionsContainer.querySelectorAll('.searchable-select-option[data-value]').length > 0;
         if (!hasOptions) {
             rebuildOptions();
         }
         dropdown.classList.remove('hidden');
         container.classList.add('open');
-        filterOptions(input.value);
+        filterOptions(searchInput ? searchInput.value : '');
+        if (searchInput) setTimeout(function() { searchInput.focus(); }, 50);
     }
 
     function closeDropdown() {
-        if (!input.value.trim() && select.value) {
-            select.value = '';
-            if (hiddenInput) hiddenInput.value = '';
-            select.dispatchEvent(new Event('change', { bubbles: true }));
-        }
         dropdown.classList.add('hidden');
         container.classList.remove('open');
     }
 
+    input.addEventListener('click', openDropdown);
     input.addEventListener('focus', openDropdown);
 
-    input.addEventListener('input', () => {
-        dropdown.classList.remove('hidden');
-        filterOptions(input.value);
-    });
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            filterOptions(this.value);
+        });
 
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowDown') { e.preventDefault(); highlightNext(); }
-        else if (e.key === 'ArrowUp') { e.preventDefault(); highlightPrev(); }
-        else if (e.key === 'Enter') { e.preventDefault(); selectHighlighted(); }
-        else if (e.key === 'Escape') { closeDropdown(); input.blur(); }
-    });
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowDown') { e.preventDefault(); highlightNext(); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); highlightPrev(); }
+            else if (e.key === 'Enter') { e.preventDefault(); selectHighlighted(); }
+            else if (e.key === 'Escape') { closeDropdown(); input.blur(); }
+        });
+    }
 
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', function(e) {
         if (!container.contains(e.target)) closeDropdown();
     });
 
     // Attach click handlers to pre-rendered options
-    dropdown.querySelectorAll('.searchable-select-option[data-value]').forEach(opt => {
+    optionsContainer.querySelectorAll('.searchable-select-option[data-value]').forEach(opt => {
         opt.addEventListener('click', () => selectOption(opt.dataset.value, opt.textContent));
     });
 
@@ -435,34 +460,120 @@ function initSearchableSelect(container) {
     container.setSelectOptions = setSelectOptions;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     document.querySelectorAll('.searchable-select').forEach(initSearchableSelect);
+    await loadStates();
+    var selectedAddress = document.querySelector('input[name="address_choice"]:checked');
+    if (selectedAddress && selectedAddress.value === 'previous') {
+        await usePreviousAddress();
+    }
     document.getElementById('checkoutForm').addEventListener('submit', function(e) {
         e.preventDefault();
         runCheckout();
     });
 });
 
-async function loadCities() {
-    const country = document.getElementById('billing_country')?.value || defaultCountry;
+async function loadStates(country) {
+    const c = country || document.getElementById('billing_country')?.value || defaultCountry;
+    const params = c ? `?country=${encodeURIComponent(c)}` : '';
     try {
-        const response = await fetch(`/checkout/get-cities?country=${encodeURIComponent(country)}`);
+        const response = await fetch(`/checkout/get-states${params}`);
+        const data = await response.json();
+        const stateContainer = document.querySelector('.searchable-select[data-select-id="billing_state"]');
+        const opts = [];
+        if (data.success && data.states) {
+            data.states.forEach(s => opts.push({ value: s.id, text: s.name }));
+        }
+        stateContainer.setSelectOptions(opts, 'No states available', 'Select State');
+    } catch (e) { console.error('Error loading states:', e); }
+}
+
+async function loadCities(stateId) {
+    if (!stateId) return;
+    try {
+        const response = await fetch(`/checkout/get-cities?state_id=${stateId}`);
         const data = await response.json();
         const cityContainer = document.querySelector('.searchable-select[data-select-id="billing_city_id"]');
         const cityOpts = [];
         if (data.success && data.cities) {
             data.cities.forEach(c => cityOpts.push({ value: c.id, text: c.name }));
         }
-        cityContainer.setSelectOptions(cityOpts);
-
-        const areaContainer = document.querySelector('.searchable-select[data-select-id="billing_area_id"]');
-        const areaInput = areaContainer.querySelector('.searchable-select-input');
-        areaInput.value = '';
-        areaInput.disabled = true;
-        areaInput.classList.add('bg-gray-100');
-        areaInput.placeholder = 'Select a city first';
-        areaContainer.setSelectOptions([]);
+        cityContainer.setSelectOptions(cityOpts, 'No cities available for this state', 'Select City');
     } catch (e) { console.error('Error loading cities:', e); }
+}
+
+async function loadAreas(cityId) {
+    if (!cityId) return;
+    try {
+        const response = await fetch(`/checkout/get-areas?city_id=${cityId}`);
+        const data = await response.json();
+        const areaContainer = document.querySelector('.searchable-select[data-select-id="billing_area_id"]');
+        const opts = [];
+        if (data.success && data.areas) {
+            data.areas.forEach(a => opts.push({ value: a.id, text: a.name }));
+        }
+        areaContainer.setSelectOptions(opts, 'No areas available', 'Select Area');
+    } catch (e) { console.error('Error loading areas:', e); }
+}
+
+async function onStateChange() {
+    const stateSelect = document.getElementById('billing_state_id');
+    const stateName = stateSelect.options[stateSelect.selectedIndex]?.text || '';
+    document.getElementById('billing_state').value = stateName;
+
+    const cityContainer = document.querySelector('.searchable-select[data-select-id="billing_city_id"]');
+    const cityInput = cityContainer.querySelector('.searchable-select-input');
+    cityInput.value = '';
+    cityInput.disabled = true;
+    cityInput.classList.add('bg-gray-100');
+    var cityErrorEl = document.getElementById('error-billing_city_id');
+    if (cityErrorEl) { cityErrorEl.textContent = ''; cityErrorEl.classList.remove('visible'); }
+
+    const areaContainer = document.querySelector('.searchable-select[data-select-id="billing_area_id"]');
+    const areaInput = areaContainer.querySelector('.searchable-select-input');
+    areaInput.value = '';
+    areaInput.disabled = true;
+    areaInput.classList.add('bg-gray-100');
+    areaInput.placeholder = 'Select a city first';
+    areaContainer.setSelectOptions([]);
+
+    var stateErrorEl = document.getElementById('error-billing_state_id');
+    if (stateErrorEl) { stateErrorEl.textContent = ''; stateErrorEl.classList.remove('visible'); }
+    stateSelect.classList.remove('is-invalid');
+
+    if (stateSelect.value) {
+        cityInput.placeholder = 'Loading cities...';
+        await loadCities(stateSelect.value);
+        cityInput.disabled = false;
+        cityInput.classList.remove('bg-gray-100');
+        cityInput.placeholder = 'Search city...';
+    } else {
+        cityInput.placeholder = 'Select a state first';
+    }
+    updateShippingOptions();
+}
+
+async function onCountryChange() {
+    const stateContainer = document.querySelector('.searchable-select[data-select-id="billing_state"]');
+    stateContainer.setSelectOptions([], 'No states available', 'Select State');
+
+    const cityContainer = document.querySelector('.searchable-select[data-select-id="billing_city_id"]');
+    const cityInput = cityContainer.querySelector('.searchable-select-input');
+    cityInput.value = '';
+    cityInput.disabled = true;
+    cityInput.classList.add('bg-gray-100');
+    cityInput.placeholder = 'Select a state first';
+    cityContainer.setSelectOptions([]);
+
+    const areaContainer = document.querySelector('.searchable-select[data-select-id="billing_area_id"]');
+    const areaInput = areaContainer.querySelector('.searchable-select-input');
+    areaInput.value = '';
+    areaInput.disabled = true;
+    areaInput.classList.add('bg-gray-100');
+    areaInput.placeholder = 'Select a city first';
+    areaContainer.setSelectOptions([]);
+
+    await loadStates();
 }
 
 async function onCityChange() {
@@ -493,7 +604,7 @@ async function onCityChange() {
             if (data.success && data.areas) {
                 data.areas.forEach(a => opts.push({ value: a.id, text: a.name }));
             }
-            areaContainer.setSelectOptions(opts);
+            areaContainer.setSelectOptions(opts, 'No areas available', 'Select Area');
         } catch (e) { console.error('Error loading areas:', e); }
     } else {
         areaInput.disabled = true;
@@ -509,9 +620,12 @@ function onAreaChange() {
 
 async function usePreviousAddress() {
     document.getElementById('addressFormSection').style.display = 'none';
+    document.getElementById('terms').checked = true;
     @if($lastOrder)
+    const prevState = '{{ addslashes($lastOrder->billing_state) }}';
     const prevCity = '{{ addslashes($lastOrder->billing_city) }}';
     const prevCountry = '{{ addslashes($lastOrder->billing_country) }}';
+    const prevAreaId = '{{ $lastOrder->billing_area_id }}';
 
     document.getElementById('billing_first_name').value = '{{ addslashes($lastOrder->billing_first_name) }}';
     document.getElementById('billing_last_name').value = '{{ addslashes($lastOrder->billing_last_name) }}';
@@ -519,13 +633,34 @@ async function usePreviousAddress() {
     document.getElementById('billing_phone').value = '{{ addslashes($lastOrder->billing_phone) }}';
     document.getElementById('billing_address').value = '{{ addslashes($lastOrder->billing_address) }}';
     document.getElementById('billing_city').value = prevCity;
-    document.getElementById('billing_state').value = '{{ addslashes($lastOrder->billing_state) }}';
     document.getElementById('billing_postcode').value = '{{ addslashes($lastOrder->billing_postcode) }}';
 
     const countryEl = document.getElementById('billing_country');
     if (countryEl && countryEl.tagName === 'SELECT') {
         countryEl.value = prevCountry;
-        await loadCities();
+        await onCountryChange();
+    }
+
+    const stateContainer = document.querySelector('.searchable-select[data-select-id="billing_state"]');
+    if (stateContainer && prevState) {
+        const stateSelect = stateContainer.querySelector('select');
+        const stateInput = stateContainer.querySelector('.searchable-select-input');
+        for (let opt of stateSelect.options) {
+            if (opt.text.toLowerCase() === prevState.toLowerCase()) {
+                stateInput.value = opt.text;
+                stateSelect.value = opt.value;
+                document.getElementById('billing_state').value = opt.text;
+                await loadCities(opt.value);
+                const cityContainer = document.querySelector('.searchable-select[data-select-id="billing_city_id"]');
+                if (cityContainer) {
+                    const cityInput = cityContainer.querySelector('.searchable-select-input');
+                    cityInput.disabled = false;
+                    cityInput.classList.remove('bg-gray-100');
+                    cityInput.placeholder = 'Search city...';
+                }
+                break;
+            }
+        }
     }
 
     const cityContainer = document.querySelector('.searchable-select[data-select-id="billing_city_id"]');
@@ -536,7 +671,22 @@ async function usePreviousAddress() {
                 const input = cityContainer.querySelector('.searchable-select-input');
                 input.value = opt.text;
                 citySelect.value = opt.value;
-                citySelect.dispatchEvent(new Event('change'));
+                document.getElementById('billing_city').value = opt.text;
+                await loadAreas(opt.value);
+                if (prevAreaId) {
+                    const areaContainer = document.querySelector('.searchable-select[data-select-id="billing_area_id"]');
+                    const areaSelect = areaContainer.querySelector('select');
+                    const areaInput = areaContainer.querySelector('.searchable-select-input');
+                    areaInput.disabled = false;
+                    areaInput.classList.remove('bg-gray-100');
+                    for (let aOpt of areaSelect.options) {
+                        if (aOpt.value === prevAreaId) {
+                            areaInput.value = aOpt.text;
+                            areaSelect.value = aOpt.value;
+                            break;
+                        }
+                    }
+                }
                 break;
             }
         }
@@ -621,32 +771,66 @@ function updateOrderSummary() {
     if (freeDeliveryMsg) freeDeliveryMsg.style.display = checkoutDelivery === 0 ? 'block' : 'none';
 }
 
-async function updateCheckoutItem(productId, quantity) {
-    if (quantity < 1) { removeCheckoutItem(productId); return; }
-    try {
-        const response = await fetch('/cart/update', {
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.qty-btn');
+    if (!btn) return;
+    var cartItemId = btn.dataset.cartItem;
+    var action = btn.dataset.action;
+    if (action === 'remove') {
+        fetch('/cart/remove', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            credentials: 'same-origin',
-            body: JSON.stringify({ product_id: productId, quantity: quantity })
+            body: JSON.stringify({ cart_item_id: cartItemId })
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (data.success) {
+                var el = document.getElementById('checkout-item-' + cartItemId);
+                if (el) el.remove();
+            }
         });
-        const data = await response.json();
-        if (data.success) window.location.reload();
-    } catch (error) { console.error('Error updating cart:', error); }
-}
-
-async function removeCheckoutItem(productId) {
-    try {
-        const response = await fetch('/cart/remove', {
+        return;
+    }
+    var qtySpan = document.getElementById('qty-' + cartItemId);
+    if (!qtySpan) return;
+    var currentQty = parseInt(qtySpan.textContent);
+    if (isNaN(currentQty)) return;
+    var newQty = action === 'inc' ? currentQty + 1 : currentQty - 1;
+    if (newQty < 1) {
+        fetch('/cart/remove', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            credentials: 'same-origin',
-            body: JSON.stringify({ product_id: productId })
+            body: JSON.stringify({ cart_item_id: cartItemId })
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (data.success) {
+                var el = document.getElementById('checkout-item-' + cartItemId);
+                if (el) el.remove();
+            }
         });
-        const data = await response.json();
-        if (data.success) window.location.reload();
-    } catch (error) { console.error('Error removing from cart:', error); }
-}
+        return;
+    }
+    fetch('/cart/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+        body: JSON.stringify({ cart_item_id: cartItemId, quantity: newQty })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data.success) {
+            qtySpan.textContent = newQty;
+            var itemRow = qtySpan.closest('[id^="checkout-item-"]');
+            if (itemRow) {
+                var priceText = itemRow.querySelector('.text-halal-green.font-bold');
+                var unitPrice = priceText ? parseFloat(priceText.textContent.replace(/[^0-9.]/g, '')) : 0;
+                var totalEl = itemRow.querySelector('.text-right .font-bold');
+                if (totalEl) totalEl.textContent = '৳' + (unitPrice * newQty).toFixed(2);
+                var subtotal = 0;
+                document.querySelectorAll('[id^="checkout-item-"]').forEach(function(row) {
+                    var t = row.querySelector('.text-right .font-bold');
+                    if (t) subtotal += parseFloat(t.textContent.replace(/[^0-9.]/g, '')) || 0;
+                });
+                var subtotalEl = document.getElementById('checkoutSubtotal');
+                if (subtotalEl) subtotalEl.textContent = '৳' + subtotal.toFixed(2);
+            }
+        }
+    });
+});
 
 function clearErrors() {
     document.querySelectorAll('.error-message').forEach(function(el) {
@@ -682,17 +866,20 @@ async function runCheckout() {
     clearErrors();
 
     var hasError = false;
+    var addressEl = document.getElementById('billing_address');
+    if (!addressEl?.value?.trim()) { showError('billing_address', 'Please enter your address.'); hasError = true; }
+
+    var phoneEl = document.getElementById('billing_phone');
+    if (!phoneEl?.value?.trim()) { showError('billing_phone', 'Please enter your phone number.'); hasError = true; }
+
     var cityEl = document.getElementById('billing_city_id');
     if (!cityEl?.value) { showError('billing_city_id', 'Please select a city.'); hasError = true; }
 
     var areaEl = document.getElementById('billing_area_id');
     if (!areaEl?.value) { showError('billing_area_id', 'Please select an area.'); hasError = true; }
 
-    var stateEl = document.getElementById('billing_state');
-    if (!stateEl?.value?.trim()) { showError('billing_state', 'Please enter your state.'); hasError = true; }
-
-    var postcodeEl = document.getElementById('billing_postcode');
-    if (!postcodeEl?.value?.trim()) { showError('billing_postcode', 'Please enter your postcode.'); hasError = true; }
+    var stateEl = document.getElementById('billing_state_id');
+    if (!stateEl?.value) { showError('billing_state_id', 'Please select your state.'); hasError = true; }
 
     var termsEl = document.getElementById('terms');
     if (!termsEl?.checked) { showError('terms', 'Please agree to the terms and conditions.'); hasError = true; }

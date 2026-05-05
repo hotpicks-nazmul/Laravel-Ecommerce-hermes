@@ -30,11 +30,12 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="code" class="form-label">Warehouse Code</label>
-                            <input type="text" id="code" name="code" class="form-control @error('code') is-invalid @enderror" placeholder="e.g., WH-001">
+                            <input type="text" id="code" class="form-control @error('code') is-invalid @enderror" value="{{ $autoCode }}" disabled>
+                            <input type="hidden" name="code" form="warehouseForm" value="{{ $autoCode }}">
                             @error('code')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <div class="form-text">Unique identifier for this warehouse</div>
+                            <div class="form-text">Auto-generated unique code</div>
                         </div>
                     </div>
                 </form>
@@ -56,21 +57,37 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="city" class="form-label">City</label>
-                        <input type="text" id="city" name="city" form="warehouseForm" class="form-control @error('city') is-invalid @enderror">
-                        @error('city')
+                        <label for="state_select" class="form-label">State/Province <span class="text-danger">*</span></label>
+                        <select id="state_select" class="form-select @error('state') is-invalid @enderror">
+                            <option value="">Select State</option>
+                        </select>
+                        <input type="hidden" name="state" id="state" form="warehouseForm">
+                        @error('state')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="state" class="form-label">State/Province</label>
-                        <input type="text" id="state" name="state" form="warehouseForm" class="form-control @error('state') is-invalid @enderror">
-                        @error('state')
+                        <label for="city_select" class="form-label">City <span class="text-danger">*</span></label>
+                        <select id="city_select" class="form-select @error('city') is-invalid @enderror" disabled>
+                            <option value="">Select a state first</option>
+                        </select>
+                        <input type="hidden" name="city" id="city" form="warehouseForm">
+                        @error('city')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
                 <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="area_select" class="form-label">Area <span class="text-danger">*</span></label>
+                        <select id="area_select" class="form-select @error('area') is-invalid @enderror" disabled required>
+                            <option value="">Select a city first</option>
+                        </select>
+                        @error('area')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <input type="hidden" name="area" id="area" form="warehouseForm">
+                    </div>
                     <div class="col-md-6 mb-3">
                         <label for="postcode" class="form-label">Postal Code</label>
                         <input type="text" id="postcode" name="postcode" form="warehouseForm" class="form-control @error('postcode') is-invalid @enderror">
@@ -78,12 +95,26 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+                </div>
+                <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="country" class="form-label">Country</label>
-                        <input type="text" id="country" name="country" form="warehouseForm" class="form-control @error('country') is-invalid @enderror">
+                        @if($checkoutMode === 'local' && $defaultCountry)
+                            <input type="text" id="country" class="form-control" value="{{ $defaultCountry }}" disabled>
+                            <input type="hidden" name="country" form="warehouseForm" value="{{ $defaultCountry }}">
+                        @else
+                            <select id="country" name="country" form="warehouseForm" class="form-select @error('country') is-invalid @enderror">
+                                <option value="">Select Country</option>
+                                @foreach($countries as $country)
+                                    <option value="{{ $country->name }}" {{ old('country') === $country->name ? 'selected' : '' }}>{{ $country->name }}</option>
+                                @endforeach
+                            </select>
+                        @endif
                         @error('country')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                    </div>
+                    <div class="col-md-6 mb-3">
                     </div>
                 </div>
                 <div class="row">
@@ -162,18 +193,24 @@
             </div>
             <div class="card-body">
                 <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" form="warehouseForm" checked>
+                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" form="warehouseForm" value="1" checked>
                     <label class="form-check-label" for="is_active">
                         <i class="bi bi-check-circle text-success me-1"></i> Active
                     </label>
                     <div class="form-text">Enable or disable this warehouse</div>
+                    @error('is_active')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
                 <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" id="is_primary" name="is_primary" form="warehouseForm">
+                    <input class="form-check-input" type="checkbox" id="is_primary" name="is_primary" form="warehouseForm" value="1">
                     <label class="form-check-label" for="is_primary">
                         <i class="bi bi-star text-warning me-1"></i> Primary Warehouse
                     </label>
                     <div class="form-text">Set as the main warehouse</div>
+                    @error('is_primary')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
         </div>
@@ -185,37 +222,15 @@
             </div>
             <div class="card-body">
                 <label for="sort_order" class="form-label">Sort Order</label>
-                <input type="number" id="sort_order" name="sort_order" form="warehouseForm" class="form-control" value="0" min="0">
+                <input type="number" id="sort_order" name="sort_order" form="warehouseForm" class="form-control @error('sort_order') is-invalid @enderror" value="0" min="0">
+                @error('sort_order')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
                 <div class="form-text">Lower numbers appear first</div>
             </div>
         </div>
 
-        <!-- Service Areas -->
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-header bg-white">
-                <h6 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Service Areas</h6>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label">Cities Served</label>
-                    <select name="city_ids[]" form="warehouseForm" class="form-select" multiple style="min-height: 120px;">
-                        @foreach(\App\Models\City::active()->ordered()->get() as $city)
-                            <option value="{{ $city->id }}">{{ $city->name }} ({{ $city->countryRelation->name ?? $city->country }})</option>
-                        @endforeach
-                    </select>
-                    <div class="form-text">Hold Ctrl/Cmd to select multiple cities</div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Areas Served</label>
-                    <select name="area_ids[]" form="warehouseForm" class="form-select" multiple style="min-height: 120px;">
-                        @foreach(\App\Models\Area::active()->ordered()->get() as $area)
-                            <option value="{{ $area->id }}">{{ $area->name }} ({{ $area->city->name ?? 'N/A' }})</option>
-                        @endforeach
-                    </select>
-                    <div class="form-text">Hold Ctrl/Cmd to select multiple areas</div>
-                </div>
-            </div>
-        </div>
+
     </div>
 </div>
 
@@ -265,6 +280,105 @@
                 }, 100);
             }
         @endif
+
+        // Cascading State/City/Area dropdowns
+        const stateSelect = document.getElementById('state_select');
+        const citySelect = document.getElementById('city_select');
+        const areaSelect = document.getElementById('area_select');
+        const stateHidden = document.getElementById('state');
+        const cityHidden = document.getElementById('city');
+        const areaHidden = document.getElementById('area');
+
+        // Load states on page load
+        fetch('/checkout/get-states')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.states) {
+                    stateSelect.innerHTML = '<option value="">Select State</option>';
+                    data.states.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.id;
+                        opt.textContent = s.name;
+                        stateSelect.appendChild(opt);
+                    });
+                }
+            })
+            .catch(e => console.error('Error loading states:', e));
+
+        // On state change, load cities
+        stateSelect.addEventListener('change', function() {
+            const stateId = this.value;
+            const stateName = this.options[this.selectedIndex]?.text || '';
+            stateHidden.value = stateName;
+
+            // Reset city and area
+            citySelect.innerHTML = '<option value="">Select a state first</option>';
+            citySelect.disabled = true;
+            cityHidden.value = '';
+            areaSelect.innerHTML = '<option value="">Select a city first</option>';
+            areaSelect.disabled = true;
+            areaHidden.value = '';
+
+            if (stateId) {
+                citySelect.innerHTML = '<option value="">Loading...</option>';
+                fetch(`/checkout/get-cities?state_id=${stateId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        citySelect.innerHTML = '<option value="">Select City</option>';
+                        if (data.success && data.cities) {
+                            data.cities.forEach(c => {
+                                const opt = document.createElement('option');
+                                opt.value = c.id;
+                                opt.textContent = c.name;
+                                citySelect.appendChild(opt);
+                            });
+                            citySelect.disabled = false;
+                        } else {
+                            citySelect.innerHTML = '<option value="">No cities available</option>';
+                        }
+                    })
+                    .catch(e => console.error('Error loading cities:', e));
+            }
+        });
+
+        // On city change, load areas
+        citySelect.addEventListener('change', function() {
+            const cityId = this.value;
+            const cityName = this.options[this.selectedIndex]?.text || '';
+            cityHidden.value = cityName;
+
+            // Reset area
+            areaSelect.innerHTML = '<option value="">Select a city first</option>';
+            areaSelect.disabled = true;
+            areaHidden.value = '';
+
+            if (cityId) {
+                areaSelect.innerHTML = '<option value="">Loading...</option>';
+                fetch(`/checkout/get-areas?city_id=${cityId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        areaSelect.innerHTML = '<option value="">Select Area</option>';
+                        if (data.success && data.areas) {
+                            data.areas.forEach(a => {
+                                const opt = document.createElement('option');
+                                opt.value = a.id;
+                                opt.textContent = a.name;
+                                areaSelect.appendChild(opt);
+                            });
+                            areaSelect.disabled = false;
+                        } else {
+                            areaSelect.innerHTML = '<option value="">No areas available</option>';
+                        }
+                    })
+                    .catch(e => console.error('Error loading areas:', e));
+            }
+        });
+
+        // On area change, store the name
+        areaSelect.addEventListener('change', function() {
+            const areaName = this.options[this.selectedIndex]?.text || '';
+            areaHidden.value = areaName;
+        });
     });
 </script>
 @endpush
