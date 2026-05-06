@@ -57,9 +57,9 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th style="width: 200px;">Module</th>
-                                <th>Actions</th>
-                                <th style="width: 90px;">Sidebar</th>
+                                <th style="width: 160px;">Module</th>
+                                <th style="width: 220px;">Page</th>
+                                <th>Section Controls</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -67,58 +67,89 @@
                                 @php
                                     $modulePerms = $permissions[$moduleKey] ?? collect();
                                     $submenus = \App\Helpers\PermissionHelper::submenus()[$moduleKey] ?? [];
+                                    $pageSectionPerms = \App\Helpers\PermissionHelper::pageSectionPermissions();
+                                    $rowspan = count($submenus);
+                                    $first = true;
                                 @endphp
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <i class="{{ $module['icon'] }} me-2"></i>
-                                            <strong>{{ $module['label'] }}</strong>
-                                            <span class="badge bg-primary ms-2">{{ $modulePerms->count() }}</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex flex-wrap gap-1">
-                                            @foreach($allActions as $act)
-                                                @php
+                                @foreach($submenus as $routeName => $label)
+                                    @php
+                                        $visible = \App\Helpers\PermissionHelper::isSubmenuVisible($routeName);
+                                        $pageSections = $pageSectionPerms[$routeName] ?? [];
+                                    @endphp
+                                    <tr>
+                                        @if($first)
+                                        <td rowspan="{{ $rowspan }}" style="vertical-align: top; padding-top: 16px;">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <i class="{{ $module['icon'] }}" style="font-size: 1.2rem;"></i>
+                                                    <strong style="font-size: 0.95rem;">{{ $module['label'] }}</strong>
+                                                    @php $moduleVisible = \App\Helpers\PermissionHelper::isModuleVisible($moduleKey); @endphp
+                                                    <span class="badge rounded-pill module-visibility-toggle d-inline-flex align-items-center gap-1"
+                                                          data-module="{{ $moduleKey }}"
+                                                          data-state="{{ $moduleVisible ? '1' : '0' }}"
+                                                          style="cursor:pointer; padding: 0.2em 0.6em; font-size: 0.7rem; {{ $moduleVisible ? 'background: #0d6efd; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
+                                                        <i class="bi bi-{{ $moduleVisible ? 'eye' : 'eye-slash' }}"></i>
+                                                    </span>
+                                                </div>
+                                            @php
+                                                $moduleActions = [];
+                                                foreach ($allActions as $act) {
+                                                    $isPageSection = false;
+                                                    foreach ($pageSectionPerms as $sections) {
+                                                        if (in_array($act, $sections)) { $isPageSection = true; break; }
+                                                    }
                                                     $permName = $moduleKey . '.' . $act;
-                                                    $exists = isset($keyExists[$permName]);
-                                                @endphp
-                                                <span class="badge rounded-pill perm-toggle"
-                                                      data-module="{{ $moduleKey }}"
-                                                      data-action="{{ $act }}"
-                                                      data-state="{{ $exists ? '1' : '0' }}"
-                                                      style="cursor:pointer; padding: 0.4em 0.8em; font-size: 0.82em; {{ $exists ? 'background: #198754; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }} transition: all 0.15s;">
-                                                    {{ $act }}
-                                                </span>
-                                            @endforeach
-                                        </div>
-                                        @if(count($submenus) > 0)
-                                        <div class="mt-2 pt-2 border-top">
-                                            <small class="text-muted d-block mb-1"><i class="bi bi-layout-text-sidebar-reverse me-1"></i>Submenu:</small>
-                                            <div class="d-flex flex-wrap gap-1">
-                                                @foreach($submenus as $routeName => $label)
-                                                    @php
-                                                        $visible = \App\Helpers\PermissionHelper::isSubmenuVisible($routeName);
-                                                    @endphp
-                                                    <span class="badge rounded-pill submenu-visibility-toggle"
-                                                          data-submenu="{{ $routeName }}"
-                                                          data-state="{{ $visible ? '1' : '0' }}"
-                                                          style="cursor:pointer; padding: 0.35em 0.7em; font-size: 0.75em; {{ $visible ? 'background: #0d6efd; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }} transition: all 0.15s;">
-                                                        {{ $label }}
+                                                    if (!$isPageSection && isset($keyExists[$permName])) {
+                                                        $moduleActions[] = $act;
+                                                    }
+                                                }
+                                            @endphp
+                                            @if(!empty($moduleActions))
+                                            <div class="mt-2 d-flex flex-wrap gap-1">
+                                                @foreach($moduleActions as $act)
+                                                    <span class="badge rounded-pill perm-toggle"
+                                                          data-module="{{ $moduleKey }}"
+                                                          data-action="{{ $act }}"
+                                                          data-state="1"
+                                                          style="cursor:pointer; padding: 0.25em 0.7em; font-size: 0.78em; background: #198754; color: #fff;">
+                                                        {{ $act }}
                                                     </span>
                                                 @endforeach
                                             </div>
-                                        </div>
+                                            @endif
+                                        </td>
+                                        @php $first = false; @endphp
                                         @endif
-                                    </td>
-                                    <td>
-                                        <div class="form-check form-switch mb-0">
-                                            <input class="form-check-input module-visibility-toggle" type="checkbox" role="switch"
-                                                   data-module="{{ $moduleKey }}"
-                                                   {{ \App\Helpers\PermissionHelper::isModuleVisible($moduleKey) ? 'checked' : '' }}>
-                                        </div>
-                                    </td>
-                                </tr>
+                                        <td style="padding-top: 12px; padding-bottom: 12px;">
+                                            <span class="badge rounded-pill submenu-visibility-toggle d-inline-flex align-items-center gap-1"
+                                                  data-submenu="{{ $routeName }}"
+                                                  data-state="{{ $visible ? '1' : '0' }}"
+                                                  style="cursor:pointer; padding: 0.4em 0.9em; font-size: 0.85rem; {{ $visible ? 'background: #0d6efd; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
+                                                <i class="bi bi-{{ $visible ? 'eye' : 'eye-slash' }}"></i> {{ $label }}
+                                            </span>
+                                        </td>
+                                        <td style="padding-top: 12px; padding-bottom: 12px;">
+                                            @if(!empty($pageSections))
+                                                <div class="d-flex flex-wrap gap-1">
+                                                @foreach($pageSections as $act)
+                                                    @php
+                                                        $permName = $moduleKey . '.' . $act;
+                                                        $exists = isset($keyExists[$permName]);
+                                                    @endphp
+                                                    <span class="badge rounded-pill perm-toggle"
+                                                          data-module="{{ $moduleKey }}"
+                                                          data-action="{{ $act }}"
+                                                          data-state="{{ $exists ? '1' : '0' }}"
+                                                          style="cursor:pointer; padding: 0.25em 0.7em; font-size: 0.78em; {{ $exists ? 'background: #198754; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
+                                                        {{ str_replace('view-', '', $act) }}
+                                                    </span>
+                                                @endforeach
+                                                </div>
+                                            @else
+                                                <span class="text-muted" style="font-size: 0.85rem;">—</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
                             @empty
                                 <tr>
                                     <td colspan="3" class="text-center py-4 text-muted">
@@ -365,67 +396,101 @@
                                     </div>
 
                                     <div class="table-responsive">
-                                        <table class="table table-bordered table-sm mb-0">
+                                        <table class="table table-bordered mb-0">
                                             <thead class="table-light">
                                                 <tr>
-                                                    <th style="width: 140px;">Module</th>
-                                                    <th>Permissions</th>
+                                                    <th style="width: 160px;">Module</th>
+                                                    <th style="width: 220px;">Page</th>
+                                                    <th>Section Controls</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 @foreach($permissionModules as $moduleKey => $module)
-                                                    @php $modulePrefix = $module['key']; @endphp
-                                                    <tr>
-                                                        <td>
-                                                            <div class="d-flex align-items-center">
-                                                                <i class="{{ $module['icon'] }} me-2"></i>
-                                                                <strong>{{ $module['label'] }}</strong>
-                                                            </div>
-                                                        </td>
-                                                        <td>
+                                                @php
+                                                    $modulePrefix = $module['key'];
+                                                    $submenus = \App\Helpers\PermissionHelper::submenus()[$moduleKey] ?? [];
+                                                    $pageSectionPerms = \App\Helpers\PermissionHelper::pageSectionPermissions();
+                                                    $rowspan = count($submenus);
+                                                    $first = true;
+                                                @endphp
+                                                @foreach($submenus as $routeName => $label)
+                                                @php
+                                                    $globalVisible = \App\Helpers\PermissionHelper::isSubmenuVisible($routeName);
+                                                    $permName = 'submenu:' . $routeName;
+                                                    $disabledPerm = 'submenu_disabled:' . $routeName;
+                                                    $legacyPerms = is_array($member->legacy_permissions) ? $member->legacy_permissions : json_decode($member->legacy_permissions ?? '[]', true);
+                                                    $hasPerm = empty($legacyPerms) ? true : !in_array($disabledPerm, $legacyPerms);
+                                                    $pageSections = $pageSectionPerms[$routeName] ?? [];
+                                                @endphp
+                                                @if($globalVisible)
+                                                <tr>
+                                                    @if($first)
+                                                    <td rowspan="{{ $rowspan }}" style="vertical-align: top; padding-top: 16px;">
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <i class="{{ $module['icon'] }}" style="font-size: 1.2rem;"></i>
+                                                            <strong style="font-size: 0.95rem;">{{ $module['label'] }}</strong>
+                                                        </div>
+                                                        @php
+                                                            $moduleActions = array_filter($module['actions'], function($action) use ($pageSectionPerms) {
+                                                                foreach($pageSectionPerms as $sections) {
+                                                                    if (in_array($action, $sections)) return false;
+                                                                }
+                                                                return true;
+                                                            });
+                                                        @endphp
+                                                        @if(!empty($moduleActions))
+                                                        <div class="mt-2 d-flex flex-wrap gap-1">
+                                                            @foreach($moduleActions as $action)
+                                                                @php
+                                                                    $aPermName = $modulePrefix . '.' . $action;
+                                                                    $aChecked = $member->hasPermission($aPermName) ? '1' : '0';
+                                                                @endphp
+                                                                <span class="badge rounded-pill staff-perm-pill"
+                                                                      data-staff-id="{{ $member->id }}"
+                                                                      data-perm="{{ $aPermName }}"
+                                                                      data-state="{{ $aChecked }}"
+                                                                      style="cursor:pointer; padding: 0.25em 0.7em; font-size: 0.78em; {{ $aChecked == '1' ? 'background: #198754; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
+                                                                    {{ $action }}
+                                                                </span>
+                                                            @endforeach
+                                                        </div>
+                                                        @endif
+                                                    </td>
+                                                    @php $first = false; @endphp
+                                                    @endif
+                                                    <td style="padding-top: 12px; padding-bottom: 12px;">
+                                                        <span class="badge rounded-pill staff-submenu-pill d-inline-flex align-items-center gap-1"
+                                                              data-staff-id="{{ $member->id }}"
+                                                              data-submenu="{{ $routeName }}"
+                                                              data-state="{{ $hasPerm ? '1' : '0' }}"
+                                                              style="cursor:pointer; padding: 0.4em 0.9em; font-size: 0.85rem; {{ $hasPerm ? 'background: #0d6efd; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
+                                                            <i class="bi bi-{{ $hasPerm ? 'eye' : 'eye-slash' }}"></i> {{ $label }}
+                                                        </span>
+                                                    </td>
+                                                    <td style="padding-top: 12px; padding-bottom: 12px;">
+                                                        @if(!empty($pageSections))
                                                             <div class="d-flex flex-wrap gap-1">
-                                                                @foreach($module['actions'] as $action)
-                                                                    @php
-                                                                        $permName = $modulePrefix . '.' . $action;
-                                                                        $checked = $member->hasPermission($permName) ? '1' : '0';
-                                                                    @endphp
-                                                                    <span class="badge rounded-pill staff-perm-pill"
-                                                                          data-staff-id="{{ $member->id }}"
-                                                                          data-perm="{{ $permName }}"
-                                                                          data-state="{{ $checked }}"
-                                                                          style="cursor:pointer; padding: 0.4em 0.8em; font-size: 0.82em; {{ $checked == '1' ? 'background: #198754; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }} transition: all 0.15s;">
-                                                                        {{ $action }}
-                                                                    </span>
-                                                                @endforeach
+                                                            @foreach($pageSections as $action)
+                                                                @php
+                                                                    $sPermName = $modulePrefix . '.' . $action;
+                                                                    $sChecked = $member->hasPermission($sPermName) ? '1' : '0';
+                                                                @endphp
+                                                                <span class="badge rounded-pill staff-perm-pill"
+                                                                      data-staff-id="{{ $member->id }}"
+                                                                      data-perm="{{ $sPermName }}"
+                                                                      data-state="{{ $sChecked }}"
+                                                                      style="cursor:pointer; padding: 0.25em 0.7em; font-size: 0.78em; {{ $sChecked == '1' ? 'background: #198754; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
+                                                                    {{ str_replace('view-', '', $action) }}
+                                                                </span>
+                                                            @endforeach
                                                             </div>
-                                                            @if(\App\Helpers\PermissionHelper::submenus()[$moduleKey] ?? [])
-                                                            <div class="mt-2 pt-2 border-top">
-                                                                <small class="text-muted d-block mb-1"><i class="bi bi-layout-text-sidebar-reverse me-1"></i>Sidebar Submenus:</small>
-                                                                <div class="d-flex flex-wrap gap-1">
-                                                                    @php $submenus = \App\Helpers\PermissionHelper::submenus()[$moduleKey]; @endphp
-                                                                    @foreach($submenus as $routeName => $label)
-                                                                        @php $globalVisible = \App\Helpers\PermissionHelper::isSubmenuVisible($routeName); @endphp
-                                                                        @if($globalVisible)
-                                                                            @php
-                                                                                $permName = 'submenu:' . $routeName;
-                                                                                $disabledPerm = 'submenu_disabled:' . $routeName;
-                                                                                $legacyPerms = is_array($member->legacy_permissions) ? $member->legacy_permissions : json_decode($member->legacy_permissions ?? '[]', true);
-                                                                                $hasPerm = empty($legacyPerms) ? true : !in_array($disabledPerm, $legacyPerms);
-                                                                            @endphp
-                                                                            <span class="badge rounded-pill staff-submenu-pill"
-                                                                                  data-staff-id="{{ $member->id }}"
-                                                                                  data-submenu="{{ $routeName }}"
-                                                                                  data-state="{{ $hasPerm ? '1' : '0' }}"
-                                                                                  style="cursor:pointer; padding: 0.35em 0.7em; font-size: 0.75em; {{ $hasPerm ? 'background: #0d6efd; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }} transition: all 0.15s;">
-                                                                                  {{ $label }}
-                                                                            </span>
-                                                                        @endif
-                                                                    @endforeach
-                                                                </div>
-                                                            </div>
-                                                            @endif
-                                                        </td>
-                                                    </tr>
+                                                        @else
+                                                            <span class="text-muted" style="font-size: 0.85rem;">—</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                                @endif
+                                                @endforeach
                                                 @endforeach
                                             </tbody>
                                         </table>
@@ -467,6 +532,20 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+
+    // ============ RESTORE & PERSIST ACTIVE TAB ============
+    var savedTab = localStorage.getItem('permissionsActiveTab');
+    if (savedTab) {
+        var tabEl = document.querySelector('#permissionsTabs button[data-bs-target="' + savedTab + '"]');
+        if (tabEl) {
+            bootstrap.Tab.getOrCreateInstance(tabEl).show();
+        }
+    }
+    document.querySelectorAll('#permissionsTabs button[data-bs-toggle="tab"]').forEach(function(tab) {
+        tab.addEventListener('shown.bs.tab', function() {
+            localStorage.setItem('permissionsActiveTab', this.dataset.bsTarget);
+        });
+    });
 
     // ============ TAB 1: Permission Key Toggles (AJAX create/delete) ============
     document.querySelectorAll('.perm-toggle').forEach(function(pill) {

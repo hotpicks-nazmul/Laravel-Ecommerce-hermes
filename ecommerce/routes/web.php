@@ -301,6 +301,13 @@ Route::prefix('staff')->name('staff.')->group(function () {
     Route::post('/logout', [\App\Http\Controllers\Staff\AuthController::class, 'logout'])->name('logout');
 });
 
+// Staff Warehouse Picking Routes (requires staff role + warehouse_id)
+Route::prefix('staff/warehouses/{id}/picking')->middleware(['auth', \App\Http\Middleware\StaffMiddleware::class])->name('staff.warehouses.picking.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\WarehouseController::class, 'picking'])->name('index');
+    Route::patch('/orders/{orderId}/start-picking', [\App\Http\Controllers\Admin\WarehouseController::class, 'startPicking'])->name('orders.start-picking');
+    Route::patch('/orders/{orderId}/mark-packed', [\App\Http\Controllers\Admin\WarehouseController::class, 'markPacked'])->name('orders.mark-packed');
+});
+
 // Super Admin Dashboard Routes (requires super_admin role)
 Route::prefix('super-admin')->name('super-admin.')->middleware(['auth', 'super_admin'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])->name('dashboard');
@@ -308,7 +315,7 @@ Route::prefix('super-admin')->name('super-admin.')->middleware(['auth', 'super_a
 });
 
 // Admin Routes
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(base_path('routes/admin.php'));
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', \App\Http\Middleware\CheckSubmenuPermission::class])->group(base_path('routes/admin.php'));
 
 // Sitemap Route
 Route::get('/sitemap.xml', function () {

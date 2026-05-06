@@ -201,6 +201,7 @@
                         </th>
                         <th>Product Code</th>
                         <th>Category</th>
+                        @if(auth()->user()->hasPermission('products.view-cost'))
                         <th>
                             <a href="{{ route('admin.products.in-house', array_merge(request()->query(), ['sort' => 'purchase_price', 'direction' => request('sort') == 'purchase_price' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
                                 Cost
@@ -209,6 +210,7 @@
                                 @endif
                             </a>
                         </th>
+                        @endif
                         <th>
                             <a href="{{ route('admin.products.in-house', array_merge(request()->query(), ['sort' => 'price', 'direction' => request('sort') == 'price' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
                                 Price

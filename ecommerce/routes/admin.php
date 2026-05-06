@@ -1008,7 +1008,9 @@ Route::prefix('staffs')->middleware('permission:staffs')->name('staffs.')->group
     Route::delete('/{id}', [\App\Http\Controllers\Admin\StaffController::class, 'destroy'])->name('destroy');
     Route::post('/bulk-action', [\App\Http\Controllers\Admin\StaffController::class, 'bulkAction'])->name('bulk-action');
     Route::get('/warehouse', [\App\Http\Controllers\Admin\StaffController::class, 'warehouse'])->name('warehouse');
-    Route::get('/permissions', [\App\Http\Controllers\Admin\StaffController::class, 'permissions'])->name('permissions');
+    Route::get('/permissions', function () {
+        return redirect()->route('admin.permissions.index');
+    })->name('permissions');
     Route::post('/permissions', [\App\Http\Controllers\Admin\StaffController::class, 'updatePermissions'])->name('permissions.update');
 });
 
@@ -1019,8 +1021,8 @@ Route::prefix('permissions')->middleware(['permission:staffs', 'auth'])->name('p
     Route::delete('/{id}', [\App\Http\Controllers\Admin\PermissionController::class, 'destroy'])->name('destroy');
     Route::post('/bulk-delete', [\App\Http\Controllers\Admin\PermissionController::class, 'bulkDelete'])->name('bulk-delete');
     Route::post('/toggle-key', [\App\Http\Controllers\Admin\PermissionController::class, 'toggleKey'])->name('toggle-key');
-    Route::post('/toggle-visibility/{module}', [\App\Http\Controllers\Admin\PermissionController::class, 'toggleVisibility'])->name('toggle-visibility');
     Route::post('/toggle-submenu/{submenuKey}', [\App\Http\Controllers\Admin\PermissionController::class, 'toggleSubmenuVisibility'])->name('toggle-submenu');
+    Route::post('/toggle-visibility/{module}', [\App\Http\Controllers\Admin\PermissionController::class, 'toggleModuleVisibility'])->name('toggle-visibility');
 });
 
 // Role Management (super_admin only - dynamic CRUD)

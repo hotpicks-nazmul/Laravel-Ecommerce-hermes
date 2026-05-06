@@ -3,6 +3,7 @@
     <td>
         <div class="fw-semibold">{{ $order->order_number }}</div>
     </td>
+    @if(auth()->user()->hasPermission('orders.view-customer'))
     <td>
         @if($order->user)
             <div class="d-flex align-items-center">
@@ -19,10 +20,13 @@
             <small class="text-muted">{{ $order->billing_email }}</small>
         @endif
     </td>
+    @endif
+    @if(auth()->user()->hasPermission('orders.view-pricing'))
     <td>
         <div class="fw-semibold">৳{{ number_format($order->total, 2) }}</div>
         <small class="text-muted">{{ $order->items->count() }} item(s)</small>
     </td>
+    @endif
     <td>
         <div class="d-flex flex-column gap-1">
             <span class="badge {{ $order->payment_status_badge_class }}">
@@ -107,7 +111,7 @@
 </tr>
 @empty
 <tr>
-    <td colspan="7" class="text-center py-5">
+    <td colspan="{{ 7 - (auth()->user()->hasPermission('orders.view-customer') ? 0 : 1) - (auth()->user()->hasPermission('orders.view-pricing') ? 0 : 1) }}" class="text-center py-5">
         <i class="bi bi-inbox fs-1 d-block mb-2"></i>
         <p class="mb-0">No inhouse orders found.</p>
         <a href="{{ route('admin.orders.in-house.create') }}" class="btn btn-primary btn-sm mt-2">

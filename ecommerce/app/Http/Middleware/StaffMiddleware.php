@@ -38,6 +38,11 @@ class StaffMiddleware
             ]);
         }
 
+        // Check warehouse_id for warehouse-specific routes
+        if ($request->has('id') && $user->warehouse_id && (int) $request->id !== $user->warehouse_id) {
+            abort(403, 'You can only access your assigned warehouse.');
+        }
+
         return $next($request);
     }
 }

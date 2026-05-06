@@ -556,7 +556,7 @@ class StaffController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.staffs.permissions')
+        return redirect()->route('admin.permissions.index')
             ->with('success', 'Permissions updated successfully.');
     }
 

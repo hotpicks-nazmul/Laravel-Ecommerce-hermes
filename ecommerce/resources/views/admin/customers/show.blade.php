@@ -37,6 +37,7 @@
             </div>
         </div>
     </div>
+    @if(auth()->user()->hasPermission('customers.view-financial'))
     <div class="col-lg-3 col-md-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
@@ -67,6 +68,7 @@
             </div>
         </div>
     </div>
+    @endif
     <div class="col-lg-3 col-md-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
@@ -146,7 +148,9 @@
                             <tr>
                                 <th>Order ID</th>
                                 <th>Status</th>
+                                @if(auth()->user()->hasPermission('customers.view-financial'))
                                 <th>Amount</th>
+                                @endif
                                 <th>Date</th>
                                 <th>Actions</th>
                             </tr>
@@ -168,7 +172,9 @@
                                     @endphp
                                     <span class="badge bg-{{ $statusClass }}">{{ ucfirst($order->status) }}</span>
                                 </td>
+                                @if(auth()->user()->hasPermission('customers.view-financial'))
                                 <td>৳{{ number_format($order->total, 2) }}</td>
+                                @endif
                                 <td>{{ $order->created_at->format('d M, Y') }}</td>
                                 <td>
                                     <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-outline-primary">
@@ -178,7 +184,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">No orders found</td>
+                                <td colspan="{{ auth()->user()->hasPermission('customers.view-financial') ? 5 : 4 }}" class="text-center py-4 text-muted">No orders found</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -216,6 +222,7 @@
             </div>
         </div>
 
+        @if(auth()->user()->hasPermission('customers.view-financial'))
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-header bg-white">
                 <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>Purchase Statistics</h6>
@@ -239,6 +246,7 @@
                 </div>
             </div>
         </div>
+        @endif
 
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white">

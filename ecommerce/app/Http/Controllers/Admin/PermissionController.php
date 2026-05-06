@@ -184,24 +184,6 @@ class PermissionController extends Controller
     }
 
     /**
-     * Toggle a module's sidebar visibility.
-     */
-    public function toggleVisibility(string $module)
-    {
-        $this->authorizeAccess();
-
-        $visible = PermissionHelper::toggleModuleVisibility($module);
-
-        return response()->json([
-            'success' => true,
-            'visible' => $visible,
-            'message' => $visible
-                ? "Module '{$module}' is now visible in the sidebar."
-                : "Module '{$module}' is now hidden from the sidebar.",
-        ]);
-    }
-
-    /**
      * Toggle a submenu's sidebar visibility.
      */
     public function toggleSubmenuVisibility(string $submenuKey)
@@ -216,6 +198,24 @@ class PermissionController extends Controller
             'message' => $visible
                 ? "Submenu '{$submenuKey}' is now visible in the sidebar."
                 : "Submenu '{$submenuKey}' is now hidden from the sidebar.",
+        ]);
+    }
+
+    /**
+     * Toggle a module's sidebar visibility.
+     */
+    public function toggleModuleVisibility(string $module)
+    {
+        $this->authorizeAccess();
+
+        $visible = PermissionHelper::toggleModuleVisibility($module);
+
+        return response()->json([
+            'success' => true,
+            'visible' => $visible,
+            'message' => $visible
+                ? "Module '{$module}' is now visible in the sidebar."
+                : "Module '{$module}' is now hidden from the sidebar.",
         ]);
     }
 }

@@ -46,6 +46,7 @@
             <span class="stat-card-value">{{ ucfirst($order->payment_method ?? 'N/A') }}</span>
         </div>
     </div>
+    @if(auth()->user()->hasPermission('orders.view-pricing'))
     <div class="stat-card stat-card-warning">
         <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
         <div class="stat-card-content">
@@ -53,6 +54,7 @@
             <span class="stat-card-value">৳{{ number_format($order->total, 2) }}</span>
         </div>
     </div>
+    @endif
 </div>
 
 <div class="row">
@@ -145,9 +147,13 @@
                             <tr>
                                 <th style="width: 50px;">#</th>
                                 <th>Product</th>
+                                @if(auth()->user()->hasPermission('orders.view-pricing'))
                                 <th>Price</th>
+                                @endif
                                 <th>Qty</th>
+                                @if(auth()->user()->hasPermission('orders.view-pricing'))
                                 <th class="text-end">Total</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody>
@@ -181,12 +187,17 @@
                                         </div>
                                     </div>
                                 </td>
+                                @if(auth()->user()->hasPermission('orders.view-pricing'))
                                 <td>৳{{ number_format($item->price, 2) }}</td>
+                                @endif
                                 <td>{{ $item->quantity }}</td>
+                                @if(auth()->user()->hasPermission('orders.view-pricing'))
                                 <td class="text-end">৳{{ number_format($item->total, 2) }}</td>
+                                @endif
                             </tr>
                             @endforeach
                         </tbody>
+                        @if(auth()->user()->hasPermission('orders.view-pricing'))
                         <tfoot class="table-light">
                             <tr>
                                 <td colspan="4" class="text-end"><strong>Subtotal:</strong></td>
@@ -221,6 +232,7 @@
                                 <td class="text-end"><strong class="text-primary fs-5">৳{{ number_format($order->total, 2) }}</strong></td>
                             </tr>
                         </tfoot>
+                        @endif
                     </table>
                 </div>
             </div>
@@ -230,6 +242,7 @@
     <!-- Customer & Payment Info -->
     <div class="col-lg-4">
         <!-- Customer Info -->
+        @if(auth()->user()->hasPermission('orders.view-customer'))
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white py-3">
                 <h5 class="mb-0"><i class="bi bi-person me-2"></i>Customer</h5>
@@ -261,7 +274,9 @@
                 @endif
             </div>
         </div>
+        @endif
         
+        @if(auth()->user()->hasPermission('orders.view-customer'))
         <!-- Billing Address -->
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white py-3">
@@ -281,7 +296,7 @@
                 </p>
             </div>
         </div>
-        
+
         <!-- Shipping Address -->
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white py-3">
@@ -303,6 +318,7 @@
                 </p>
             </div>
         </div>
+        @endif
         
         <!-- Payment Info -->
         <div class="card border-0 shadow-sm mb-4">

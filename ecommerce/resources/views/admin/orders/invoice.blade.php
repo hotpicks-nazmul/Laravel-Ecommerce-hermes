@@ -34,6 +34,7 @@
             <hr>
 
             <!-- Addresses -->
+            @if(auth()->user()->hasPermission('orders.view-customer'))
             <div class="row mb-4">
                 <div class="col-md-6">
                     <h6 class="text-muted text-uppercase mb-2">Bill To</h6>
@@ -52,6 +53,7 @@
                     <p class="mb-0">{{ $order->shipping_country ?? $order->billing_country }}</p>
                 </div>
             </div>
+            @endif
 
             <!-- Status -->
             <div class="row mb-4">
@@ -104,6 +106,7 @@
                     </div>
                     @endif
                 </div>
+                @if(auth()->user()->hasPermission('orders.view-pricing'))
                 <div class="col-md-6">
                     <table class="table table-sm">
                         <tr>
@@ -134,6 +137,7 @@
                         </tr>
                     </table>
                 </div>
+                @endif
             </div>
 
             <!-- Payment Info -->

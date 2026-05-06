@@ -19,6 +19,7 @@
         <span class="text-muted">-</span>
         @endif
     </td>
+    @if(auth()->user()->hasPermission('refund.view-customer'))
     <td>
         @if($refund->user)
         <div>{{ $refund->user->name }}</div>
@@ -27,6 +28,7 @@
         <span class="text-muted">-</span>
         @endif
     </td>
+    @endif
     <td>
         <span class="badge bg-light text-dark">{{ $refund->reason_label }}</span>
     </td>
@@ -194,7 +196,7 @@
 </tr>
 @empty
 <tr>
-    <td colspan="9" class="text-center py-5">
+    <td colspan="{{ auth()->user()->hasPermission('refund.view-customer') ? 9 : 8 }}" class="text-center py-5">
         <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
         <p class="text-muted mb-2 mt-2">No refund requests found</p>
         <a href="{{ route('admin.refunds.configuration') }}" class="btn btn-sm btn-primary mt-1">

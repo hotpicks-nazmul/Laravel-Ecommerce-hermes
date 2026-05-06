@@ -15,8 +15,10 @@
         </div>
     </td>
     <td>{{ $customer->email }}</td>
+    @if(auth()->user()->hasPermission('customers.view-financial'))
     <td><span class="badge bg-info">{{ $customer->orders_count ?? 0 }}</span></td>
     <td>৳{{ number_format($customer->total_spent ?? 0, 2) }}</td>
+    @endif
     <td>
         <span class="badge bg-{{ $customer->status === 'active' ? 'success' : 'secondary' }}">
             {{ $customer->status === 'active' ? 'Active' : 'Inactive' }}
@@ -43,7 +45,7 @@
 </tr>
 @empty
 <tr>
-    <td colspan="8" class="text-center py-5">
+    <td colspan="{{ auth()->user()->hasPermission('customers.view-financial') ? 8 : 6 }}" class="text-center py-5">
         <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
         <p class="text-muted mb-2 mt-2">No customers found</p>
     </td>

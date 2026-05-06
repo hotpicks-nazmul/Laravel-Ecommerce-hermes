@@ -81,9 +81,13 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Product</th>
+                                @if(auth()->user()->hasPermission('orders.view-pricing'))
                                 <th class="text-center">Price</th>
+                                @endif
                                 <th class="text-center">Qty</th>
+                                @if(auth()->user()->hasPermission('orders.view-pricing'))
                                 <th class="text-end">Total</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody>
@@ -112,12 +116,17 @@
                                         </div>
                                     </div>
                                 </td>
+                                @if(auth()->user()->hasPermission('orders.view-pricing'))
                                 <td class="text-center">৳{{ number_format($item->price, 2) }}</td>
+                                @endif
                                 <td class="text-center">{{ $item->quantity }}</td>
+                                @if(auth()->user()->hasPermission('orders.view-pricing'))
                                 <td class="text-end fw-semibold">৳{{ number_format($item->total, 2) }}</td>
+                                @endif
                             </tr>
                             @endforeach
                         </tbody>
+                        @if(auth()->user()->hasPermission('orders.view-pricing'))
                         <tfoot class="table-light">
                             <tr>
                                 <td colspan="3" class="text-end">Subtotal:</td>
@@ -146,6 +155,7 @@
                                 <td class="text-end fw-bold fs-5 text-primary">৳{{ number_format($order->total, 2) }}</td>
                             </tr>
                         </tfoot>
+                        @endif
                     </table>
                 </div>
             </div>
@@ -218,6 +228,7 @@
         </div>
 
         <!-- Customer Information -->
+        @if(auth()->user()->hasPermission('orders.view-customer'))
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-header bg-white">
                 <h6 class="mb-0"><i class="bi bi-person me-2"></i>Customer Information</h6>
@@ -250,6 +261,7 @@
                 </div>
             </div>
         </div>
+        @endif
 
         <!-- Update Status -->
         @if(!$order->picked_up_at && $order->status !== 'cancelled')

@@ -20,6 +20,7 @@
             <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ $order->pickupPointLocation->city }}</small>
         @endif
     </td>
+    @if(auth()->user()->hasPermission('orders.view-customer'))
     <td>
         @if($order->user)
             <div class="d-flex align-items-center">
@@ -36,6 +37,7 @@
             <small class="text-muted">{{ $order->billing_email }}</small>
         @endif
     </td>
+    @endif
     <td>
         @if($order->pickupPointLocation)
             <div class="fw-medium">{{ $order->pickupPointLocation->name }}</div>
@@ -44,10 +46,12 @@
             <span class="text-muted">Not assigned</span>
         @endif
     </td>
+    @if(auth()->user()->hasPermission('orders.view-pricing'))
     <td>
         <div class="fw-semibold">৳{{ number_format($order->total, 2) }}</div>
         <small class="text-muted">{{ $order->items->count() }} item(s)</small>
     </td>
+    @endif
     <td>
         <div class="d-flex flex-column gap-1">
             <span class="badge {{ $order->payment_status_badge_class }}">
@@ -108,7 +112,9 @@
                         <div class="modal-body">
                             <div class="mb-3">
                                 <label class="form-label">Order <span class="text-primary">{{ $order->order_number }}</span></label>
+                                @if(auth()->user()->hasPermission('orders.view-customer'))
                                 <p class="text-muted mb-0">Customer: {{ $order->billing_full_name }}</p>
+                                @endif
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Picked Up By <span class="text-danger">*</span></label>
@@ -135,7 +141,7 @@
 </tr>
 @empty
 <tr>
-    <td colspan="9" class="text-center py-5">
+    <td colspan="{{ 9 - (auth()->user()->hasPermission('orders.view-customer') ? 0 : 1) - (auth()->user()->hasPermission('orders.view-pricing') ? 0 : 1) }}" class="text-center py-5">
         <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
         <p class="text-muted mb-2 mt-2">No pick-up point orders found.</p>
         <a href="{{ route('admin.orders.pickup-point') }}" class="btn btn-sm btn-outline-secondary mt-1">

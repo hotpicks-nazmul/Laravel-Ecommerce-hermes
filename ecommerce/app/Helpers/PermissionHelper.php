@@ -10,8 +10,8 @@ class PermissionHelper
 {
     private static ?Collection $cachedPermissions = null;
     private static ?array $cachedModules = null;
-    private static ?array $hiddenModules = null;
     private static ?array $hiddenSubmenus = null;
+    private static ?array $hiddenModules = null;
 
     /**
      * Get list of submenu keys that are hidden from sidebar.
@@ -53,6 +53,29 @@ class PermissionHelper
     public static function isSubmenuVisible(string $submenuKey): bool
     {
         return !in_array($submenuKey, self::hiddenSubmenus());
+    }
+
+    /**
+     * Check if user can see a submenu (global override + per-user permission).
+     * Super admins and admins bypass per-user check.
+     */
+    public static function canUserSeeSubmenu(string $routeName): bool
+    {
+        // Global master override (admin hides from everyone)
+        if (!self::isSubmenuVisible($routeName)) {
+            return false;
+        }
+
+        $user = auth()->user();
+        if (!$user) return false;
+        
+        // Super admin and admin bypass per-user check
+        if ($user->role === 'super_admin' || $user->role === 'admin') {
+            return true;
+        }
+
+        // Staff - check per-user submenu permission
+        return $user->hasPermission('submenu:' . $routeName);
     }
 
     /**
@@ -196,6 +219,36 @@ class PermissionHelper
     }
 
     /**
+     * Map submenu pages to their section-level permission actions.
+     * Key = route name, value = permission actions that apply to this page.
+     */
+    public static function pageSectionPermissions(): array
+    {
+        return [
+            // Order pages - customer info and pricing
+            'admin.orders.in-house' => ['view-customer', 'view-pricing'],
+            'admin.orders.seller' => ['view-customer', 'view-pricing'],
+            'admin.orders.pickup-point' => ['view-customer', 'view-pricing'],
+            'admin.orders.index' => ['view-customer', 'view-pricing'],
+
+            // Product - cost price
+            'admin.products.edit' => ['view-cost'],
+            'admin.products.create' => ['view-cost'],
+
+            // Customer - financial data
+            'admin.customers.index' => ['view-financial'],
+            'admin.customers.show' => ['view-financial'],
+
+            // Refund - customer info
+            'admin.refunds.show' => ['view-customer'],
+            'admin.refunds.index' => ['view-customer'],
+            'admin.refunds.requests' => ['view-customer'],
+            'admin.refunds.approved' => ['view-customer'],
+            'admin.refunds.rejected' => ['view-customer'],
+        ];
+    }
+
+    /**
      * Get list of module keys that are hidden from sidebar.
      */
     public static function hiddenModules(): array
@@ -213,19 +266,19 @@ class PermissionHelper
      * Toggle a module's sidebar visibility.
      * Returns the new state (true = visible, false = hidden).
      */
-    public static function toggleModuleVisibility(string $module): bool
+    public static function toggleModuleVisibility(string $moduleKey): bool
     {
         $hidden = self::hiddenModules();
-        if (in_array($module, $hidden)) {
-            $hidden = array_values(array_filter($hidden, fn($m) => $m !== $module));
+        if (in_array($moduleKey, $hidden)) {
+            $hidden = array_values(array_filter($hidden, fn($m) => $m !== $moduleKey));
             Setting::set('sidebar_hidden_modules', json_encode($hidden));
             self::$hiddenModules = $hidden;
-            return true; // now visible
+            return true;
         } else {
-            $hidden[] = $module;
+            $hidden[] = $moduleKey;
             Setting::set('sidebar_hidden_modules', json_encode($hidden));
             self::$hiddenModules = $hidden;
-            return false; // now hidden
+            return false;
         }
     }
 
@@ -440,6 +493,7 @@ class PermissionHelper
         self::$cachedPermissions = null;
         self::$cachedModules = null;
         self::$hiddenSubmenus = null;
+        self::$hiddenModules = null;
     }
 
     /**

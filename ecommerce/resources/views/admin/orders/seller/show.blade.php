@@ -47,6 +47,7 @@
             </div>
         </div>
     </div>
+    @if(auth()->user()->hasPermission('orders.view-pricing'))
     <div class="col-md-3 col-sm-6 mb-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center py-3">
@@ -55,6 +56,7 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
 
 <div class="row">
@@ -185,9 +187,13 @@
                                 <th style="width: 50px;">#</th>
                                 <th>Product</th>
                                 <th>Seller</th>
+                                @if(auth()->user()->hasPermission('orders.view-pricing'))
                                 <th>Price</th>
+                                @endif
                                 <th>Qty</th>
+                                @if(auth()->user()->hasPermission('orders.view-pricing'))
                                 <th>Total</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody>
@@ -226,12 +232,17 @@
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
+                                @if(auth()->user()->hasPermission('orders.view-pricing'))
                                 <td>৳{{ number_format($item->price, 2) }}</td>
+                                @endif
                                 <td>{{ $item->quantity }}</td>
+                                @if(auth()->user()->hasPermission('orders.view-pricing'))
                                 <td class="fw-semibold">৳{{ number_format($item->total, 2) }}</td>
+                                @endif
                             </tr>
                             @endforeach
                         </tbody>
+                        @if(auth()->user()->hasPermission('orders.view-pricing'))
                         <tfoot class="table-light">
                             <tr>
                                 <td colspan="5" class="text-end"><strong>Subtotal:</strong></td>
@@ -260,6 +271,7 @@
                                 <td class="fw-bold fs-5 text-primary">৳{{ number_format($order->total, 2) }}</td>
                             </tr>
                         </tfoot>
+                        @endif
                     </table>
                 </div>
             </div>
@@ -269,6 +281,7 @@
     <!-- Customer & Shipping Info -->
     <div class="col-lg-4">
         <!-- Customer Info -->
+        @if(auth()->user()->hasPermission('orders.view-customer'))
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white py-3">
                 <h5 class="mb-0"><i class="bi bi-person me-2"></i>Customer Information</h5>
@@ -298,8 +311,10 @@
                 </p>
             </div>
         </div>
+        @endif
 
         <!-- Shipping Info -->
+        @if(auth()->user()->hasPermission('orders.view-customer'))
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white py-3">
                 <h5 class="mb-0"><i class="bi bi-truck me-2"></i>Shipping Address</h5>
@@ -316,6 +331,7 @@
                 </p>
             </div>
         </div>
+        @endif
 
         <!-- Order Notes -->
         @if($order->notes)

@@ -46,6 +46,7 @@
     <td>
         <span class="badge bg-light text-dark">{{ $product->category->name ?? 'Uncategorized' }}</span>
     </td>
+    @if(auth()->user()->hasPermission('products.view-cost'))
     <td>
         @if($product->purchase_price || $product->cost_price)
             <span class="text-muted">৳{{ number_format($product->purchase_price ?? $product->cost_price, 0) }}</span>
@@ -53,6 +54,7 @@
             <span class="text-muted">-</span>
         @endif
     </td>
+    @endif
     <td>
         <div>
             @if($product->sale_price)

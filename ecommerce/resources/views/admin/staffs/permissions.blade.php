@@ -250,7 +250,7 @@
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                                 <i class="bi bi-x-lg me-1"></i> Cancel
                                             </button>
-                                            <button type="button" class="btn btn-primary save-permissions-btn" data-form-id="permissionsForm{{ $member->id }}">
+                                            <button type="submit" class="btn btn-primary">
                                                 <i class="bi bi-check-lg me-1"></i> Save Changes
                                             </button>
                                         </div>
@@ -417,55 +417,114 @@
             });
         }
 
-        // Save permissions via AJAX
-        document.querySelectorAll('.save-permissions-btn').forEach(function(btn) {
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        function updateModuleBadges(staffId) {
+            const form = document.getElementById('permissionsForm' + staffId);
+            if (!form) return;
+
+            const checkboxes = form.querySelectorAll('.perm-checkbox');
+            const moduleMap = {};
+
+            checkboxes.forEach(function(cb) {
+                const val = cb.value;
+                if (val.includes('.')) {
+                    const module = val.split('.')[0];
+                    if (!moduleMap[module]) moduleMap[module] = { total: 0, checked: 0 };
+                    moduleMap[module].total++;
+                    if (cb.checked) moduleMap[module].checked++;
+                }
+            });
+
+            Object.keys(moduleMap).forEach(function(module) {
+                const badge = document.getElementById('badgeStatus' + staffId + '_' + module);
+                if (badge) {
+                    const m = moduleMap[module];
+                    badge.className = 'badge ms-2 module-status-badge';
+                    if (m.checked === 0) {
+                        badge.classList.add('bg-secondary');
+                        badge.textContent = 'None';
+                    } else if (m.checked === m.total) {
+                        badge.classList.add('bg-success');
+                        badge.textContent = 'Full';
+                    } else {
+                        badge.classList.add('bg-info');
+                        badge.textContent = m.checked + '/' + m.total;
+                    }
+                }
+            });
+        }
+
+        // Handle role template selection
+        document.querySelectorAll('.role-template-select').forEach(function(select) {
+            select.addEventListener('change', function() {
+                const staffId = this.getAttribute('data-staff-id');
+                const selectedOption = this.options[this.selectedIndex];
+
+                if (this.value) {
+                    try {
+                        const permissions = JSON.parse(selectedOption.getAttribute('data-permissions') || '[]');
+                        document.querySelectorAll('#permissionsForm' + staffId + ' .perm-checkbox').forEach(cb => cb.checked = false);
+                        permissions.forEach(function(permName) {
+                            const cb = document.querySelector('#permissionsForm' + staffId + ' input[value="' + permName + '"]');
+                            if (cb) cb.checked = true;
+                        });
+                    } catch(e) {}
+                }
+                updateModuleBadges(staffId);
+            });
+        });
+
+        // Select all modules
+        document.querySelectorAll('.select-all-modules').forEach(function(btn) {
             btn.addEventListener('click', function() {
-                const formId = this.getAttribute('data-form-id');
-                const form = document.getElementById(formId);
-                if (!form) return;
+                const staffId = this.getAttribute('data-staff-id');
+                document.querySelectorAll('#permissionsForm' + staffId + ' .perm-checkbox').forEach(cb => cb.checked = true);
+                updateModuleBadges(staffId);
+            });
+        });
 
-                const formData = new FormData(form);
-                const submitBtn = this;
-                const originalText = submitBtn.innerHTML;
-                const modalEl = form.closest('.modal');
+        // Deselect all modules
+        document.querySelectorAll('.deselect-all-modules').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const staffId = this.getAttribute('data-staff-id');
+                document.querySelectorAll('#permissionsForm' + staffId + ' .perm-checkbox').forEach(cb => cb.checked = false);
+                const select = document.querySelector('#permissionsForm' + staffId + ' .role-template-select');
+                if (select) select.value = '';
+                updateModuleBadges(staffId);
+            });
+        });
 
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+        // Select all actions within a module
+        document.querySelectorAll('.select-module-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const staffId = this.getAttribute('data-staff-id');
+                const modulePrefix = this.getAttribute('data-module');
+                document.querySelectorAll('.perm-' + staffId + '-' + modulePrefix).forEach(cb => cb.checked = true);
+                updateModuleBadges(staffId);
+            });
+        });
 
-                fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Request failed');
-                    return response.json();
-                })
-                .then(data => {
-                    const modal = bootstrap.Modal.getInstance(modalEl);
-                    if (modal) modal.hide();
+        // Deselect all actions within a module
+        document.querySelectorAll('.deselect-module-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const staffId = this.getAttribute('data-staff-id');
+                const modulePrefix = this.getAttribute('data-module');
+                document.querySelectorAll('.perm-' + staffId + '-' + modulePrefix).forEach(cb => cb.checked = false);
+                updateModuleBadges(staffId);
+            });
+        });
 
-                    if (typeof adminToast === 'function') {
-                        adminToast('success', 'Success!', 'Permissions updated successfully.');
-                    } else {
-                        alert('Permissions saved successfully!');
-                    }
-
-                    setTimeout(() => location.reload(), 1500);
-                })
-                .catch(err => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalText;
-
-                    if (typeof adminToast === 'function') {
-                        adminToast('error', 'Error!', 'Failed to save permissions.');
-                    } else {
-                        alert('Failed to save permissions.');
-                    }
-                });
+        // Update badges when individual checkboxes change
+        document.querySelectorAll('.perm-checkbox').forEach(function(cb) {
+            cb.addEventListener('change', function() {
+                const form = this.closest('form');
+                if (form) {
+                    const match = form.id.match(/permissionsForm(\d+)/);
+                    if (match) updateModuleBadges(match[1]);
+                }
             });
         });
     });

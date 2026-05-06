@@ -10,74 +10,44 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
-            // Products
-            'products' => ['view', 'create', 'edit', 'delete', 'import', 'export'],
-            
-            // Orders
-            'orders' => ['view', 'create', 'edit', 'delete', 'export'],
-            
-            // Customers
-            'customers' => ['view', 'create', 'edit', 'delete', 'export'],
-            
-            // Marketing
-            'marketing' => ['view', 'create', 'edit', 'delete'],
-            
-            // Content
-            'content' => ['view', 'create', 'edit', 'delete'],
-            
-            // Appearance
-            'appearance' => ['view', 'create', 'edit', 'delete'],
-            
-            // Settings
-            'settings' => ['view', 'create', 'edit', 'delete'],
-            
-            // Support
-            'support' => ['view', 'create', 'edit', 'delete'],
-            
-            // Reports
-            'reports' => ['view', 'export'],
-            
-            // Inventory
-            'inventory' => ['view', 'create', 'edit', 'delete', 'export'],
-            
-            // Delivery
-            'delivery' => ['view', 'create', 'edit', 'delete'],
-            
-            // Refund
-            'refund' => ['view', 'manage'],
-            
-            // Sellers
-            'sellers' => ['view', 'create', 'edit', 'delete'],
-            
-            // Warehouse
-            'warehouse' => ['view', 'create', 'edit', 'delete'],
-            
-            // Staffs
-            'staffs' => ['all', 'permissions', 'roles'],
-            
-            // Locations
-            'locations' => ['states', 'cities', 'areas', 'settings'],
-            
-            // System
-            'system' => ['view', 'update', 'logs'],
-            
-            // OTP
-            'otp' => ['view', 'configure', 'credentials', 'templates'],
-            
-            // POS
-            'pos' => ['view', 'create', 'edit', 'delete'],
-            
-            // Affiliate
-            'affiliate' => ['view', 'create', 'edit', 'delete'],
-            
-            // Media
+            // View-only modules
+            'dashboard' => ['view'],
+            'analytics' => ['view'],
+            'products' => ['view'],
+            'customers' => ['view'],
+            'marketing' => ['view'],
+            'content' => ['view'],
+            'appearance' => ['view'],
+            'settings' => ['view'],
+            'support' => ['view'],
+            'reports' => ['view'],
+            'inventory' => ['view'],
+            'delivery' => ['view'],
+            'sellers' => ['view'],
+            'warehouse' => ['view'],
+            'staffs' => ['view'],
+            'pos' => ['view'],
+            'affiliate' => ['view'],
+            'multistore' => ['view'],
+
+            // Orders - with section-level permissions
+            'orders' => ['view', 'view-customer', 'view-pricing'],
+
+            // Products - with cost view permission
+            'products' => ['view', 'view-cost'],
+
+            // Customers - with financial view permission
+            'customers' => ['view', 'view-financial'],
+
+            // Refund - with customer view permission
+            'refund' => ['view', 'view-customer'],
+
+            // Non-CRUD: domain-specific actions
             'media' => ['view', 'upload', 'delete'],
-            
-            // Multi-Store
-            'multistore' => ['view', 'create', 'edit', 'delete'],
-            
-            // Addon
             'addon' => ['view', 'install', 'uninstall'],
+            'system' => ['view', 'update', 'logs'],
+            'otp' => ['view', 'configure', 'credentials', 'templates'],
+            'locations' => ['states', 'cities', 'areas', 'settings'],
         ];
 
         $created = 0;

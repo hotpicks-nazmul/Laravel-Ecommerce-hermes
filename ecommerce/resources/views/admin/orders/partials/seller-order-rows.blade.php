@@ -4,6 +4,7 @@
         <div class="fw-semibold">{{ $order->order_number }}</div>
         <small class="text-muted">{{ $order->items->count() }} item(s)</small>
     </td>
+    @if(auth()->user()->hasPermission('orders.view-customer'))
     <td>
         @if($order->user)
             <div class="d-flex align-items-center">
@@ -20,6 +21,7 @@
             <small class="text-muted">{{ $order->billing_email }}</small>
         @endif
     </td>
+    @endif
     <td>
         @php
             $sellers = [];
@@ -41,10 +43,12 @@
             <span class="badge bg-secondary">No Seller</span>
         @endif
     </td>
+    @if(auth()->user()->hasPermission('orders.view-pricing'))
     <td>
         <div class="fw-semibold">৳{{ number_format($order->total, 2) }}</div>
         <small class="text-muted">{{ ucfirst($order->payment_method ?? 'N/A') }}</small>
     </td>
+    @endif
     <td>
         <div class="d-flex flex-column gap-1">
             <span class="badge {{ $order->payment_status_badge_class }}">
@@ -128,7 +132,7 @@
 </tr>
 @empty
 <tr>
-    <td colspan="8" class="text-center py-5">
+    <td colspan="{{ 8 - (auth()->user()->hasPermission('orders.view-customer') ? 0 : 1) - (auth()->user()->hasPermission('orders.view-pricing') ? 0 : 1) }}" class="text-center py-5">
         <i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
         <p class="mb-0 text-muted">No seller orders found.</p>
         @if(request('search') || request('status') || request('payment_status') || request('seller_id'))

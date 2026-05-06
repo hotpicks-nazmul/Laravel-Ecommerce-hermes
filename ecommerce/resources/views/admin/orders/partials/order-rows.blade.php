@@ -14,6 +14,7 @@
     <td>
         <strong>{{ $order->order_number }}</strong>
     </td>
+    @if(auth()->user()->hasPermission('orders.view-customer'))
     <td>
         <div>
             <strong>{{ $order->billing_full_name }}</strong>
@@ -27,12 +28,15 @@
             @endif
         </div>
     </td>
+    @endif
+    @if(auth()->user()->hasPermission('orders.view-pricing'))
     <td>
         <div>৳{{ number_format($order->total, 2) }}</div>
         <small class="text-muted">
             <i class="bi bi-cart3 me-1"></i>{{ $order->items->count() }} items
         </small>
     </td>
+    @endif
     <td>
         <span class="badge {{ $order->payment_status_badge_class }}">
             {{ ucfirst($order->payment_status) }}
@@ -125,7 +129,7 @@
 </tr>
 @empty
 <tr>
-    <td colspan="7" class="text-center py-5">
+    <td colspan="{{ 7 - (auth()->user()->hasPermission('orders.view-customer') ? 0 : 1) - (auth()->user()->hasPermission('orders.view-pricing') ? 0 : 1) }}" class="text-center py-5">
         <i class="bi bi-folder text-muted" style="font-size: 3rem;"></i>
         <p class="text-muted mb-2 mt-2">No orders found</p>
         <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-primary mt-1">

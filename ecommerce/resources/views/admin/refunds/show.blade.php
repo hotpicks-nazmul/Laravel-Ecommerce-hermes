@@ -177,6 +177,7 @@
 
     <div class="col-lg-4">
         <!-- Customer Information -->
+        @if(auth()->user()->hasPermission('refund.view-customer'))
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-header bg-white">
                 <h6 class="mb-0"><i class="bi bi-person me-2"></i>Customer Information</h6>
@@ -204,6 +205,7 @@
                 @endif
             </div>
         </div>
+        @endif
 
         <!-- Actions -->
         <div class="card border-0 shadow-sm mb-3">
