@@ -136,6 +136,7 @@
     </div>
 
     <!-- Shipping Revenue -->
+    @if(auth()->user()->hasPermission('view-revenue'))
     <div class="col">
         <div class="stat-card stat-card-warning">
             <div class="stat-card-icon">
@@ -147,6 +148,7 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
 
 <!-- Quick Actions -->
@@ -229,7 +231,9 @@
                                 <th>Order #</th>
                                 <th>Customer</th>
                                 <th>Items</th>
+                                @if(auth()->user()->hasPermission('view-sales'))
                                 <th>Total</th>
+                                @endif
                                 <th>Payment</th>
                                 <th>Date</th>
                                 <th>Actions</th>
@@ -255,7 +259,9 @@
                                     </div>
                                 </td>
                                 <td>{{ $order->items->count() }} items</td>
+                                @if(auth()->user()->hasPermission('view-sales'))
                                 <td>{{ config('app.currency_symbol', '৳') }}{{ number_format($order->total, 2) }}</td>
+                                @endif
                                 <td>
                                     <span class="badge {{ $order->payment_status_badge_class }}">
                                         {{ ucfirst($order->payment_status) }}
@@ -298,7 +304,9 @@
                                 <th>Order #</th>
                                 <th>Customer</th>
                                 <th>Tracking #</th>
+                                @if(auth()->user()->hasPermission('view-sales'))
                                 <th>Total</th>
+                                @endif
                                 <th>Shipped Date</th>
                                 <th>Actions</th>
                             </tr>
@@ -322,7 +330,9 @@
                                     <span class="text-muted">-</span>
                                     @endif
                                 </td>
+                                @if(auth()->user()->hasPermission('view-sales'))
                                 <td>{{ config('app.currency_symbol', '৳') }}{{ number_format($order->total, 2) }}</td>
+                                @endif
                                 <td>{{ $order->updated_at->format('M d, Y') }}</td>
                                 <td>
                                     <div class="d-flex gap-1">
@@ -358,7 +368,9 @@
                             <tr>
                                 <th>Order #</th>
                                 <th>Customer</th>
+                                @if(auth()->user()->hasPermission('view-sales'))
                                 <th>Total</th>
+                                @endif
                                 <th>Delivered Date</th>
                                 <th>Actions</th>
                             </tr>
@@ -375,7 +387,9 @@
                                     <div class="fw-semibold">{{ $order->shipping_full_name }}</div>
                                     <small class="text-muted">{{ $order->shipping_phone }}</small>
                                 </td>
+                                @if(auth()->user()->hasPermission('view-sales'))
                                 <td>{{ config('app.currency_symbol', '৳') }}{{ number_format($order->total, 2) }}</td>
+                                @endif
                                 <td>{{ $order->updated_at->format('M d, Y g:i A') }}</td>
                                 <td>
                                     <a href="{{ route('admin.orders.in-house.show', $order->id) }}" class="btn btn-sm btn-outline-secondary table-action-btn">
@@ -406,7 +420,9 @@
                                 <th>Order #</th>
                                 <th>Customer</th>
                                 <th>Status</th>
+                                @if(auth()->user()->hasPermission('view-sales'))
                                 <th>Total</th>
+                                @endif
                                 <th>Date</th>
                                 <th>Actions</th>
                             </tr>
@@ -426,7 +442,9 @@
                                 <td>
                                     <span class="badge bg-danger">{{ ucfirst($order->status) }}</span>
                                 </td>
+                                @if(auth()->user()->hasPermission('view-sales'))
                                 <td>{{ config('app.currency_symbol', '৳') }}{{ number_format($order->total, 2) }}</td>
+                                @endif
                                 <td>{{ $order->updated_at->format('M d, Y') }}</td>
                                 <td>
                                     <a href="{{ route('admin.orders.in-house.show', $order->id) }}" class="btn btn-sm btn-outline-secondary table-action-btn">

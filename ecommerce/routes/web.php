@@ -315,7 +315,7 @@ Route::prefix('super-admin')->name('super-admin.')->middleware(['auth', 'super_a
 });
 
 // Admin Routes
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', \App\Http\Middleware\CheckSubmenuPermission::class])->group(base_path('routes/admin.php'));
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', \App\Http\Middleware\CheckSubmenuPermission::class, 'granular_permission'])->group(base_path('routes/admin.php'));
 
 // Sitemap Route
 Route::get('/sitemap.xml', function () {

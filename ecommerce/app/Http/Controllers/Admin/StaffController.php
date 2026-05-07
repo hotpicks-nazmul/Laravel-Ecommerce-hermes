@@ -480,11 +480,11 @@ class StaffController extends Controller
     {
         $currentUser = auth()->user();
 
-        if ($currentUser->role === 'staff') {
+        if (!$currentUser || $currentUser->role !== 'super_admin') {
             if ($request->ajax()) {
-                return response()->json(['message' => 'Unauthorized access.'], 403);
+                return response()->json(['message' => 'Only super admins can manage permissions.'], 403);
             }
-            abort(403, 'Unauthorized access. Staff members cannot manage permissions.');
+            abort(403, 'Only super admins can manage permissions.');
         }
 
         $request->validate([

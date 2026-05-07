@@ -60,10 +60,12 @@
                     <span class="text-muted">Pending Orders</span>
                     <span class="fw-bold text-warning">{{ $pendingOrders }}</span>
                 </div>
+                @if(auth()->user()->hasPermission('view-revenue'))
                 <div class="d-flex justify-content-between">
                     <span class="text-muted">Total Sales</span>
                     <span class="fw-bold text-success">৳{{ number_format($totalSales, 2) }}</span>
                 </div>
+                @endif
             </div>
         </div>
     </div>
@@ -75,6 +77,7 @@
                 <h6 class="mb-0"><i class="bi bi-wallet2 me-2"></i>Wallet & Commission</h6>
             </div>
             <div class="card-body">
+                @if(auth()->user()->hasPermission('view-revenue'))
                 <div class="d-flex justify-content-between mb-3">
                     <span class="text-muted">Wallet Balance</span>
                     <span class="fw-bold text-success">৳{{ number_format($seller->wallet_balance ?? 0, 2) }}</span>
@@ -83,6 +86,7 @@
                     <span class="text-muted">Pending Balance</span>
                     <span class="fw-bold text-warning">৳{{ number_format($seller->pending_balance ?? 0, 2) }}</span>
                 </div>
+                @endif
                 <div class="d-flex justify-content-between mb-3">
                     <span class="text-muted">Commission Rate</span>
                     <span class="fw-bold">{{ $seller->commission_rate ?? 10 }}%</span>
@@ -230,7 +234,9 @@
                             <tr>
                                 <th>Order</th>
                                 <th>Customer</th>
+                                @if(auth()->user()->hasPermission('view-sales'))
                                 <th>Amount</th>
+                                @endif
                                 <th>Status</th>
                                 <th>Date</th>
                             </tr>
@@ -242,7 +248,9 @@
                                     <a href="{{ route('admin.orders.show', $order->id) }}">{{ $order->order_number }}</a>
                                 </td>
                                 <td>{{ $order->user->name ?? 'N/A' }}</td>
+                                @if(auth()->user()->hasPermission('view-sales'))
                                 <td>৳{{ number_format($order->grand_total, 2) }}</td>
+                                @endif
                                 <td>
                                     <span class="badge bg-{{ $order->status === 'delivered' ? 'success' : ($order->status === 'cancelled' ? 'danger' : 'warning') }}">
                                         {{ ucfirst($order->status) }}

@@ -507,6 +507,19 @@ class User extends Authenticatable
                 // Permission doesn't exist in Spatie tables, fall through
             }
 
+            // For bare section permissions (e.g. 'view-revenue'), also check if user
+            // has any {module}.{permission} permission (e.g. 'dashboard.view-revenue')
+            try {
+                $suffixCheck = '.' . $permission;
+                foreach ($this->getAllPermissions() as $perm) {
+                    if (str_ends_with($perm->name, $suffixCheck)) {
+                        return true;
+                    }
+                }
+            } catch (\Exception $e) {
+                // Ignore relation loading errors
+            }
+
             // If it's a module-level key (e.g. 'products'), also check if user
             // has any granular permission under that module (e.g. 'products.view')
             if (!str_contains($permission, '.')) {

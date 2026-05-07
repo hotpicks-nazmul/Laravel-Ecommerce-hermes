@@ -52,6 +52,7 @@
                         <th>Total Conversions</th>
                         <td class="text-end">{{ number_format($affiliate->sales_count ?? 0) }}</td>
                     </tr>
+                    @if(auth()->user()->hasPermission('view-revenue'))
                     <tr>
                         <th>Total Sales</th>
                         <td class="text-end">${{ number_format($affiliate->total_earnings ?? 0, 2) }}</td>
@@ -68,6 +69,7 @@
                         <th>Pending Balance</th>
                         <td class="text-end">${{ number_format($affiliate->pending_balance ?? 0, 2) }}</td>
                     </tr>
+                    @endif
                 </table>
             </div>
         </div>
@@ -128,8 +130,10 @@
                             <tr>
                                 <th>Order</th>
                                 <th>Customer</th>
+                                @if(auth()->user()->hasPermission('view-revenue'))
                                 <th>Amount</th>
                                 <th>Commission</th>
+                                @endif
                                 <th>Date</th>
                             </tr>
                         </thead>
@@ -138,8 +142,10 @@
                             <tr>
                                 <td>#{{ $sale->order_id }}</td>
                                 <td>{{ $sale->customer_name ?? '-' }}</td>
+                                @if(auth()->user()->hasPermission('view-revenue'))
                                 <td>${{ number_format($sale->sale_amount, 2) }}</td>
                                 <td>${{ number_format($sale->commission_amount, 2) }}</td>
+                                @endif
                                 <td>{{ $sale->created_at->format('M d, Y') }}</td>
                             </tr>
                             @endforeach

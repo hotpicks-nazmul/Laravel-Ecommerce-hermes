@@ -37,10 +37,12 @@
                 </div>
             </div>
             <div class="col-md-4 text-md-end">
+                @if(auth()->user()->hasPermission('view-revenue'))
                 <div class="mb-2">
                     <div class="text-muted small">Wallet Balance</div>
                     <div class="h3 mb-0 text-success">৳{{ number_format($customer->wallet_balance, 2) }}</div>
                 </div>
+                @endif
                 <div>
                     <div class="text-muted small">Points</div>
                     <div class="h4 mb-0 text-warning">{{ number_format($customer->wallet_points ?? 0, 2) }} PTS</div>

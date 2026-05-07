@@ -34,6 +34,7 @@
             <span class="stat-card-value">{{ $recoveryRate }}%</span>
         </div>
     </div>
+    @if(auth()->user()->hasPermission('view-revenue'))
     <div class="stat-card stat-card-warning">
         <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
         <div class="stat-card-content">
@@ -41,6 +42,7 @@
             <span class="stat-card-value">{{ '৳' . number_format($recoveredRevenue, 2) }}</span>
         </div>
     </div>
+    @endif
 </div>
 
 <div class="row">
@@ -60,7 +62,9 @@
                                 <th class="text-center">Abandoned</th>
                                 <th class="text-center">Recovered</th>
                                 <th class="text-center">Recovery Rate</th>
+                                @if(auth()->user()->hasPermission('view-revenue'))
                                 <th class="text-end">Revenue Recovered</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody>
@@ -80,9 +84,11 @@
                                         <span class="badge bg-secondary">0%</span>
                                     @endif
                                 </td>
+                                @if(auth()->user()->hasPermission('view-revenue'))
                                 <td class="text-end">
                                     <strong>{{ '৳' . number_format($data->revenue, 2) }}</strong>
                                 </td>
+                                @endif
                             </tr>
                             @endforeach
                         </tbody>
@@ -136,6 +142,7 @@
                         @endif
                     </span>
                 </div>
+                @if(auth()->user()->hasPermission('view-revenue'))
                 <div class="d-flex justify-content-between">
                     <span class="text-muted">Avg. Order Value:</span>
                     <span class="fw-medium">
@@ -146,6 +153,7 @@
                         @endif
                     </span>
                 </div>
+                @endif
             </div>
         </div>
 

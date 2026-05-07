@@ -19,6 +19,7 @@
             <span class="stat-card-value">{{ number_format($totalQtySold) }}</span>
         </div>
     </div>
+    @if(auth()->user()->hasPermission('view-sales'))
     <div class="stat-card stat-card-success">
         <div class="stat-card-icon">
             <i class="bi bi-currency-dollar"></i>
@@ -28,6 +29,7 @@
             <span class="stat-card-value">৳{{ number_format($totalSales, 2) }}</span>
         </div>
     </div>
+    @endif
     <div class="stat-card stat-card-warning">
         <div class="stat-card-icon">
             <i class="bi bi-receipt"></i>
@@ -140,8 +142,12 @@
                         <th>Product Name</th>
                         <th class="text-center" style="width: 120px;">Orders</th>
                         <th class="text-end" style="width: 120px;">Qty Sold</th>
+                        @if(auth()->user()->hasPermission('view-sales'))
                         <th class="text-end" style="width: 150px;">Avg. Price</th>
+                        @endif
+                        @if(auth()->user()->hasPermission('view-sales'))
                         <th class="text-end" style="width: 150px;">Total Sales</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -162,10 +168,14 @@
                         <td class="text-end">
                             <span class="fw-medium">{{ number_format($item->total_qty) }}</span>
                         </td>
+                        @if(auth()->user()->hasPermission('view-sales'))
                         <td class="text-end">৳{{ number_format($item->avg_price, 2) }}</td>
+                        @endif
+                        @if(auth()->user()->hasPermission('view-sales'))
                         <td class="text-end">
                             <span class="fw-bold text-success">৳{{ number_format($item->total_sales, 2) }}</span>
                         </td>
+                        @endif
                     </tr>
                     @empty
                     <tr>

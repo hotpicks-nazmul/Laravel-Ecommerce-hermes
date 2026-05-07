@@ -9,60 +9,53 @@ class PermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        $permissions = [
-            // View-only modules
-            'dashboard' => ['view'],
-            'analytics' => ['view'],
-            'products' => ['view'],
-            'customers' => ['view'],
-            'marketing' => ['view'],
-            'content' => ['view'],
-            'appearance' => ['view'],
-            'settings' => ['view'],
-            'support' => ['view'],
-            'reports' => ['view'],
-            'inventory' => ['view'],
-            'delivery' => ['view'],
-            'sellers' => ['view'],
-            'warehouse' => ['view'],
-            'staffs' => ['view'],
-            'pos' => ['view'],
-            'affiliate' => ['view'],
-            'multistore' => ['view'],
-
-            // Orders - with section-level permissions
-            'orders' => ['view', 'view-customer', 'view-pricing'],
-
-            // Products - with cost view permission
-            'products' => ['view', 'view-cost'],
-
-            // Customers - with financial view permission
-            'customers' => ['view', 'view-financial'],
-
-            // Refund - with customer view permission
-            'refund' => ['view', 'view-customer'],
-
-            // Non-CRUD: domain-specific actions
-            'media' => ['view', 'upload', 'delete'],
-            'addon' => ['view', 'install', 'uninstall'],
-            'system' => ['view', 'update', 'logs'],
-            'otp' => ['view', 'configure', 'credentials', 'templates'],
-            'locations' => ['states', 'cities', 'areas', 'settings'],
+        $moduleActions = [
+            'dashboard'  => ['view'],
+            'analytics'  => ['view', 'export'],
+            'products'   => ['view', 'create', 'edit', 'delete', 'export', 'import', 'view-cost'],
+            'inventory'  => ['view', 'create', 'edit', 'delete', 'export', 'import'],
+            'orders'     => ['view', 'create', 'edit', 'delete', 'export', 'view-customer', 'view-pricing'],
+            'delivery'   => ['view', 'create', 'edit', 'delete', 'export'],
+            'refund'     => ['view', 'manage', 'view-customer'],
+            'customers'  => ['view', 'create', 'edit', 'delete', 'export', 'import', 'view-financial'],
+            'sellers'    => ['view', 'create', 'edit', 'delete', 'export', 'view-financial'],
+            'affiliate'  => ['view', 'create', 'edit', 'delete', 'view-financial'],
+            'media'      => ['view', 'upload', 'delete'],
+            'reports'    => ['view', 'export'],
+            'marketing'  => ['view', 'create', 'edit', 'delete'],
+            'support'    => ['view', 'create', 'edit', 'delete'],
+            'otp'        => ['view', 'configure', 'credentials', 'templates'],
+            'content'    => ['view', 'create', 'edit', 'delete'],
+            'appearance' => ['view', 'create', 'edit', 'delete'],
+            'settings'   => ['view', 'edit'],
+            'locations'  => ['view', 'create', 'edit', 'delete'],
+            'warehouse'  => ['view', 'create', 'edit', 'delete'],
+            'staffs'     => ['view', 'create', 'edit', 'delete'],
+            'system'     => ['view', 'update', 'logs'],
+            'pos'        => ['view', 'create', 'edit', 'delete'],
+            'addon'      => ['view', 'install', 'uninstall'],
+            'multistore' => ['view', 'create', 'edit', 'delete'],
         ];
 
-        $created = 0;
-        
-        foreach ($permissions as $module => $actions) {
+        $standalone = ['view-revenue', 'view-sales'];
+
+        $permissionNames = [];
+        foreach ($moduleActions as $module => $actions) {
             foreach ($actions as $action) {
-                $permissionName = $module . '.' . $action;
-                Permission::firstOrCreate([
-                    'name' => $permissionName,
-                    'guard_name' => 'web',
-                ]);
-                $created++;
+                $permissionNames[] = $module . '.' . $action;
             }
         }
+        $permissionNames = array_merge($permissionNames, $standalone);
 
-        $this->command->info("Created {$created} granular permissions.");
+        $created = 0;
+        foreach ($permissionNames as $name) {
+            Permission::firstOrCreate([
+                'name' => $name,
+                'guard_name' => 'web',
+            ]);
+            $created++;
+        }
+
+        $this->command->info("Created {$created} granular permissions across " . count($moduleActions) . " modules + " . count($standalone) . " standalone.");
     }
 }

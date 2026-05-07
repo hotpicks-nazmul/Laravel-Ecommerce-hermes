@@ -15,8 +15,8 @@ class PermissionController extends Controller
     private function authorizeAccess(): void
     {
         $user = auth()->user();
-        if ($user && $user->role === 'staff') {
-            abort(403, 'Staff members cannot manage permission configuration.');
+        if (!$user || $user->role !== 'super_admin') {
+            abort(403, 'Only super admins can manage permission configuration.');
         }
     }
 
@@ -36,9 +36,15 @@ class PermissionController extends Controller
 
         $existingModules = array_keys($permissions->toArray());
         $existingActions = $permissions->flatten()->map(fn($p) => explode('.', $p->name)[1] ?? 'view')->unique()->sort()->values()->toArray();
+
+        // All possible actions: merge common CRUD + existing + section actions
         $commonActions = ['view', 'create', 'edit', 'delete', 'export', 'import', 'manage', 'upload', 'install', 'uninstall'];
-        $allActions = array_unique(array_merge($commonActions, $existingActions));
+        $sectionActions = PermissionHelper::sectionActions();
+        $allActions = array_unique(array_merge($commonActions, $existingActions, $sectionActions));
         sort($allActions);
+
+        // Module actions define which actions each module supports
+        $moduleActions = PermissionHelper::moduleActions();
 
         // Tab 2: Role Templates
         $roles = Role::where('guard_name', 'web')
@@ -61,7 +67,7 @@ class PermissionController extends Controller
         $roleTemplates = Role::where('guard_name', 'web')->orderBy('name')->get();
 
         return view('admin.permissions.dashboard', compact(
-            'permissions', 'existingModules', 'allActions',
+            'permissions', 'existingModules', 'allActions', 'moduleActions',
             'roles', 'staff', 'permissionModules', 'roleTemplates'
         ));
     }

@@ -41,6 +41,7 @@
             <span class="stat-card-value">{{ $stats['avg_commission'] ?? 0 }}%</span>
         </div>
     </div>
+    @if(auth()->user()->hasPermission('view-revenue'))
     <div class="stat-card stat-card-warning">
         <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
         <div class="stat-card-content">
@@ -48,6 +49,7 @@
             <span class="stat-card-value">৳{{ number_format($stats['total_revenue'] ?? 0, 0) }}</span>
         </div>
     </div>
+    @endif
 </div>
 
 <!-- Header -->
@@ -153,7 +155,9 @@
                         <th>Shop Name</th>
                         <th>Email</th>
                         <th>Commission Rate</th>
+                        @if(auth()->user()->hasPermission('view-revenue'))
                         <th>Wallet Balance</th>
+                        @endif
                         <th>Status</th>
                         <th style="width: 120px;">Actions</th>
                     </tr>
@@ -177,7 +181,9 @@
                         <td>
                             <span class="badge bg-info">{{ $seller->commission_rate ?? $defaultCommission }}%</span>
                         </td>
+                        @if(auth()->user()->hasPermission('view-revenue'))
                         <td>৳{{ number_format($seller->wallet_balance ?? 0, 2) }}</td>
+                        @endif
                         <td>
                             @if($seller->status === 'active')
                                 <span class="badge bg-success">Active</span>

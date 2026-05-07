@@ -21,6 +21,7 @@
         <div class="stat-card-icon"><i class="bi bi-x-circle"></i></div>
         <div class="stat-card-content"><span class="stat-card-label">Out of Stock</span><span class="stat-card-value" id="statOutOfStock">{{ $stats['out_of_stock'] ?? 0 }}</span></div>
     </div>
+    @if(auth()->user()->hasPermission('view-revenue'))
     <div class="stat-card stat-card-info">
         <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
         <div class="stat-card-content"><span class="stat-card-label">Stock Value</span><span class="stat-card-value" id="statStockValue">৳{{ number_format($stats['total_stock_value'] ?? 0, 0) }}</span></div>
@@ -29,6 +30,7 @@
         <div class="stat-card-icon"><i class="bi bi-tag"></i></div>
         <div class="stat-card-content"><span class="stat-card-label">Retail Value</span><span class="stat-card-value" id="statRetailValue">৳{{ number_format($stats['total_retail_value'] ?? 0, 0) }}</span></div>
     </div>
+    @endif
 </div>
 
 <!-- Header -->

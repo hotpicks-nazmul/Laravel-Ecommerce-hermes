@@ -8,6 +8,7 @@
 </div>
 
 <div class="row mb-4">
+    @if(auth()->user()->hasPermission('view-revenue'))
     <div class="col-md-3">
         <div class="card stat-card">
             <div class="card-body">
@@ -16,6 +17,7 @@
             </div>
         </div>
     </div>
+    @endif
     <div class="col-md-3">
         <div class="card stat-card">
             <div class="card-body">
@@ -24,6 +26,7 @@
             </div>
         </div>
     </div>
+    @if(auth()->user()->hasPermission('view-revenue'))
     <div class="col-md-3">
         <div class="card stat-card">
             <div class="card-body">
@@ -32,6 +35,7 @@
             </div>
         </div>
     </div>
+    @endif
     <div class="col-md-3">
         <div class="card stat-card">
             <div class="card-body">
@@ -90,7 +94,9 @@
                         <th>Date</th>
                         <th>Customer</th>
                         <th>Items</th>
+                        @if(auth()->user()->hasPermission('view-sales'))
                         <th>Total</th>
+                        @endif
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -101,7 +107,9 @@
                         <td>{{ $order->created_at->format('d M, Y') }}</td>
                         <td>{{ $order->billing_first_name }} {{ $order->billing_last_name }}</td>
                         <td>{{ $order->items_count ?? $order->items->count() ?? 0 }}</td>
+                        @if(auth()->user()->hasPermission('view-sales'))
                         <td>৳{{ number_format($order->total, 2) }}</td>
+                        @endif
                         <td>
                             <span class="badge {{ $order->status === 'completed' ? 'bg-success' : ($order->status === 'cancelled' ? 'bg-danger' : 'bg-warning') }}">
                                 {{ ucfirst($order->status) }}

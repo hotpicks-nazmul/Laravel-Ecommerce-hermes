@@ -165,8 +165,11 @@
                                 @endif
                             </a>
                         </th>
+                        @if(auth()->user()->hasPermission('orders.view-customer'))
                         <th>Customer</th>
+                        @endif
                         <th>Pick-up Point</th>
+                        @if(auth()->user()->hasPermission('orders.view-pricing'))
                         <th>
                             <a href="{{ route('admin.orders.pickup-point', array_merge(request()->query(), ['sort' => 'total', 'direction' => request('sort') == 'total' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
                                 Total
@@ -175,6 +178,7 @@
                                 @endif
                             </a>
                         </th>
+                        @endif
                         <th>Payment</th>
                         <th>
                             <a href="{{ route('admin.orders.pickup-point', array_merge(request()->query(), ['sort' => 'status', 'direction' => request('sort') == 'status' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">

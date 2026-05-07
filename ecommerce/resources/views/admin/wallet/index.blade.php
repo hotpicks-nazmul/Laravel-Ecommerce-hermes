@@ -18,6 +18,7 @@
             <span class="stat-card-value">{{ number_format($stats['total_customers']) }}</span>
         </div>
     </div>
+    @if(auth()->user()->hasPermission('view-revenue'))
     <div class="stat-card stat-card-success">
         <div class="stat-card-icon"><i class="bi bi-wallet2"></i></div>
         <div class="stat-card-content">
@@ -25,6 +26,7 @@
             <span class="stat-card-value">৳{{ number_format($stats['total_wallet_balance'], 2) }}</span>
         </div>
     </div>
+    @endif
     <div class="stat-card stat-card-warning">
         <div class="stat-card-icon"><i class="bi bi-star"></i></div>
         <div class="stat-card-content">
@@ -107,7 +109,9 @@
                     <tr>
                         <th>Customer</th>
                         <th>Phone</th>
+                        @if(auth()->user()->hasPermission('view-revenue'))
                         <th class="text-end">Wallet Balance</th>
+                        @endif
                         <th class="text-end">Points</th>
                         <th>Joined</th>
                         <th style="width: 120px;">Actions</th>
@@ -128,11 +132,13 @@
                             </div>
                         </td>
                         <td>{{ $customer->phone ?? '-' }}</td>
+                        @if(auth()->user()->hasPermission('view-revenue'))
                         <td class="text-end">
                             <span class="text-success fw-medium">
                                 ৳{{ number_format($customer->wallet_balance, 2) }}
                             </span>
                         </td>
+                        @endif
                         <td class="text-end">
                             <span class="text-warning fw-medium">
                                 {{ number_format($customer->wallet_points ?? 0, 2) }} PTS

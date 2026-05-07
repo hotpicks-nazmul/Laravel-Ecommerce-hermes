@@ -91,6 +91,7 @@
                 <span class="stat-card-value">{{ number_format($stats['cancelled']) }}</span>
             </div>
         </div>
+        @if(auth()->user()->hasPermission('view-revenue'))
         <div class="stat-card stat-card-secondary">
             <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
             <div class="stat-card-content">
@@ -98,6 +99,7 @@
                 <span class="stat-card-value">৳{{ number_format($stats['total_shipping_revenue'], 2) }}</span>
             </div>
         </div>
+        @endif
     </div>
 
     <!-- Charts Row -->
@@ -147,7 +149,9 @@
                                     <th>Zone</th>
                                     <th class="text-center">Orders</th>
                                     <th class="text-center">Success</th>
+                                    @if(auth()->user()->hasPermission('view-revenue'))
                                     <th class="text-center">Revenue</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody>
@@ -162,7 +166,9 @@
                                             {{ $zone['success_rate'] }}%
                                         </span>
                                     </td>
+                                    @if(auth()->user()->hasPermission('view-revenue'))
                                     <td class="text-center">৳{{ number_format($zone['revenue'], 2) }}</td>
+                                    @endif
                                 </tr>
                                 @empty
                                 <tr>
@@ -314,7 +320,9 @@
                                 <tr>
                                     <th>Order #</th>
                                     <th>Status</th>
+                                    @if(auth()->user()->hasPermission('view-sales'))
                                     <th>Amount</th>
+                                    @endif
                                     <th>Date</th>
                                 </tr>
                             </thead>
@@ -329,7 +337,9 @@
                                     <td>
                                         <span class="badge bg-danger">{{ ucfirst($order->status) }}</span>
                                     </td>
+                                    @if(auth()->user()->hasPermission('view-sales'))
                                     <td>৳{{ number_format($order->total, 2) }}</td>
+                                    @endif
                                     <td>{{ $order->created_at->format('M d, Y') }}</td>
                                 </tr>
                                 @empty
@@ -363,8 +373,10 @@
                                 <tr>
                                     <th>Carrier</th>
                                     <th class="text-center">Total Orders</th>
+                                    @if(auth()->user()->hasPermission('view-revenue'))
                                     <th class="text-center">Shipping Revenue</th>
                                     <th class="text-center">Total Revenue</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody>
@@ -383,8 +395,10 @@
                                         </div>
                                     </td>
                                     <td class="text-center">{{ number_format($carrier['total_orders']) }}</td>
+                                    @if(auth()->user()->hasPermission('view-revenue'))
                                     <td class="text-center">৳{{ number_format($carrier['shipping_revenue'], 2) }}</td>
                                     <td class="text-center">৳{{ number_format($carrier['total_revenue'], 2) }}</td>
+                                    @endif
                                 </tr>
                                 @endforeach
                             </tbody>

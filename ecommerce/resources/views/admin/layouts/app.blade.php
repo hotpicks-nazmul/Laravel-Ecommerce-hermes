@@ -2285,7 +2285,7 @@
                         @if(\App\Helpers\PermissionHelper::canUserSeeSubmenu('admin.permissions.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.permissions.index') || request()->routeIs('admin.permissions.dashboard') ? 'active' : '' }}" href="{{ route('admin.permissions.index') }}">
-                                <i class="bi bi-key"></i> Permission Keys
+                                <i class="bi bi-key"></i> Permission Settings
                             </a>
                         </li>
                         @endif

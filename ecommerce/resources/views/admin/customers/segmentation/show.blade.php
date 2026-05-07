@@ -174,7 +174,9 @@
                         <th>Email</th>
                         <th>Phone</th>
                         <th>Orders</th>
+                        @if(auth()->user()->hasPermission('view-revenue'))
                         <th>Total Spent</th>
+                        @endif
                         <th>Joined</th>
                         <th style="width: 80px;">Actions</th>
                     </tr>
@@ -205,9 +207,11 @@
                                 {{ $customer->orders_count }}
                             </span>
                         </td>
+                        @if(auth()->user()->hasPermission('view-revenue'))
                         <td>
                             <span class="fw-semibold">{{ number_format($customer->orders->sum('grand_total'), 2) }}</span>
                         </td>
+                        @endif
                         <td>
                             <span class="text-muted small">
                                 {{ $customer->created_at->format('M d, Y') }}
@@ -221,7 +225,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center py-5">
+                        <td colspan="{{ auth()->user()->hasPermission('view-revenue') ? 7 : 6 }}" class="text-center py-5">
                             <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
                             <p class="text-muted mb-2 mt-2">No customers in this segment</p>
                         </td>

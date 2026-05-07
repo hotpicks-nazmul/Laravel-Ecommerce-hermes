@@ -141,15 +141,6 @@
                             </a>
                         </th>
                         @endif
-                        <th>
-                            <a href="{{ route('admin.customers.index', array_merge(request()->query(), ['sort' => 'total_spent', 'direction' => request('sort') == 'total_spent' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">
-                                Total Spent
-                                @if(request('sort') == 'total_spent')
-                                    <i class="bi bi-caret-{{ request('direction') == 'asc' ? 'up' : 'down' }}-fill"></i>
-                                @endif
-                            </a>
-                        </th>
-                        @endif
                         <th>Status</th>
                         <th>
                             <a href="{{ route('admin.customers.index', array_merge(request()->query(), ['sort' => 'created_at', 'direction' => request('sort') == 'created_at' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">

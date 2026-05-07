@@ -8,8 +8,10 @@
     <td><code>{{ $affiliate->affiliate_code }}</code></td>
     <td>{{ number_format($affiliate->clicks_count) }}</td>
     <td>{{ number_format($affiliate->sales_count) }}</td>
+    @if(auth()->user()->hasPermission('view-revenue'))
     <td>${{ number_format($affiliate->total_sales ?? 0, 2) }}</td>
     <td>${{ number_format($affiliate->total_commission ?? 0, 2) }}</td>
+    @endif
     <td>
         @if($affiliate->status === 'approved')
         <span class="badge bg-success">Active</span>

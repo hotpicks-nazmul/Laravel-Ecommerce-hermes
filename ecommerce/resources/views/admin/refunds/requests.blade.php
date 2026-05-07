@@ -143,7 +143,9 @@
                             </a>
                         </th>
                         <th>Order</th>
+                        @if(auth()->user()->hasPermission('refund.view-customer'))
                         <th>Customer</th>
+                        @endif
                         <th>Reason</th>
                         <th class="text-end">
                             <a href="{{ route('admin.refunds.requests', array_merge(request()->query(), ['sort' => 'refund_amount', 'direction' => request('sort') == 'refund_amount' && request('direction') == 'asc' ? 'desc' : 'asc'])) }}" class="text-decoration-none text-dark">

@@ -3,6 +3,7 @@
 @section('title', 'Dashboard')
 
 @section('content')
+@if(auth()->user()->hasPermission('view-revenue'))
 <!-- Statistics Cards -->
 <div class="stat-card-row mb-4">
     <!-- Total Sales -->
@@ -49,7 +50,9 @@
         </div>
     </div>
 </div>
+@endif
 
+@if(auth()->user()->hasPermission('view-revenue'))
 <!-- Main Charts Row -->
 <div class="row mb-4">
     <!-- Sales Overview Chart -->
@@ -153,6 +156,7 @@
         </div>
     </div>
 </div>
+@endif
 
 <!-- Data Tables Row -->
 <div class="row mb-4">
@@ -170,7 +174,9 @@
                             <tr>
                                 <th>Order ID</th>
                                 <th>Customer</th>
+                                @if(auth()->user()->hasPermission('view-sales'))
                                 <th>Total</th>
+                                @endif
                                 <th>Status</th>
                                 <th>Date</th>
                                 <th>Action</th>
@@ -181,7 +187,9 @@
                             <tr>
                                 <td><strong>{{ $order->order_number }}</strong></td>
                                 <td>{{ $order->billing_full_name }}</td>
+                                @if(auth()->user()->hasPermission('view-sales'))
                                 <td>৳{{ number_format($order->total, 2) }}</td>
+                                @endif
                                 <td>
                                     <span class="badge {{ $order->status_badge_class }}">{{ ucfirst($order->status) }}</span>
                                 </td>
@@ -321,6 +329,7 @@
 @endpush
 
 @push('scripts')
+@if(auth()->user()->hasPermission('view-revenue'))
 <script>
     // Chart.js default configuration
     Chart.defaults.font.family = "'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif";
@@ -659,4 +668,5 @@
         }
     });
 </script>
+@endif
 @endpush

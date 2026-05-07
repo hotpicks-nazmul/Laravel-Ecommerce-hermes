@@ -48,6 +48,7 @@
 
     <!-- Summary Statistics -->
     <div class="stat-card-row stat-card-row-4 mb-4" id="statsCards">
+        @if(auth()->user()->hasPermission('view-revenue'))
         <div class="stat-card stat-card-primary">
             <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
             <div class="stat-card-content">
@@ -55,6 +56,7 @@
                 <span class="stat-card-value">৳{{ number_format($totalSales, 2) }}</span>
             </div>
         </div>
+        @endif
         <div class="stat-card stat-card-success">
             <div class="stat-card-icon"><i class="bi bi-cart3"></i></div>
             <div class="stat-card-content">
@@ -62,6 +64,7 @@
                 <span class="stat-card-value">{{ $totalOrders }}</span>
             </div>
         </div>
+        @if(auth()->user()->hasPermission('view-revenue'))
         <div class="stat-card stat-card-info">
             <div class="stat-card-icon"><i class="bi bi-calculator"></i></div>
             <div class="stat-card-content">
@@ -69,6 +72,8 @@
                 <span class="stat-card-value">৳{{ number_format($averageOrderValue, 2) }}</span>
             </div>
         </div>
+        @endif
+        @if(auth()->user()->hasPermission('view-revenue'))
         <div class="stat-card stat-card-warning">
             <div class="stat-card-icon"><i class="bi bi-calendar-check"></i></div>
             <div class="stat-card-content">
@@ -76,8 +81,10 @@
                 <span class="stat-card-value">{{ $totalOrders > 0 ? round(($totalSales / max(1, count($dailySales))), 2) : 0 }}</span>
             </div>
         </div>
+        @endif
     </div>
 
+    @if(auth()->user()->hasPermission('view-revenue'))
     <!-- Payment Method Breakdown -->
     <div class="stat-card-row stat-card-row-3 mb-4">
         <div class="stat-card stat-card-success">
@@ -117,6 +124,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <div class="row">
         <!-- Daily Sales Chart -->
@@ -132,8 +140,10 @@
                             <thead>
                                 <tr>
                                     <th>Date</th>
-                                    <th>Orders</th>
-                                    <th>Total</th>
+                                        <th>Orders</th>
+                                        @if(auth()->user()->hasPermission('view-revenue'))
+                                        <th>Total</th>
+                                        @endif
                                 </tr>
                             </thead>
                             <tbody>
@@ -141,7 +151,9 @@
                                 <tr>
                                     <td>{{ $date }}</td>
                                     <td>{{ $data['count'] }}</td>
+                                    @if(auth()->user()->hasPermission('view-revenue'))
                                     <td class="fw-medium">৳{{ number_format($data['total'], 2) }}</td>
+                                    @endif
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -170,7 +182,9 @@
                                 <tr>
                                     <th>Product</th>
                                     <th>Qty Sold</th>
+                                    @if(auth()->user()->hasPermission('view-revenue'))
                                     <th>Revenue</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody>
@@ -178,7 +192,9 @@
                                 <tr>
                                     <td>{{ $item->product_name }}</td>
                                     <td>{{ $item->total_qty }}</td>
+                                    @if(auth()->user()->hasPermission('view-revenue'))
                                     <td class="fw-medium">৳{{ number_format($item->total_sales, 2) }}</td>
+                                    @endif
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -208,9 +224,11 @@
                             <th>Order #</th>
                             <th>Date</th>
                             <th>Items</th>
+                            @if(auth()->user()->hasPermission('view-sales'))
                             <th>Subtotal</th>
                             <th>Discount</th>
                             <th>Total</th>
+                            @endif
                             <th>Payment</th>
                             <th>Status</th>
                             <th>Actions</th>
@@ -224,9 +242,11 @@
                             </td>
                             <td>{{ $order->created_at->format('Y-m-d H:i') }}</td>
                             <td>{{ $order->items->count() }}</td>
+                            @if(auth()->user()->hasPermission('view-sales'))
                             <td>৳{{ number_format($order->subtotal, 2) }}</td>
                             <td>৳{{ number_format($order->discount ?? 0, 2) }}</td>
                             <td class="fw-bold">৳{{ number_format($order->total, 2) }}</td>
+                            @endif
                             <td>
                                 <span class="badge bg-secondary">{{ ucfirst($order->payment_method) }}</span>
                             </td>

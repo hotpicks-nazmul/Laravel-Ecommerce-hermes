@@ -46,6 +46,7 @@
             <span class="stat-card-value">{{ number_format($stats['email_sent'] ?? 0) }}</span>
         </div>
     </div>
+    @if(auth()->user()->hasPermission('view-revenue'))
     <div class="stat-card stat-card-success">
         <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
         <div class="stat-card-content">
@@ -53,6 +54,7 @@
             <span class="stat-card-value">{{ '৳' . number_format($stats['total_revenue_recovered'] ?? 0, 2) }}</span>
         </div>
     </div>
+    @endif
 </div>
 
 <!-- Header -->
@@ -128,7 +130,9 @@
                             <tr>
                                 <th>Customer</th>
                                 <th>Items</th>
+                                @if(auth()->user()->hasPermission('view-revenue'))
                                 <th>Total</th>
+                                @endif
                                 <th>Abandoned Date</th>
                                 <th>Emails Sent</th>
                                 <th>Status</th>
@@ -145,9 +149,11 @@
                                 <td>
                                     <span class="badge bg-secondary">{{ $record->item_count }} items</span>
                                 </td>
+                                @if(auth()->user()->hasPermission('view-revenue'))
                                 <td>
                                     <strong>{{ '৳' . number_format($record->cart_total, 2) }}</strong>
                                 </td>
+                                @endif
                                 <td>
                                     {{ $record->abandoned_at ? $record->abandoned_at->format('M d, Y h:i A') : 'N/A' }}
                                 </td>
@@ -216,7 +222,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center py-5">
+                                <td colspan="{{ auth()->user()->hasPermission('view-revenue') ? 7 : 6 }}" class="text-center py-5">
                                     <i class="bi bi-cart-x text-muted" style="font-size: 3rem;"></i>
                                     <p class="text-muted mb-2 mt-2">No abandoned cart records found</p>
                                     <a href="{{ route('admin.marketing.abandoned-cart.settings') }}" class="btn btn-sm btn-primary mt-1">

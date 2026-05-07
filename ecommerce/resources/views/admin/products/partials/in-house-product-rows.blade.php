@@ -105,7 +105,7 @@
 </tr>
 @empty
 <tr>
-    <td colspan="11" class="text-center py-5">
+    <td colspan="{{ auth()->user()->hasPermission('products.view-cost') ? 11 : 10 }}" class="text-center py-5">
         <div class="text-muted">
             <i class="bi bi-box-seam display-4"></i>
             <p class="mt-2 mb-1">No in-house products found.</p>

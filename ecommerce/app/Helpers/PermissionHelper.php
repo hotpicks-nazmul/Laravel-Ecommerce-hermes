@@ -79,7 +79,51 @@ class PermissionHelper
     }
 
     /**
+     * Get comprehensive module-to-action mapping.
+     * Defines which CRUD and special actions each module supports.
+     */
+    public static function moduleActions(): array
+    {
+        return [
+            'dashboard'  => ['view'],
+            'analytics'  => ['view', 'export'],
+            'products'   => ['view', 'create', 'edit', 'delete', 'export', 'import', 'view-cost'],
+            'inventory'  => ['view', 'create', 'edit', 'delete', 'export', 'import'],
+            'orders'     => ['view', 'create', 'edit', 'delete', 'export', 'view-customer', 'view-pricing'],
+            'delivery'   => ['view', 'create', 'edit', 'delete', 'export'],
+            'refund'     => ['view', 'manage', 'view-customer'],
+            'customers'  => ['view', 'create', 'edit', 'delete', 'export', 'import', 'view-financial'],
+            'sellers'    => ['view', 'create', 'edit', 'delete', 'export', 'view-financial'],
+            'affiliate'  => ['view', 'create', 'edit', 'delete', 'view-financial'],
+            'media'      => ['view', 'upload', 'delete'],
+            'reports'    => ['view', 'export'],
+            'marketing'  => ['view', 'create', 'edit', 'delete'],
+            'support'    => ['view', 'create', 'edit', 'delete'],
+            'otp'        => ['view', 'configure', 'credentials', 'templates'],
+            'content'    => ['view', 'create', 'edit', 'delete'],
+            'appearance' => ['view', 'create', 'edit', 'delete'],
+            'settings'   => ['view', 'edit'],
+            'locations'  => ['view', 'create', 'edit', 'delete'],
+            'warehouse'  => ['view', 'create', 'edit', 'delete'],
+            'staffs'     => ['view', 'create', 'edit', 'delete'],
+            'system'     => ['view', 'update', 'logs'],
+            'pos'        => ['view', 'create', 'edit', 'delete'],
+            'addon'      => ['view', 'install', 'uninstall'],
+            'multistore' => ['view', 'create', 'edit', 'delete'],
+        ];
+    }
+
+    /**
+     * Get list of all section-level permission actions (used to filter them out of module actions).
+     */
+    public static function sectionActions(): array
+    {
+        return ['view-customer', 'view-pricing', 'view-cost', 'view-financial', 'view-revenue', 'view-sales'];
+    }
+
+    /**
      * Get all submenus mapping (submenu_key => route_name => label).
+     * Complete coverage of ALL sidebar navigation items.
      */
     public static function submenus(): array
     {
@@ -101,56 +145,17 @@ class PermissionHelper
                 'admin.product-qa.index' => 'Product Q&A',
                 'admin.wishlists.index' => 'Wishlist Management',
             ],
+            'inventory' => [
+                'admin.inventory.index' => 'Inventory Overview',
+                'admin.inventory.stock-alerts' => 'Stock Alerts',
+                'admin.inventory.stock-history' => 'Stock History',
+            ],
             'orders' => [
                 'admin.orders.in-house' => 'In-House Orders',
                 'admin.orders.seller' => 'Seller Orders',
                 'admin.orders.pickup-point' => 'Pickup Point Orders',
-                'admin.orders.refund-requests' => 'Refund Requests',
-            ],
-            'customers' => [
-                'admin.customers.index' => 'Customer List',
-                'admin.customers.wallets' => 'Customer Wallets',
-                'admin.customers.loyalty-points' => 'Loyalty Points',
-            ],
-            'sellers' => [
-                'admin.sellers.index' => 'Seller List',
-                'admin.seller-verify-requests.index' => 'Verify Requests',
-                'admin.seller-warehouse.index' => 'Seller Products',
-            ],
-            'marketing' => [
-                'admin.marketing.flash-deals.index' => 'Flash Deals',
-                'admin.marketing.coupons.index' => 'Coupons',
-                'admin.marketing.newsletters.index' => 'Newsletters',
-                'admin.marketing.sms.index' => 'SMS',
-            ],
-            'content' => [
-                'admin.blogs.index' => 'Blog',
-                'admin.pages.index' => 'Pages',
-            ],
-            'appearance' => [
-                'admin.appearance.index' => 'Theme',
-                'admin.menus.index' => 'Menu',
-                'admin.widgets.index' => 'Widgets',
-                'admin.media.index' => 'Media',
-            ],
-            'settings' => [
-                'admin.settings.index' => 'General',
-                'admin.settings.payment' => 'Payment',
-                'admin.settings.shipping' => 'Shipping',
-                'admin.settings.otp' => 'OTP',
-                'admin.settings.email' => 'Email',
-            ],
-            'support' => [
-                'admin.support.tickets.index' => 'Tickets',
-                'admin.support.faqs.index' => 'FAQs',
-            ],
-            'reports' => [
-                'admin.reports.index' => 'Reports',
-                'admin.reviews.index' => 'Reviews',
-            ],
-            'inventory' => [
-                'admin.inventory.index' => 'Stock',
-                'admin.inventory.add' => 'Add Stock',
+                'admin.quotations.index' => 'Quotations',
+                'admin.subscriptions.index' => 'Subscriptions',
             ],
             'delivery' => [
                 'admin.delivery.index' => 'Delivery Dashboard',
@@ -171,28 +176,104 @@ class PermissionHelper
                 'admin.refunds.rejected' => 'Rejected Refunds',
                 'admin.refunds.configuration' => 'Refund Configuration',
             ],
+            'customers' => [
+                'admin.customers.index' => 'All Customers',
+                'admin.customers.groups.index' => 'Customer Groups',
+                'admin.customers.segmentation.index' => 'Customer Segmentation',
+                'admin.customers.loyalty.index' => 'Loyalty Points',
+                'admin.customers.membership.index' => 'Membership Plans',
+                'admin.customers.wallet.index' => 'Customer Wallet',
+            ],
+            'sellers' => [
+                'admin.sellers.index' => 'All Sellers',
+                'admin.sellers.payouts' => 'Payouts',
+                'admin.sellers.payout-requests' => 'Payout Requests',
+                'admin.sellers.commission' => 'Seller Commission',
+                'admin.sellers.verification' => 'Seller Verification',
+            ],
             'affiliate' => [
-                'admin.affiliate.index' => 'Affiliate',
-                'admin.affiliate.config' => 'Configuration',
+                'admin.affiliate.users.index' => 'Affiliate Users',
+                'admin.affiliate.configuration' => 'Affiliate Configuration',
+                'admin.affiliate.payouts' => 'Affiliate Payouts',
+                'admin.affiliate.requests' => 'Affiliate Requests',
+                'admin.affiliate.categories.index' => 'Affiliate Categories',
+                'admin.affiliate.products.index' => 'Affiliate Products',
+                'admin.affiliate.links.index' => 'Affiliate Links',
+                'admin.affiliate.banners.index' => 'Affiliate Banners',
+                'admin.affiliate.reports' => 'Affiliate Reports',
             ],
             'media' => [
                 'admin.media.index' => 'Media',
             ],
-            'warehouse' => [
-                'admin.warehouses.index' => 'Warehouse',
+            'reports' => [
+                'admin.reports.in-house-product-sale' => 'In-House Product Sale',
+                'admin.reports.seller-sales' => 'Seller Products Sale',
+                'admin.reports.inventory' => 'Products Stock',
+                'admin.reports.wishlist' => 'Products Wishlist',
+                'admin.reports.user-searches' => 'User Searches',
+                'admin.reports.commission-history' => 'Commission History',
+                'admin.reports.wallet-history' => 'Wallet Recharge History',
+                'admin.jakat.index' => 'Jakat Calculator',
             ],
-            'staffs' => [
-                'admin.staffs.index' => 'Staff',
-                'admin.staffs.roles' => 'Roles',
-                'admin.staffs.permissions' => 'Permissions',
-                'admin.permissions.index' => 'Permission Keys',
+            'marketing' => [
+                'admin.marketing.flash-deals.index' => 'Flash Deals',
+                'admin.marketing.newsletters.index' => 'Newsletters',
+                'admin.marketing.bulk-sms.index' => 'Bulk SMS',
+                'admin.marketing.subscribers.index' => 'Subscribers',
+                'admin.coupons.index' => 'Coupon',
+                'admin.marketing.abandoned-cart.index' => 'Abandoned Cart Recovery',
+                'admin.marketing.gift-cards.index' => 'Gift Cards',
+                'admin.marketing.push-notifications.index' => 'Push Notifications',
+                'admin.marketing.price-rules.index' => 'Price Rules',
             ],
-            'system' => [
-                'admin.system.update' => 'Updates',
-                'admin.system.logs' => 'Logs',
+            'support' => [
+                'admin.support.tickets.index' => 'Ticket',
+                'admin.chat.index' => 'Live Chat',
+                'admin.chat.ai-settings.index' => 'AI Chatbot Settings',
+                'admin.chat.widget-settings.index' => 'Chat Widget Settings',
+                'admin.chat.predefined.index' => 'Quick Replies',
+                'admin.settings.whatsapp' => 'WhatsApp Chat',
+                'admin.support.product-queries.index' => 'Product Queries',
             ],
-            'pos' => [
-                'admin.pos.index' => 'POS',
+            'otp' => [
+                'admin.otp.configuration' => 'OTP Configurations',
+                'admin.otp.sms-templates' => 'SMS Templates',
+                'admin.otp.credentials' => 'Set OTP Credentials',
+            ],
+            'content' => [
+                'admin.pages.index' => 'Pages',
+                'admin.blogs.index' => 'Blog Posts',
+                'admin.blog-categories.index' => 'Blog Categories',
+                'admin.blog-tags.index' => 'Blog Tags',
+                'admin.form-builder.index' => 'Form Builder',
+                'admin.faqs.index' => 'FAQs',
+                'admin.content.widgets.index' => 'Widget Manager',
+            ],
+            'appearance' => [
+                'admin.themes.index' => 'Themes',
+                'admin.menus.index' => 'Menu Builder',
+                'admin.sliders.index' => 'Sliders',
+                'admin.banners.index' => 'Banners',
+                'admin.hero.index' => 'Hero Section',
+                'admin.homepage.index' => 'Home Page Settings',
+            ],
+            'settings' => [
+                'admin.settings.general' => 'General Settings',
+                'admin.settings.languages' => 'Languages',
+                'admin.settings.currency' => 'Currency',
+                'admin.settings.vat-tax' => 'VAT & Tax',
+                'admin.settings.email' => 'SMTP Settings',
+                'admin.payment-gateways.index' => 'Payment Methods',
+                'admin.settings.order-configuration' => 'Order Configuration',
+                'admin.settings.file-system' => 'File System & Cache',
+                'admin.settings.social-login' => 'Social Media Logins',
+                'admin.settings.shipping' => 'Shipping',
+                'admin.seo.index' => 'SEO Settings',
+                'admin.settings.footer' => 'Footer Settings',
+                'admin.settings.email-templates.index' => 'Email Templates',
+                'admin.settings.notification-settings' => 'Notification Settings',
+                'admin.api-keys.index' => 'API Keys & Integrations',
+                'admin.backup.index' => 'Backup & Restore',
             ],
             'locations' => [
                 'admin.locations.countries.index' => 'Countries',
@@ -200,14 +281,32 @@ class PermissionHelper
                 'admin.locations.cities.index' => 'Cities',
                 'admin.locations.areas.index' => 'Areas',
             ],
-            'otp' => [
-                'admin.otp.configuration' => 'OTP Config',
+            'warehouse' => [
+                'admin.warehouses.index' => 'All Warehouses',
+                'admin.warehouses.create' => 'Add Warehouse',
+            ],
+            'staffs' => [
+                'admin.staffs.index' => 'All Staffs',
+                'admin.staffs.warehouse' => 'Warehouse Staffs',
+                'admin.permissions.index' => 'Permission Keys',
+            ],
+            'system' => [
+                'admin.system.update' => 'Update',
+                'admin.system.server-status' => 'Server Status',
+                'admin.system.logs' => 'Activity Logs',
+                'admin.system.data-export' => 'Data Export/Import',
+            ],
+            'pos' => [
+                'admin.pos.index' => 'POS Terminal',
+                'admin.pos.cash-register' => 'Cash Register',
+                'admin.pos.reports' => 'POS Reports',
             ],
             'addon' => [
-                'admin.addons.index' => 'Addons',
+                'admin.addons.index' => 'Addon Manager',
             ],
             'multistore' => [
-                'admin.multi-store.index' => 'Multi-Store',
+                'admin.multi-store.index' => 'All Stores',
+                'admin.multi-store.create' => 'Add Store',
             ],
             'analytics' => [
                 'admin.analytics.index' => 'Analytics',
@@ -225,26 +324,67 @@ class PermissionHelper
     public static function pageSectionPermissions(): array
     {
         return [
-            // Order pages - customer info and pricing
-            'admin.orders.in-house' => ['view-customer', 'view-pricing'],
-            'admin.orders.seller' => ['view-customer', 'view-pricing'],
-            'admin.orders.pickup-point' => ['view-customer', 'view-pricing'],
-            'admin.orders.index' => ['view-customer', 'view-pricing'],
+            // ===== Orders =====
+            'admin.orders.in-house'          => ['view-customer', 'view-pricing'],
+            'admin.orders.seller'            => ['view-customer', 'view-pricing'],
+            'admin.orders.pickup-point'      => ['view-customer', 'view-pricing'],
+            'admin.orders.index'             => ['view-customer', 'view-pricing'],
+            'admin.orders.show'              => ['view-customer', 'view-pricing'],
 
-            // Product - cost price
-            'admin.products.edit' => ['view-cost'],
-            'admin.products.create' => ['view-cost'],
+            // ===== Products =====
+            'admin.products.edit'            => ['view-cost'],
+            'admin.products.create'          => ['view-cost'],
+            'admin.products.show'            => ['view-cost'],
+            'admin.products.index'           => ['view-cost'],
 
-            // Customer - financial data
-            'admin.customers.index' => ['view-financial'],
-            'admin.customers.show' => ['view-financial'],
+            // ===== Customers =====
+            'admin.customers.index'          => ['view-financial'],
+            'admin.customers.show'           => ['view-financial'],
+            'admin.customers.edit'           => ['view-financial'],
 
-            // Refund - customer info
-            'admin.refunds.show' => ['view-customer'],
-            'admin.refunds.index' => ['view-customer'],
-            'admin.refunds.requests' => ['view-customer'],
-            'admin.refunds.approved' => ['view-customer'],
-            'admin.refunds.rejected' => ['view-customer'],
+            // ===== Sellers =====
+            'admin.sellers.index'            => ['view-financial'],
+            'admin.sellers.show'             => ['view-financial', 'view-revenue'],
+            'admin.sellers.edit'             => ['view-financial'],
+            'admin.sellers.payouts'          => ['view-financial'],
+            'admin.sellers.payout-requests'  => ['view-financial'],
+            'admin.sellers.commission'       => ['view-financial'],
+
+            // ===== Refunds =====
+            'admin.refunds.show'            => ['view-customer'],
+            'admin.refunds.index'           => ['view-customer'],
+            'admin.refunds.requests'        => ['view-customer'],
+            'admin.refunds.approved'        => ['view-customer'],
+            'admin.refunds.rejected'        => ['view-customer'],
+
+            // ===== Affiliate =====
+            'admin.affiliate.users.index'   => ['view-financial'],
+            'admin.affiliate.payouts'       => ['view-financial'],
+            'admin.affiliate.reports'       => ['view-financial'],
+
+            // ===== Inventory =====
+            'admin.inventory.index'         => ['view-cost'],
+            'admin.inventory.show'          => ['view-cost'],
+
+            // ===== Reports =====
+            'admin.reports.in-house-product-sale' => ['view-revenue', 'view-sales'],
+            'admin.reports.seller-sales'          => ['view-revenue', 'view-sales'],
+            'admin.reports.commission-history'    => ['view-financial'],
+            'admin.reports.wallet-history'        => ['view-financial'],
+
+            // ===== Analytics =====
+            'admin.analytics.index'         => ['view-revenue', 'view-sales'],
+
+            // ===== Delivery =====
+            'admin.delivery.reports'        => ['view-revenue'],
+            'admin.delivery.index'          => ['view-revenue'],
+
+            // ===== Dashboard =====
+            'admin.dashboard'              => ['view-sales', 'view-revenue'],
+
+            // ===== Customers Wallet/Loyalty =====
+            'admin.customers.wallet.index'   => ['view-financial'],
+            'admin.customers.loyalty.index'  => ['view-financial'],
         ];
     }
 
@@ -300,12 +440,10 @@ class PermissionHelper
             return self::$cachedModules;
         }
 
-        $permissions = self::allPermissions();
+        $moduleActions = self::moduleActions();
         $modules = [];
 
-        foreach ($permissions->groupBy('module') as $moduleKey => $perms) {
-            $actions = $perms->pluck('action')->unique()->sort()->values()->toArray();
-
+        foreach ($moduleActions as $moduleKey => $actions) {
             $modules[$moduleKey] = [
                 'key'     => $moduleKey,
                 'label'   => self::humanizeModule($moduleKey),
@@ -314,10 +452,6 @@ class PermissionHelper
             ];
         }
 
-        // Sort modules alphabetically
-        ksort($modules);
-
-        // Ensure common modules are at the top
         $priorityOrder = ['dashboard', 'analytics', 'products', 'inventory', 'orders', 'delivery',
             'refund', 'customers', 'sellers', 'affiliate', 'media', 'reports', 'marketing',
             'support', 'otp', 'content', 'appearance', 'settings', 'locations', 'warehouse',
@@ -330,7 +464,6 @@ class PermissionHelper
                 unset($modules[$key]);
             }
         }
-        // Append remaining modules alphabetically
         foreach ($modules as $key => $mod) {
             $sorted[$key] = $mod;
         }

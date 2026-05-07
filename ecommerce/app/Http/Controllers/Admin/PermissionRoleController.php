@@ -13,8 +13,8 @@ class PermissionRoleController extends Controller
     private function authorizeAccess(): void
     {
         $user = auth()->user();
-        if ($user && $user->role === 'staff') {
-            abort(403, 'Staff members cannot manage role templates.');
+        if (!$user || $user->role !== 'super_admin') {
+            abort(403, 'Only super admins can manage role templates.');
         }
     }
 

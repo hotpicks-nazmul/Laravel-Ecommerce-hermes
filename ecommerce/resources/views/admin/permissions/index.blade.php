@@ -1,10 +1,10 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Permission Keys')
+@section('title', 'Permission Settings')
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0"><i class="bi bi-key me-2"></i>Permission Keys</h4>
+    <h4 class="mb-0"><i class="bi bi-key me-2"></i>Permission Settings</h4>
     <div>
         <a href="{{ route('admin.roles.index') }}" class="btn btn-outline-primary me-2">
             <i class="bi bi-person-badge me-1"></i> Manage Roles

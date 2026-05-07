@@ -61,6 +61,7 @@
     </div>
 </div>
 
+@if(auth()->user()->hasPermission('view-revenue'))
 <!-- Statistics Cards - 7 Column Row -->
 <div class="stat-card-row stat-card-row-7 mb-4" id="statsCards">
     <div class="stat-card stat-card-primary">
@@ -113,6 +114,7 @@
         </div>
     </div>
 </div>
+@endif
 
 <!-- Growth Metrics Cards -->
 <div class="stat-card-row mb-4">
@@ -153,6 +155,7 @@
     </div>
 </div>
 
+@if(auth()->user()->hasPermission('view-revenue'))
 <!-- Key Metrics Cards -->
 <div class="stat-card-row mb-4">
     <!-- Average Order Value -->
@@ -248,7 +251,9 @@
         </div>
     </div>
 </div>
+@endif
 
+@if(auth()->user()->hasPermission('view-revenue'))
 <!-- Second Row Charts -->
 <div class="row mb-4">
     <!-- Sales by Category -->
@@ -404,6 +409,7 @@
         </div>
     </div>
 </div>
+@endif
 
 <!-- Fourth Row - More Analytics -->
 <div class="row mb-4">
@@ -512,6 +518,7 @@
 </div>
 
 <!-- Period-Based Comparison Chart -->
+@if(auth()->user()->hasPermission('view-revenue'))
 <div class="row">
     <div class="col-12">
         <div class="card border-0 shadow-sm">
@@ -531,9 +538,11 @@
         </div>
     </div>
 </div>
+@endif
 @endsection
 
 @push('styles')
+@if(auth()->user()->hasPermission('view-revenue'))
 <style>
     /* Force Bootstrap Icons to display - SAME AS REFERENCE PAGE */
     .stat-card-icon i,
@@ -557,9 +566,11 @@
     /* Make the whole icon colored */
     .stat-card-icon i { color: inherit !important; }
 </style>
+@endif
 @endpush
 
 @push('scripts')
+@if(auth()->user()->hasPermission('view-revenue'))
 <script>
     // Period select handler
     document.getElementById('periodSelect').addEventListener('change', function() {
@@ -726,4 +737,5 @@
         }
     });
 </script>
+@endif
 @endpush

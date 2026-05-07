@@ -19,6 +19,7 @@
             <span class="stat-card-value">{{ number_format($totalPayouts) }}</span>
         </div>
     </div>
+    @if(auth()->user()->hasPermission('view-revenue'))
     <div class="stat-card stat-card-success">
         <div class="stat-card-icon">
             <i class="bi bi-currency-dollar"></i>
@@ -37,6 +38,7 @@
             <span class="stat-card-value">৳{{ number_format($totalCommission, 2) }}</span>
         </div>
     </div>
+    @endif
     <div class="stat-card stat-card-info">
         <div class="stat-card-icon">
             <i class="bi bi-graph-up"></i>
@@ -173,10 +175,14 @@
                     <tr>
                         <th style="width: 50px;">#</th>
                         <th>Seller</th>
+                        @if(auth()->user()->hasPermission('view-revenue'))
                         <th class="text-end" style="width: 120px;">Amount</th>
+                        @endif
                         <th class="text-center" style="width: 100px;">Rate</th>
+                        @if(auth()->user()->hasPermission('view-revenue'))
                         <th class="text-end" style="width: 120px;">Commission</th>
                         <th class="text-end" style="width: 120px;">Net Amount</th>
+                        @endif
                         <th class="text-center" style="width: 100px;">Status</th>
                         <th class="text-center" style="width: 120px;">Payment Method</th>
                         <th style="width: 150px;">Date</th>
@@ -196,21 +202,25 @@
                             <span class="text-muted">N/A</span>
                             @endif
                         </td>
+                        @if(auth()->user()->hasPermission('view-revenue'))
                         <td class="text-end">
                             <span class="fw-medium">৳{{ number_format($payout->amount, 2) }}</span>
                         </td>
+                        @endif
                         <td class="text-center">
                             @php
                                 $commissionRate = $payout->amount > 0 ? ($payout->commission / $payout->amount) * 100 : 0;
                             @endphp
                             <span class="badge bg-info">{{ number_format($commissionRate, 1) }}%</span>
                         </td>
+                        @if(auth()->user()->hasPermission('view-revenue'))
                         <td class="text-end">
                             <span class="text-success fw-medium">৳{{ number_format($payout->commission, 2) }}</span>
                         </td>
                         <td class="text-end">
                             <span class="fw-bold">৳{{ number_format($payout->net_amount, 2) }}</span>
                         </td>
+                        @endif
                         <td class="text-center">
                             <span class="badge bg-{{ $payout->getStatusBadgeClass() }}">
                                 {{ ucfirst($payout->status) }}

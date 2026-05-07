@@ -27,6 +27,7 @@
             <span class="stat-card-value" id="statTotalAffiliates">{{ number_format($stats['total_affiliates']) }}</span>
         </div>
     </div>
+    @if(auth()->user()->hasPermission('view-revenue'))
     <div class="stat-card stat-card-success">
         <div class="stat-card-icon"><i class="bi bi-currency-dollar"></i></div>
         <div class="stat-card-content">
@@ -41,6 +42,7 @@
             <span class="stat-card-value" id="statTotalCommissions">${{ number_format($stats['total_commissions'], 2) }}</span>
         </div>
     </div>
+    @endif
     <div class="stat-card stat-card-warning">
         <div class="stat-card-icon"><i class="bi bi-cursor"></i></div>
         <div class="stat-card-content">
@@ -127,8 +129,10 @@
                         <th>Code</th>
                         <th>Clicks</th>
                         <th>Sales</th>
+                        @if(auth()->user()->hasPermission('view-revenue'))
                         <th>Total Sales</th>
                         <th>Commission</th>
+                        @endif
                         <th style="width: 100px;">Status</th>
                     </tr>
                 </thead>
@@ -270,8 +274,10 @@ function performLiveSearch(searchTerm) {
             // Update stats with consistent formatting
             if (data.stats) {
                 document.getElementById('statTotalAffiliates').textContent = formatNumber(data.stats.total_affiliates);
+                @if(auth()->user()->hasPermission('view-revenue'))
                 document.getElementById('statTotalSales').textContent = '$' + formatNumber(data.stats.total_sales, 2);
                 document.getElementById('statTotalCommissions').textContent = '$' + formatNumber(data.stats.total_commissions, 2);
+                @endif
                 document.getElementById('statTotalClicks').textContent = formatNumber(data.stats.total_clicks);
             }
             
