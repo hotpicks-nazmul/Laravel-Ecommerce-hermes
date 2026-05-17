@@ -317,3 +317,22 @@ amd: stay blue just like global.
 3. Do you want to save submenu permissions per staff, or is this just for display purposes?
 ans: ya submenu permission per staff
 
+
+in Admin > Staffs > Permission Settings >  Role Templates > Create Role i can only select the actions but i also want moduls and sub modules on off functionality just like  Permission Settings. this way can proparly setup role.
+
+if you do not understand my requirements, just ask me before start, dont start editing before you understand it properly.
+
+
+DBBL NEW RTGS FORM_project (1)
+DBBL NEW RTGS FORM_project (2)
+DBBL NEW RTGS FORM_project (3)
+DBBL NEW RTGS FORM_project (4)
+
+
+-----------------------------------
+ECOMMERCE DEPLOY PROMPT
+.........................
+.........................
+compare ecommerce and ecommerce-copy, find all installer changes, apply them to a fresh copy of ecommerce, generate the consolidated migration from the database, and build the deployment zip
+
+..................................
