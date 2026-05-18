@@ -87,6 +87,7 @@ class ProductController extends Controller
         $relatedProducts = Product::active()
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
+            ->with('category')
             ->take(4)
             ->get();
 
@@ -102,6 +103,7 @@ class ProductController extends Controller
             $categoryProducts = Product::active()
                 ->whereIn('category_id', $categoryIds)
                 ->where('id', '!=', $product->id)
+                ->with('category')
                 ->whereNotIn('id', $relatedProducts->pluck('id'))
                 ->take(4 - $relatedProducts->count())
                 ->get();

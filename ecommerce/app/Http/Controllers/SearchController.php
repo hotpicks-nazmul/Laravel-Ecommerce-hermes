@@ -21,6 +21,7 @@ class SearchController extends Controller
 
         if (strlen($query) >= 2) {
             $productsQuery = Product::where('is_active', true)
+                ->with('category')
                 ->where(function ($q) use ($query) {
                     $q->where('name', 'like', "%{$query}%")
                       ->orWhere('description', 'like', "%{$query}%")

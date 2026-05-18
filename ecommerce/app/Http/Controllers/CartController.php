@@ -30,7 +30,6 @@ class CartController extends Controller
             'variant_id' => 'nullable|exists:products,id',
             'quantity' => 'integer|min:1',
             'color_id' => 'nullable',
-            'price' => 'nullable|numeric|min:0',
             'attributes' => 'nullable|array',
         ]);
 
@@ -139,11 +138,6 @@ class CartController extends Controller
             }
         }
 
-        // Add custom price from frontend (already calculated with adjustments)
-        if ($request->price) {
-            $variantData['custom_price'] = $request->price;
-        }
-        
         // Add variant image from frontend if provided
         if ($request->variant_image) {
             $variantData['image'] = $request->variant_image;

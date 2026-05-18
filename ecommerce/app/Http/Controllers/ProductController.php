@@ -15,7 +15,8 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::where('is_active', true);
+        $query = Product::where('is_active', true)
+            ->with('category');
 
         // Filter by search
         if ($request->filled('search')) {
@@ -109,7 +110,9 @@ class ProductController extends Controller
         }
 
         $products = $query->paginate(12)->withQueryString();
-        $categories = Category::where('status', 'active')->get();
+        $categories = Category::where('status', 'active')
+            ->with('children.children')
+            ->get();
         $brands = Brand::where('is_active', true)->orderBy('name')->get();
 
         if ($request->ajax()) {
@@ -224,6 +227,7 @@ class ProductController extends Controller
         // Get manually configured related products first
         $relatedProducts = $product->relatedProducts()
             ->where('is_active', true)
+            ->with('category')
             ->limit(8)
             ->get();
 
@@ -232,6 +236,7 @@ class ProductController extends Controller
             $categoryProducts = Product::where('category_id', $product->category_id)
                 ->where('id', '!=', $product->id)
                 ->where('is_active', true)
+                ->with('category')
                 ->whereNotIn('id', $relatedProducts->pluck('id'))
                 ->limit(8 - $relatedProducts->count())
                 ->get();
@@ -330,6 +335,7 @@ class ProductController extends Controller
         
         $products = Product::where('category_id', $category->id)
             ->where('is_active', true)
+            ->with('category')
             ->paginate(12);
 
         return view('themes.general.products.category', compact('products', 'category'));

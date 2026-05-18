@@ -6,13 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\LoginCode;
 use App\Models\ActivityLog;
+use App\Notifications\AdminLoginCode;
 
 class AuthController extends Controller
 {
-    /**
-     * Show super admin login form.
-     */
     public function showLogin()
     {
         if (Auth::check() && Auth::user()->role === 'super_admin') {
@@ -22,9 +21,6 @@ class AuthController extends Controller
         return view('super-admin.auth.login');
     }
 
-    /**
-     * Handle super admin login.
-     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -51,32 +47,114 @@ class AuthController extends Controller
                 ])->onlyInput('email');
             }
 
-            $request->session()->regenerate();
-            
-            // Log super admin login activity
-            ActivityLog::adminLog(
-                'Super Admin logged in',
-                $user,
-                $user,
-                ['email' => $user->email, 'role' => $user->role]
-            );
-            
-            return redirect()->route('super-admin.dashboard');
+            // ✅ Password is correct — send 2FA code
+            $code = LoginCode::generateFor($user->email);
+
+            try {
+                $user->notify(new AdminLoginCode($code));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('Super Admin 2FA email failed: ' . $e->getMessage());
+            }
+
+            // Store in session for 2FA verification
+            $request->session()->put('2fa_user_id', $user->id);
+            $request->session()->put('2fa_email', $user->email);
+
+            Auth::logout();
+
+            return redirect()->route('super-admin.verify-2fa');
         }
+
+        // Log failed attempt
+        \Illuminate\Support\Facades\Log::warning('Failed super admin login attempt', [
+            'email' => $request->email,
+            'ip' => $request->ip(),
+        ]);
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->onlyInput('email');
     }
 
-    /**
-     * Handle super admin logout.
-     */
+    public function showVerifyForm(Request $request)
+    {
+        if (!$request->session()->has('2fa_user_id')) {
+            return redirect()->route('super-admin.login');
+        }
+
+        return view('admin.auth.verify-2fa', [
+            'email' => $request->session()->get('2fa_email'),
+        ]);
+    }
+
+    public function verifyCode(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string|size:6',
+        ]);
+
+        $userId = $request->session()->get('2fa_user_id');
+        $email = $request->session()->get('2fa_email');
+
+        if (!$userId || !$email) {
+            return redirect()->route('super-admin.login')
+                ->withErrors(['code' => 'Session expired. Please login again.']);
+        }
+
+        if (!LoginCode::verify($email, $request->code)) {
+            return back()->withErrors([
+                'code' => 'Invalid or expired verification code.',
+            ]);
+        }
+
+        // Code verified — log them in
+        $user = User::find($userId);
+        if (!$user || $user->role !== 'super_admin') {
+            $request->session()->forget(['2fa_user_id', '2fa_email']);
+            return redirect()->route('super-admin.login');
+        }
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        ActivityLog::adminLog(
+            'Super Admin logged in (2FA verified)',
+            $user,
+            $user,
+            ['email' => $user->email, 'role' => $user->role]
+        );
+
+        $request->session()->forget(['2fa_user_id', '2fa_email']);
+
+        return redirect()->intended(route('super-admin.dashboard'));
+    }
+
+    public function resendCode(Request $request)
+    {
+        $email = $request->session()->get('2fa_email');
+
+        if (!$email) {
+            return redirect()->route('super-admin.login');
+        }
+
+        $code = LoginCode::generateFor($email);
+        $user = User::where('email', $email)->first();
+
+        if ($user) {
+            try {
+                $user->notify(new AdminLoginCode($code));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('Super Admin 2FA resend failed: ' . $e->getMessage());
+            }
+        }
+
+        return back()->with('success', 'A new verification code has been sent to your email.');
+    }
+
     public function logout(Request $request)
     {
         $user = Auth::user();
         
-        // Log super admin logout activity
         if ($user) {
             ActivityLog::adminLog(
                 'Super Admin logged out',

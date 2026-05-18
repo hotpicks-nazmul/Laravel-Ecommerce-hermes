@@ -35,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\ThemeMiddleware::class,
             \App\Http\Middleware\LanguageMiddleware::class,
             \App\Http\Middleware\SeoRedirectMiddleware::class,
+            \App\Http\Middleware\SecurityHeadersMiddleware::class,
         ]);
         
         $middleware->alias([
@@ -52,7 +53,10 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withProviders([
+        \App\Providers\AppServiceProvider::class,
         \App\Providers\MailServiceProvider::class,
+        \App\Providers\PaginationServiceProvider::class,
+        \App\Providers\CurrencyServiceProvider::class,
     ])
     ->create();
 

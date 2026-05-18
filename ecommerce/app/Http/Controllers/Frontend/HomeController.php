@@ -75,6 +75,7 @@ class HomeController extends Controller
         $saleProducts = Product::active()
             ->whereNotNull('sale_price')
             ->where('sale_price', '<', \DB::raw('price'))
+            ->with('category')
             ->inStock()
             ->take($saleCount)
             ->get();
@@ -82,6 +83,7 @@ class HomeController extends Controller
         // Get latest blog posts
         $latestBlogs = Blog::published()
             ->latest()
+            ->with('author')
             ->take(3)
             ->get();
 

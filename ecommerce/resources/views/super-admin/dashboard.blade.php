@@ -103,6 +103,11 @@
                             <i class="bi bi-gear me-2"></i>System Settings
                         </a>
                     </div>
+                    <div class="col-md-3">
+                        <a href="{{ route('super-admin.profile') }}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-person-circle me-2"></i>My Profile
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

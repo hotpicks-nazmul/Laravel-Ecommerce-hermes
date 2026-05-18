@@ -114,10 +114,36 @@
                         </div>
                         <div class="module-submenu-content" style="display: none;">
                             <div style="border-top: 1px solid #e9ecef; margin: 0 12px;"></div>
+                            @php
+                                $uniqueSectionActions = [];
+                                foreach ($submenus as $routeName => $label) {
+                                    $routeSections = $pageSectionPerms[$routeName] ?? [];
+                                    foreach ($routeSections as $act) {
+                                        $uniqueSectionActions[$act] = true;
+                                    }
+                                }
+                                $uniqueSectionActions = array_keys($uniqueSectionActions ?? []);
+                            @endphp
+                            @if(!empty($uniqueSectionActions))
+                                <div class="d-flex flex-wrap gap-1 px-3 py-2" style="padding-left: 48px;">
+                                @foreach($uniqueSectionActions as $act)
+                                    @php
+                                        $permName = $moduleKey . '.' . $act;
+                                        $exists = isset($keyExists[$permName]);
+                                    @endphp
+                                    <span class="badge rounded-pill perm-toggle"
+                                          data-module="{{ $moduleKey }}"
+                                          data-action="{{ $act }}"
+                                          data-state="{{ $exists ? '1' : '0' }}"
+                                          style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.8em; {{ $exists ? 'background: #6f42c1; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
+                                        {{ str_replace('view-', '', $act) }}
+                                    </span>
+                                @endforeach
+                                </div>
+                            @endif
                             @foreach($submenus as $routeName => $label)
                                 @php
                                     $visible = \App\Helpers\PermissionHelper::isSubmenuVisible($routeName);
-                                    $pageSections = $pageSectionPerms[$routeName] ?? [];
                                 @endphp
                                 <div class="d-flex align-items-center gap-2 px-3 py-1-5" style="padding: 5px 12px 5px 48px;">
                                     <div style="flex: 0 0 130px; flex-shrink: 0; display: flex; align-items: center;">
@@ -128,25 +154,7 @@
                                             <i class="bi bi-{{ $visible ? 'eye' : 'eye-slash' }}"></i> <span style="overflow: hidden; text-overflow: ellipsis;">{{ $label }}</span>
                                         </span>
                                     </div>
-                                    <div style="flex: 1; min-width: 0;">
-                                        @if(!empty($pageSections))
-                                            <div class="d-flex flex-wrap gap-1">
-                                            @foreach($pageSections as $act)
-                                                @php
-                                                    $permName = $moduleKey . '.' . $act;
-                                                    $exists = isset($keyExists[$permName]);
-                                                @endphp
-                                                <span class="badge rounded-pill perm-toggle"
-                                                      data-module="{{ $moduleKey }}"
-                                                      data-action="{{ $act }}"
-                                                      data-state="{{ $exists ? '1' : '0' }}"
-                                                      style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.78em; {{ $exists ? 'background: #198754; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
-                                                    {{ str_replace('view-', '', $act) }}
-                                                </span>
-                                            @endforeach
-                                            </div>
-                                        @endif
-                                    </div>
+                                    <div style="flex: 1; min-width: 0;"></div>
                                 </div>
                             @endforeach
                         </div>
@@ -434,6 +442,34 @@
                                             </div>
                                             <div class="staff-submenu-content" style="display: none;">
                                                 <div style="border-top: 1px solid #e9ecef; margin: 0 12px;"></div>
+                                                @php
+                                                    $moduleSectionPerms = [];
+                                                    foreach ($submenus as $routeName => $label) {
+                                                        $sections = $pageSectionPerms[$routeName] ?? [];
+                                                        foreach ($sections as $action) {
+                                                            if (!in_array($action, $moduleSectionPerms)) {
+                                                                $moduleSectionPerms[] = $action;
+                                                            }
+                                                        }
+                                                    }
+                                                @endphp
+                                                @if(!empty($moduleSectionPerms))
+                                                <div class="d-flex flex-wrap gap-1 px-3 py-2" style="padding-left: 44px;">
+                                                    @foreach($moduleSectionPerms as $action)
+                                                        @php
+                                                            $sPermName = $modulePrefix . '.' . $action;
+                                                            $sChecked = $member->hasPermission($sPermName) ? '1' : '0';
+                                                        @endphp
+                                                        <span class="badge rounded-pill staff-perm-pill"
+                                                              data-staff-id="{{ $member->id }}"
+                                                              data-perm="{{ $sPermName }}"
+                                                              data-state="{{ $sChecked }}"
+                                                              style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.78em; {{ $sChecked == '1' ? 'background: #6f42c1; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
+                                                            {{ str_replace('view-', '', $action) }}
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                                @endif
                                                 @foreach($submenus as $routeName => $label)
                                                 @php
                                                     $visGlobal = \App\Helpers\PermissionHelper::isSubmenuVisible($routeName);
@@ -441,7 +477,6 @@
                                                     $disabledPerm = 'submenu_disabled:' . $routeName;
                                                     $legacyPerms = is_array($member->legacy_permissions) ? $member->legacy_permissions : json_decode($member->legacy_permissions ?? '[]', true);
                                                     $hasPerm = empty($legacyPerms) ? true : !in_array($disabledPerm, $legacyPerms);
-                                                    $pageSections = $pageSectionPerms[$routeName] ?? [];
                                                 @endphp
                                                 @if($visGlobal)
                                                 <div class="d-flex align-items-center gap-2 px-3 py-1-5" style="padding: 5px 12px 5px 44px;">
@@ -453,25 +488,6 @@
                                                               style="cursor:pointer; padding: 0.25em 0.6em; font-size: 0.72rem; white-space: nowrap; width: 100%; text-align: left; {{ $hasPerm ? 'background: #0d6efd; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
                                                             <i class="bi bi-{{ $hasPerm ? 'eye' : 'eye-slash' }}"></i> <span style="overflow: hidden; text-overflow: ellipsis;">{{ $label }}</span>
                                                         </span>
-                                                    </div>
-                                                    <div style="flex: 1; min-width: 0;">
-                                                        @if(!empty($pageSections))
-                                                            <div class="d-flex flex-wrap gap-1">
-                                                            @foreach($pageSections as $action)
-                                                                @php
-                                                                    $sPermName = $modulePrefix . '.' . $action;
-                                                                    $sChecked = $member->hasPermission($sPermName) ? '1' : '0';
-                                                                @endphp
-                                                                <span class="badge rounded-pill staff-perm-pill"
-                                                                      data-staff-id="{{ $member->id }}"
-                                                                      data-perm="{{ $sPermName }}"
-                                                                      data-state="{{ $sChecked }}"
-                                                                      style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.78em; {{ $sChecked == '1' ? 'background: #198754; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
-                                                                    {{ str_replace('view-', '', $action) }}
-                                                                </span>
-                                                            @endforeach
-                                                            </div>
-                                                        @endif
                                                     </div>
                                                 </div>
                                                 @endif
@@ -567,8 +583,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     this.dataset.state = data.state ? '1' : '0';
+                    const sectionActions = ['view-customer', 'view-pricing', 'view-cost', 'view-financial', 'view-revenue', 'view-sales'];
+                    const activeColor = sectionActions.includes(this.dataset.action) ? '#6f42c1' : '#198754';
                     if (data.state) {
-                        this.style.background = '#198754';
+                        this.style.background = activeColor;
                         this.style.color = '#fff';
                         if (typeof adminToast === 'function') {
                             adminToast('success', 'Created', "'" + module + '.' + action + "' created.");
@@ -660,12 +678,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ============ TAB 3: Staff Permission Pills (visual toggle, saved on submit) ============
+    const sectionActions = ['view-customer', 'view-pricing', 'view-cost', 'view-financial', 'view-revenue', 'view-sales'];
     document.querySelectorAll('.staff-perm-pill').forEach(function(pill) {
         pill.addEventListener('click', function() {
             const newState = this.dataset.state === '1' ? '0' : '1';
             this.dataset.state = newState;
             if (newState === '1') {
-                this.style.background = '#0d6efd';
+                const perm = this.dataset.perm;
+                const isSection = sectionActions.some(function(a) {
+                    return perm.endsWith('.' + a);
+                });
+                this.style.background = isSection ? '#6f42c1' : '#198754';
                 this.style.color = '#fff';
             } else {
                 this.style.background = '#e9ecef';
@@ -725,7 +748,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         const pill = form.querySelector('.staff-perm-pill[data-perm="' + permName + '"]');
                         if (pill) {
                             pill.dataset.state = '1';
-                            pill.style.background = '#0d6efd';
+                            const isSection = sectionActions.some(function(a) {
+                                return permName.endsWith('.' + a);
+                            });
+                            pill.style.background = isSection ? '#6f42c1' : '#198754';
                             pill.style.color = '#fff';
                         }
                         // Submenu permission pill (submenu:routeName format)
@@ -749,7 +775,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const staffId = this.dataset.staffId;
             const form = document.getElementById('staffPermForm' + staffId);
             if (!form) return;
-            form.querySelectorAll('.staff-perm-pill, .staff-submenu-pill').forEach(function(p) {
+            form.querySelectorAll('.staff-perm-pill').forEach(function(p) {
+                p.dataset.state = '1';
+                const perm = p.dataset.perm;
+                const isSection = sectionActions.some(function(a) {
+                    return perm.endsWith('.' + a);
+                });
+                p.style.background = isSection ? '#6f42c1' : '#198754';
+                p.style.color = '#fff';
+            });
+            form.querySelectorAll('.staff-submenu-pill').forEach(function(p) {
                 p.dataset.state = '1';
                 p.style.background = '#0d6efd';
                 p.style.color = '#fff';

@@ -50,6 +50,7 @@ class HomeController extends Controller
         // Get categories
         $categories = Category::where('status', 'active')
             ->whereNull('parent_id')
+            ->with('children.children')
             ->take(6)
             ->get();
         
@@ -57,6 +58,7 @@ class HomeController extends Controller
         $saleProducts = Product::where('is_active', true)
             ->whereNotNull('sale_price')
             ->where('sale_price', '>', 0)
+            ->with('category')
             ->where('quantity', '>', 0)
             ->take($saleCount)
             ->get();
@@ -65,6 +67,7 @@ class HomeController extends Controller
         $latestBlogs = Blog::where('status', 'published')
             ->where('published_at', '<=', now())
             ->latest('published_at')
+            ->with('author')
             ->take(3)
             ->get();
 

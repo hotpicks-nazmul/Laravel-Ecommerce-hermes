@@ -56,15 +56,15 @@ class PermissionController extends Controller
         $currentUser = auth()->user();
 
         if ($currentUser->role === 'super_admin' || $currentUser->role === 'admin') {
-            $staff = User::adminPanel()->with('warehouse');
+            $staff = User::adminPanel()->with(['warehouse', 'roles']);
         } else {
-            $staff = User::staff()->with('warehouse');
+            $staff = User::staff()->with(['warehouse', 'roles']);
         }
 
         $staff = $staff->orderBy('created_at', 'desc')->paginate(25);
 
         $permissionModules = PermissionHelper::modules();
-        $roleTemplates = Role::where('guard_name', 'web')->orderBy('name')->get();
+        $roleTemplates = Role::where('guard_name', 'web')->with('permissions')->orderBy('name')->get();
 
         return view('admin.permissions.dashboard', compact(
             'permissions', 'existingModules', 'allActions', 'moduleActions',

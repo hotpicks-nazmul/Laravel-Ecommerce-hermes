@@ -15,7 +15,7 @@ class BlogController extends Controller
     public function index(Request $request)
     {
         $query = Blog::published()
-            ->with('author');
+            ->with(['author', 'category']);
 
         // Filter by category
         if ($request->has('category')) {
@@ -47,12 +47,14 @@ class BlogController extends Controller
     {
         $blog = Blog::where('slug', $slug)
             ->published()
+            ->with(['author', 'category'])
             ->firstOrFail();
 
         $relatedBlogs = Blog::where('category_id', $blog->category_id)
             ->where('id', '!=', $blog->id)
             ->published()
             ->latest('published_at')
+            ->with(['author', 'category'])
             ->take(3)
             ->get();
 

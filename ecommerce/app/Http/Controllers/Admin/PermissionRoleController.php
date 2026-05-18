@@ -46,7 +46,10 @@ class PermissionRoleController extends Controller
                 return explode('.', $perm->name)[0];
             });
 
-        return view('admin.permissions.role-create', compact('permissions'));
+        $permissionModules = \App\Helpers\PermissionHelper::modules();
+        $moduleActions = \App\Helpers\PermissionHelper::moduleActions();
+
+        return view('admin.permissions.role-create', compact('permissions', 'permissionModules', 'moduleActions'));
     }
 
     /**
@@ -97,7 +100,10 @@ class PermissionRoleController extends Controller
                 return explode('.', $perm->name)[0];
             });
 
-        return view('admin.permissions.role-edit', compact('role', 'permissions'));
+        $permissionModules = \App\Helpers\PermissionHelper::modules();
+        $moduleActions = \App\Helpers\PermissionHelper::moduleActions();
+
+        return view('admin.permissions.role-edit', compact('role', 'permissions', 'permissionModules', 'moduleActions'));
     }
 
     /**

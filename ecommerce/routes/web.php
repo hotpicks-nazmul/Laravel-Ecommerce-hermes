@@ -214,7 +214,7 @@ Route::prefix('chat')->name('chat.')->group(function () {
 // User Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [UserController::class, 'showLogin'])->name('login');
-    Route::post('/login', [UserController::class, 'login'])->name('login.post');
+    Route::post('/login', [UserController::class, 'login'])->name('login.post')->middleware('throttle:5,1');
     Route::get('/register', [UserController::class, 'showRegister'])->name('register');
     Route::post('/register', [UserController::class, 'register'])->name('register.post');
     Route::get('/forgot-password', [UserController::class, 'showForgotPassword'])->name('password.request');
@@ -283,15 +283,28 @@ Route::middleware('auth')->group(function () {
 // Admin Authentication Routes (General - for existing admins)
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login', [\App\Http\Controllers\Admin\AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [\App\Http\Controllers\Admin\AuthController::class, 'login'])->name('login.post');
+    Route::post('/login', [\App\Http\Controllers\Admin\AuthController::class, 'login'])->name('login.post')->middleware('throttle:5,1');
+    Route::get('/verify-2fa', [\App\Http\Controllers\Admin\AuthController::class, 'showVerifyForm'])->name('verify-2fa');
+    Route::post('/verify-2fa', [\App\Http\Controllers\Admin\AuthController::class, 'verifyCode'])->name('verify-2fa.post');
+    Route::post('/verify-2fa/resend', [\App\Http\Controllers\Admin\AuthController::class, 'resendCode'])->name('verify-2fa.resend');
     Route::post('/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout'])->name('logout');
 });
 
 // Super Admin Authentication Routes
 Route::prefix('super-admin')->name('super-admin.')->group(function () {
     Route::get('/login', [\App\Http\Controllers\SuperAdmin\AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [\App\Http\Controllers\SuperAdmin\AuthController::class, 'login'])->name('login.post');
+    Route::post('/login', [\App\Http\Controllers\SuperAdmin\AuthController::class, 'login'])->name('login.post')->middleware('throttle:5,1');
+    Route::get('/verify-2fa', [\App\Http\Controllers\SuperAdmin\AuthController::class, 'showVerifyForm'])->name('verify-2fa');
+    Route::post('/verify-2fa', [\App\Http\Controllers\SuperAdmin\AuthController::class, 'verifyCode'])->name('verify-2fa.post');
+    Route::post('/verify-2fa/resend', [\App\Http\Controllers\SuperAdmin\AuthController::class, 'resendCode'])->name('verify-2fa.resend');
     Route::post('/logout', [\App\Http\Controllers\SuperAdmin\AuthController::class, 'logout'])->name('logout');
+});
+
+// Super Admin Profile Routes (authenticated)
+Route::prefix('super-admin')->name('super-admin.')->middleware(['auth', 'super_admin'])->group(function () {
+    Route::get('/profile', [\App\Http\Controllers\SuperAdmin\ProfileController::class, 'show'])->name('profile');
+    Route::post('/profile', [\App\Http\Controllers\SuperAdmin\ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/password', [\App\Http\Controllers\SuperAdmin\ProfileController::class, 'updatePassword'])->name('profile.password');
 });
 
 // Staff Authentication Routes (only login/logout, no dashboard)
