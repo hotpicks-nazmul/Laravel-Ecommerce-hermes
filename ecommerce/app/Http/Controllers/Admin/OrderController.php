@@ -201,7 +201,7 @@ class OrderController extends Controller
      */
     public function inHouse(Request $request)
     {
-        $query = Order::inhouse()->with('user', 'warehouse');
+        $query = Order::inhouse()->with('user', 'warehouse', 'items');
 
         $authUser = auth()->user();
         if ($authUser && $authUser->warehouse_id) {

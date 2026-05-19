@@ -110,7 +110,7 @@ class StaffController extends Controller
         }
 
         $warehouses = Warehouse::where('is_active', 1)->orderBy('name')->get();
-        $roleTemplates = Role::where('guard_name', 'web')->orderBy('name')->get();
+        $roleTemplates = Role::where('guard_name', 'web')->with('permissions')->orderBy('name')->get();
         $permissionModules = PermissionHelper::modules();
 
         return view('admin.staffs.create', compact('warehouses', 'allowedRoles', 'roleTemplates', 'permissionModules'));
@@ -225,7 +225,7 @@ class StaffController extends Controller
         $staff->load('roles', 'permissions');
 
         $warehouses = Warehouse::where('is_active', 1)->orderBy('name')->get();
-        $roleTemplates = Role::where('guard_name', 'web')->orderBy('name')->get();
+        $roleTemplates = Role::where('guard_name', 'web')->with('permissions')->orderBy('name')->get();
         $permissionModules = PermissionHelper::modules();
 
         return view('admin.staffs.edit', compact('staff', 'warehouses', 'allowedRoles', 'roleTemplates', 'permissionModules'));
@@ -468,7 +468,7 @@ class StaffController extends Controller
 
         $warehouses = Warehouse::where('is_active', 1)->orderBy('name')->get();
         $permissionModules = PermissionHelper::modules();
-        $roleTemplates = Role::where('guard_name', 'web')->orderBy('name')->get();
+        $roleTemplates = Role::where('guard_name', 'web')->with('permissions')->orderBy('name')->get();
 
         return view('admin.staffs.permissions', compact('staff', 'warehouses', 'permissionModules', 'roleTemplates'));
     }
