@@ -14,9 +14,11 @@
         </small>
     </div>
     <div class="d-flex gap-2">
+        @if(auth()->user()->hasPermission('orders.show-invoice'))
         <a href="{{ route('admin.orders.invoice', $order->id) }}" class="btn btn-outline-secondary" target="_blank">
             <i class="bi bi-receipt me-1"></i> Invoice
         </a>
+        @endif
         <a href="{{ route('admin.orders.in-house') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i> Back to Inhouse Orders
         </a>
@@ -66,9 +68,11 @@
                 <h5 class="mb-0"><i class="bi bi-sliders me-2"></i>Order Status Management</h5>
             </div>
             <div class="card-body">
+                @if(auth()->user()->hasPermission('orders.show-update-status') || auth()->user()->hasPermission('orders.show-update-payment'))
                 <form action="{{ route('admin.orders.status', $order->id) }}" method="POST" id="statusForm">
                     @csrf
                     <div class="row g-3 align-items-end">
+                        @if(auth()->user()->hasPermission('orders.show-update-status'))
                         <div class="col-md-5">
                             <label class="form-label fw-semibold">Update Order Status</label>
                             <select name="status" class="form-select">
@@ -81,6 +85,8 @@
                                 <option value="refunded" {{ $order->status == 'refunded' ? 'selected' : '' }}>Refunded</option>
                             </select>
                         </div>
+                        @endif
+                        @if(auth()->user()->hasPermission('orders.show-update-payment'))
                         <div class="col-md-5">
                             <label class="form-label fw-semibold">Update Payment Status</label>
                             <select name="payment_status" class="form-select" form="paymentForm">
@@ -90,17 +96,21 @@
                                 <option value="refunded" {{ $order->payment_status == 'refunded' ? 'selected' : '' }}>Refunded</option>
                             </select>
                         </div>
+                        @endif
+                        @if(auth()->user()->hasPermission('orders.show-update-status') || auth()->user()->hasPermission('orders.show-update-payment'))
                         <div class="col-md-2">
                             <button type="submit" class="btn btn-primary w-100">
                                 <i class="bi bi-check-lg me-1"></i> Update
                             </button>
                         </div>
+                        @endif
                     </div>
                 </form>
                 
                 <form action="{{ route('admin.orders.payment-status', $order->id) }}" method="POST" id="paymentForm" class="d-none"></form>
+                @endif
                 
-                @if(in_array($order->status, ['processing', 'confirmed']))
+                @if(auth()->user()->hasPermission('orders.show-ship-order') && in_array($order->status, ['processing', 'confirmed']))
                 <hr>
                 <form action="{{ route('admin.orders.ship', $order->id) }}" method="POST" id="shipForm">
                     @csrf
@@ -135,6 +145,7 @@
             </div>
         </div>
         
+        @if(auth()->user()->hasPermission('orders.show-order-items'))
         <!-- Order Items -->
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3">
@@ -237,10 +248,12 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
     
     <!-- Customer & Payment Info -->
     <div class="col-lg-4">
+        @if(auth()->user()->hasPermission('orders.show-customer-info'))
         <!-- Customer Info -->
         @if(auth()->user()->hasPermission('orders.view-customer'))
         <div class="card border-0 shadow-sm mb-4">
@@ -275,7 +288,9 @@
             </div>
         </div>
         @endif
+        @endif
         
+        @if(auth()->user()->hasPermission('orders.show-billing-address'))
         @if(auth()->user()->hasPermission('orders.view-customer'))
         <!-- Billing Address -->
         <div class="card border-0 shadow-sm mb-4">
@@ -298,6 +313,7 @@
         </div>
 
         <!-- Shipping Address -->
+        @if(auth()->user()->hasPermission('orders.show-shipping-address'))
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white py-3">
                 <h5 class="mb-0"><i class="bi bi-truck me-2"></i>Shipping Address</h5>
@@ -319,7 +335,10 @@
             </div>
         </div>
         @endif
+        @endif
+        @endif
         
+        @if(auth()->user()->hasPermission('orders.show-payment-details'))
         <!-- Payment Info -->
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white py-3">
@@ -355,7 +374,9 @@
                 @endif
             </div>
         </div>
+        @endif
         
+        @if(auth()->user()->hasPermission('orders.show-timeline'))
         <!-- Order Timeline -->
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3">
@@ -374,6 +395,7 @@
                 @endif
             </div>
         </div>
+        @endif
     </div>
 </div>
 @endsection

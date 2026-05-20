@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
@@ -63,6 +64,8 @@ class PermissionRoleController extends Controller
             'name' => 'required|string|max:50|regex:/^[a-z-]+$/|unique:roles,name',
             'permissions' => 'nullable|array',
             'permissions.*' => 'string',
+            'submenu_visibility' => 'nullable|array',
+            'submenu_visibility.*' => 'string',
         ]);
 
         $role = Role::create([
@@ -76,6 +79,12 @@ class PermissionRoleController extends Controller
                 ->pluck('id')
                 ->toArray();
             $role->syncPermissions($permIds);
+        }
+
+        // Save submenu visibility to the role itself
+        if ($request->has('submenu_visibility')) {
+            $role->submenu_visibility = $request->submenu_visibility;
+            $role->save();
         }
 
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
@@ -92,6 +101,12 @@ class PermissionRoleController extends Controller
         $this->authorizeAccess();
 
         $role = Role::with('permissions')->findOrFail($id);
+
+        // Decode JSON submenu_visibility (Spatie's Role model doesn't auto-cast)
+        $rawVisibility = $role->submenu_visibility;
+        $role->submenu_visibility = is_array($rawVisibility)
+            ? $rawVisibility
+            : (json_decode($rawVisibility, true) ?? []);
 
         $permissions = Permission::where('guard_name', 'web')
             ->orderBy('name')
@@ -119,6 +134,8 @@ class PermissionRoleController extends Controller
             'name' => ['required', 'string', 'max:50', 'regex:/^[a-z-]+$/', Rule::unique('roles')->ignore($role->id)],
             'permissions' => 'nullable|array',
             'permissions.*' => 'string',
+            'submenu_visibility' => 'nullable|array',
+            'submenu_visibility.*' => 'string',
         ]);
 
         $role->name = $request->name;
@@ -132,6 +149,62 @@ class PermissionRoleController extends Controller
             $role->syncPermissions($permIds);
         } else {
             $role->syncPermissions([]);
+        }
+
+        // Cascade updated permissions to all staff members assigned this role
+        $rolePermissionNames = $role->permissions->pluck('name')->toArray();
+        $affectedUsers = User::role($role->name)->get();
+
+        // Parse and save submenu visibility to the role itself
+        $roleSubmenuEnabled = [];
+        $roleSubmenuDisabled = [];
+        if ($request->has('submenu_visibility')) {
+            foreach ($request->submenu_visibility as $v) {
+                if (str_starts_with($v, 'submenu:')) {
+                    $roleSubmenuEnabled[] = $v;
+                } elseif (str_starts_with($v, 'submenu_disabled:')) {
+                    $roleSubmenuDisabled[] = $v;
+                }
+            }
+        }
+        $roleSubmenuSettings = array_merge($roleSubmenuEnabled, $roleSubmenuDisabled);
+        $role->submenu_visibility = $roleSubmenuSettings;
+        $role->save();
+
+        foreach ($affectedUsers as $user) {
+            // Get user's directly-assigned permissions (not role-inherited)
+            $currentDirectPerms = $user->permissions->pluck('name')->toArray();
+
+            // Preserve any custom extras the user has that are NOT in this role
+            $customExtras = array_diff($currentDirectPerms, $rolePermissionNames);
+
+            // Merge role permissions + custom extras
+            $newPerms = array_unique(array_merge($rolePermissionNames, $customExtras));
+
+            // Sync user-level permissions
+            if (!empty($newPerms)) {
+                $newPermIds = Permission::whereIn('name', $newPerms)
+                    ->where('guard_name', 'web')
+                    ->pluck('id')
+                    ->toArray();
+                $user->permissions()->sync($newPermIds);
+            } else {
+                $user->permissions()->detach();
+            }
+
+            // Update legacy permissions column (module-level keys + submenu visibility)
+            $moduleKeys = [];
+            foreach ($newPerms as $perm) {
+                if (str_contains($perm, '.')) {
+                    $module = explode('.', $perm)[0];
+                    if (!in_array($module, $moduleKeys)) {
+                        $moduleKeys[] = $module;
+                    }
+                }
+            }
+            // Apply role's submenu visibility settings (overrides any existing user-level settings)
+            $user->legacy_permissions = array_merge($moduleKeys, $roleSubmenuSettings);
+            $user->save();
         }
 
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();

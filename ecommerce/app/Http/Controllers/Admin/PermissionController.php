@@ -163,11 +163,16 @@ class PermissionController extends Controller
         $this->authorizeAccess();
 
         $request->validate([
-            'module' => 'required|string|max:50|regex:/^[a-z-]+$/',
-            'action' => 'required|string|max:50|regex:/^[a-z-]+$/',
+            'module' => 'required_without:full_name|string|max:50|regex:/^[a-z-]+$/',
+            'action' => 'required_without:full_name|string|max:50|regex:/^[a-z-]+$/',
+            'full_name' => 'required_without:module|string|max:100|regex:/^[a-z0-9_.-]+$/',
         ]);
 
-        $name = $request->module . '.' . $request->action;
+        if ($request->filled('full_name')) {
+            $name = $request->full_name;
+        } else {
+            $name = $request->module . '.' . $request->action;
+        }
         $existing = Permission::where('name', $name)->where('guard_name', 'web')->first();
 
         if ($existing) {

@@ -82,50 +82,121 @@
                         <div class="role-submenu-content" style="display: none;">
                             <div style="border-top: 1px solid #e9ecef; margin: 0 12px;"></div>
                             @php
-                                // Collect unique section permissions across all submenus for this module
-                                $moduleSectionPerms = [];
-                                foreach ($submenus as $routeName => $label) {
-                                    $pageSections = $pageSectionPerms[$routeName] ?? [];
-                                    foreach ($pageSections as $action) {
-                                        if (!in_array($action, $moduleSectionPerms)) {
-                                            $moduleSectionPerms[] = $action;
-                                        }
-                                    }
-                                }
+                                $allPageComponents = \App\Helpers\PermissionHelper::pageComponents();
+                                $childPages = \App\Helpers\PermissionHelper::childPages();
                             @endphp
-                            @if(!empty($moduleSectionPerms))
-                            <div class="d-flex align-items-center gap-2 px-3 py-1-5" style="padding: 6px 12px 6px 44px;">
-                                <div class="d-flex flex-wrap gap-1">
-                                    @foreach($moduleSectionPerms as $action)
-                                        @php
-                                            $sPermName = $modulePrefix . '.' . $action;
-                                            $sChecked = old('permissions') ? in_array($sPermName, old('permissions', [])) : false;
-                                        @endphp
-                                        <span class="badge rounded-pill role-perm-pill"
-                                              data-perm="{{ $sPermName }}"
-                                              data-state="{{ $sChecked ? '1' : '0' }}"
-                                              style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.78em; {{ $sChecked ? 'background: #6f42c1; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }} transition: all 0.15s;">
-                                            {{ str_replace('view-', '', $action) }}
-                                        </span>
-                                        <input type="checkbox" name="permissions[]" value="{{ $sPermName }}"
-                                               class="d-none role-perm-checkbox"
-                                               {{ $sChecked ? 'checked' : '' }}>
-                                    @endforeach
-                                </div>
-                            </div>
-                            @endif
                             @foreach($submenus as $routeName => $label)
+                                @php
+                                    $disabledKey = 'submenu_disabled:' . $routeName;
+                                    $oldVis = old('submenu_visibility');
+                                    $isSubmenuVisible = $oldVis ? !in_array($disabledKey, $oldVis) : true;
+                                    $submenuState = $isSubmenuVisible ? '1' : '0';
+                                    $submenuValue = $isSubmenuVisible ? 'submenu:' . $routeName : 'submenu_disabled:' . $routeName;
+                                    $routeSections = $pageSectionPerms[$routeName] ?? [];
+                                    $listComponents = $allPageComponents[$routeName] ?? [];
+                                    $submenuChildren = $childPages[$routeName] ?? [];
+                                @endphp
                                 <div class="d-flex align-items-center gap-2 px-3 py-1-5" style="padding: 5px 12px 5px 44px;">
                                     <div style="flex: 0 0 200px; flex-shrink: 0; display: flex; align-items: center;">
                                         <span class="badge rounded-pill role-submenu-pill d-inline-flex align-items-center gap-1"
                                               data-submenu="{{ $routeName }}"
-                                              data-state="1"
-                                              style="cursor:pointer; padding: 0.25em 0.6em; font-size: 0.72rem; white-space: nowrap; width: 100%; text-align: left; background: #0d6efd; color: #fff;">
-                                            <i class="bi bi-eye"></i> <span style="overflow: hidden; text-overflow: ellipsis;">{{ $label }}</span>
+                                              data-state="{{ $submenuState }}"
+                                              style="cursor:pointer; padding: 0.25em 0.6em; font-size: 0.72rem; white-space: nowrap; width: 100%; text-align: left; {{ $isSubmenuVisible ? 'background: #0d6efd; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
+                                            <i class="bi {{ $isSubmenuVisible ? 'bi-eye' : 'bi-eye-slash' }}"></i> <span style="overflow: hidden; text-overflow: ellipsis;">{{ $label }}</span>
                                         </span>
-                                        <input type="hidden" name="submenu_visibility[]" value="submenu:{{ $routeName }}" class="role-submenu-input">
+                                        <input type="hidden" name="submenu_visibility[]" value="{{ $submenuValue }}" class="role-submenu-input">
+                                    </div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        @if(!empty($routeSections))
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach($routeSections as $action)
+                                                @php
+                                                    $sPermName = $modulePrefix . '.' . $action;
+                                                    $sChecked = old('permissions') ? in_array($sPermName, old('permissions', [])) : false;
+                                                @endphp
+                                                <span class="badge rounded-pill role-perm-pill"
+                                                      data-perm="{{ $sPermName }}"
+                                                      data-state="{{ $sChecked ? '1' : '0' }}"
+                                                      style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.78em; {{ $sChecked ? 'background: #6f42c1; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }} transition: all 0.15s;">
+                                                    {{ str_replace('view-', '', $action) }}
+                                                </span>
+                                                <input type="checkbox" name="permissions[]" value="{{ $sPermName }}"
+                                                       class="d-none role-perm-checkbox"
+                                                       {{ $sChecked ? 'checked' : '' }}>
+                                            @endforeach
+                                        </div>
+                                        @endif
                                     </div>
                                 </div>
+                                {{-- Tree: page component groups --}}
+                                @if(!empty($listComponents))
+                                    @foreach($listComponents as $groupLabel => $groupPerms)
+                                    <div class="d-flex align-items-center gap-2 px-3 py-1" style="padding: 2px 12px 2px 58px;">
+                                        <div style="flex: 0 0 158px; flex-shrink: 0;">
+                                            <small class="text-muted" style="font-size: 0.7rem;"><i class="bi bi-chevron-right me-1"></i>{{ $groupLabel }}</small>
+                                        </div>
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div class="d-flex flex-wrap gap-1">
+                                                @foreach($groupPerms as $permName)
+                                                    @php
+                                                        $checked = old('permissions') ? in_array($permName, old('permissions', [])) : false;
+                                                        $parts = explode('.', $permName);
+                                                        $shortLabel = str_replace('-', ' ', end($parts));
+                                                    @endphp
+                                                    <span class="badge rounded-pill role-perm-pill role-page-action-pill"
+                                                          data-perm="{{ $permName }}"
+                                                          data-state="{{ $checked ? '1' : '0' }}"
+                                                          style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.72rem; {{ $checked ? 'background: #e86c00; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }} transition: all 0.15s;">
+                                                        {{ $shortLabel }}
+                                                    </span>
+                                                    <input type="checkbox" name="permissions[]" value="{{ $permName }}"
+                                                           class="d-none role-perm-checkbox"
+                                                           {{ $checked ? 'checked' : '' }}>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                @endif
+                                {{-- Tree: child detail pages --}}
+                                @foreach($submenuChildren as $childRoute)
+                                    @php
+                                        $childComponents = $allPageComponents[$childRoute] ?? [];
+                                        $childLabel = Str::of($childRoute)->afterLast('.')->replace('-', ' ')->title();
+                                    @endphp
+                                    @if(!empty($childComponents))
+                                        <div class="d-flex align-items-center px-3 py-1" style="padding: 2px 12px 2px 58px;">
+                                            <small class="text-muted fw-semibold" style="font-size: 0.72rem;"><i class="bi bi-layout-sidebar me-1"></i>{{ $childLabel }}</small>
+                                        </div>
+                                        @foreach($childComponents as $groupLabel => $groupPerms)
+                                        <div class="d-flex align-items-center gap-2 px-3 py-1" style="padding: 1px 12px 1px 78px;">
+                                            <div style="flex: 0 0 158px; flex-shrink: 0;">
+                                                <small class="text-muted" style="font-size: 0.68rem;"><i class="bi bi-chevron-right me-1"></i>{{ $groupLabel }}</small>
+                                            </div>
+                                            <div style="flex: 1; min-width: 0;">
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    @foreach($groupPerms as $permName)
+                                                        @php
+                                                            $checked = old('permissions') ? in_array($permName, old('permissions', [])) : false;
+                                                            $parts = explode('.', $permName);
+                                                            $shortLabel = str_replace('-', ' ', end($parts));
+                                                        @endphp
+                                                        <span class="badge rounded-pill role-perm-pill role-page-action-pill"
+                                                              data-perm="{{ $permName }}"
+                                                              data-state="{{ $checked ? '1' : '0' }}"
+                                                              style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.7rem; {{ $checked ? 'background: #e86c00; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }} transition: all 0.15s;">
+                                                            {{ $shortLabel }}
+                                                        </span>
+                                                        <input type="checkbox" name="permissions[]" value="{{ $permName }}"
+                                                               class="d-none role-perm-checkbox"
+                                                               {{ $checked ? 'checked' : '' }}>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    @endif
+                                @endforeach
                             @endforeach
                         </div>
                         @endif

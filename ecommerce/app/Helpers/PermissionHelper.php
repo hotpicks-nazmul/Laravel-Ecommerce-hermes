@@ -87,12 +87,12 @@ class PermissionHelper
         return [
             'dashboard'  => ['view'],
             'analytics'  => ['view', 'export'],
-            'products'   => ['view', 'create', 'edit', 'delete', 'export', 'import', 'view-cost'],
+            'products'   => ['view', 'create', 'edit', 'delete', 'export', 'import', 'view-cost', 'view-cost-price', 'view-wholesale-price', 'view-profit'],
             'inventory'  => ['view', 'create', 'edit', 'delete', 'export', 'import'],
-            'orders'     => ['view', 'create', 'edit', 'delete', 'export', 'view-customer', 'view-pricing'],
+            'orders'     => ['view', 'create', 'edit', 'delete', 'export', 'view-customer', 'view-pricing', 'view-pricing-detail', 'view-discount'],
             'delivery'   => ['view', 'create', 'edit', 'delete', 'export'],
             'refund'     => ['view', 'manage', 'view-customer'],
-            'customers'  => ['view', 'create', 'edit', 'delete', 'export', 'import', 'view-financial'],
+            'customers'  => ['view', 'create', 'edit', 'delete', 'export', 'import', 'view-financial', 'view-contact', 'view-address', 'view-orders', 'view-payments', 'view-activity', 'view-notes'],
             'sellers'    => ['view', 'create', 'edit', 'delete', 'export', 'view-financial'],
             'affiliate'  => ['view', 'create', 'edit', 'delete', 'view-financial'],
             'media'      => ['view', 'upload', 'delete'],
@@ -118,7 +118,13 @@ class PermissionHelper
      */
     public static function sectionActions(): array
     {
-        return ['view-customer', 'view-pricing', 'view-cost', 'view-financial', 'view-revenue', 'view-sales'];
+        return [
+            'view-customer', 'view-pricing', 'view-cost', 'view-financial', 'view-revenue', 'view-sales',
+            // Customer micro permissions
+            'view-contact', 'view-address', 'view-orders', 'view-payments', 'view-activity', 'view-notes',
+            // Price micro permissions
+            'view-pricing-detail', 'view-discount', 'view-cost-price', 'view-wholesale-price', 'view-profit',
+        ];
     }
 
     /**
@@ -325,22 +331,22 @@ class PermissionHelper
     {
         return [
             // ===== Orders =====
-            'admin.orders.in-house'          => ['view-customer', 'view-pricing'],
-            'admin.orders.seller'            => ['view-customer', 'view-pricing'],
-            'admin.orders.pickup-point'      => ['view-customer', 'view-pricing'],
-            'admin.orders.index'             => ['view-customer', 'view-pricing'],
-            'admin.orders.show'              => ['view-customer', 'view-pricing'],
+            'admin.orders.in-house'          => ['view-customer', 'view-pricing', 'view-pricing-detail', 'view-discount'],
+            'admin.orders.seller'            => ['view-customer', 'view-pricing', 'view-pricing-detail', 'view-discount'],
+            'admin.orders.pickup-point'      => ['view-customer', 'view-pricing', 'view-pricing-detail', 'view-discount'],
+            'admin.orders.index'             => ['view-customer', 'view-pricing', 'view-pricing-detail', 'view-discount'],
+            'admin.orders.show'              => ['view-customer', 'view-pricing', 'view-pricing-detail', 'view-discount'],
 
             // ===== Products =====
-            'admin.products.edit'            => ['view-cost'],
-            'admin.products.create'          => ['view-cost'],
-            'admin.products.show'            => ['view-cost'],
-            'admin.products.index'           => ['view-cost'],
+            'admin.products.edit'            => ['view-cost', 'view-cost-price', 'view-wholesale-price', 'view-profit'],
+            'admin.products.create'          => ['view-cost', 'view-cost-price', 'view-wholesale-price', 'view-profit'],
+            'admin.products.show'            => ['view-cost', 'view-cost-price', 'view-wholesale-price', 'view-profit'],
+            'admin.products.index'           => ['view-cost', 'view-cost-price', 'view-wholesale-price', 'view-profit'],
 
             // ===== Customers =====
-            'admin.customers.index'          => ['view-financial'],
-            'admin.customers.show'           => ['view-financial'],
-            'admin.customers.edit'           => ['view-financial'],
+            'admin.customers.index'          => ['view-financial', 'view-contact', 'view-address', 'view-orders', 'view-payments', 'view-activity', 'view-notes'],
+            'admin.customers.show'           => ['view-financial', 'view-contact', 'view-address', 'view-orders', 'view-payments', 'view-activity', 'view-notes'],
+            'admin.customers.edit'           => ['view-financial', 'view-contact', 'view-address'],
 
             // ===== Sellers =====
             'admin.sellers.index'            => ['view-financial'],
@@ -386,6 +392,88 @@ class PermissionHelper
             'admin.customers.wallet.index'   => ['view-financial'],
             'admin.customers.loyalty.index'  => ['view-financial'],
         ];
+    }
+
+    /**
+     * Page-level action permissions for every page (list AND detail).
+     * Key = route name, value = full permission names for actions/components on that page.
+     * List pages get component permissions (buttons, filters on the table).
+     * Detail pages get action permissions (sections, buttons inside the record view).
+     */
+    public static function pageActions(): array
+    {
+        $flat = [];
+        foreach (self::pageComponents() as $route => $groups) {
+            foreach ($groups as $groupLabel => $perms) {
+                $flat[$route] = array_merge($flat[$route] ?? [], $perms);
+            }
+        }
+        return $flat;
+    }
+
+    /**
+     * Hierarchical page components organized by route → section label → permission names.
+     * Each component group renders as an indented row in the tree view.
+     * Section labels describe cards/modals/sections on the page.
+     */
+    public static function pageComponents(): array
+    {
+        return [
+            // ===== Orders: List Pages =====
+            'admin.orders.in-house' => [
+                'Actions' => ['orders.inhouse-create', 'orders.inhouse-export'],
+            ],
+            'admin.orders.seller' => [
+                'Actions' => ['orders.seller-export'],
+            ],
+            // ===== Orders: Detail Pages (child of in-house, seller, pickup-point) =====
+            'admin.orders.show' => [
+                'Status Management' => ['orders.show-update-status', 'orders.show-update-payment', 'orders.show-ship-order'],
+                'Invoice' => ['orders.show-invoice'],
+                'Customer Info' => ['orders.show-customer-info'],
+                'Billing Address' => ['orders.show-billing-address'],
+                'Shipping Address' => ['orders.show-shipping-address'],
+                'Payment Details' => ['orders.show-payment-details'],
+                'Order Items' => ['orders.show-order-items'],
+                'Timeline' => ['orders.show-timeline'],
+            ],
+        ];
+    }
+
+    /**
+     * Map submenu parent routes to their child detail page routes.
+     * Key = parent submenu route, value = list of child route names.
+     * Child routes must exist in pageActions().
+     */
+    public static function childPages(): array
+    {
+        return [
+            'admin.orders.in-house' => ['admin.orders.show'],
+            'admin.orders.seller' => ['admin.orders.show'],
+            'admin.orders.pickup-point' => ['admin.orders.show'],
+        ];
+    }
+
+    /**
+     * Get all page action permission names flat list.
+     */
+    public static function allPageActionNames(): array
+    {
+        $names = [];
+        foreach (self::pageActions() as $route => $actions) {
+            foreach ($actions as $action) {
+                $names[] = $action;
+            }
+        }
+        return $names;
+    }
+
+    /**
+     * Get page actions for a specific route.
+     */
+    public static function pageActionsForRoute(string $routeName): array
+    {
+        return self::pageActions()[$routeName] ?? [];
     }
 
     /**

@@ -35,12 +35,16 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0"><i class="bi bi-house-door me-2"></i>Inhouse Orders</h4>
     <div class="d-flex gap-2">
+        @if(auth()->user()->hasPermission('orders.inhouse-create'))
         <a href="{{ route('admin.orders.in-house.create') }}" class="btn btn-primary">
             <i class="bi bi-plus-lg me-1"></i> Create Order
         </a>
+        @endif
+        @if(auth()->user()->hasPermission('orders.inhouse-export'))
         <a href="{{ route('admin.orders.in-house', array_merge(request()->query(), ['export' => 'csv'])) }}" class="btn btn-outline-secondary">
             <i class="bi bi-download me-1"></i> Export CSV
         </a>
+        @endif
     </div>
 </div>
 

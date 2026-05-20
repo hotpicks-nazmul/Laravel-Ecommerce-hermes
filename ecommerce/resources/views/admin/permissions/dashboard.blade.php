@@ -115,35 +115,15 @@
                         <div class="module-submenu-content" style="display: none;">
                             <div style="border-top: 1px solid #e9ecef; margin: 0 12px;"></div>
                             @php
-                                $uniqueSectionActions = [];
-                                foreach ($submenus as $routeName => $label) {
-                                    $routeSections = $pageSectionPerms[$routeName] ?? [];
-                                    foreach ($routeSections as $act) {
-                                        $uniqueSectionActions[$act] = true;
-                                    }
-                                }
-                                $uniqueSectionActions = array_keys($uniqueSectionActions ?? []);
+                                $allPageComponents = \App\Helpers\PermissionHelper::pageComponents();
+                                $childPages = \App\Helpers\PermissionHelper::childPages();
                             @endphp
-                            @if(!empty($uniqueSectionActions))
-                                <div class="d-flex flex-wrap gap-1 px-3 py-2" style="padding-left: 48px;">
-                                @foreach($uniqueSectionActions as $act)
-                                    @php
-                                        $permName = $moduleKey . '.' . $act;
-                                        $exists = isset($keyExists[$permName]);
-                                    @endphp
-                                    <span class="badge rounded-pill perm-toggle"
-                                          data-module="{{ $moduleKey }}"
-                                          data-action="{{ $act }}"
-                                          data-state="{{ $exists ? '1' : '0' }}"
-                                          style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.8em; {{ $exists ? 'background: #6f42c1; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
-                                        {{ str_replace('view-', '', $act) }}
-                                    </span>
-                                @endforeach
-                                </div>
-                            @endif
                             @foreach($submenus as $routeName => $label)
                                 @php
                                     $visible = \App\Helpers\PermissionHelper::isSubmenuVisible($routeName);
+                                    $routeSections = $pageSectionPerms[$routeName] ?? [];
+                                    $listComponents = $allPageComponents[$routeName] ?? [];
+                                    $submenuChildren = $childPages[$routeName] ?? [];
                                 @endphp
                                 <div class="d-flex align-items-center gap-2 px-3 py-1-5" style="padding: 5px 12px 5px 48px;">
                                     <div style="flex: 0 0 130px; flex-shrink: 0; display: flex; align-items: center;">
@@ -154,8 +134,89 @@
                                             <i class="bi bi-{{ $visible ? 'eye' : 'eye-slash' }}"></i> <span style="overflow: hidden; text-overflow: ellipsis;">{{ $label }}</span>
                                         </span>
                                     </div>
-                                    <div style="flex: 1; min-width: 0;"></div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        @if(!empty($routeSections))
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach($routeSections as $act)
+                                                @php
+                                                    $permName = $moduleKey . '.' . $act;
+                                                    $exists = isset($keyExists[$permName]);
+                                                @endphp
+                                                <span class="badge rounded-pill perm-toggle"
+                                                      data-module="{{ $moduleKey }}"
+                                                      data-action="{{ $act }}"
+                                                      data-state="{{ $exists ? '1' : '0' }}"
+                                                      style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.78em; {{ $exists ? 'background: #6f42c1; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
+                                                    {{ str_replace('view-', '', $act) }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                        @endif
+                                    </div>
                                 </div>
+                                {{-- Tree: page component groups --}}
+                                @if(!empty($listComponents))
+                                    @foreach($listComponents as $groupLabel => $groupPerms)
+                                    <div class="d-flex align-items-center gap-2 px-3 py-1" style="padding: 2px 12px 2px 62px;">
+                                        <div style="flex: 0 0 102px; flex-shrink: 0;">
+                                            <small class="text-muted" style="font-size: 0.7rem;"><i class="bi bi-chevron-right me-1"></i>{{ $groupLabel }}</small>
+                                        </div>
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div class="d-flex flex-wrap gap-1">
+                                                @foreach($groupPerms as $permName)
+                                                    @php
+                                                        $exists = isset($keyExists[$permName]);
+                                                        $parts = explode('.', $permName);
+                                                        $shortLabel = str_replace('-', ' ', end($parts));
+                                                    @endphp
+                                                    <span class="badge rounded-pill perm-toggle page-action-pill"
+                                                          data-full-name="{{ $permName }}"
+                                                          data-state="{{ $exists ? '1' : '0' }}"
+                                                          style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.72rem; {{ $exists ? 'background: #e86c00; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
+                                                        {{ $shortLabel }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                @endif
+                                {{-- Tree: child detail pages --}}
+                                @foreach($submenuChildren as $childRoute)
+                                    @php
+                                        $childComponents = $allPageComponents[$childRoute] ?? [];
+                                        $childLabel = Str::of($childRoute)->afterLast('.')->replace('-', ' ')->title();
+                                    @endphp
+                                    @if(!empty($childComponents))
+                                        <div class="d-flex align-items-center px-3 py-1" style="padding: 2px 12px 2px 62px;">
+                                            <small class="text-muted fw-semibold" style="font-size: 0.72rem;"><i class="bi bi-layout-sidebar me-1"></i>{{ $childLabel }}</small>
+                                        </div>
+                                        @foreach($childComponents as $groupLabel => $groupPerms)
+                                        <div class="d-flex align-items-center gap-2 px-3 py-1" style="padding: 1px 12px 1px 82px;">
+                                            <div style="flex: 0 0 102px; flex-shrink: 0;">
+                                                <small class="text-muted" style="font-size: 0.68rem;"><i class="bi bi-chevron-right me-1"></i>{{ $groupLabel }}</small>
+                                            </div>
+                                            <div style="flex: 1; min-width: 0;">
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    @foreach($groupPerms as $permName)
+                                                        @php
+                                                            $exists = isset($keyExists[$permName]);
+                                                            $parts = explode('.', $permName);
+                                                            $shortLabel = str_replace('-', ' ', end($parts));
+                                                        @endphp
+                                                        <span class="badge rounded-pill perm-toggle page-action-pill"
+                                                              data-full-name="{{ $permName }}"
+                                                              data-state="{{ $exists ? '1' : '0' }}"
+                                                              style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.7rem; {{ $exists ? 'background: #e86c00; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
+                                                            {{ $shortLabel }}
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    @endif
+                                @endforeach
                             @endforeach
                         </div>
                     </div>
@@ -885,6 +946,52 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('Failed to save permissions.');
                 }
             });
+        });
+    });
+
+    // ============ Page Action Toggles (orange pills, use full_name) ============
+    document.querySelectorAll('.page-action-pill').forEach(function(pill) {
+        pill.addEventListener('click', function() {
+            const fullName = this.dataset.fullName;
+            const wasOn = this.dataset.state === '1';
+            const originalHtml = this.innerHTML;
+            this.innerHTML = '<span class=\"spinner-border spinner-border-sm\"></span>';
+
+            fetch('{{ route('admin.permissions.toggle-key') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ full_name: fullName })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    this.dataset.state = data.state ? '1' : '0';
+                    if (data.state) {
+                        this.style.background = '#e86c00';
+                        this.style.color = '#fff';
+                        if (typeof adminToast === 'function') {
+                            adminToast('success', 'Created', "'" + fullName + "' created.");
+                        }
+                    } else {
+                        this.style.background = '#e9ecef';
+                        this.style.color = '#6c757d';
+                        if (typeof adminToast === 'function') {
+                            adminToast('warning', 'Removed', "'" + fullName + "' removed.");
+                        }
+                    }
+                }
+                this.innerHTML = originalHtml;
+            })
+            .catch(function() {
+                this.innerHTML = originalHtml;
+                if (typeof adminToast === 'function') {
+                    adminToast('error', 'Error', 'Failed to toggle permission.');
+                }
+            }.bind(this));
         });
     });
 });

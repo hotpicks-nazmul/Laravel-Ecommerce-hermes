@@ -12,9 +12,11 @@
         </small>
     </div>
     <div class="d-flex gap-2">
+        @if(auth()->user()->hasPermission('orders.show-invoice'))
         <a href="{{ route('admin.orders.invoice', $order->id) }}" class="btn btn-outline-secondary" target="_blank">
             <i class="bi bi-receipt me-1"></i> Invoice
         </a>
+        @endif
         <a href="{{ route('admin.orders.seller') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i> Back to Seller Orders
         </a>
