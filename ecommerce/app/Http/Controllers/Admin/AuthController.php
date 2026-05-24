@@ -47,25 +47,34 @@ class AuthController extends Controller
                 ])->onlyInput('email');
             }
 
-            // ✅ Password is correct — now send 2FA code
-            $code = LoginCode::generateFor($user->email);
+            // Check if 2FA is enabled
+            $twoFactorEnabled = \Illuminate\Support\Facades\DB::table('settings')
+                ->where('key', 'two_factor_auth')
+                ->value('value');
 
-            // Send code via email
-            try {
-                $user->notify(new AdminLoginCode($code));
-            } catch (\Exception $e) {
-                // If mail fails, still allow login (graceful degradation)
-                \Illuminate\Support\Facades\Log::warning('2FA email failed: ' . $e->getMessage());
+            if ($twoFactorEnabled === '1') {
+                // Generate 2FA code and require verification
+                $code = LoginCode::generateFor($user->email);
+
+                try {
+                    $user->notify(new AdminLoginCode($code));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning('Admin 2FA email failed: ' . $e->getMessage());
+                }
+
+                // Store user ID in session for 2FA verification
+                $request->session()->put('2fa_user_id', $user->id);
+                $request->session()->put('2fa_email', $user->email);
+
+                // Log out until 2FA is verified
+                Auth::logout();
+
+                return redirect()->route('admin.verify-2fa');
             }
 
-            // Store user info in session for 2FA verification
-            $request->session()->put('2fa_user_id', $user->id);
-            $request->session()->put('2fa_email', $user->email);
+            // 2FA disabled — log in directly
+            return redirect()->intended(route('admin.dashboard'));
 
-            // Log out temporarily — they'll be fully logged in after 2FA
-            Auth::logout();
-
-            return redirect()->route('admin.verify-2fa');
         }
 
         // Log failed attempt

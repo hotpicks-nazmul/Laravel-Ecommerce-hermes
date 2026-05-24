@@ -1,264 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Database Configuration - Installation Wizard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #4f46e5;
-            --secondary-color: #7c3aed;
-        }
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .install-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            overflow: hidden;
-            max-width: 800px;
-            width: 100%;
-        }
-        .install-header {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        .install-header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-        }
-        .install-body {
-            padding: 30px;
-        }
-        .step-indicator {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        .step {
-            display: flex;
-            align-items: center;
-            color: #9ca3af;
-            font-size: 0.9rem;
-        }
-        .step.active {
-            color: #4f46e5;
-        }
-        .step.completed {
-            color: #10b981;
-        }
-        .step-number {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 2px solid currentColor;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.85rem;
-            margin-right: 8px;
-        }
-        .step.completed .step-number {
-            background: #10b981;
-            border-color: #10b981;
-            color: white;
-        }
-        .step.active .step-number {
-            background: #4f46e5;
-            border-color: #4f46e5;
-            color: white;
-        }
-        .step-line {
-            width: 30px;
-            height: 2px;
-            background: #e5e7eb;
-            margin: 0 10px;
-        }
-        .form-floating {
-            margin-bottom: 20px;
-        }
-        .form-floating input {
-            border-radius: 10px;
-            border: 2px solid #e5e7eb;
-            padding-left: 45px;
-        }
-        .form-floating input:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
-        }
-        .form-floating label {
-            padding-left: 45px;
-        }
-        .input-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-            z-index: 5;
-        }
-        .btn-install {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            border: none;
-            padding: 12px 35px;
-            font-size: 1rem;
-            border-radius: 10px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .btn-install:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
-        }
-        .btn-back {
-            background: #f3f4f6;
-            color: #374151;
-            border: none;
-            padding: 12px 35px;
-            font-size: 1rem;
-            border-radius: 10px;
-        }
-        .btn-back:hover {
-            background: #e5e7eb;
-        }
-        .alert {
-            border-radius: 10px;
-            border: none;
-        }
-        .db-info {
-            background: #f0f9ff;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        .db-info i {
-            color: #0ea5e9;
-        }
-    </style>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database · Install Hamko Bazar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>body{background:#0a0b0d;font-family:'Inter',system-ui,sans-serif}.anim-up{animation:up .45s ease-out}@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}.step-dot{width:8px;height:8px;border-radius:50%;background:#2a2c32;flex-shrink:0}.step-dot.active{background:#6366f1;box-shadow:0 0 10px rgba(99,102,241,.4)}.step-dot.done{background:#4b5563}.step-line{width:22px;height:1px;background:#2a2c32;flex-shrink:0}.step-line.fill{background:#4b5563}input:focus{border-color:#6366f1!important;background:#1a1c24!important;box-shadow:0 0 0 3px rgba(99,102,241,.12)!important}</style>
 </head>
-<body>
-    <div class="install-container">
-        <div class="install-header">
-            <h1><i class="bi bi-database me-2"></i>Database Configuration</h1>
-            <p>Enter your MySQL database credentials</p>
-        </div>
-        
-        <div class="install-body">
-            <!-- Step Indicator -->
-            <div class="step-indicator">
-                <div class="step completed">
-                    <span class="step-number"><i class="bi bi-check"></i></span>
-                    <span>Welcome</span>
-                </div>
-                <div class="step-line"></div>
-                <div class="step completed">
-                    <span class="step-number"><i class="bi bi-check"></i></span>
-                    <span>Requirements</span>
-                </div>
-                <div class="step-line"></div>
-                <div class="step active">
-                    <span class="step-number">3</span>
-                    <span>Database</span>
-                </div>
-                <div class="step-line"></div>
-                <div class="step">
-                    <span class="step-number">4</span>
-                    <span>Configure</span>
-                </div>
-                <div class="step-line"></div>
-                <div class="step">
-                    <span class="step-number">5</span>
-                    <span>Theme</span>
-                </div>
-                <div class="step-line"></div>
-                <div class="step">
-                    <span class="step-number">6</span>
-                    <span>Payment</span>
-                </div>
-            </div>
-
-            @if(session('error'))
-                <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
-                </div>
-            @endif
-
-            @if(session('success'))
-                <div class="alert alert-success">
-                    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                </div>
-            @endif
-
-            <div class="db-info">
-                <i class="bi bi-info-circle me-2"></i>
-                <small>Enter your MySQL database credentials. The database will be created automatically if it doesn't exist.</small>
-            </div>
-
-            <form action="{{ route('install.setup-database') }}" method="POST">
-                @csrf
-                <div class="row">
-                    <div class="col-md-8">
-                        <div class="form-floating position-relative">
-                            <i class="bi bi-server input-icon"></i>
-                            <input type="text" class="form-control" id="db_host" name="db_host" 
-                                   placeholder="Database Host" value="{{ old('db_host', 'localhost') }}" required>
-                            <label for="db_host">Database Host</label>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-floating position-relative">
-                            <i class="bi bi-hash input-icon"></i>
-                            <input type="number" class="form-control" id="db_port" name="db_port" 
-                                   placeholder="Port" value="{{ old('db_port', '3306') }}" required>
-                            <label for="db_port">Port</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-floating position-relative">
-                    <i class="bi bi-database input-icon"></i>
-                    <input type="text" class="form-control" id="db_name" name="db_name" 
-                           placeholder="Database Name" value="{{ old('db_name') }}" required>
-                    <label for="db_name">Database Name</label>
-                </div>
-
-                <div class="form-floating position-relative">
-                    <i class="bi bi-person input-icon"></i>
-                    <input type="text" class="form-control" id="db_username" name="db_username" 
-                           placeholder="Database Username" value="{{ old('db_username') }}" required>
-                    <label for="db_username">Database Username</label>
-                </div>
-
-                <div class="form-floating position-relative">
-                    <i class="bi bi-lock input-icon"></i>
-                    <input type="password" class="form-control" id="db_password" name="db_password" 
-                           placeholder="Database Password" value="{{ old('db_password') }}">
-                    <label for="db_password">Database Password</label>
-                </div>
-
-                <div class="d-flex justify-content-between mt-4">
-                    <a href="{{ route('install.requirements') }}" class="btn btn-back">
-                        <i class="bi bi-arrow-left me-2"></i>Back
-                    </a>
-                    <button type="submit" class="btn btn-primary btn-install">
-                        Test Connection <i class="bi bi-arrow-right ms-2"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
+<body style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#0a0b0d;font-family:'Inter',system-ui,sans-serif">
+<div style="width:100%;max-width:600px;background:#111215;border:1px solid #22242a;border-radius:20px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);animation:up .45s ease-out">
+    <div style="text-align:center;padding:48px 40px 0">
+        <h1 style="color:#f0f1f3;font-size:22px;font-weight:600;margin-bottom:4px">Database</h1>
+        <p style="color:#9ca3af;font-size:16px">Enter MySQL credentials</p>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <div style="padding:28px 40px 40px">
+        <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:20px">
+            <div class="step-dot done"></div><div class="step-line fill"></div><div class="step-dot done"></div><div class="step-line fill"></div><div class="step-dot active"></div><div class="step-line"></div><div class="step-dot"></div><div class="step-line"></div><div class="step-dot"></div><div class="step-line"></div><div class="step-dot"></div>
+        </div>
+        <p style="text-align:center;font-size:15px;color:#9ca3af;margin-bottom:24px">Step <strong style="color:#e5e7eb">3</strong> of <strong style="color:#e5e7eb">6</strong> · Database</p>
+        @if(session('error'))<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);color:#fca5a5;border-radius:12px;padding:12px 16px;font-size:14px;margin-bottom:16px">{{ session('error') }}</div>@endif
+        @if(session('success'))<div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.15);color:#6ee7b7;border-radius:12px;padding:12px 16px;font-size:14px;margin-bottom:16px">{{ session('success') }}</div>@endif
+        <div style="display:flex;gap:12px;background:rgba(99,102,241,.05);border:1px solid rgba(99,102,241,.1);border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:14px;color:#a5b4fc;line-height:1.5"><span style="color:#818cf8;flex-shrink:0">ⓘ</span><span>Your database will be created automatically if it doesn't exist.</span></div>
+        <form action="{{ route('install.setup-database') }}" method="POST">
+            @csrf
+            <div style="display:flex;gap:12px">
+                <div style="flex:1;margin-bottom:16px">
+                    <label style="display:block;color:#9ca3af;font-size:14px;font-weight:500;margin-bottom:6px">Host</label>
+                    <div style="position:relative"><span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#4b5563;font-size:14px;pointer-events:none">@</span><input type="text" name="db_host" value="{{ old('db_host', 'localhost') }}" required style="width:100%;padding:12px 14px 12px 38px;background:#181a1f;border:1px solid #22242a;border-radius:12px;font-size:14px;font-family:'Inter',sans-serif;color:#e5e7eb;outline:none"></div>
+                </div>
+                <div style="width:100px;margin-bottom:16px">
+                    <label style="display:block;color:#9ca3af;font-size:14px;font-weight:500;margin-bottom:6px">Port</label>
+                    <div style="position:relative"><span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#4b5563;font-size:14px;pointer-events:none">#</span><input type="number" name="db_port" value="{{ old('db_port', '3306') }}" required style="width:100%;padding:12px 14px 12px 38px;background:#181a1f;border:1px solid #22242a;border-radius:12px;font-size:14px;font-family:'Inter',sans-serif;color:#e5e7eb;outline:none"></div>
+                </div>
+            </div>
+            <div style="margin-bottom:16px">
+                <label style="display:block;color:#9ca3af;font-size:14px;font-weight:500;margin-bottom:6px">Database Name</label>
+                <div style="position:relative"><span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#4b5563;font-size:14px;pointer-events:none">◇</span><input type="text" name="db_name" value="{{ old('db_name') }}" required placeholder="e.g. hamko_bazar" style="width:100%;padding:12px 14px 12px 38px;background:#181a1f;border:1px solid #22242a;border-radius:12px;font-size:14px;font-family:'Inter',sans-serif;color:#e5e7eb;outline:none"></div>
+            </div>
+            <div style="margin-bottom:16px">
+                <label style="display:block;color:#9ca3af;font-size:14px;font-weight:500;margin-bottom:6px">Username</label>
+                <div style="position:relative"><span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#4b5563;font-size:14px;pointer-events:none">◉</span><input type="text" name="db_username" value="{{ old('db_username') }}" required placeholder="e.g. hamko_user" style="width:100%;padding:12px 14px 12px 38px;background:#181a1f;border:1px solid #22242a;border-radius:12px;font-size:14px;font-family:'Inter',sans-serif;color:#e5e7eb;outline:none"></div>
+            </div>
+            <div style="margin-bottom:16px">
+                <label style="display:block;color:#9ca3af;font-size:14px;font-weight:500;margin-bottom:6px">Password</label>
+                <div style="position:relative"><span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#4b5563;font-size:14px;pointer-events:none">●</span><input type="password" name="db_password" value="{{ old('db_password') }}" placeholder="Enter password" style="width:100%;padding:12px 14px 12px 38px;background:#181a1f;border:1px solid #22242a;border-radius:12px;font-size:14px;font-family:'Inter',sans-serif;color:#e5e7eb;outline:none"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:20px;border-top:1px solid #22242a">
+                <a href="{{ route('install.requirements') }}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:#1e2025;color:#9ca3af;border:1px solid #22242a;border-radius:12px;text-decoration:none;font-size:14px;font-weight:500">← Back</a>
+                <button type="submit" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:#6366f1;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:500;cursor:pointer;box-shadow:0 4px 16px rgba(99,102,241,.3)">Test & Connect →</button>
+            </div>
+        </form>
+    </div>
+</div>
 </body>
 </html>

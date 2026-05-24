@@ -53,7 +53,7 @@
     <?php
     // Get theme settings
     $themeSettings = $themeSettings ?? [];
-    $primaryColor = $themeSettings['primary_color'] ?? '#4f46e5';
+    $primaryColor = $themeSettings['primary_color'] ?? '#2D5A27';
     $secondaryColor = $themeSettings['secondary_color'] ?? '#7c3aed';
     $accentColor = $themeSettings['accent_color'] ?? '#10b981';
     $goldColor = $themeSettings['gold_color'] ?? '#d4af37';

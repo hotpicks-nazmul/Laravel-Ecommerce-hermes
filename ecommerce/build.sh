@@ -247,7 +247,21 @@ for dir in storage/framework/cache/data storage/framework/sessions storage/frame
 done
 mkdir -p public/uploads bootstrap/cache
 
+# Create root .htaccess for public/ rewrite
+cat > .htaccess << 'HTACC'
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+HTACC
+log "Root .htaccess created"
+
 log "Environment and storage prepared"
+
+# ─── Step 5b: Clean cached files ──────────────────────────
+info "Cleaning cached bootstrap files..."
+rm -f bootstrap/cache/packages.php bootstrap/cache/services.php bootstrap/cache/config.php
+log "Cached files cleaned"
 
 # ─── Step 6: Build ZIP ────────────────────────────────────
 header "Step 6/6: Creating Installable ZIP"
@@ -273,6 +287,8 @@ vagrant/
 docker/
 docker-compose.yml
 storage/framework/install.lock
+bootstrap/cache/packages.php
+bootstrap/cache/services.php
 *.md
 .env.local.backup
 EXCLUDES

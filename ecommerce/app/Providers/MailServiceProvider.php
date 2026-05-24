@@ -27,7 +27,7 @@ class MailServiceProvider extends ServiceProvider
     protected function loadMailSettings()
     {
         // Only run in production or when config is not cached
-        if ($this->app->environment('production') && file_exists(base_path('bootstrap/cache/config.php'))) {
+        if (env('APP_ENV') === 'production' && file_exists(base_path('bootstrap/cache/config.php'))) {
             return;
         }
         

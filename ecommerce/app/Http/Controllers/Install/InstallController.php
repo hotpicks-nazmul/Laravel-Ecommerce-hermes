@@ -66,8 +66,9 @@ class InstallController extends Controller
                 [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]
             );
 
-            // Create database if not exists
-            $connection->exec("CREATE DATABASE IF NOT EXISTS `{$request->db_name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+            // Drop database if exists, then create fresh
+            $connection->exec("DROP DATABASE IF EXISTS `{$request->db_name}`");
+            $connection->exec("CREATE DATABASE `{$request->db_name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
             $connection = null;
 
             // Update .env file
@@ -91,8 +92,8 @@ class InstallController extends Controller
             DB::purge('mysql');
             DB::reconnect('mysql');
 
-            // Run migrations
-            Artisan::call('migrate', ['--force' => true]);
+            // Run migrations fresh (drop all tables and re-run)
+            Artisan::call('migrate:fresh', ['--force' => true, '--seed' => false]);
 
             return redirect()->route('install.site-config')
                 ->with('success', 'Database connected successfully!');
@@ -129,26 +130,28 @@ class InstallController extends Controller
         ]);
 
         try {
-            // Update .env file
-            $this->updateEnvFile([
-                'APP_NAME' => $request->site_name,
-                'APP_URL' => $request->db_url,
-                'APP_TIMEZONE' => $request->timezone,
-            ]);
+            DB::transaction(function () use ($request) {
+                // Update .env file
+                $this->updateEnvFile([
+                    'APP_NAME' => $request->site_name,
+                    'APP_URL' => $request->site_url,
+                    'APP_TIMEZONE' => $request->timezone,
+                ]);
 
-            // Create admin user
-            DB::table('users')->insert([
-                'name' => $request->admin_name,
-                'email' => $request->admin_email,
-                'password' => Hash::make($request->admin_password),
-                'role' => 'admin',
-                'email_verified_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+                // Create admin user
+                DB::table('users')->insert([
+                    'name' => $request->admin_name,
+                    'email' => $request->admin_email,
+                    'password' => Hash::make($request->admin_password),
+                    'role' => 'super_admin',
+                    'email_verified_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
 
-            // Insert default settings
-            $this->insertDefaultSettings($request);
+                // Insert default settings
+                $this->insertDefaultSettings($request);
+            });
 
             return redirect()->route('install.theme')
                 ->with('success', 'Site configuration saved successfully!');
@@ -272,7 +275,6 @@ class InstallController extends Controller
                 'status' => version_compare(PHP_VERSION, '8.2', '>='),
             ],
             'extensions' => [
-                'bcmath' => extension_loaded('bcmath'),
                 'ctype' => extension_loaded('ctype'),
                 'fileinfo' => extension_loaded('fileinfo'),
                 'json' => extension_loaded('json'),
@@ -319,6 +321,11 @@ class InstallController extends Controller
         $envContent = File::exists($envPath) ? File::get($envPath) : '';
 
         foreach ($data as $key => $value) {
+            // Quote values containing spaces or special characters
+            if (preg_match('/[^\w.-]/', $value) && !str_starts_with($value, '"') && !str_ends_with($value, '"')) {
+                $value = '"' . str_replace('"', '\"', $value) . '"';
+            }
+
             $pattern = "/^{$key}=.*/m";
             $replacement = "{$key}={$value}";
 
@@ -354,6 +361,7 @@ class InstallController extends Controller
             ['key' => 'tax_rate', 'value' => '0'],
             ['key' => 'free_shipping_amount', 'value' => '0'],
             ['key' => 'flat_shipping_rate', 'value' => '0'],
+            ['key' => 'two_factor_auth', 'value' => '0'],
         ];
 
         foreach ($settings as $setting) {

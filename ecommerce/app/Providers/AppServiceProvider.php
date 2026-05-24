@@ -15,6 +15,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Prevent lazy loading in non-production environments
-        Model::preventLazyLoading(!$this->app->isProduction());
+        Model::preventLazyLoading(!app()->isProduction());
     }
 }

@@ -46,9 +46,11 @@
     </td>
     <td>
         <div class="btn-group">
+            @if(auth()->user()->hasPermission('orders.inhouse-view-details'))
             <a href="{{ route('admin.orders.in-house.show', $order->id) }}" class="btn btn-sm btn-outline-primary" title="View Details">
                 <i class="bi bi-eye"></i>
             </a>
+            @endif
             <a href="{{ route('admin.orders.invoice', $order->id) }}" class="btn btn-sm btn-outline-secondary" title="Invoice" target="_blank">
                 <i class="bi bi-receipt"></i>
             </a>
@@ -57,11 +59,13 @@
                     <i class="bi bi-gear"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
+                    @if(auth()->user()->hasPermission('orders.inhouse-view-details'))
                     <li>
                         <a class="dropdown-item" href="{{ route('admin.orders.in-house.show', $order->id) }}">
                             <i class="bi bi-eye me-2"></i> View Details
                         </a>
                     </li>
+                    @endif
                     <li>
                         <a class="dropdown-item" href="{{ route('admin.orders.invoice', $order->id) }}" target="_blank">
                             <i class="bi bi-receipt me-2"></i> View Invoice

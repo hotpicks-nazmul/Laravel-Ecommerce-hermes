@@ -4,67 +4,41 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\File;
+use Symfony\Component\HttpFoundation\Response;
 
 class CheckInstallation
 {
     /**
      * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
-     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
         // Skip installation check for installation routes
-        if ($request->is('install/*') || $request->is('install')) {
-            // If already installed, redirect to home
+        if ($request->routeIs('install.*') || $request->is('install/*') || $request->is('install')) {
+            // If install.lock exists, redirect to home (already installed)
             if ($this->isInstalled()) {
                 return redirect()->route('home');
             }
             return $next($request);
         }
 
-        // Check if application is installed
-        if (!$this->isInstalled()) {
-            return redirect()->route('install.welcome');
+        // For non-install routes: if installed, pass through
+        if ($this->isInstalled()) {
+            return $next($request);
         }
 
-        return $next($request);
+        // Not installed — redirect to installation wizard
+        return redirect()->route('install.welcome');
     }
 
     /**
-     * Check if the application is installed.
-     *
-     * @return bool
+     * Check if the application is installed by verifying install.lock exists.
+     * Only the existence of this file (created at Step 7 of the wizard)
+     * determines installation state — NOT the presence of DB tables.
      */
     protected function isInstalled(): bool
     {
-        // Check if install.lock file exists
-        if (File::exists(storage_path('framework/install.lock'))) {
-            return true;
-        }
-
-        // Check if .env file exists
-        if (!File::exists(base_path('.env'))) {
-            return false;
-        }
-
-        // Check if database connection is configured
-        try {
-            DB::connection()->getPdo();
-            
-            // Check if users table exists (basic check for installation)
-            if (Schema::hasTable('users')) {
-                return true;
-            }
-        } catch (\Exception $e) {
-            return false;
-        }
-
-        return false;
+        return File::exists(storage_path('framework/install.lock'));
     }
 }

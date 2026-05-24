@@ -4,6 +4,7 @@
 
 @section('content')
 <!-- Statistics Cards -->
+@if(auth()->user()->hasPermission('orders.inhouse-summary-cards'))
 <div class="stat-card-row mb-4" id="statsCards">
     <div class="stat-card stat-card-primary">
         <div class="stat-card-icon"><i class="bi bi-cart-fill"></i></div>
@@ -30,6 +31,7 @@
         <div class="stat-card-content"><span class="stat-card-label">Cancelled</span><span class="stat-card-value">{{ $stats['cancelled'] ?? 0 }}</span></div>
     </div>
 </div>
+@endif
 
 <!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-3">

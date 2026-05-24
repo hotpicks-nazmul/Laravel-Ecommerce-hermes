@@ -83,7 +83,7 @@
                             <span class="badge rounded-pill module-visibility-toggle d-inline-flex align-items-center gap-1"
                                   data-module="{{ $moduleKey }}"
                                   data-state="{{ $moduleVisible ? '1' : '0' }}"
-                                  style="cursor:pointer; padding: 0.25em 0.55em; font-size: 0.75rem; flex-shrink: 0; width: 40px; text-align: center; {{ $moduleVisible ? 'background: #0d6efd; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
+                                  class="{{ $moduleVisible ? 'pill-blue' : 'pill-gray' }}" style="cursor:pointer; padding: 0.25em 0.55em; font-size: 0.75rem; flex-shrink: 0; width: 40px; text-align: center;">
                                 <i class="bi bi-{{ $moduleVisible ? 'eye' : 'eye-slash' }}"></i>
                             </span>
                             <div style="flex: 0 0 130px; flex-shrink: 0; display: flex; align-items: center; gap: 6px;">
@@ -102,7 +102,7 @@
                                               data-module="{{ $moduleKey }}"
                                               data-action="{{ $act }}"
                                               data-state="{{ $exists ? '1' : '0' }}"
-                                              style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.8em; {{ $exists ? 'background: #198754; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
+                                              class="{{ $exists ? 'pill-green' : 'pill-gray' }}" style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.8em;">
                                             {{ $act }}
                                         </span>
                                     @endforeach
@@ -112,113 +112,124 @@
                             <div style="flex: 1; min-width: 0; text-align: right; padding-right: 8px;"></div>
                             <span class="text-muted" style="font-size: 0.7rem; flex-shrink: 0; width: 50px; text-align: right;">{{ count($submenus) }}p</span>
                         </div>
+                        @if(!empty($submenus))
                         <div class="module-submenu-content" style="display: none;">
                             <div style="border-top: 1px solid #e9ecef; margin: 0 12px;"></div>
                             @php
                                 $allPageComponents = \App\Helpers\PermissionHelper::pageComponents();
-                                $childPages = \App\Helpers\PermissionHelper::childPages();
                             @endphp
                             @foreach($submenus as $routeName => $label)
                                 @php
-                                    $visible = \App\Helpers\PermissionHelper::isSubmenuVisible($routeName);
+$visible = \App\Helpers\PermissionHelper::isSubmenuVisible($routeName);
                                     $routeSections = $pageSectionPerms[$routeName] ?? [];
-                                    $listComponents = $allPageComponents[$routeName] ?? [];
-                                    $submenuChildren = $childPages[$routeName] ?? [];
+                                    $page = $allPageComponents[$routeName] ?? [];
+                                    $pageItems = $page['items'] ?? [];
+                                    $pageGroups = $page['groups'] ?? [];
                                 @endphp
-                                <div class="d-flex align-items-center gap-2 px-3 py-1-5" style="padding: 5px 12px 5px 48px;">
-                                    <div style="flex: 0 0 130px; flex-shrink: 0; display: flex; align-items: center;">
-                                        <span class="badge rounded-pill submenu-visibility-toggle d-inline-flex align-items-center gap-1"
-                                              data-submenu="{{ $routeName }}"
-                                              data-state="{{ $visible ? '1' : '0' }}"
-                                              style="cursor:pointer; padding: 0.25em 0.6em; font-size: 0.72rem; white-space: nowrap; width: 100%; text-align: left; {{ $visible ? 'background: #0d6efd; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
-                                            <i class="bi bi-{{ $visible ? 'eye' : 'eye-slash' }}"></i> <span style="overflow: hidden; text-overflow: ellipsis;">{{ $label }}</span>
-                                        </span>
-                                    </div>
-                                    <div style="flex: 1; min-width: 0;">
-                                        @if(!empty($routeSections))
-                                        <div class="d-flex flex-wrap gap-1">
-                                            @foreach($routeSections as $act)
-                                                @php
-                                                    $permName = $moduleKey . '.' . $act;
-                                                    $exists = isset($keyExists[$permName]);
-                                                @endphp
-                                                <span class="badge rounded-pill perm-toggle"
-                                                      data-module="{{ $moduleKey }}"
-                                                      data-action="{{ $act }}"
-                                                      data-state="{{ $exists ? '1' : '0' }}"
-                                                      style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.78em; {{ $exists ? 'background: #6f42c1; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
-                                                    {{ str_replace('view-', '', $act) }}
-                                                </span>
-                                            @endforeach
-                                        </div>
-                                        @endif
-                                    </div>
+                                {{-- L0: Submenu row (page name + visibility toggle) --}}
+                                <div style="padding: 5px 12px 5px 48px;">
+                                    <span class="badge rounded-pill submenu-visibility-toggle d-inline-flex align-items-center gap-1"
+                                          data-submenu="{{ $routeName }}"
+                                          data-state="{{ $visible ? '1' : '0' }}"
+                                          class="{{ $visible ? 'pill-blue' : 'pill-gray' }}" style="cursor:pointer; padding: 0.25em 0.6em; font-size: 0.78rem; white-space: nowrap;">
+                                        <i class="bi bi-{{ $visible ? 'eye' : 'eye-slash' }}"></i> {{ $label }}
+                                    </span>
+
+                                    {{-- Section pills (purple) inline --}}
+                                    @if(!empty($routeSections))
+                                        @foreach($routeSections as $act)
+                                            @php
+                                                $permName = $moduleKey . '.' . $act;
+                                                $exists = isset($keyExists[$permName]);
+                                            @endphp
+                                            <span class="badge rounded-pill perm-toggle"
+                                                  data-module="{{ $moduleKey }}"
+                                                  data-action="{{ $act }}"
+                                                  data-state="{{ $exists ? '1' : '0' }}"
+                                                  class="{{ $exists ? 'pill-purple' : 'pill-gray' }}" style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.84em; vertical-align:middle;">
+                                                {{ str_replace('view-', '', $act) }}
+                                            </span>
+                                        @endforeach
+                                    @endif
+
+                                    {{-- Direct page items (orange) inline --}}
+                                    @if(!empty($pageItems))
+                                        @foreach($pageItems as $itemLabel => $permName)
+                                            @php $exists = isset($keyExists[$permName]); @endphp
+                                            <span class="badge rounded-pill page-action-pill"
+                                                  data-full-name="{{ $permName }}"
+                                                  data-state="{{ $exists ? '1' : '0' }}"
+                                                  class="{{ $exists ? 'pill-orange' : 'pill-gray' }}" style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.78rem; vertical-align:middle;">
+                                                {{ $itemLabel }}
+                                            </span>
+                                        @endforeach
+                                    @endif
                                 </div>
-                                {{-- Tree: page component groups --}}
-                                @if(!empty($listComponents))
-                                    @foreach($listComponents as $groupLabel => $groupPerms)
-                                    <div class="d-flex align-items-center gap-2 px-3 py-1" style="padding: 2px 12px 2px 62px;">
-                                        <div style="flex: 0 0 102px; flex-shrink: 0;">
-                                            <small class="text-muted" style="font-size: 0.7rem;"><i class="bi bi-chevron-right me-1"></i>{{ $groupLabel }}</small>
-                                        </div>
-                                        <div style="flex: 1; min-width: 0;">
-                                            <div class="d-flex flex-wrap gap-1">
-                                                @foreach($groupPerms as $permName)
-                                                    @php
-                                                        $exists = isset($keyExists[$permName]);
-                                                        $parts = explode('.', $permName);
-                                                        $shortLabel = str_replace('-', ' ', end($parts));
-                                                    @endphp
-                                                    <span class="badge rounded-pill perm-toggle page-action-pill"
-                                                          data-full-name="{{ $permName }}"
-                                                          data-state="{{ $exists ? '1' : '0' }}"
-                                                          style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.72rem; {{ $exists ? 'background: #e86c00; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
-                                                        {{ $shortLabel }}
-                                                    </span>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @endforeach
-                                @endif
-                                {{-- Tree: child detail pages --}}
-                                @foreach($submenuChildren as $childRoute)
+
+                                {{-- L1: Groups --}}
+                                @foreach($pageGroups as $groupLabel => $group)
                                     @php
-                                        $childComponents = $allPageComponents[$childRoute] ?? [];
-                                        $childLabel = Str::of($childRoute)->afterLast('.')->replace('-', ' ')->title();
+                                        $gItems = $group['items'] ?? [];
+                                        $gChildren = $group['children'] ?? [];
                                     @endphp
-                                    @if(!empty($childComponents))
-                                        <div class="d-flex align-items-center px-3 py-1" style="padding: 2px 12px 2px 62px;">
-                                            <small class="text-muted fw-semibold" style="font-size: 0.72rem;"><i class="bi bi-layout-sidebar me-1"></i>{{ $childLabel }}</small>
-                                        </div>
-                                        @foreach($childComponents as $groupLabel => $groupPerms)
-                                        <div class="d-flex align-items-center gap-2 px-3 py-1" style="padding: 1px 12px 1px 82px;">
-                                            <div style="flex: 0 0 102px; flex-shrink: 0;">
-                                                <small class="text-muted" style="font-size: 0.68rem;"><i class="bi bi-chevron-right me-1"></i>{{ $groupLabel }}</small>
-                                            </div>
-                                            <div style="flex: 1; min-width: 0;">
-                                                <div class="d-flex flex-wrap gap-1">
-                                                    @foreach($groupPerms as $permName)
-                                                        @php
-                                                            $exists = isset($keyExists[$permName]);
-                                                            $parts = explode('.', $permName);
-                                                            $shortLabel = str_replace('-', ' ', end($parts));
-                                                        @endphp
-                                                        <span class="badge rounded-pill perm-toggle page-action-pill"
-                                                              data-full-name="{{ $permName }}"
+                                    {{-- L1: Group header --}}
+                                    <div style="padding: 4px 12px 2px 64px;">
+                                        <small class="text-muted" style="font-size: 0.76rem;"><i class="bi bi-layout-sidebar me-1"></i>{{ $groupLabel }}</small>
+                                    </div>
+                                    {{-- L2: Group items --}}
+                                    @if(!empty($gItems))
+                                    <div style="padding: 2px 12px 4px 80px;">
+                                        @foreach($gItems as $itemLabel => $permName)
+                                            @php
+                                                $exists = isset($keyExists[$permName]);
+                                                $hasChild = isset($gChildren[$itemLabel]);
+                                            @endphp
+                                            <span class="badge rounded-pill page-action-pill {{ $hasChild ? 'has-child-page' : '' }}"
+                                                  data-full-name="{{ $permName }}"
+                                                  data-state="{{ $exists ? '1' : '0' }}"
+                                                  class="{{ $exists ? 'pill-orange' : 'pill-gray' }}" style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.78rem;">
+                                                {{ $itemLabel }}
+                                            </span>
+                                        @endforeach
+
+                                        {{-- L3: Child pages attached to group items --}}
+                                        @foreach($gChildren as $childItemLabel => $childInfo)
+                                            @php
+                                                $childRoute = $childInfo['route'] ?? '';
+                                                $childLabel = $childInfo['label'] ?? '';
+                                                $childPage = $childRoute ? ($allPageComponents[$childRoute] ?? []) : [];
+                                                $childItems = $childPage['items'] ?? [];
+                                            @endphp
+                                            @if(!empty($childItems))
+                                            <div style="margin-top: 4px; padding-left: 16px;">
+                                                {{-- Child page header --}}
+                                                <div style="padding: 2px 0;">
+                                                    <span class="badge rounded-pill d-inline-flex align-items-center gap-1"
+                                                          style="padding: 0.2em 0.6em; font-size: 0.74rem; white-space: nowrap; background: #e8f4fd; color: #0d6efd; border: 1px solid #b8daff;">
+                                                        <i class="bi bi-file-text"></i> {{ $childLabel }}
+                                                    </span>
+                                                </div>
+                                                {{-- Child page items --}}
+                                                <div style="padding: 2px 0 2px 16px;">
+                                                    @foreach($childItems as $childItemLabel => $childPermName)
+                                                        @php $exists = isset($keyExists[$childPermName]); @endphp
+                                                        <span class="badge rounded-pill page-action-pill"
+                                                              data-full-name="{{ $childPermName }}"
                                                               data-state="{{ $exists ? '1' : '0' }}"
-                                                              style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.7rem; {{ $exists ? 'background: #e86c00; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
-                                                            {{ $shortLabel }}
+                                                              class="{{ $exists ? 'pill-orange' : 'pill-gray' }}" style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.76rem;">
+                                                            {{ $childItemLabel }}
                                                         </span>
                                                     @endforeach
                                                 </div>
                                             </div>
-                                        </div>
+                                            @endif
                                         @endforeach
+                                    </div>
                                     @endif
                                 @endforeach
                             @endforeach
                         </div>
+                        @endif
                     </div>
                 @empty
                     <div class="text-center py-5 text-muted">
@@ -488,11 +499,11 @@
                                                                 $aPermName = $modulePrefix . '.' . $action;
                                                                 $aChecked = $member->hasPermission($aPermName) ? '1' : '0';
                                                             @endphp
-                                                            <span class="badge rounded-pill staff-perm-pill"
+                                                            <span class="badge rounded-pill staff-perm-pill {{ $aChecked == '1' ? 'pill-green' : 'pill-gray' }}"
                                                                   data-staff-id="{{ $member->id }}"
                                                                   data-perm="{{ $aPermName }}"
                                                                   data-state="{{ $aChecked }}"
-                                                                  style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.8em; {{ $aChecked == '1' ? 'background: #198754; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
+                                                                  style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.8em;">
                                                                 {{ $action }}
                                                             </span>
                                                         @endforeach
@@ -504,53 +515,132 @@
                                             <div class="staff-submenu-content" style="display: none;">
                                                 <div style="border-top: 1px solid #e9ecef; margin: 0 12px;"></div>
                                                 @php
-                                                    $moduleSectionPerms = [];
-                                                    foreach ($submenus as $routeName => $label) {
-                                                        $sections = $pageSectionPerms[$routeName] ?? [];
-                                                        foreach ($sections as $action) {
-                                                            if (!in_array($action, $moduleSectionPerms)) {
-                                                                $moduleSectionPerms[] = $action;
-                                                            }
-                                                        }
-                                                    }
+                                                    $allStaffPageComponents = \App\Helpers\PermissionHelper::pageComponents();
                                                 @endphp
-                                                @if(!empty($moduleSectionPerms))
-                                                <div class="d-flex flex-wrap gap-1 px-3 py-2" style="padding-left: 44px;">
-                                                    @foreach($moduleSectionPerms as $action)
-                                                        @php
-                                                            $sPermName = $modulePrefix . '.' . $action;
-                                                            $sChecked = $member->hasPermission($sPermName) ? '1' : '0';
-                                                        @endphp
-                                                        <span class="badge rounded-pill staff-perm-pill"
-                                                              data-staff-id="{{ $member->id }}"
-                                                              data-perm="{{ $sPermName }}"
-                                                              data-state="{{ $sChecked }}"
-                                                              style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.78em; {{ $sChecked == '1' ? 'background: #6f42c1; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
-                                                            {{ str_replace('view-', '', $action) }}
-                                                        </span>
-                                                    @endforeach
-                                                </div>
-                                                @endif
                                                 @foreach($submenus as $routeName => $label)
                                                 @php
-                                                    $visGlobal = \App\Helpers\PermissionHelper::isSubmenuVisible($routeName);
+$visGlobal = \App\Helpers\PermissionHelper::isSubmenuVisible($routeName);
                                                     $permName = 'submenu:' . $routeName;
                                                     $disabledPerm = 'submenu_disabled:' . $routeName;
                                                     $legacyPerms = is_array($member->legacy_permissions) ? $member->legacy_permissions : json_decode($member->legacy_permissions ?? '[]', true);
                                                     $hasPerm = empty($legacyPerms) ? true : !in_array($disabledPerm, $legacyPerms);
+                                                    $routeSections = $pageSectionPerms[$routeName] ?? [];
+                                                    $staffPageData = $allStaffPageComponents[$routeName] ?? [];
+                                                    $staffPageItems = $staffPageData['items'] ?? [];
+                                                    $staffPageGroups = $staffPageData['groups'] ?? [];
                                                 @endphp
                                                 @if($visGlobal)
-                                                <div class="d-flex align-items-center gap-2 px-3 py-1-5" style="padding: 5px 12px 5px 44px;">
-                                                    <div style="flex: 0 0 180px; flex-shrink: 0; display: flex; align-items: center;">
-                                                        <span class="badge rounded-pill staff-submenu-pill d-inline-flex align-items-center gap-1"
-                                                              data-staff-id="{{ $member->id }}"
-                                                              data-submenu="{{ $routeName }}"
-                                                              data-state="{{ $hasPerm ? '1' : '0' }}"
-                                                              style="cursor:pointer; padding: 0.25em 0.6em; font-size: 0.72rem; white-space: nowrap; width: 100%; text-align: left; {{ $hasPerm ? 'background: #0d6efd; color: #fff;' : 'background: #e9ecef; color: #6c757d;' }}">
-                                                            <i class="bi bi-{{ $hasPerm ? 'eye' : 'eye-slash' }}"></i> <span style="overflow: hidden; text-overflow: ellipsis;">{{ $label }}</span>
-                                                        </span>
-                                                    </div>
+                                                <div style="padding: 5px 12px 5px 44px;">
+                                                    <span class="badge rounded-pill staff-submenu-pill d-inline-flex align-items-center gap-1 {{ $hasPerm ? 'pill-blue' : 'pill-gray' }}"
+                                                          data-staff-id="{{ $member->id }}"
+                                                          data-submenu="{{ $routeName }}"
+                                                          data-state="{{ $hasPerm ? '1' : '0' }}"
+                                                          style="cursor:pointer; padding: 0.25em 0.6em; font-size: 0.78rem; white-space: nowrap;">
+                                                        <i class="bi bi-{{ $hasPerm ? 'eye' : 'eye-slash' }}"></i> {{ $label }}
+                                                    </span>
+                                                    {{-- Section pills (purple) inline per-submenu --}}
+                                                    @if(!empty($routeSections))
+                                                        @foreach($routeSections as $action)
+                                                            @php
+                                                                $sPermName = $modulePrefix . '.' . $action;
+                                                                $sChecked = $member->hasPermission($sPermName) ? '1' : '0';
+                                                            @endphp
+                                                            <span class="badge rounded-pill staff-perm-pill {{ $sChecked == '1' ? 'pill-purple' : 'pill-gray' }}"
+                                                                  data-staff-id="{{ $member->id }}"
+                                                                  data-perm="{{ $sPermName }}"
+                                                                  data-state="{{ $sChecked }}"
+                                                                  style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.84em; vertical-align:middle;">
+                                                                {{ str_replace('view-', '', $action) }}
+                                                            </span>
+                                                        @endforeach
+                                                    @endif
+                                                    {{-- Staff page action items (orange) inline --}}
+                                                    @if(!empty($staffPageItems))
+                                                        @foreach($staffPageItems as $itemLabel => $itemPermName)
+                                                            @php $pChecked = $member->hasPermission($itemPermName) ? '1' : '0'; @endphp
+                                                            <span class="badge rounded-pill staff-perm-pill {{ $pChecked == '1' ? 'pill-purple' : 'pill-gray' }}"
+                                                                  data-staff-id="{{ $member->id }}"
+                                                                  data-perm="{{ $itemPermName }}"
+                                                                  data-state="{{ $pChecked }}"
+                                                                  data-orange="1"
+                                                                  style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.78rem; vertical-align:middle;">
+                                                                {{ $itemLabel }}
+                                                            </span>
+                                                        @endforeach
+                                                    @endif
                                                 </div>
+
+                                                {{-- L1: Groups --}}
+                                                @foreach($staffPageGroups as $gLabel => $group)
+                                                    @php
+                                                        $gItems = $group['items'] ?? [];
+                                                        $gChildren = $group['children'] ?? [];
+                                                        // Skip groups where all items are section permissions (already covered by purple pills)
+                                                        $allSection = !empty($gItems) && collect($gItems)->every(function($perm, $label) use ($sectionActions) {
+                                                            return collect($sectionActions)->contains(fn($a) => str_ends_with($perm, '.' . $a));
+                                                        });
+                                                    @endphp
+                                                    @if(!$allSection)
+                                                    {{-- L1: Group header --}}
+                                                    <div style="padding: 4px 12px 2px 64px;">
+                                                        <small class="text-muted" style="font-size: 0.76rem;"><i class="bi bi-layout-sidebar me-1"></i>{{ $gLabel }}</small>
+                                                    </div>
+                                                    {{-- L2: Group items --}}
+                                                    @if(!empty($gItems))
+                                                    <div style="padding: 2px 12px 4px 80px;">
+                                                        @foreach($gItems as $giLabel => $giPermName)
+                                                            @php
+                                                                $giChecked = $member->hasPermission($giPermName) ? '1' : '0';
+                                                                $hasChild = isset($gChildren[$giLabel]);
+                                                            @endphp
+                                                            <span class="badge rounded-pill staff-perm-pill {{ $hasChild ? 'has-child-page' : '' }} {{ $giChecked == '1' ? 'pill-purple' : 'pill-gray' }}"
+                                                                  data-staff-id="{{ $member->id }}"
+                                                                  data-perm="{{ $giPermName }}"
+                                                                  data-state="{{ $giChecked }}"
+                                                                  data-orange="1"
+                                                                  style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.78rem;">
+                                                                {{ $giLabel }}
+                                                            </span>
+                                                        @endforeach
+
+                                                        {{-- L3: Child pages attached to group items --}}
+                                                        @foreach($gChildren as $childItemLabel => $childInfo)
+                                                            @php
+                                                                $childRoute = $childInfo['route'] ?? '';
+                                                                $childLabel = $childInfo['label'] ?? '';
+                                                                $childPage = $childRoute ? ($allStaffPageComponents[$childRoute] ?? []) : [];
+                                                                $childItems = $childPage['items'] ?? [];
+                                                            @endphp
+                                                            @if(!empty($childItems))
+                                                            <div style="margin-top: 4px; padding-left: 16px;">
+                                                                {{-- Child page header --}}
+                                                                <div style="padding: 2px 0;">
+                                                                    <span class="badge rounded-pill d-inline-flex align-items-center gap-1"
+                                                                          style="padding: 0.2em 0.6em; font-size: 0.74rem; white-space: nowrap; background: #e8f4fd; color: #0d6efd; border: 1px solid #b8daff;">
+                                                                        <i class="bi bi-file-text"></i> {{ $childLabel }}
+                                                                    </span>
+                                                                </div>
+                                                                {{-- Child page items --}}
+                                                                <div style="padding: 2px 0 2px 16px;">
+                                                                    @foreach($childItems as $ciLabel => $ciPermName)
+                                                                        @php $ciChecked = $member->hasPermission($ciPermName) ? '1' : '0'; @endphp
+                                                                        <span class="badge rounded-pill staff-perm-pill {{ $ciChecked == '1' ? 'pill-purple' : 'pill-gray' }}"
+                                                                              data-staff-id="{{ $member->id }}"
+                                                                              data-perm="{{ $ciPermName }}"
+                                                                              data-state="{{ $ciChecked }}"
+                                                                              data-orange="1"
+                                                                              style="cursor:pointer; padding: 0.2em 0.65em; font-size: 0.76rem;">
+                                                                            {{ $ciLabel }}
+                                                                        </span>
+                                                                    @endforeach
+                                                                </div>
+                                                            </div>
+                                                            @endif
+                                                        @endforeach
+                                                    </div>
+                                                    @endif
+                                                @endif
+                                                @endforeach
                                                 @endif
                                                 @endforeach
                                             </div>
@@ -588,6 +678,12 @@
         transform: scale(1.08);
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
+    /* Permission pill colors - edit here to change globally */
+    .pill-green { background: #198754 !important; color: #fff !important; }
+    .pill-purple { background: #6f42c1 !important; color: #fff !important; }
+    .pill-blue { background: #0d6efd !important; color: #fff !important; }
+    .pill-orange { background: #e86c00 !important; color: #fff !important; }
+    .pill-gray { background: #e9ecef !important; color: #6c757d !important; }
 </style>
 @endpush
 
@@ -598,7 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ============ MODULE COLLAPSE/EXPAND ============
     document.querySelectorAll('.module-header-row').forEach(function(header) {
         header.addEventListener('click', function(e) {
-            if (e.target.closest('.perm-toggle, .module-visibility-toggle')) return;
+            if (e.target.closest('.perm-toggle, .page-action-pill, .module-visibility-toggle')) return;
             const group = this.closest('.module-group');
             const content = group.querySelector('.module-submenu-content');
             const icon = this.querySelector('.module-collapse-icon i');
@@ -644,7 +740,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     this.dataset.state = data.state ? '1' : '0';
-                    const sectionActions = ['view-customer', 'view-pricing', 'view-cost', 'view-financial', 'view-revenue', 'view-sales'];
+                    const sectionActions = ['view-customer', 'view-pricing', 'view-cost', 'view-financial', 'view-revenue', 'view-sales', 'view-contact', 'view-address', 'view-orders', 'view-payments', 'view-activity', 'view-notes', 'view-pricing-detail', 'view-discount', 'view-cost-price', 'view-wholesale-price', 'view-profit'];
                     const activeColor = sectionActions.includes(this.dataset.action) ? '#6f42c1' : '#198754';
                     if (data.state) {
                         this.style.background = activeColor;
@@ -739,7 +835,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ============ TAB 3: Staff Permission Pills (visual toggle, saved on submit) ============
-    const sectionActions = ['view-customer', 'view-pricing', 'view-cost', 'view-financial', 'view-revenue', 'view-sales'];
+    const sectionActions = ['view-customer', 'view-pricing', 'view-cost', 'view-financial', 'view-revenue', 'view-sales', 'view-contact', 'view-address', 'view-orders', 'view-payments', 'view-activity', 'view-notes', 'view-pricing-detail', 'view-discount', 'view-cost-price', 'view-wholesale-price', 'view-profit'];
     document.querySelectorAll('.staff-perm-pill').forEach(function(pill) {
         pill.addEventListener('click', function() {
             const newState = this.dataset.state === '1' ? '0' : '1';
@@ -749,7 +845,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const isSection = sectionActions.some(function(a) {
                     return perm.endsWith('.' + a);
                 });
-                this.style.background = isSection ? '#6f42c1' : '#198754';
+                const isOrange = this.dataset.orange === '1';
+                this.style.background = (isOrange || isSection) ? '#6f42c1' : '#198754';
                 this.style.color = '#fff';
             } else {
                 this.style.background = '#e9ecef';
@@ -812,7 +909,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             const isSection = sectionActions.some(function(a) {
                                 return permName.endsWith('.' + a);
                             });
-                            pill.style.background = isSection ? '#6f42c1' : '#198754';
+                            const isOrange = pill.dataset.orange === '1';
+                            pill.style.background = (isOrange || isSection) ? '#6f42c1' : '#198754';
                             pill.style.color = '#fff';
                         }
                         // Submenu permission pill (submenu:routeName format)
@@ -842,7 +940,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const isSection = sectionActions.some(function(a) {
                     return perm.endsWith('.' + a);
                 });
-                p.style.background = isSection ? '#6f42c1' : '#198754';
+                const isOrange = p.dataset.orange === '1';
+                p.style.background = (isOrange || isSection) ? '#6f42c1' : '#198754';
                 p.style.color = '#fff';
             });
             form.querySelectorAll('.staff-submenu-pill').forEach(function(p) {
@@ -938,6 +1037,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(function() { location.reload(); }, 1500);
             })
             .catch(function(err) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
                 if (typeof adminToast === 'function') {

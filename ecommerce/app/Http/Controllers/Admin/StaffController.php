@@ -509,6 +509,20 @@ class StaffController extends Controller
         // Handle Spatie granular permissions (regular permissions only)
         if (!empty($regularPerms)) {
             $permNames = array_values($regularPerms);
+
+            // Auto-create any permissions that don't exist yet
+            $existingPerms = \Spatie\Permission\Models\Permission::whereIn('name', $permNames)
+                ->where('guard_name', 'web')
+                ->pluck('name')
+                ->toArray();
+            $missingPerms = array_diff($permNames, $existingPerms);
+            foreach ($missingPerms as $missingName) {
+                \Spatie\Permission\Models\Permission::create([
+                    'name' => $missingName,
+                    'guard_name' => 'web',
+                ]);
+            }
+
             $permIds = \Spatie\Permission\Models\Permission::whereIn('name', $permNames)
                 ->where('guard_name', 'web')
                 ->pluck('id')
@@ -548,6 +562,8 @@ class StaffController extends Controller
         }
 
         $staff->save();
+
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         if ($request->ajax()) {
             return response()->json([

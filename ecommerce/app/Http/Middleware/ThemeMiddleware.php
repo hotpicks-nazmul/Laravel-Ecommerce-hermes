@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Symfony\Component\HttpFoundation\Response;
 use App\Services\ThemeService;
 use App\Models\Category;
@@ -25,13 +26,22 @@ class ThemeMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Skip DB queries during installation
+        $isInstalled = $this->isAppInstalled();
+
+        // Skip for install routes (always allow through without DB queries)
+        if ($request->is('install/*') || $request->routeIs('install.*')) {
+            if (!$isInstalled) {
+                return $next($request);
+            }
+        }
+
         // Skip theme middleware for admin routes
         if ($request->is('admin/*')) {
             return $next($request);
         }
 
-        // Skip for install routes
-        if ($request->is('install/*')) {
+        if (!$isInstalled) {
             return $next($request);
         }
 
@@ -74,5 +84,17 @@ class ThemeMiddleware
         view()->share('seoSettings', $seoSettings);
 
         return $next($request);
+    }
+
+    /**
+     * Check if the application is installed (install.lock exists).
+     */
+    protected function isAppInstalled(): bool
+    {
+        try {
+            return File::exists(storage_path('framework/install.lock'));
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }

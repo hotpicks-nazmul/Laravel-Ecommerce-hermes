@@ -63,6 +63,7 @@
     <!-- Order Status & Actions & Items -->
     <div class="col-lg-8 mb-4">
         <!-- Order Status Management -->
+        @if(auth()->user()->hasPermission('orders.show-update-status') || auth()->user()->hasPermission('orders.show-update-payment') || auth()->user()->hasPermission('orders.show-ship-order'))
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white py-3">
                 <h5 class="mb-0"><i class="bi bi-sliders me-2"></i>Order Status Management</h5>
@@ -144,6 +145,7 @@
                 @endif
             </div>
         </div>
+        @endif
         
         @if(auth()->user()->hasPermission('orders.show-order-items'))
         <!-- Order Items -->
@@ -255,12 +257,12 @@
     <div class="col-lg-4">
         @if(auth()->user()->hasPermission('orders.show-customer-info'))
         <!-- Customer Info -->
-        @if(auth()->user()->hasPermission('orders.view-customer'))
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white py-3">
                 <h5 class="mb-0"><i class="bi bi-person me-2"></i>Customer</h5>
             </div>
             <div class="card-body">
+                @if(auth()->user()->hasPermission('orders.view-customer'))
                 @if($order->user)
                 <div class="d-flex align-items-center mb-3">
                     <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
@@ -285,9 +287,9 @@
                     </div>
                 </div>
                 @endif
+                @endif
             </div>
         </div>
-        @endif
         @endif
         
         @if(auth()->user()->hasPermission('orders.show-billing-address'))
@@ -311,9 +313,12 @@
                 </p>
             </div>
         </div>
+        @endif
+        @endif
 
-        <!-- Shipping Address -->
         @if(auth()->user()->hasPermission('orders.show-shipping-address'))
+        @if(auth()->user()->hasPermission('orders.view-customer'))
+        <!-- Shipping Address -->
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white py-3">
                 <h5 class="mb-0"><i class="bi bi-truck me-2"></i>Shipping Address</h5>
@@ -334,7 +339,6 @@
                 </p>
             </div>
         </div>
-        @endif
         @endif
         @endif
         

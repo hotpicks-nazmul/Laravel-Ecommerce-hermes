@@ -158,7 +158,7 @@ class ThemeService
         
         // Merge with defaults
         $defaults = [
-            'primary_color' => $config['colors']['primary'] ?? '#4f46e5',
+            'primary_color' => $config['colors']['primary'] ?? '#2D5A27',
             'secondary_color' => $config['colors']['secondary'] ?? '#7c3aed',
             'accent_color' => $config['colors']['accent'] ?? '#10b981',
             'gold_color' => $config['colors']['gold'] ?? '#d4af37',

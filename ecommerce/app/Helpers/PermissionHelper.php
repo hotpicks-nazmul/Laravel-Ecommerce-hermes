@@ -331,8 +331,8 @@ class PermissionHelper
     {
         return [
             // ===== Orders =====
-            'admin.orders.in-house'          => ['view-customer', 'view-pricing', 'view-pricing-detail', 'view-discount'],
-            'admin.orders.seller'            => ['view-customer', 'view-pricing', 'view-pricing-detail', 'view-discount'],
+            'admin.orders.in-house'          => [],
+            'admin.orders.seller'            => [],
             'admin.orders.pickup-point'      => ['view-customer', 'view-pricing', 'view-pricing-detail', 'view-discount'],
             'admin.orders.index'             => ['view-customer', 'view-pricing', 'view-pricing-detail', 'view-discount'],
             'admin.orders.show'              => ['view-customer', 'view-pricing', 'view-pricing-detail', 'view-discount'],
@@ -396,62 +396,266 @@ class PermissionHelper
 
     /**
      * Page-level action permissions for every page (list AND detail).
-     * Key = route name, value = full permission names for actions/components on that page.
-     * List pages get component permissions (buttons, filters on the table).
-     * Detail pages get action permissions (sections, buttons inside the record view).
+     * Key = route name, value = flat list of permission names for that page.
      */
     public static function pageActions(): array
     {
         $flat = [];
-        foreach (self::pageComponents() as $route => $groups) {
-            foreach ($groups as $groupLabel => $perms) {
-                $flat[$route] = array_merge($flat[$route] ?? [], $perms);
+        foreach (self::pageComponents() as $route => $page) {
+            if (isset($page['items'])) {
+                $flat[$route] = array_merge($flat[$route] ?? [], array_values($page['items']));
+            }
+            if (isset($page['groups'])) {
+                foreach ($page['groups'] as $group) {
+                    if (isset($group['items'])) {
+                        $flat[$route] = array_merge($flat[$route] ?? [], array_values($group['items']));
+                    }
+                    if (isset($group['children'])) {
+                        foreach ($group['children'] as $child) {
+                            $childRoute = $child['route'] ?? '';
+                            if ($childRoute && isset(self::pageComponents()[$childRoute]['items'])) {
+                                $flat[$childRoute] = array_merge(
+                                    $flat[$childRoute] ?? [],
+                                    array_values(self::pageComponents()[$childRoute]['items'])
+                                );
+                            }
+                        }
+                    }
+                }
             }
         }
         return $flat;
     }
 
     /**
-     * Hierarchical page components organized by route → section label → permission names.
-     * Each component group renders as an indented row in the tree view.
-     * Section labels describe cards/modals/sections on the page.
+     * Page tree: route → { items, groups }
+     *
+     * 'items' => ['Label' => 'permission.name']   — direct toggle pills
+     * 'groups' => [
+     *     'Group Label' => [
+     *         'items'    => ['Label' => 'permission.name'],
+     *         'children' => ['Item Label' => ['route' => 'child.route', 'label' => 'Child Label']],
+     *     ],
+     * ]
      */
     public static function pageComponents(): array
     {
         return [
-            // ===== Orders: List Pages =====
             'admin.orders.in-house' => [
-                'Actions' => ['orders.inhouse-create', 'orders.inhouse-export'],
+                'items' => [
+                    'Create Order'  => 'orders.inhouse-create',
+                    'Export'        => 'orders.inhouse-export',
+                    'Summary Cards' => 'orders.inhouse-summary-cards',
+                ],
+                'groups' => [
+                    'Table Columns' => [
+                        'items' => [
+                            'Customer'       => 'orders.view-customer',
+                            'Pricing'        => 'orders.view-pricing',
+                            'Pricing Detail' => 'orders.view-pricing-detail',
+                            'Discount'       => 'orders.view-discount',
+                        ],
+                    ],
+                    'Table Actions' => [
+                        'items' => [
+                            'View Details'   => 'orders.inhouse-view-details',
+                            'Edit'           => 'orders.inhouse-edit',
+                            'Delete'         => 'orders.inhouse-delete',
+                        ],
+                        'children' => [
+                            'View Details' => [
+                                'route' => 'admin.orders.show',
+                                'label' => 'Order Detail',
+                            ],
+                        ],
+                    ],
+                ],
             ],
             'admin.orders.seller' => [
-                'Actions' => ['orders.seller-export'],
+                'items' => [
+                    'Export' => 'orders.seller-export',
+                ],
+                'groups' => [
+                    'Table Actions' => [
+                        'items' => [
+                            'View Details'   => 'orders.seller-view-details',
+                            'Edit'           => 'orders.seller-edit',
+                            'Delete'         => 'orders.seller-delete',
+                        ],
+                        'children' => [
+                            'View Details' => [
+                                'route' => 'admin.orders.seller.show',
+                                'label' => 'Seller Order Detail',
+                            ],
+                        ],
+                    ],
+                ],
             ],
-            // ===== Orders: Detail Pages (child of in-house, seller, pickup-point) =====
+            'admin.orders.seller.show' => [
+                'items' => [
+                    'Update Order Status'    => 'orders.seller-update-status',
+                    'Invoice'               => 'orders.seller-invoice',
+                    'Customer Info'         => 'orders.seller-customer-info',
+                    'Billing Address'       => 'orders.seller-billing-address',
+                    'Shipping Address'      => 'orders.seller-shipping-address',
+                    'Payment Details'       => 'orders.seller-payment-details',
+                    'Order Items'           => 'orders.seller-order-items',
+                    'Timeline'              => 'orders.seller-timeline',
+                ],
+            ],
+            'admin.orders.pickup-point' => [
+                'items' => [
+                    'Export' => 'orders.pickup-export',
+                ],
+                'groups' => [
+                    'Table Columns' => [
+                        'items' => [
+                            'Customer'       => 'orders.view-customer',
+                            'Pricing'        => 'orders.view-pricing',
+                            'Pricing Detail' => 'orders.view-pricing-detail',
+                            'Discount'       => 'orders.view-discount',
+                        ],
+                    ],
+                    'Table Actions' => [
+                        'items' => [
+                            'View Details'   => 'orders.pickup-view-details',
+                            'Mark Picked Up' => 'orders.pickup-mark-picked',
+                        ],
+                        'children' => [
+                            'View Details' => [
+                                'route' => 'admin.orders.pickup-point.show',
+                                'label' => 'Pickup Order Detail',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'admin.orders.pickup-point.show' => [
+                'items' => [
+                    'Status Management'   => 'orders.pickup-update-status',
+                    'Invoice'             => 'orders.pickup-invoice',
+                    'Customer Info'       => 'orders.pickup-customer-info',
+                    'Pickup Address'      => 'orders.pickup-address',
+                    'Payment Details'     => 'orders.pickup-payment-details',
+                    'Order Items'         => 'orders.pickup-order-items',
+                    'Mark as Picked Up'   => 'orders.pickup-mark-picked-up',
+                    'Timeline'            => 'orders.pickup-timeline',
+                ],
+            ],
             'admin.orders.show' => [
-                'Status Management' => ['orders.show-update-status', 'orders.show-update-payment', 'orders.show-ship-order'],
-                'Invoice' => ['orders.show-invoice'],
-                'Customer Info' => ['orders.show-customer-info'],
-                'Billing Address' => ['orders.show-billing-address'],
-                'Shipping Address' => ['orders.show-shipping-address'],
-                'Payment Details' => ['orders.show-payment-details'],
-                'Order Items' => ['orders.show-order-items'],
-                'Timeline' => ['orders.show-timeline'],
+                'items' => [
+                    'Update Order Status'   => 'orders.show-update-status',
+                    'Update Payment Status'  => 'orders.show-update-payment',
+                    'Invoice'               => 'orders.show-invoice',
+                    'Customer Info'         => 'orders.show-customer-info',
+                    'Billing Address'       => 'orders.show-billing-address',
+                    'Shipping Address'      => 'orders.show-shipping-address',
+                    'Payment Details'       => 'orders.show-payment-details',
+                    'Order Items'           => 'orders.show-order-items',
+                    'Timeline'              => 'orders.show-timeline',
+                    'Ship Order'            => 'orders.show-ship-order',
+                ],
+            ],
+            'admin.quotations.index' => [
+                'items' => [
+                    'Create Quotation' => 'quotations.create',
+                    'Export'           => 'quotations.export',
+                ],
+                'groups' => [
+                    'Table Actions' => [
+                        'items' => [
+                            'View Details'    => 'quotations.view-details',
+                            'Edit'            => 'quotations.edit',
+                            'Delete'          => 'quotations.delete',
+                            'Convert to Order'=> 'quotations.convert-to-order',
+                        ],
+                        'children' => [
+                            'View Details' => [
+                                'route' => 'admin.quotations.show',
+                                'label' => 'Quotation Detail',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'admin.quotations.show' => [
+                'items' => [
+                    'Status Management' => 'quotations.update-status',
+                    'Convert to Order'  => 'quotations.convert-to-order',
+                    'Customer Info'     => 'quotations.customer-info',
+                    'Billing Address'   => 'quotations.billing-address',
+                    'Shipping Address'  => 'quotations.shipping-address',
+                    'Payment Details'   => 'quotations.payment-details',
+                    'Items'             => 'quotations.items',
+                    'Notes'             => 'quotations.notes',
+                    'Timeline'          => 'quotations.timeline',
+                ],
+            ],
+            'admin.subscriptions.index' => [
+                'items' => [
+                    'Create Subscription' => 'subscriptions.create',
+                    'Export'              => 'subscriptions.export',
+                ],
+                'groups' => [
+                    'Table Actions' => [
+                        'items' => [
+                            'View Details' => 'subscriptions.view-details',
+                            'Edit'         => 'subscriptions.edit',
+                            'Delete'       => 'subscriptions.delete',
+                            'Activate'     => 'subscriptions.activate',
+                            'Pause'        => 'subscriptions.pause',
+                            'Cancel'       => 'subscriptions.cancel',
+                        ],
+                        'children' => [
+                            'View Details' => [
+                                'route' => 'admin.subscriptions.show',
+                                'label' => 'Subscription Detail',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'admin.subscriptions.show' => [
+                'items' => [
+                    'Status Management'     => 'subscriptions.update-status',
+                    'Customer Info'         => 'subscriptions.customer-info',
+                    'Billing Address'       => 'subscriptions.billing-address',
+                    'Payment Details'       => 'subscriptions.payment-details',
+                    'Subscription Plan'     => 'subscriptions.plan',
+                    'Billing History'       => 'subscriptions.billing-history',
+                    'Timeline'              => 'subscriptions.timeline',
+                    'Activate'              => 'subscriptions.activate',
+                    'Pause'                 => 'subscriptions.pause',
+                    'Cancel'                => 'subscriptions.cancel',
+                    'Process Billing'       => 'subscriptions.process-billing',
+                ],
             ],
         ];
     }
 
     /**
-     * Map submenu parent routes to their child detail page routes.
-     * Key = parent submenu route, value = list of child route names.
-     * Child routes must exist in pageActions().
+     * Map submenu parent routes to their child pages.
+     * Returns: route → [ ['item_label' => ..., 'route' => ..., 'label' => ...] ]
      */
     public static function childPages(): array
     {
-        return [
-            'admin.orders.in-house' => ['admin.orders.show'],
-            'admin.orders.seller' => ['admin.orders.show'],
-            'admin.orders.pickup-point' => ['admin.orders.show'],
-        ];
+        $children = [];
+        foreach (self::pageComponents() as $route => $page) {
+            if (isset($page['groups'])) {
+                foreach ($page['groups'] as $group) {
+                    if (isset($group['children'])) {
+                        foreach ($group['children'] as $itemLabel => $childInfo) {
+                            $children[$route][] = [
+                                'attached_to' => $itemLabel,
+                                'route'       => $childInfo['route'],
+                                'label'       => $childInfo['label'],
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+        return $children;
     }
 
     /**

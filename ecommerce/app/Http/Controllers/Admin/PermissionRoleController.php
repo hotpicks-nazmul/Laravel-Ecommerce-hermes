@@ -172,29 +172,11 @@ class PermissionRoleController extends Controller
         $role->save();
 
         foreach ($affectedUsers as $user) {
-            // Get user's directly-assigned permissions (not role-inherited)
-            $currentDirectPerms = $user->permissions->pluck('name')->toArray();
-
-            // Preserve any custom extras the user has that are NOT in this role
-            $customExtras = array_diff($currentDirectPerms, $rolePermissionNames);
-
-            // Merge role permissions + custom extras
-            $newPerms = array_unique(array_merge($rolePermissionNames, $customExtras));
-
-            // Sync user-level permissions
-            if (!empty($newPerms)) {
-                $newPermIds = Permission::whereIn('name', $newPerms)
-                    ->where('guard_name', 'web')
-                    ->pluck('id')
-                    ->toArray();
-                $user->permissions()->sync($newPermIds);
-            } else {
-                $user->permissions()->detach();
-            }
-
-            // Update legacy permissions column (module-level keys + submenu visibility)
+            // Don't sync role permissions to user level — Spatie's hasPermission()
+            // checks both direct and role-inherited permissions automatically.
+            // Only update legacy_permissions for the old permission system.
             $moduleKeys = [];
-            foreach ($newPerms as $perm) {
+            foreach ($rolePermissionNames as $perm) {
                 if (str_contains($perm, '.')) {
                     $module = explode('.', $perm)[0];
                     if (!in_array($module, $moduleKeys)) {

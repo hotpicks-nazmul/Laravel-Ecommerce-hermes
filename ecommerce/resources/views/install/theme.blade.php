@@ -1,356 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Theme Selection - Installation Wizard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #4f46e5;
-            --secondary-color: #7c3aed;
-        }
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .install-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            overflow: hidden;
-            max-width: 1000px;
-            width: 100%;
-        }
-        .install-header {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        .install-header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-        }
-        .install-body {
-            padding: 30px;
-        }
-        .step-indicator {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        .step {
-            display: flex;
-            align-items: center;
-            color: #9ca3af;
-            font-size: 0.9rem;
-        }
-        .step.active {
-            color: #4f46e5;
-        }
-        .step.completed {
-            color: #10b981;
-        }
-        .step-number {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 2px solid currentColor;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.85rem;
-            margin-right: 8px;
-        }
-        .step.completed .step-number {
-            background: #10b981;
-            border-color: #10b981;
-            color: white;
-        }
-        .step.active .step-number {
-            background: #4f46e5;
-            border-color: #4f46e5;
-            color: white;
-        }
-        .step-line {
-            width: 30px;
-            height: 2px;
-            background: #e5e7eb;
-            margin: 0 10px;
-        }
-        .theme-card {
-            border: 3px solid #e5e7eb;
-            border-radius: 15px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            height: 100%;
-        }
-        .theme-card:hover {
-            border-color: #4f46e5;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
-        }
-        .theme-card.selected {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
-        }
-        .theme-preview {
-            height: 180px;
-            background-size: cover;
-            background-position: center;
-            position: relative;
-        }
-        .theme-preview::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 50%;
-            background: linear-gradient(transparent, rgba(0,0,0,0.7));
-        }
-        .theme-category {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            z-index: 1;
-        }
-        .category-food { background: #ff6b35; color: white; }
-        .category-technology { background: #3b82f6; color: white; }
-        .category-education { background: #10b981; color: white; }
-        .category-virtual { background: #8b5cf6; color: white; }
-        .category-general { background: #6b7280; color: white; }
-        .theme-info {
-            padding: 20px;
-        }
-        .theme-info h5 {
-            margin-bottom: 10px;
-            color: #1f2937;
-        }
-        .theme-info p {
-            color: #6b7280;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-        }
-        .theme-features {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .theme-feature {
-            background: #f3f4f6;
-            padding: 4px 10px;
-            border-radius: 15px;
-            font-size: 0.75rem;
-            color: #4b5563;
-        }
-        .theme-check {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            width: 30px;
-            height: 30px;
-            background: #4f46e5;
-            border-radius: 50%;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            z-index: 2;
-        }
-        .theme-card.selected .theme-check {
-            display: flex;
-        }
-        .btn-install {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            border: none;
-            padding: 12px 35px;
-            font-size: 1rem;
-            border-radius: 10px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .btn-install:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
-        }
-        .btn-back {
-            background: #f3f4f6;
-            color: #374151;
-            border: none;
-            padding: 12px 35px;
-            font-size: 1rem;
-            border-radius: 10px;
-        }
-        .btn-back:hover {
-            background: #e5e7eb;
-        }
-    </style>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme · Install Hamko Bazar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>body{background:#0a0b0d;font-family:'Inter',system-ui,sans-serif}.anim-up{animation:up .45s ease-out}@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}.step-dot{width:8px;height:8px;border-radius:50%;background:#2a2c32;flex-shrink:0}.step-dot.active{background:#6366f1;box-shadow:0 0 10px rgba(99,102,241,.4)}.step-dot.done{background:#4b5563}.step-line{width:22px;height:1px;background:#2a2c32;flex-shrink:0}.step-line.fill{background:#4b5563}.t-card{transition:all .15s}.t-card:hover{border-color:#3b3d44;transform:translateY(-1px)}.t-card.sel{border-color:#6366f1;box-shadow:0 0 0 1px rgba(99,102,241,.2)}</style>
 </head>
-<body>
-    <div class="install-container">
-        <div class="install-header">
-            <h1><i class="bi bi-palette me-2"></i>Theme Selection</h1>
-            <p>Choose a theme for your e-commerce website</p>
-        </div>
-        
-        <div class="install-body">
-            <!-- Step Indicator -->
-            <div class="step-indicator">
-                <div class="step completed">
-                    <span class="step-number"><i class="bi bi-check"></i></span>
-                    <span>Welcome</span>
-                </div>
-                <div class="step-line"></div>
-                <div class="step completed">
-                    <span class="step-number"><i class="bi bi-check"></i></span>
-                    <span>Requirements</span>
-                </div>
-                <div class="step-line"></div>
-                <div class="step completed">
-                    <span class="step-number"><i class="bi bi-check"></i></span>
-                    <span>Database</span>
-                </div>
-                <div class="step-line"></div>
-                <div class="step completed">
-                    <span class="step-number"><i class="bi bi-check"></i></span>
-                    <span>Configure</span>
-                </div>
-                <div class="step-line"></div>
-                <div class="step active">
-                    <span class="step-number">5</span>
-                    <span>Theme</span>
-                </div>
-                <div class="step-line"></div>
-                <div class="step">
-                    <span class="step-number">6</span>
-                    <span>Payment</span>
-                </div>
-            </div>
-
-            @if(session('error'))
-                <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
-                </div>
-            @endif
-
-            <form action="{{ route('install.save-theme') }}" method="POST" id="themeForm">
-                @csrf
-                <input type="hidden" name="theme" id="selectedTheme" value="">
-                
-                <div class="row g-4">
-                    @php
-                        $defaultThemes = [
-                            'food' => [
-                                'name' => 'Food Theme',
-                                'slug' => 'food',
-                                'description' => 'Perfect for restaurants, grocery stores, and food delivery services.',
-                                'category' => 'food',
-                                'features' => ['Menu Style', 'Order Online', 'Delivery Tracking', 'Reviews'],
-                                'preview' => 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400'
-                            ],
-                            'technology' => [
-                                'name' => 'Technology Theme',
-                                'slug' => 'technology',
-                                'description' => 'Modern design for electronics, gadgets, and tech products.',
-                                'category' => 'technology',
-                                'features' => ['Product Compare', 'Specs Table', 'Warranty Info', 'Reviews'],
-                                'preview' => 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400'
-                            ],
-                            'education' => [
-                                'name' => 'Education Theme',
-                                'slug' => 'education',
-                                'description' => 'Clean design for courses, books, and educational materials.',
-                                'category' => 'education',
-                                'features' => ['Course List', 'Instructor Profile', 'Progress Track', 'Certificates'],
-                                'preview' => 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400'
-                            ],
-                            'virtual' => [
-                                'name' => 'Virtual Products Theme',
-                                'slug' => 'virtual',
-                                'description' => 'Minimal design for digital products, software, and downloads.',
-                                'category' => 'virtual',
-                                'features' => ['Instant Download', 'License Keys', 'Version History', 'Support'],
-                                'preview' => 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400'
-                            ],
-                            'general' => [
-                                'name' => 'General Theme',
-                                'slug' => 'general',
-                                'description' => 'Versatile design suitable for any type of products.',
-                                'category' => 'general',
-                                'features' => ['Flexible Layout', 'Product Grid', 'Quick View', 'Wishlist'],
-                                'preview' => 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400'
-                            ]
-                        ];
-                        $themes = !empty($themes) ? $themes : $defaultThemes;
-                    @endphp
-                    
-                    @foreach($themes as $slug => $theme)
-                        <div class="col-md-6 col-lg-4">
-                            <div class="theme-card" data-theme="{{ $slug }}" onclick="selectTheme('{{ $slug }}')">
-                                <div class="theme-preview" style="background-image: url('{{ $theme['preview'] ?? $theme['preview_image'] ?? '' }}')">
-                                    <div class="theme-check">
-                                        <i class="bi bi-check-lg"></i>
-                                    </div>
-                                    <span class="theme-category category-{{ $theme['category'] ?? 'general' }}">
-                                        {{ ucfirst($theme['category'] ?? 'general') }}
-                                    </span>
-                                </div>
-                                <div class="theme-info">
-                                    <h5>{{ $theme['name'] }}</h5>
-                                    <p>{{ $theme['description'] }}</p>
-                                    <div class="theme-features">
-                                        @foreach(($theme['features'] ?? []) as $feature)
-                                            <span class="theme-feature">{{ $feature }}</span>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-
-                <div class="d-flex justify-content-between mt-4">
-                    <a href="{{ route('install.site-config') }}" class="btn btn-back">
-                        <i class="bi bi-arrow-left me-2"></i>Back
-                    </a>
-                    <button type="submit" class="btn btn-primary btn-install" id="submitBtn" disabled>
-                        Continue <i class="bi bi-arrow-right ms-2"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
+<body style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#0a0b0d;font-family:'Inter',system-ui,sans-serif">
+<div style="width:100%;max-width:660px;background:#111215;border:1px solid #22242a;border-radius:20px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);animation:up .45s ease-out">
+    <div style="text-align:center;padding:48px 40px 0">
+        <h1 style="color:#f0f1f3;font-size:22px;font-weight:600;margin-bottom:4px">Choose a Theme</h1>
+        <p style="color:#9ca3af;font-size:16px">Pick a style for your store</p>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function selectTheme(themeSlug) {
-            // Remove selected class from all cards
-            document.querySelectorAll('.theme-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            
-            // Add selected class to clicked card
-            document.querySelector(`.theme-card[data-theme="${themeSlug}"]`).classList.add('selected');
-            
-            // Update hidden input
-            document.getElementById('selectedTheme').value = themeSlug;
-            
-            // Enable submit button
-            document.getElementById('submitBtn').disabled = false;
-        }
-    </script>
+    <div style="padding:28px 40px 40px">
+        <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:20px">
+            <div class="step-dot done"></div><div class="step-line fill"></div><div class="step-dot done"></div><div class="step-line fill"></div><div class="step-dot done"></div><div class="step-line fill"></div><div class="step-dot done"></div><div class="step-line fill"></div><div class="step-dot active"></div><div class="step-line"></div><div class="step-dot"></div>
+        </div>
+        <p style="text-align:center;font-size:15px;color:#9ca3af;margin-bottom:24px">Step <strong style="color:#e5e7eb">5</strong> of <strong style="color:#e5e7eb">6</strong> · Theme</p>
+        @if(session('error'))<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);color:#fca5a5;border-radius:12px;padding:12px 16px;font-size:14px;margin-bottom:16px">{{ session('error') }}</div>@endif
+        <form action="{{ route('install.save-theme') }}" method="POST" id="f">
+            @csrf<input type="hidden" name="theme" id="s" value="">
+            @php $d=[['slug'=>'food','n'=>'Food','d'=>'Restaurants & grocery','c'=>'Food','t'=>['Menu','Order','Delivery'],'i'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=250&fit=crop'],['slug'=>'tech','n'=>'Technology','d'=>'Electronics & gadgets','c'=>'Tech','t'=>['Compare','Specs','Reviews'],'i'=>'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=250&fit=crop'],['slug'=>'edu','n'=>'Education','d'=>'Courses & books','c'=>'Edu','t'=>['Courses','Progress','Certificates'],'i'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=250&fit=crop'],['slug'=>'general','n'=>'General','d'=>'Versatile for any product','c'=>'General','t'=>['Grid','Quick View','Wishlist'],'i'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=250&fit=crop'],['slug'=>'fashion','n'=>'Fashion','d'=>'Clothing & accessories','c'=>'Fashion','t'=>['Sizes','Swatches','Trending'],'i'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&h=250&fit=crop'],['slug'=>'virtual','n'=>'Digital','d'=>'Downloads & software','c'=>'Digital','t'=>['Download','Licenses','Support'],'i'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop']];$themes=!empty($themes)?$themes:collect($d)->keyBy('slug');@endphp
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                @foreach($themes as $k=>$t)
+                <div class="t-card" data-t="{{ $k }}" onclick="sel('{{ $k }}')" style="border:1px solid #22242a;border-radius:12px;overflow:hidden;cursor:pointer;position:relative">
+                    <div style="height:80px;background-size:cover;background-position:center;background-image:url('{{ $t['i']??$t['preview']??$t['img']??'' }}')">
+                        <span style="position:absolute;top:6px;left:6px;width:18px;height:18px;border-radius:50%;background:#6366f1;display:none;align-items:center;justify-content:center;color:#fff;font-size:9px" class="chk">✓</span>
+                        <span style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:rgba(255,255,255,.8);font-size:8px;font-weight:600;text-transform:uppercase;padding:2px 7px;border-radius:8px">{{ $t['c']??'General' }}</span>
+                    </div>
+                    <div style="padding:10px 12px">
+                        <h5 style="color:#d1d5db;font-size:13px;font-weight:600;margin-bottom:2px">{{ $t['n']??$t['name'] }}</h5>
+                        <p style="color:#4b5563;font-size:10px;margin-bottom:6px;line-height:1.3">{{ $t['d']??$t['description']??'' }}</p>
+                        <div style="display:flex;flex-wrap:wrap;gap:3px">@foreach(($t['t']??$t['tags']??$t['features']??[]) as $x)<span style="background:rgba(255,255,255,.03);color:#6b7280;font-size:9px;padding:2px 7px;border-radius:8px">{{ $x }}</span>@endforeach</div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:20px;border-top:1px solid #22242a">
+                <a href="{{ route('install.site-config') }}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:#1e2025;color:#9ca3af;border:1px solid #22242a;border-radius:12px;text-decoration:none;font-size:14px;font-weight:500">← Back</a>
+                <button type="submit" id="b" disabled style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:#6366f1;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:500;cursor:pointer;box-shadow:0 4px 16px rgba(99,102,241,.3);opacity:.4">Continue →</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+function sel(k){document.querySelectorAll('.t-card').forEach(c=>{c.classList.remove('sel');c.querySelector('.chk').style.display='none'});let el=document.querySelector(`.t-card[data-t="${k}"]`);el.classList.add('sel');el.querySelector('.chk').style.display='flex';document.getElementById('s').value=k;document.getElementById('b').disabled=false;document.getElementById('b').style.opacity='1'}
+</script>
 </body>
 </html>

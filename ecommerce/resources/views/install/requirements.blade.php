@@ -1,300 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Server Requirements - Installation Wizard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Requirements · Install Hamko Bazar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --primary-color: #4f46e5;
-            --secondary-color: #7c3aed;
-        }
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .install-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            overflow: hidden;
-            max-width: 900px;
-            width: 100%;
-        }
-        .install-header {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        .install-header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-        }
-        .install-body {
-            padding: 30px;
-        }
-        .step-indicator {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        .step {
-            display: flex;
-            align-items: center;
-            color: #9ca3af;
-            font-size: 0.9rem;
-        }
-        .step.active {
-            color: #4f46e5;
-        }
-        .step.completed {
-            color: #10b981;
-        }
-        .step-number {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 2px solid currentColor;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.85rem;
-            margin-right: 8px;
-        }
-        .step.completed .step-number {
-            background: #10b981;
-            border-color: #10b981;
-            color: white;
-        }
-        .step.active .step-number {
-            background: #4f46e5;
-            border-color: #4f46e5;
-            color: white;
-        }
-        .step-line {
-            width: 30px;
-            height: 2px;
-            background: #e5e7eb;
-            margin: 0 10px;
-        }
-        .step.completed + .step-line {
-            background: #10b981;
-        }
-        .requirement-card {
-            background: #f9fafb;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .requirement-card h5 {
-            color: #374151;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-        }
-        .requirement-card h5 i {
-            margin-right: 10px;
-            color: #4f46e5;
-        }
-        .requirement-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        .requirement-item:last-child {
-            border-bottom: none;
-        }
-        .status-badge {
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-        .status-success {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        .status-error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        .btn-install {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            border: none;
-            padding: 12px 35px;
-            font-size: 1rem;
-            border-radius: 10px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .btn-install:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
-        }
-        .btn-install:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .btn-back {
-            background: #f3f4f6;
-            color: #374151;
-            border: none;
-            padding: 12px 35px;
-            font-size: 1rem;
-            border-radius: 10px;
-        }
-        .btn-back:hover {
-            background: #e5e7eb;
-        }
-        .version-info {
-            font-size: 0.85rem;
-            color: #6b7280;
-        }
+        body{background:#0a0b0d;font-family:'Inter',system-ui,sans-serif}
+        .anim-up{animation:up .45s ease-out}
+        @keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        .step-dot{width:8px;height:8px;border-radius:50%;background:#2a2c32;flex-shrink:0}
+        .step-dot.active{background:#6366f1;box-shadow:0 0 10px rgba(99,102,241,.4)}
+        .step-dot.done{background:#4b5563}
+        .step-line{width:22px;height:1px;background:#2a2c32;flex-shrink:0}
+        .step-line.fill{background:#4b5563}
     </style>
 </head>
-<body>
-    <div class="install-container">
-        <div class="install-header">
-            <h1><i class="bi bi-server me-2"></i>Server Requirements</h1>
-            <p>Checking your server configuration</p>
+<body style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#0a0b0d;font-family:'Inter',system-ui,sans-serif">
+@php $all=true;foreach($requirements['extensions'] as $e)if(!$e)$all=false;foreach($requirements['permissions'] as $p)if(!$p)$all=false;if(!$requirements['php']['status'])$all=false; @endphp
+<div style="width:100%;max-width:720px;background:#111215;border:1px solid #22242a;border-radius:20px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);animation:up .45s ease-out">
+    <div style="text-align:center;padding:48px 48px 0">
+        <h1 style="color:#f0f1f3;font-size:22px;font-weight:600;margin-bottom:4px">Server Requirements</h1>
+        <p style="color:#9ca3af;font-size:16px">Checking your server configuration</p>
+    </div>
+    <div style="padding:28px 48px 40px">
+        <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:20px">
+            <div class="step-dot done"></div><div class="step-line fill"></div>
+            <div class="step-dot active"></div><div class="step-line"></div>
+            <div class="step-dot"></div><div class="step-line"></div>
+            <div class="step-dot"></div><div class="step-line"></div>
+            <div class="step-dot"></div><div class="step-line"></div>
+            <div class="step-dot"></div>
         </div>
-        
-        <div class="install-body">
-            <!-- Step Indicator -->
-            <div class="step-indicator">
-                <div class="step completed">
-                    <span class="step-number"><i class="bi bi-check"></i></span>
-                    <span>Welcome</span>
-                </div>
-                <div class="step-line"></div>
-                <div class="step active">
-                    <span class="step-number">2</span>
-                    <span>Requirements</span>
-                </div>
-                <div class="step-line"></div>
-                <div class="step">
-                    <span class="step-number">3</span>
-                    <span>Database</span>
-                </div>
-                <div class="step-line"></div>
-                <div class="step">
-                    <span class="step-number">4</span>
-                    <span>Configure</span>
-                </div>
-                <div class="step-line"></div>
-                <div class="step">
-                    <span class="step-number">5</span>
-                    <span>Theme</span>
-                </div>
-                <div class="step-line"></div>
-                <div class="step">
-                    <span class="step-number">6</span>
-                    <span>Payment</span>
-                </div>
-            </div>
+        <p style="text-align:center;font-size:15px;color:#9ca3af;margin-bottom:24px">Step <strong style="color:#e5e7eb">2</strong> of <strong style="color:#e5e7eb">6</strong> · Requirements</p>
 
-            @php
-                $allPassed = true;
-                foreach ($requirements['extensions'] as $ext) {
-                    if (!$ext) $allPassed = false;
-                }
-                foreach ($requirements['permissions'] as $perm) {
-                    if (!$perm) $allPassed = false;
-                }
-            @endphp
-
-            <!-- PHP Version -->
-            <div class="requirement-card">
-                <h5><i class="bi bi-code-square"></i>PHP Version</h5>
-                <div class="requirement-item">
-                    <span>
-                        PHP Version
-                        <span class="version-info">(Required: {{ $requirements['php']['version'] }}+)</span>
-                    </span>
-                    @if($requirements['php']['status'])
-                        <span class="status-badge status-success">
-                            <i class="bi bi-check-circle me-1"></i>{{ $requirements['php']['current'] }}
-                        </span>
-                    @else
-                        <span class="status-badge status-error">
-                            <i class="bi bi-x-circle me-1"></i>{{ $requirements['php']['current'] }}
-                        </span>
-                        @php $allPassed = false; @endphp
-                    @endif
-                </div>
+        <div style="background:#181a1f;border:1px solid #22242a;border-radius:12px;padding:16px;margin-bottom:12px">
+            <h4 style="color:#9ca3af;font-size:14px;font-weight:600;margin-bottom:8px">PHP Version</h4>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03)">
+                <span style="color:#d1d5db;font-size:14px">PHP Version <span style="color:#4b5563;font-weight:400;margin-left:4px">(Req: {{ $requirements['php']['version'] }}+)</span></span>
+                @if($requirements['php']['status'])<span style="background:rgba(16,185,129,.1);color:#6ee7b7;font-size:12px;font-weight:500;padding:2px 10px;border-radius:20px">{{ $requirements['php']['current'] }}</span>@else<span style="background:rgba(239,68,68,.1);color:#fca5a5;font-size:12px;font-weight:500;padding:2px 10px;border-radius:20px">{{ $requirements['php']['current'] }}</span>@endif
             </div>
+        </div>
 
-            <!-- PHP Extensions -->
-            <div class="requirement-card">
-                <h5><i class="bi bi-puzzle"></i>PHP Extensions</h5>
-                @foreach($requirements['extensions'] as $ext => $status)
-                    <div class="requirement-item">
-                        <span>{{ strtoupper($ext) }}</span>
-                        @if($status)
-                            <span class="status-badge status-success">
-                                <i class="bi bi-check-circle me-1"></i>Enabled
-                            </span>
-                        @else
-                            <span class="status-badge status-error">
-                                <i class="bi bi-x-circle me-1"></i>Required
-                            </span>
-                            @php $allPassed = false; @endphp
-                        @endif
-                    </div>
-                @endforeach
+        <div style="background:#181a1f;border:1px solid #22242a;border-radius:12px;padding:16px;margin-bottom:12px">
+            <h4 style="color:#9ca3af;font-size:14px;font-weight:600;margin-bottom:8px">PHP Extensions</h4>
+            @foreach($requirements['extensions'] as $ext=>$s)
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03);last:border-0">
+                <span style="color:#d1d5db;font-size:14px">{{ strtoupper($ext) }}</span>
+                @if($s)<span style="background:rgba(16,185,129,.1);color:#6ee7b7;font-size:12px;font-weight:500;padding:2px 10px;border-radius:20px">Enabled</span>@else<span style="background:rgba(239,68,68,.1);color:#fca5a5;font-size:12px;font-weight:500;padding:2px 10px;border-radius:20px">Missing</span>@endif
             </div>
+            @endforeach
+        </div>
 
-            <!-- File Permissions -->
-            <div class="requirement-card">
-                <h5><i class="bi bi-folder2-open"></i>File Permissions</h5>
-                @foreach($requirements['permissions'] as $path => $writable)
-                    <div class="requirement-item">
-                        <span>
-                            <i class="bi bi-folder text-warning me-2"></i>
-                            {{ $path }}
-                        </span>
-                        @if($writable)
-                            <span class="status-badge status-success">
-                                <i class="bi bi-check-circle me-1"></i>Writable
-                            </span>
-                        @else
-                            <span class="status-badge status-error">
-                                <i class="bi bi-x-circle me-1"></i>Not Writable
-                            </span>
-                            @php $allPassed = false; @endphp
-                        @endif
-                    </div>
-                @endforeach
+        <div style="background:#181a1f;border:1px solid #22242a;border-radius:12px;padding:16px;margin-bottom:12px">
+            <h4 style="color:#9ca3af;font-size:14px;font-weight:600;margin-bottom:8px">File Permissions</h4>
+            @foreach($requirements['permissions'] as $path=>$w)
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03)">
+                <span style="color:#d1d5db;font-size:14px">{{ $path }}</span>
+                @if($w)<span style="background:rgba(16,185,129,.1);color:#6ee7b7;font-size:12px;font-weight:500;padding:2px 10px;border-radius:20px">Writable</span>@else<span style="background:rgba(239,68,68,.1);color:#fca5a5;font-size:12px;font-weight:500;padding:2px 10px;border-radius:20px">Not Writable</span>@endif
             </div>
+            @endforeach
+        </div>
 
-            <div class="d-flex justify-content-between mt-4">
-                <a href="{{ route('install.welcome') }}" class="btn btn-back">
-                    <i class="bi bi-arrow-left me-2"></i>Back
-                </a>
-                @if($allPassed)
-                    <a href="{{ route('install.database') }}" class="btn btn-primary btn-install">
-                        Continue <i class="bi bi-arrow-right ms-2"></i>
-                    </a>
-                @else
-                    <button class="btn btn-primary btn-install" disabled>
-                        <i class="bi bi-exclamation-triangle me-2"></i>Fix Issues First
-                    </button>
-                @endif
-            </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:20px;border-top:1px solid #22242a">
+            <a href="{{ route('install.welcome') }}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:#1e2025;color:#9ca3af;border:1px solid #22242a;border-radius:12px;text-decoration:none;font-size:14px;font-weight:500">← Back</a>
+            @if($all)<a href="{{ route('install.database') }}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:#6366f1;color:#fff;border-radius:12px;text-decoration:none;font-size:14px;font-weight:500;box-shadow:0 4px 16px rgba(99,102,241,.3)">Continue →</a>@else<button style="padding:12px 28px;background:rgba(99,102,241,.5);color:rgba(255,255,255,.5);border:none;border-radius:12px;font-size:14px;font-weight:500;cursor:not-allowed">Fix Issues First</button>@endif
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</div>
 </body>
 </html>

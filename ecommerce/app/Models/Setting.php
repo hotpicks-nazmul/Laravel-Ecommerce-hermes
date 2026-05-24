@@ -16,6 +16,10 @@ class Setting extends Model
         'type',
     ];
 
+    protected $casts = [
+        'updated_at' => 'datetime',
+    ];
+
     public $timestamps = false;
 
     public static function get($key, $default = null)

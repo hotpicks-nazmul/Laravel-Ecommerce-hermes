@@ -47,7 +47,7 @@ class CurrencyServiceProvider extends ServiceProvider
             // Set config values
             config(['app.currency' => $currencyCode]);
             config(['app.currency_symbol' => $currencySymbol]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // Fallback to defaults if something goes wrong
             config(['app.currency' => 'USD']);
             config(['app.currency_symbol' => '$']);

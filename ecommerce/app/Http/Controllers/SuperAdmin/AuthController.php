@@ -47,22 +47,32 @@ class AuthController extends Controller
                 ])->onlyInput('email');
             }
 
-            // ✅ Password is correct — send 2FA code
-            $code = LoginCode::generateFor($user->email);
+            // ✅ Password is correct — check if 2FA is enabled
+            $twoFactorEnabled = \Illuminate\Support\Facades\DB::table('settings')
+                ->where('key', 'two_factor_auth')
+                ->value('value');
 
-            try {
-                $user->notify(new AdminLoginCode($code));
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::warning('Super Admin 2FA email failed: ' . $e->getMessage());
+            if ($twoFactorEnabled === '1') {
+                // Send 2FA code
+                $code = LoginCode::generateFor($user->email);
+
+                try {
+                    $user->notify(new AdminLoginCode($code));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning('Super Admin 2FA email failed: ' . $e->getMessage());
+                }
+
+                // Store in session for 2FA verification
+                $request->session()->put('2fa_user_id', $user->id);
+                $request->session()->put('2fa_email', $user->email);
+
+                Auth::logout();
+
+                return redirect()->route('super-admin.verify-2fa');
             }
 
-            // Store in session for 2FA verification
-            $request->session()->put('2fa_user_id', $user->id);
-            $request->session()->put('2fa_email', $user->email);
-
-            Auth::logout();
-
-            return redirect()->route('super-admin.verify-2fa');
+            // 2FA disabled — log in directly
+            return redirect()->intended(route('super-admin.dashboard'));
         }
 
         // Log failed attempt
