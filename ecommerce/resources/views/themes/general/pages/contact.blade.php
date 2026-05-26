@@ -14,6 +14,11 @@
 }
 .contact-hero .container {
     max-width: 1320px;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
 }
 .contact-hero::before {
     content: '';
@@ -137,6 +142,7 @@
 }
 
 /* Ensure Bootstrap container is properly centered */
+.contact-hero > .container,
 .contact-section > .container,
 .hours-section > .container,
 .newsletter-section > .container {
