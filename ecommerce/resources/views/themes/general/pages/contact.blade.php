@@ -751,7 +751,86 @@
     box-shadow: 0 8px 25px rgba(0,0,0,0.2);
 }
 
-/* Responsive Adjustments */
+/* Modern Toast Notification */
+.newsletter-toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 14px 18px;
+    max-width: 480px;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid rgba(255,255,255,0.5);
+}
+.newsletter-toast.toast-success {
+    background: rgba(255,255,255,0.95);
+    border-left: 4px solid #10b981;
+}
+.newsletter-toast.toast-info {
+    background: rgba(255,255,255,0.95);
+    border-left: 4px solid #3b82f6;
+}
+.newsletter-toast .toast-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+}
+.newsletter-toast.toast-success .toast-icon {
+    background: #d1fae5;
+    color: #059669;
+}
+.newsletter-toast.toast-info .toast-icon {
+    background: #dbeafe;
+    color: #2563eb;
+}
+.newsletter-toast .toast-message {
+    flex: 1;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #1f2937;
+    line-height: 1.4;
+}
+.newsletter-toast .toast-close {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+.newsletter-toast .toast-close:hover {
+    color: #4b5563;
+}
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+.newsletter-toast.toast-hide {
+    animation: toastFadeOut 0.3s ease forwards;
+}
+@keyframes toastFadeOut {
+    to {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.96);
+    }
+}
 @media (max-width: 767px) {
     .contact-hero {
         padding: 80px 0 100px;
@@ -1039,7 +1118,13 @@
                     <h5><i class="bi bi-envelope-paper-heart me-2"></i>Subscribe to Our Newsletter</h5>
                     <p>Get updates on new products, special offers, and exclusive discounts delivered to your inbox.</p>
 
-                    <div id="newsletterAlert" class="mb-3" style="display:none;"></div>
+                    <div id="newsletterToast" class="newsletter-toast" style="display:none;">
+                        <div class="toast-icon" id="toastIcon">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <span class="toast-message" id="toastMessage"></span>
+                        <button class="toast-close" onclick="dismissToast()">&times;</button>
+                    </div>
 
                     <form class="newsletter-form" action="{{ route('newsletter.subscribe') }}" method="POST" id="contactNewsletterForm">
                         @csrf
@@ -1080,10 +1165,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Newsletter AJAX subscribe
     const newsletterForm = document.getElementById('contactNewsletterForm');
-    const newsletterAlert = document.getElementById('newsletterAlert');
+    const newsletterToast = document.getElementById('newsletterToast');
+    const toastMessage = document.getElementById('toastMessage');
+    const toastIcon = document.getElementById('toastIcon');
+    let toastTimer = null;
+
+    function dismissToast() {
+        if (!newsletterToast) return;
+        newsletterToast.classList.add('toast-hide');
+        setTimeout(() => {
+            newsletterToast.style.display = 'none';
+            newsletterToast.classList.remove('toast-hide');
+        }, 300);
+    }
+
+    function showToast(type, message) {
+        newsletterToast.className = 'newsletter-toast toast-' + type;
+        newsletterToast.style.display = 'flex';
+        toastMessage.textContent = message;
+        const iconMap = { success: 'check-circle-fill', info: 'info-circle-fill' };
+        toastIcon.innerHTML = '<i class="bi bi-' + iconMap[type] + '"></i>';
+        
+        // Reset any existing hide animation
+        newsletterToast.classList.remove('toast-hide');
+        
+        // Auto-dismiss after 4 seconds
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(dismissToast, 4000);
+    }
+
     if (newsletterForm) {
         newsletterForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            if (toastTimer) clearTimeout(toastTimer);
 
             const formData = new FormData(this);
             const btn = this.querySelector('button[type="submit"]');
@@ -1091,29 +1205,21 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Subscribing...';
             btn.disabled = true;
 
-            // Remove previous alert
-            newsletterAlert.style.display = 'none';
-            newsletterAlert.className = 'mb-3';
-
             fetch(this.action, {
                 method: 'POST',
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
                 body: formData
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('Network error');
+                return res.json();
+            })
             .then(data => {
-                const alertClass = data.type === 'success' ? 'alert-success' : 'alert-info';
-                newsletterAlert.className = 'alert ' + alertClass + ' alert-dismissible fade show rounded-3 mb-3';
-                newsletterAlert.innerHTML = '<i class="bi bi-' + (data.type === 'success' ? 'check-circle-fill' : 'info-circle-fill') + ' me-2"></i>' + data.message +
-                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
-                newsletterAlert.style.display = 'block';
+                showToast(data.type, data.message);
                 this.querySelector('input[name="email"]').value = '';
             })
-            .catch(err => {
-                newsletterAlert.className = 'alert alert-danger alert-dismissible fade show rounded-3 mb-3';
-                newsletterAlert.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>Something went wrong. Please try again.' +
-                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
-                newsletterAlert.style.display = 'block';
+            .catch(() => {
+                showToast('info', 'Something went wrong. Please try again.');
             })
             .finally(() => {
                 btn.innerHTML = originalText;
