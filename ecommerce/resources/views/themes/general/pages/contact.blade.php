@@ -788,9 +788,9 @@
                             <i class="bi bi-telephone-fill"></i>
                         </div>
                         <h5>Call Us Directly</h5>
-                        <p class="fw-semibold">{{ $settings['contact_phone'] ?? '+880 1700-000000' }}</p>
+                        <p class="fw-semibold">{{ $settings['top_bar_phone'] ?? $settings['footer_phone'] ?? '+88 01766 66 44 88' }}</p>
                         <span class="info-subtitle"><i class="bi bi-clock"></i>Sat - Thu: 8AM - 10PM</span>
-                        <a href="tel:{{ $settings['contact_phone'] ?? '+8801700000000' }}" class="action-btn btn btn-outline-primary">
+                        <a href="tel:{{ $settings['top_bar_phone'] ?? $settings['footer_phone'] ?? '+8801766664488' }}" class="action-btn btn btn-outline-primary">
                             <i class="bi bi-telephone"></i>Call Now
                         </a>
                     </div>
@@ -801,9 +801,9 @@
                             <i class="bi bi-envelope-fill"></i>
                         </div>
                         <h5>Email Support</h5>
-                        <p class="fw-medium">{{ $settings['contact_email'] ?? 'info@halalfoodstore.com' }}</p>
+                        <p class="fw-medium">{{ $settings['top_bar_email'] ?? $settings['footer_email'] ?? 'hamkobazar@gmail.com' }}</p>
                         <span class="info-subtitle"><i class="bi bi-clock"></i>We reply within 24 hours</span>
-                        <a href="mailto:{{ $settings['contact_email'] ?? 'info@halalfoodstore.com' }}" class="action-btn btn btn-outline-warning">
+                        <a href="mailto:{{ $settings['top_bar_email'] ?? $settings['footer_email'] ?? 'hamkobazar@gmail.com' }}" class="action-btn btn btn-outline-warning">
                             <i class="bi bi-envelope"></i>Send Email
                         </a>
                     </div>
@@ -879,7 +879,7 @@
                 <div class="social-section">
                     <p>Or connect with us on social media</p>
                     <div class="social-links">
-                        <a href="#" class="facebook" title="Facebook">
+                        <a href="https://facebook.com/hamkobazar" class="facebook" title="Facebook" target="_blank">
                             <i class="bi bi-facebook"></i>
                         </a>
                         <a href="#" class="instagram" title="Instagram">
@@ -910,7 +910,7 @@
                     </iframe>
                 </div>
                 <div class="quick-actions">
-                    <a href="tel:{{ $settings['contact_phone'] ?? '+8801700000000' }}" class="quick-action-btn call">
+                    <a href="tel:{{ $settings['top_bar_phone'] ?? $settings['footer_phone'] ?? '+8801766664488' }}" class="quick-action-btn call">
                         <i class="bi bi-telephone-fill"></i>Call Now
                     </a>
                     <a href="https://maps.google.com" target="_blank" class="quick-action-btn directions">

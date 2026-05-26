@@ -24,7 +24,16 @@ class PageController extends Controller
      */
     public function contact()
     {
-        $settings = Setting::whereIn('key', ['contact_email', 'contact_phone', 'contact_address'])->pluck('value', 'key');
+        $settings = Setting::whereIn('key', [
+            'top_bar_phone', 'top_bar_email', 'footer_phone', 'footer_email',
+            'site_phone', 'site_email', 'contact_address'
+        ])->pluck('value', 'key');
+        
+        // Ensure contact_address has a fallback
+        if (!isset($settings['contact_address'])) {
+            $settings['contact_address'] = '123 Green Market Road, Dhaka-1205, Bangladesh';
+        }
+        
         return view('themes.general.pages.contact', compact('settings'));
     }
 
@@ -40,7 +49,7 @@ class PageController extends Controller
             'message' => 'required|string|max:2000',
         ]);
 
-        $contactEmail = Setting::where('key', 'contact_email')->value('value');
+        $contactEmail = Setting::whereIn('key', ['top_bar_email', 'footer_email', 'site_email'])->value('value');
 
         if ($contactEmail) {
             Mail::raw($request->message, function ($mail) use ($request, $contactEmail) {
