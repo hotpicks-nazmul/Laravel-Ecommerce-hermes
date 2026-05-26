@@ -272,7 +272,7 @@ $schema = [
 
                 <!-- Short description -->
                 @if($product->short_description)
-                <p class="mt-3 text-gray-600 text-sm leading-relaxed">{{ $product->short_description }}</p>
+                <p class="mt-3 text-gray-600 text-sm leading-relaxed">{!! format_product_description($product->short_description, false) !!}</p>
                 @endif
 
                 <!-- Stock + urgency -->
@@ -473,7 +473,7 @@ $schema = [
                 @if($product->long_description)
                 <div class="tab-pane {{ $defaultTab === 'desc' ? 'active' : '' }} py-6" id="tab-desc">
                     <div class="prose max-w-none text-gray-600 leading-relaxed">
-                        {!! nl2br(e($product->long_description)) !!}
+                        {!! format_product_description($product->long_description) !!}
                     </div>
                 </div>
                 @endif

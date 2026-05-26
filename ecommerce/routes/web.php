@@ -334,3 +334,38 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', \App\Http\M
 Route::get('/sitemap.xml', function () {
     return response()->file(storage_path('app/sitemap.xml'), ['Content-Type' => 'application/xml']);
 })->name('sitemap');
+
+// Run deploy command - hit this URL after uploading updated files
+Route::get('/run-deploy', function () {
+    $token = request('token');
+    if ($token !== 'hamko2026deploy') {
+        abort(403, 'Invalid token');
+    }
+    
+    $output = [];
+    
+    // Clear view cache
+    $output[] = '--- Clearing view cache ---';
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    $output[] = \Illuminate\Support\Facades\Artisan::output();
+    
+    // Run category generator
+    $output[] = '--- Generating 3rd-level categories ---';
+    \Illuminate\Support\Facades\Artisan::call('categories:generate-third-level');
+    $output[] = \Illuminate\Support\Facades\Artisan::output();
+    
+    // Generate short descriptions
+    $output[] = '--- Generating short descriptions ---';
+    \Illuminate\Support\Facades\Artisan::call('products:generate-short-descriptions', ['--force' => true]);
+    $output[] = \Illuminate\Support\Facades\Artisan::output();
+    
+    // Optimize
+    $output[] = '--- Optimizing ---';
+    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+    $output[] = \Illuminate\Support\Facades\Artisan::output();
+    \Illuminate\Support\Facades\Artisan::call('optimize');
+    $output[] = \Illuminate\Support\Facades\Artisan::output();
+    
+    $output[] = '--- Done ---';
+    return response('<pre>' . implode("\n", $output) . '</pre>', 200);
+})->name('run-deploy');
