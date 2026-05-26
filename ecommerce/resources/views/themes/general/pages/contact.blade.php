@@ -1038,6 +1038,20 @@
                 <div class="newsletter-content">
                     <h5><i class="bi bi-envelope-paper-heart me-2"></i>Subscribe to Our Newsletter</h5>
                     <p>Get updates on new products, special offers, and exclusive discounts delivered to your inbox.</p>
+
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show rounded-3 mb-3" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+                    @if(session('info'))
+                        <div class="alert alert-info alert-dismissible fade show rounded-3 mb-3" role="alert">
+                            <i class="bi bi-info-circle-fill me-2"></i>{{ session('info') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
                     <form class="newsletter-form" action="{{ route('newsletter.subscribe') }}" method="POST" id="contactNewsletterForm">
                         @csrf
                         <input type="email" name="email" placeholder="Enter your email address" required>
