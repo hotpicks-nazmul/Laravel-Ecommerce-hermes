@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Page;
 use App\Models\Faq;
 use App\Models\Setting;
+use App\Models\Subscriber;
 use Illuminate\Support\Facades\Mail;
 
 class PageController extends Controller
@@ -108,9 +109,24 @@ class PageController extends Controller
             'email' => 'required|email|max:255',
         ]);
 
-        // Store newsletter subscription in settings or a dedicated table
-        // For now, we'll just return a success message
-        // You can create a newsletter_subscribers table if needed
+        $email = $request->email;
+
+        // Check if already subscribed
+        $existing = Subscriber::where('email', $email)->first();
+
+        if ($existing) {
+            if ($existing->isUnsubscribed()) {
+                $existing->resubscribe();
+                return back()->with('success', 'Welcome back! You have been resubscribed to our newsletter.');
+            }
+            return back()->with('info', 'You are already subscribed to our newsletter.');
+        }
+
+        // Save new subscriber
+        Subscriber::create([
+            'email' => $email,
+            'status' => 'active',
+        ]);
 
         return back()->with('success', 'Thank you for subscribing to our newsletter!');
     }

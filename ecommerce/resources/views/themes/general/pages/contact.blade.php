@@ -883,6 +883,12 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
+                @if(session('info'))
+                    <div class="alert alert-info alert-dismissible fade show rounded-3 mb-4" role="alert">
+                        <i class="bi bi-info-circle-fill me-2"></i>{{ session('info') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
                 
                 <form action="{{ route('contact.send') }}" method="POST" id="contactForm">
                     @csrf
