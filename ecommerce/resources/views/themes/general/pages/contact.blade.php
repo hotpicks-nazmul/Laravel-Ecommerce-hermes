@@ -725,8 +725,13 @@
     max-width: 500px;
     margin: 0 auto;
 }
+.newsletter-form .newsletter-input-wrap {
+    flex: 1;
+    position: relative;
+}
 .newsletter-form input {
     flex: 1;
+    width: 100%;
     padding: 16px 20px;
     border: none;
     border-radius: 12px;
@@ -749,6 +754,26 @@
 .newsletter-form button:hover {
     transform: scale(1.05);
     box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+.newsletter-input-wrap .email-validation {
+    position: absolute;
+    bottom: -22px;
+    left: 4px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.newsletter-input-wrap .email-validation.valid {
+    color: #a7f3d0;
+}
+.newsletter-input-wrap .email-validation.invalid {
+    color: #fca5a5;
+}
+.newsletter-form {
+    position: relative;
 }
 
 /* Modern Toast Notification */
@@ -1128,7 +1153,10 @@
 
                     <form class="newsletter-form" action="{{ route('newsletter.subscribe') }}" method="POST" id="contactNewsletterForm">
                         @csrf
-                        <input type="email" name="email" placeholder="Enter your email address" required>
+                        <div class="newsletter-input-wrap">
+                            <input type="email" name="email" id="newsletterEmail" placeholder="Enter your email address" required>
+                            <div class="email-validation" id="emailValidation"></div>
+                        </div>
                         <button type="submit">Subscribe</button>
                     </form>
                 </div>
@@ -1179,6 +1207,108 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
     }
 
+    // Smart email validation
+    const emailInput = document.getElementById('newsletterEmail');
+    const emailValidation = document.getElementById('emailValidation');
+
+    const commonDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com', 'protonmail.com', 'aol.com', 'mail.com', 'yandex.com', 'zoho.com'];
+    const commonTypos = ['gmali.com', 'gmil.com', 'gnail.com', 'gmaiil.com', 'yaho.com', 'yahooo.com', 'hotmai.com', 'hotmal.com', 'outloo.com', 'outlok.com', 'gmail.co', 'gmail.con', 'yahoo.co', 'yahoo.con'];
+
+    function isValidEmail(email) {
+        // RFC 5322 simplified regex
+        return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/.test(email);
+    }
+
+    function validateEmailField() {
+        const email = emailInput.value.trim();
+        if (!email) {
+            emailValidation.className = 'email-validation';
+            emailValidation.innerHTML = '';
+            emailInput.style.borderColor = '';
+            return false;
+        }
+
+        // Basic format check
+        if (!email.includes('@')) {
+            emailValidation.className = 'email-validation invalid';
+            emailValidation.innerHTML = '<i class="bi bi-exclamation-circle"></i>Email must contain @';
+            emailInput.style.borderColor = '#fca5a5';
+            return false;
+        }
+
+        const parts = email.split('@');
+        if (parts.length > 2) {
+            emailValidation.className = 'email-validation invalid';
+            emailValidation.innerHTML = '<i class="bi bi-exclamation-circle"></i>Email can only contain one @';
+            emailInput.style.borderColor = '#fca5a5';
+            return false;
+        }
+
+        const local = parts[0];
+        const domain = parts[1];
+
+        if (!local || local.length < 1) {
+            emailValidation.className = 'email-validation invalid';
+            emailValidation.innerHTML = '<i class="bi bi-exclamation-circle"></i>Enter a username before @';
+            emailInput.style.borderColor = '#fca5a5';
+            return false;
+        }
+
+        if (!domain || !domain.includes('.')) {
+            emailValidation.className = 'email-validation invalid';
+            emailValidation.innerHTML = '<i class="bi bi-exclamation-circle"></i>Domain must have a TLD (.com, .org, etc.)';
+            emailInput.style.borderColor = '#fca5a5';
+            return false;
+        }
+
+        if (!isValidEmail(email)) {
+            emailValidation.className = 'email-validation invalid';
+            emailValidation.innerHTML = '<i class="bi bi-exclamation-circle"></i>Invalid email format';
+            emailInput.style.borderColor = '#fca5a5';
+            return false;
+        }
+
+        // Check for common typos
+        const domainLower = domain.toLowerCase();
+        const typoFound = commonTypos.find(t => domainLower === t);
+        if (typoFound) {
+            const correction = commonDomains.find(d => d.startsWith(typoFound.substring(0, 3)));
+            if (correction) {
+                emailValidation.className = 'email-validation invalid';
+                emailValidation.innerHTML = '<i class="bi bi-question-circle"></i>Did you mean @' + correction + '?';
+                emailInput.style.borderColor = '#fca5a5';
+                return false;
+            }
+        }
+
+        // Check for common domain suggestions
+        if (domainLower.split('.').length === 1) {
+            emailValidation.className = 'email-validation invalid';
+            emailValidation.innerHTML = '<i class="bi bi-exclamation-circle"></i>Domain must have a TLD (.com, .org, etc.)';
+            emailInput.style.borderColor = '#fca5a5';
+            return false;
+        }
+
+        const tld = domainLower.split('.').pop();
+        if (tld.length < 2) {
+            emailValidation.className = 'email-validation invalid';
+            emailValidation.innerHTML = '<i class="bi bi-exclamation-circle"></i>TLD must be at least 2 characters';
+            emailInput.style.borderColor = '#fca5a5';
+            return false;
+        }
+
+        // All good
+        emailValidation.className = 'email-validation valid';
+        emailValidation.innerHTML = '<i class="bi bi-check-circle"></i>Valid email';
+        emailInput.style.borderColor = '#a7f3d0';
+        return true;
+    }
+
+    if (emailInput) {
+        emailInput.addEventListener('input', validateEmailField);
+        emailInput.addEventListener('blur', validateEmailField);
+    }
+
     function showToast(type, message) {
         newsletterToast.className = 'newsletter-toast toast-' + type;
         newsletterToast.style.display = 'flex';
@@ -1198,6 +1328,12 @@ document.addEventListener('DOMContentLoaded', function() {
         newsletterForm.addEventListener('submit', function(e) {
             e.preventDefault();
             if (toastTimer) clearTimeout(toastTimer);
+
+            // Validate email before sending
+            if (!validateEmailField()) {
+                emailInput.focus();
+                return;
+            }
 
             const formData = new FormData(this);
             const btn = this.querySelector('button[type="submit"]');
