@@ -1039,18 +1039,7 @@
                     <h5><i class="bi bi-envelope-paper-heart me-2"></i>Subscribe to Our Newsletter</h5>
                     <p>Get updates on new products, special offers, and exclusive discounts delivered to your inbox.</p>
 
-                    @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show rounded-3 mb-3" role="alert">
-                            <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    @endif
-                    @if(session('info'))
-                        <div class="alert alert-info alert-dismissible fade show rounded-3 mb-3" role="alert">
-                            <i class="bi bi-info-circle-fill me-2"></i>{{ session('info') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    @endif
+                    <div id="newsletterAlert" class="mb-3" style="display:none;"></div>
 
                     <form class="newsletter-form" action="{{ route('newsletter.subscribe') }}" method="POST" id="contactNewsletterForm">
                         @csrf
@@ -1086,6 +1075,50 @@ document.addEventListener('DOMContentLoaded', function() {
             const btn = this.querySelector('.btn-submit');
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
             btn.disabled = true;
+        });
+    }
+
+    // Newsletter AJAX subscribe
+    const newsletterForm = document.getElementById('contactNewsletterForm');
+    const newsletterAlert = document.getElementById('newsletterAlert');
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const btn = this.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Subscribing...';
+            btn.disabled = true;
+
+            // Remove previous alert
+            newsletterAlert.style.display = 'none';
+            newsletterAlert.className = 'mb-3';
+
+            fetch(this.action, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                const alertClass = data.type === 'success' ? 'alert-success' : 'alert-info';
+                newsletterAlert.className = 'alert ' + alertClass + ' alert-dismissible fade show rounded-3 mb-3';
+                newsletterAlert.innerHTML = '<i class="bi bi-' + (data.type === 'success' ? 'check-circle-fill' : 'info-circle-fill') + ' me-2"></i>' + data.message +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                newsletterAlert.style.display = 'block';
+                this.querySelector('input[name="email"]').value = '';
+            })
+            .catch(err => {
+                newsletterAlert.className = 'alert alert-danger alert-dismissible fade show rounded-3 mb-3';
+                newsletterAlert.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>Something went wrong. Please try again.' +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                newsletterAlert.style.display = 'block';
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
         });
     }
 });

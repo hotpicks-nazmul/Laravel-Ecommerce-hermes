@@ -117,18 +117,27 @@ class PageController extends Controller
         if ($existing) {
             if ($existing->isUnsubscribed()) {
                 $existing->resubscribe();
-                return back()->with('success', 'Welcome back! You have been resubscribed to our newsletter.');
+                $message = 'Welcome back! You have been resubscribed to our newsletter.';
+                $type = 'success';
+            } else {
+                $message = 'You are already subscribed to our newsletter.';
+                $type = 'info';
             }
-            return back()->with('info', 'You are already subscribed to our newsletter.');
+        } else {
+            // Save new subscriber
+            Subscriber::create([
+                'email' => $email,
+                'status' => 'active',
+            ]);
+            $message = 'Thank you for subscribing to our newsletter!';
+            $type = 'success';
         }
 
-        // Save new subscriber
-        Subscriber::create([
-            'email' => $email,
-            'status' => 'active',
-        ]);
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['type' => $type, 'message' => $message]);
+        }
 
-        return back()->with('success', 'Thank you for subscribing to our newsletter!');
+        return back()->with($type, $message);
     }
 
     /**
