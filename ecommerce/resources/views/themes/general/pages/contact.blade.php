@@ -159,7 +159,28 @@
     border: 1px solid rgba(0,0,0,0.04);
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.info-card .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+.info-card .card-body p {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
+    margin-bottom: 8px;
+    min-height: 48px;
+}
+.info-card .action-btn {
+    margin-top: auto;
 }
 .info-card::before {
     content: '';
@@ -774,12 +795,14 @@
                         <div class="icon-wrapper bg-success bg-opacity-10 text-success">
                             <i class="bi bi-geo-alt-fill"></i>
                         </div>
-                        <h5>Visit Our Store</h5>
-                        <p class="fw-medium text-dark">{{ $settings['contact_address'] ?? '123 Green Market Road, Dhaka-1205, Bangladesh' }}</p>
-                        <span class="info-subtitle"><i class="bi bi-clock"></i>Open 7 days a week</span>
-                        <a href="https://maps.google.com" target="_blank" class="action-btn btn btn-outline-success">
-                            <i class="bi bi-map"></i>Get Directions
-                        </a>
+                        <div class="card-body">
+                            <h5>Visit Our Store</h5>
+                            <p class="fw-medium text-dark">{{ $settings['contact_address'] ?? '123 Green Market Road, Dhaka-1205, Bangladesh' }}</p>
+                            <span class="info-subtitle"><i class="bi bi-clock"></i>Open 7 days a week</span>
+                            <a href="https://maps.google.com" target="_blank" class="action-btn btn btn-outline-success">
+                                <i class="bi bi-map"></i>Get Directions
+                            </a>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
@@ -787,12 +810,14 @@
                         <div class="icon-wrapper bg-primary bg-opacity-10 text-primary">
                             <i class="bi bi-telephone-fill"></i>
                         </div>
-                        <h5>Call Us Directly</h5>
-                        <p class="fw-semibold">{{ $settings['top_bar_phone'] ?? $settings['footer_phone'] ?? '+88 01766 66 44 88' }}</p>
-                        <span class="info-subtitle"><i class="bi bi-clock"></i>Sat - Thu: 8AM - 10PM</span>
-                        <a href="tel:{{ $settings['top_bar_phone'] ?? $settings['footer_phone'] ?? '+8801766664488' }}" class="action-btn btn btn-outline-primary">
-                            <i class="bi bi-telephone"></i>Call Now
-                        </a>
+                        <div class="card-body">
+                            <h5>Call Us Directly</h5>
+                            <p class="fw-semibold">{{ $settings['top_bar_phone'] ?? $settings['footer_phone'] ?? '+88 01766 66 44 88' }}</p>
+                            <span class="info-subtitle"><i class="bi bi-clock"></i>Sat - Thu: 8AM - 10PM</span>
+                            <a href="tel:{{ $settings['top_bar_phone'] ?? $settings['footer_phone'] ?? '+8801766664488' }}" class="action-btn btn btn-outline-primary">
+                                <i class="bi bi-telephone"></i>Call Now
+                            </a>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
@@ -800,12 +825,14 @@
                         <div class="icon-wrapper bg-warning bg-opacity-10 text-warning">
                             <i class="bi bi-envelope-fill"></i>
                         </div>
-                        <h5>Email Support</h5>
-                        <p class="fw-medium">{{ $settings['top_bar_email'] ?? $settings['footer_email'] ?? 'hamkobazar@gmail.com' }}</p>
-                        <span class="info-subtitle"><i class="bi bi-clock"></i>We reply within 24 hours</span>
-                        <a href="mailto:{{ $settings['top_bar_email'] ?? $settings['footer_email'] ?? 'hamkobazar@gmail.com' }}" class="action-btn btn btn-outline-warning">
-                            <i class="bi bi-envelope"></i>Send Email
-                        </a>
+                        <div class="card-body">
+                            <h5>Email Support</h5>
+                            <p class="fw-medium">{{ $settings['top_bar_email'] ?? $settings['footer_email'] ?? 'hamkobazar@gmail.com' }}</p>
+                            <span class="info-subtitle"><i class="bi bi-clock"></i>We reply within 24 hours</span>
+                            <a href="mailto:{{ $settings['top_bar_email'] ?? $settings['footer_email'] ?? 'hamkobazar@gmail.com' }}" class="action-btn btn btn-outline-warning">
+                                <i class="bi bi-envelope"></i>Send Email
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
