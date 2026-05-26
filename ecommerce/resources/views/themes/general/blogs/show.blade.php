@@ -71,6 +71,8 @@
     padding: 10px 14px;
     font-size: 14px;
     transition: border-color 0.3s;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .sidebar-search .search-input:focus {
@@ -704,7 +706,7 @@
                         <span class="count">{{ \Cache::remember('blog_published_count', 3600, function() { return \App\Models\Blog::published()->count(); }) }}</span>
                     </a>
                 </li>
-                @foreach(\App\Models\Category::where('status', 'active')->get() as $category)
+                @foreach(\App\Models\Category::whereNull('parent_id')->where('status', 'active')->orderBy('name')->get() as $category)
                     <li>
                         <a href="{{ route('blogs.index', ['category' => $category->slug]) }}" 
                            class="{{ $blog->category && $blog->category->slug == $category->slug ? 'active' : '' }}">

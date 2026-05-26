@@ -71,6 +71,8 @@
     padding: 10px 14px;
     font-size: 14px;
     transition: border-color 0.3s;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .sidebar-search .search-input:focus {
