@@ -149,9 +149,33 @@
     max-width: 1320px !important;
     margin-left: auto !important;
     margin-right: auto !important;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    width: 100%;
 }
 
 /* Info Cards */
+.info-cards-wrapper .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+.info-cards-wrapper .row > [class*="col-"] {
+    flex: 0 0 calc(33.333% - 1.35rem);
+    max-width: calc(33.333% - 1.35rem);
+}
+@media (max-width: 991px) {
+    .info-cards-wrapper .row > [class*="col-"] {
+        flex: 0 0 calc(50% - 1rem);
+        max-width: calc(50% - 1rem);
+    }
+}
+@media (max-width: 767px) {
+    .info-cards-wrapper .row > [class*="col-"] {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
 .info-cards-wrapper {
     margin-bottom: 50px;
 }
@@ -795,7 +819,7 @@
     <div class="container">
         <!-- Info Cards -->
         <div class="info-cards-wrapper">
-            <div class="row g-4">
+            <div class="row">
                 <div class="col-lg-4 col-md-6">
                     <div class="info-card">
                         <div class="icon-wrapper bg-success bg-opacity-10 text-success">
