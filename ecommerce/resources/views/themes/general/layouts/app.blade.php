@@ -338,7 +338,7 @@
         // Add to Wishlist function
         function addToWishlist(productId) {
             $.ajax({
-                url: '{{ route("wishlist.toggle") }}',
+                url: '/api/wishlist/toggle',
                 method: 'POST',
                 data: {
                     _token: '{{ csrf_token() }}',
@@ -403,6 +403,8 @@
             };
         });
     </script>
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     @stack('scripts')
 </body>
